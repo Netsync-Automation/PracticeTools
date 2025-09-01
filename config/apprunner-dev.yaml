@@ -1,0 +1,39 @@
+version: 1.0
+runtime: nodejs18
+build:
+  commands:
+    build:
+      - echo "Building Practice Tools for development environment"
+      - npm ci
+      - npm run build
+run:
+  runtime-version: 18
+  command: npm start
+  network:
+    port: 3000
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: "production"
+    - name: ENVIRONMENT
+      value: "dev"
+    - name: AWS_DEFAULT_REGION
+      value: "us-east-1"
+    - name: DEFAULT_TIMEZONE
+      value: "America/Chicago"
+    - name: DEFAULT_ADMIN_EMAIL
+      value-from-parameter-store: "/PracticeTools/dev/DEFAULT_ADMIN_EMAIL"
+    - name: DEFAULT_ADMIN_PASSWORD
+      value-from-parameter-store: "/PracticeTools/dev/DEFAULT_ADMIN_PASSWORD"
+    - name: DEFAULT_ADMIN_NAME
+      value-from-parameter-store: "/PracticeTools/dev/DEFAULT_ADMIN_NAME"
+    - name: WEBEX_ACCESS_TOKEN
+      value-from-parameter-store: "/PracticeTools/dev/WEBEX_ACCESS_TOKEN"
+    - name: WEBEX_ROOM_ID
+      value-from-parameter-store: "/PracticeTools/dev/WEBEX_ROOM_ID"
+    - name: WEBEX_ROOM_NAME
+      value-from-parameter-store: "/PracticeTools/dev/WEBEX_ROOM_NAME"
+    - name: ADMIN_API_KEY
+      value-from-parameter-store: "/PracticeTools/dev/ADMIN_API_KEY"
+    - name: CSRF_SECRET
+      value-from-parameter-store: "/PracticeTools/dev/CSRF_SECRET"
