@@ -1,0 +1,12 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Force specific files to use LF line endings
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.js text eol=lf
+*.md text eol=lf
+
+# Ensure Windows files use CRLF
+*.bat text eol=crlf
