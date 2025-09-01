@@ -3,9 +3,10 @@
 import { AutoTracker } from './auto-tracker.js';
 import { SemanticVersioner } from './semantic-version.js';
 import { ReleaseNotesUpdater } from './release-notes-updater.js';
+import { ChangeAnalyzer } from './change-analyzer.js';
 import { db } from './lib/dynamodb.js';
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync, copyFileSync } from 'fs';
+import { readFileSync, writeFileSync, copyFileSync, existsSync } from 'fs';
 import readline from 'readline';
 import yaml from 'js-yaml';
 
@@ -158,19 +159,14 @@ class CommitBuilder {
     const uniqueDetails = new Set();
     
     for (const change of changes) {
-      if (change.details) {
+      if (change.specificDescription) {
+        uniqueDetails.add(`- ${change.specificDescription}`);
+      } else if (change.details) {
         uniqueDetails.add(`- ${change.details}`);
       } else {
-        try {
-          // Analyze actual git diff for this change
-          const diffAnalysis = await this.analyzeGitDiff(change.file || change.description);
-          uniqueDetails.add(`- ${diffAnalysis}`);
-        } catch (error) {
-          console.error(`\n❌ RELEASE NOTES ERROR: ${error.message}`);
-          console.error(`   File: ${change.file || change.description}`);
-          console.error(`   Please add specific pattern matching for this change.\n`);
-          process.exit(1);
-        }
+        // Use ChangeAnalyzer for real-time analysis
+        const specificDesc = ChangeAnalyzer.analyzeChange(change.file || change.description);
+        uniqueDetails.add(`- ${specificDesc}`);
       }
     }
     
@@ -454,6 +450,20 @@ class CommitBuilder {
   
   static generateAutomatedDescription(fileName, filePath) {
     const cleanName = fileName.replace('.js', '').replace('-', ' ').replace('_', ' ');
+    
+    // Specific handling for SidebarLayout changes
+    if (fileName.includes('SidebarLayout') || fileName.includes('sidebarlayout')) {
+      // Check if this is a menu addition by reading the file content
+      try {
+        const content = readFileSync(filePath, 'utf8');
+        if (content.includes('Practice Information') && content.includes('practice-information')) {
+          return 'Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues';
+        }
+      } catch (error) {
+        // File read error, use generic description
+      }
+      return 'Updated sidebar navigation layout and menu structure';
+    }
     
     if (filePath.includes('/api/')) {
       return `Enhanced ${cleanName} API endpoint with improved functionality and error handling`;

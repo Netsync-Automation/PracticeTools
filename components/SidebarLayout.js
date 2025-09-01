@@ -12,10 +12,18 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   PlusIcon,
-  MinusIcon
+  MinusIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 
 const menuItems = [
+  {
+    id: 'practice-information',
+    name: 'Practice Information',
+    href: '/practice-information',
+    icon: InformationCircleIcon,
+    description: 'View practice details and information'
+  },
   {
     id: 'practice-issues',
     name: 'Practice Issues',

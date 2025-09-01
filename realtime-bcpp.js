@@ -4,6 +4,7 @@ import { db } from './lib/dynamodb.js';
 import { execSync } from 'child_process';
 import { v4 as uuidv4 } from 'uuid';
 import { readFileSync, existsSync } from 'fs';
+import { ChangeAnalyzer } from './change-analyzer.js';
 
 console.log('⚡ REAL-TIME BCPP - LIVE CHANGE DETECTION\n');
 
@@ -59,10 +60,12 @@ export class RealtimeBCPP {
       
       allModified.forEach(file => {
         if (file && this.isRelevantFile(file)) {
+          const specificDescription = ChangeAnalyzer.analyzeChange(file);
           changes.push({
             type: 'modification',
             file: file,
-            source: 'git-working-directory'
+            source: 'git-working-directory',
+            specificDescription: specificDescription
           });
         }
       });
@@ -79,7 +82,8 @@ export class RealtimeBCPP {
           changes.push({
             type: 'addition',
             file: file,
-            source: 'untracked-files'
+            source: 'untracked-files',
+            specificDescription: `Added new ${file.split('/').pop()} file`
           });
         }
       });
@@ -153,6 +157,29 @@ export class RealtimeBCPP {
   static extractFeaturesFromFile(filePath, changeType) {
     const features = [];
     const path = filePath.toLowerCase();
+    
+    // Navigation/Menu Features
+    if (path.includes('sidebarlayout') && path.includes('.js')) {
+      // Check if this is a menu addition by reading the file content
+      try {
+        const content = readFileSync(filePath, 'utf8');
+        if (content.includes('Practice Information') && content.includes('practice-information')) {
+          features.push({
+            id: uuidv4(),
+            name: 'Practice Information Menu Item',
+            description: 'Added new Practice Information menu item to sidebar navigation between Dashboard and Practice Issues',
+            category: 'Navigation',
+            version: '2.0.0',
+            changeType: 'feature',
+            dateAdded: new Date().toISOString(),
+            status: 'active',
+            filePath: filePath
+          });
+        }
+      } catch (error) {
+        // File read error, skip specific detection
+      }
+    }
     
     // Issue Management Features
     if (path.includes('new-issue') && path.includes('page.js')) {

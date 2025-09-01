@@ -1,4 +1,5 @@
 import { ChangeTracker } from './change-tracker.js';
+import { ChangeAnalyzer } from './change-analyzer.js';
 import { execSync } from 'child_process';
 import { readFileSync, existsSync } from 'fs';
 import { SemVerStandards } from './semver-compliance.js';
@@ -11,10 +12,15 @@ export class AutoTracker {
 
     modifiedFiles.forEach(file => {
       const changeType = this.determineChangeType(file);
-      const description = this.generateDescription(file, changeType);
+      const specificDescription = ChangeAnalyzer.analyzeChange(file);
       
-      if (description) {
-        changes.push({ type: changeType, description, file });
+      if (specificDescription) {
+        changes.push({ 
+          type: changeType, 
+          description: specificDescription, 
+          specificDescription: specificDescription,
+          file 
+        });
       }
     });
 
