@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
+import SidebarLayout from '../../components/SidebarLayout';
 import Breadcrumb from '../../components/Breadcrumb';
 import { MagnifyingGlassIcon, ChevronRightIcon, QuestionMarkCircleIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
@@ -142,7 +143,8 @@ export default function HelpPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar user={user} onLogout={logout} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <SidebarLayout user={user}>
+        <div className="p-8">
         <Breadcrumb items={[{ label: 'Help Center' }]} />
         
         {/* Header */}
@@ -311,7 +313,8 @@ export default function HelpPage() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </SidebarLayout>
     </div>
   );
 }

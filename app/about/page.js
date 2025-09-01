@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
+import SidebarLayout from '../../components/SidebarLayout';
 import Breadcrumb from '../../components/Breadcrumb';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -36,7 +37,8 @@ export default function AboutPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar user={user} onLogout={logout} />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <SidebarLayout user={user}>
+        <div className="p-8">
         <Breadcrumb items={[
           { label: 'About' }
         ]} />
@@ -338,7 +340,8 @@ export default function AboutPage() {
             </section>
           </div>
         </div>
-      </div>
+        </div>
+      </SidebarLayout>
     </div>
   );
 }
