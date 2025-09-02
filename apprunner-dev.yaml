@@ -27,12 +27,6 @@ run:
 
     - name: NEXTAUTH_URL
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/NEXTAUTH_URL
-    - name: WEBEX_SCOOP_ACCESS_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_SCOOP_ACCESS_TOKEN
-    - name: WEBEX_SCOOP_ROOM_ID_1
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_SCOOP_ROOM_ID_1
-    - name: WEBEX_SCOOP_ROOM_NAME
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_SCOOP_ROOM_NAME
     - name: ADMIN_API_KEY
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/ADMIN_API_KEY
     - name: DEFAULT_ADMIN_EMAIL
@@ -65,12 +59,6 @@ run:
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/SMTP_PW
     - name: SMTP_PORT
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/SMTP_PORT
-    - name: WEBEX_COLLABORATION_ACCESS_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_COLLABORATION_ACCESS_TOKEN
-    - name: WEBEX_COLLABORATION_ROOM_ID_1
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_COLLABORATION_ROOM_ID_1
-    - name: WEBEX_COLLABORATION_ROOM_NAME
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_COLLABORATION_ROOM_NAME
     - name: WEBEX_AUDIO_VISUAL_ACCESS_TOKEN
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_AUDIO_VISUAL_ACCESS_TOKEN
     - name: WEBEX_AUDIO_VISUAL_ROOM_ID_1
