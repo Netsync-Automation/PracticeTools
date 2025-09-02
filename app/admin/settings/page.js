@@ -231,65 +231,74 @@ export default function SettingsPage() {
     if (user) {
       const loadData = async () => {
       // Load general settings
-      try {
-        const response = await fetch('/api/settings/general');
-        const data = await response.json();
-        setSettings(prev => ({
-          ...prev,
-          appName: data.appName || 'Issue Tracker',
-          loginLogo: data.loginLogo,
-          navbarLogo: data.navbarLogo
-        }));
-      } catch (error) {
-        console.error('Error loading general settings:', error);
+      if (activeTab === 'general') {
+        try {
+          const response = await fetch('/api/settings/general?t=' + Date.now());
+          const data = await response.json();
+          setSettings(prev => ({
+            ...prev,
+            appName: data.appName || 'Issue Tracker',
+            loginLogo: data.loginLogo,
+            navbarLogo: data.navbarLogo
+          }));
+        } catch (error) {
+          console.error('Error loading general settings:', error);
+        }
       }
       
       // Load email settings
-      try {
-        const response = await fetch('/api/settings/email');
-        const data = await response.json();
-        setSettings(prev => ({
-          ...prev,
-          emailNotifications: data.emailNotifications,
-          smtpHost: data.smtpHost,
-          smtpPort: data.smtpPort,
-          smtpUser: data.smtpUser,
-          smtpPassword: data.smtpPassword
-        }));
-      } catch (error) {
-        console.error('Error loading email settings:', error);
+      if (activeTab === 'email') {
+        try {
+          const response = await fetch('/api/settings/email?t=' + Date.now());
+          const data = await response.json();
+          setSettings(prev => ({
+            ...prev,
+            emailNotifications: data.emailNotifications,
+            smtpHost: data.smtpHost,
+            smtpPort: data.smtpPort,
+            smtpUser: data.smtpUser,
+            smtpPassword: data.smtpPassword
+          }));
+        } catch (error) {
+          console.error('Error loading email settings:', error);
+        }
       }
       
       // Load WebEx bots (practice-aware)
-      try {
-        const response = await fetch('/api/admin/webex-bots');
-        const data = await response.json();
-        setWebexBots(data.bots || []);
-      } catch (error) {
-        console.error('Error loading WebEx bots:', error);
+      if (activeTab === 'webex') {
+        try {
+          const response = await fetch('/api/admin/webex-bots?t=' + Date.now());
+          const data = await response.json();
+          setWebexBots(data.bots || []);
+        } catch (error) {
+          console.error('Error loading WebEx bots:', error);
+        }
       }
       
       // Load SSO settings
-      try {
-        const response = await fetch('/api/admin/sso-settings');
-        const data = await response.json();
-        if (data.settings) {
-          setSsoSettings({
-            ssoEnabled: data.settings.SSO_ENABLED === 'true' || false,
-            duoEntityId: data.settings.DUO_ENTITY_ID || '',
-            duoAcs: data.settings.DUO_ACS || '',
-            duoMetadata: data.settings.DUO_METADATA_FILE ? 'STORED_IN_SSM' : '',
-            duoCertificate: data.settings.DUO_CERT_FILE ? 'STORED_IN_SSM' : ''
-          });
+      if (activeTab === 'sso') {
+        try {
+          const response = await fetch('/api/admin/sso-settings?t=' + Date.now());
+          const data = await response.json();
+          if (data.settings) {
+            setSsoSettings({
+              ssoEnabled: data.settings.SSO_ENABLED === 'true' || false,
+              duoEntityId: data.settings.DUO_ENTITY_ID || '',
+              duoAcs: data.settings.DUO_ACS || '',
+              duoMetadata: data.settings.DUO_METADATA_FILE ? 'STORED_IN_SSM' : '',
+              duoCertificate: data.settings.DUO_CERT_FILE ? 'STORED_IN_SSM' : ''
+            });
+          }
+        } catch (error) {
+          console.error('Error loading SSO settings:', error);
         }
-      } catch (error) {
-        console.error('Error loading SSO settings:', error);
       }
       
       // Load users for user management tab
-      fetchUsers();
-      fetchWebexBotsForFilter();
-      
+      if (activeTab === 'users') {
+        fetchUsers();
+        fetchWebexBotsForFilter();
+      }
 
       };
       loadData();
@@ -1907,9 +1916,63 @@ export default function SettingsPage() {
                     >
                       Test Email
                     </button>
+                    
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/ews/test', { method: 'POST' });
+                          const data = await response.json();
+                          
+                          if (data.success) {
+                            alert(`EWS Connection Successful!\n\nFolder: ${data.folderName}\nTotal Items: ${data.totalItems}\n\n${data.message}`);
+                          } else {
+                            let errorMsg = `EWS Connection Failed:\n\n${data.error}`;
+                            if (data.diagnostics) {
+                              errorMsg += '\n\nTroubleshooting Steps:';
+                              data.diagnostics.suggestions.forEach((suggestion, i) => {
+                                errorMsg += `\n${i + 1}. ${suggestion}`;
+                              });
+                            }
+                            alert(errorMsg);
+                          }
+                        } catch (error) {
+                          alert('EWS test failed: Unable to connect');
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      Test EWS
+                    </button>
+                    
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/ews/raw-test', { method: 'POST' });
+                          const data = await response.json();
+                          
+                          if (data.success) {
+                            let msg = `Raw HTTP EWS Test Results:\n\nHost: ${data.host}\n\n`;
+                            data.results.forEach((result, i) => {
+                              msg += `${i + 1}. ${result.username}\n`;
+                              msg += `   Status: ${result.statusCode} ${result.success ? '✓ SUCCESS' : '✗ FAILED'}\n`;
+                              if (result.error) msg += `   Error: ${result.error}\n`;
+                              msg += '\n';
+                            });
+                            alert(msg);
+                          } else {
+                            alert(`Raw EWS Test Failed:\n\n${data.error}`);
+                          }
+                        } catch (error) {
+                          alert('Raw EWS test failed: Unable to connect');
+                        }
+                      }}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                    >
+                      Raw HTTP Test
+                    </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Send a test email to verify your SMTP configuration
+                    Test SMTP configuration and EWS (Exchange Web Services) connectivity
                   </p>
                 </div>
               </div>

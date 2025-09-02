@@ -8179,6 +8179,131 @@
         "lib/s3.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1756849979086,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-02T21:52:59.086Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json"
+      ]
+    },
+    {
+      "id": 1756849979694,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-02T21:52:59.694Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849981473,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-02T21:53:01.473Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849981976,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-02T21:53:01.976Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983310,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-02T21:53:03.310Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983818,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-02T21:53:03.818Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -13619,6 +13744,132 @@
         "components/Navbar.js",
         "lib/saml-config.js",
         "lib/saml.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849979155,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email/test/route.js"
+      },
+      "timestamp": "2025-09-02T21:52:59.155Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849979279,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email/route.js"
+      },
+      "timestamp": "2025-09-02T21:52:59.279Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849981558,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email/test/route.js"
+      },
+      "timestamp": "2025-09-02T21:53:01.558Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849981631,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email/route.js"
+      },
+      "timestamp": "2025-09-02T21:53:01.631Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983381,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email/test/route.js"
+      },
+      "timestamp": "2025-09-02T21:53:03.381Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983436,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email/route.js"
+      },
+      "timestamp": "2025-09-02T21:53:03.436Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
         "pending-changes.json"
       ]
     }
@@ -26859,6 +27110,384 @@
         "commit-and-push.js",
         "components/AttachmentPreview.js",
         "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849979366,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-02T21:52:59.366Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849979438,
+      "description": "Enhanced AttachmentPreview with specific functionality improvements",
+      "details": {
+        "file": "components/AttachmentPreview.js"
+      },
+      "timestamp": "2025-09-02T21:52:59.438Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849979554,
+      "description": "Enhanced MultiAttachmentPreview with specific functionality improvements",
+      "details": {
+        "file": "components/MultiAttachmentPreview.js"
+      },
+      "timestamp": "2025-09-02T21:52:59.554Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849979626,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-02T21:52:59.626Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849979764,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-09-02T21:52:59.764Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849979849,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-09-02T21:52:59.849Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849981702,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-02T21:53:01.702Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849981771,
+      "description": "Enhanced AttachmentPreview with specific functionality improvements",
+      "details": {
+        "file": "components/AttachmentPreview.js"
+      },
+      "timestamp": "2025-09-02T21:53:01.771Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849981828,
+      "description": "Enhanced MultiAttachmentPreview with specific functionality improvements",
+      "details": {
+        "file": "components/MultiAttachmentPreview.js"
+      },
+      "timestamp": "2025-09-02T21:53:01.828Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849981880,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-02T21:53:01.880Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849982032,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-09-02T21:53:02.032Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849982087,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-09-02T21:53:02.087Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983490,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-02T21:53:03.490Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983574,
+      "description": "Enhanced AttachmentPreview with specific functionality improvements",
+      "details": {
+        "file": "components/AttachmentPreview.js"
+      },
+      "timestamp": "2025-09-02T21:53:03.574Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983634,
+      "description": "Enhanced MultiAttachmentPreview with specific functionality improvements",
+      "details": {
+        "file": "components/MultiAttachmentPreview.js"
+      },
+      "timestamp": "2025-09-02T21:53:03.634Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983730,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-02T21:53:03.730Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983872,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-09-02T21:53:03.872Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756849983938,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-09-02T21:53:03.938Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email/test/route.js",
+        "app/api/settings/email/route.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "components/MultiAttachmentPreview.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
         "pending-changes.json"
       ]
     }

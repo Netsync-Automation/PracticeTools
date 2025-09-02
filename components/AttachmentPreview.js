@@ -75,36 +75,32 @@ export default function AttachmentPreview({ attachment, children, position = 'le
     setShowPreview(true);
     loadPreview();
     
-    // Get container size for card view
-    if (view === 'card') {
-      const card = e.currentTarget.closest('.card');
-      if (card) {
-        const rect = card.getBoundingClientRect();
-        setContainerSize({
-          width: rect.width * 0.4, // 40% of container width
-          height: rect.height * 0.6  // 60% of container height
-        });
-      }
-    }
+    // Get position using getBoundingClientRect for all view types
+    const hoveredItem = e.currentTarget;
+    const rect = hoveredItem.getBoundingClientRect();
     
-    // For menu view, get position of hovered element and menu container
     if (view === 'menu') {
-      const hoveredItem = e.currentTarget;
-      const menuContainer = hoveredItem.closest('div[class*="absolute bg-white"]');
-      
-      const hoveredRect = hoveredItem.getBoundingClientRect();
-      const menuRect = menuContainer ? menuContainer.getBoundingClientRect() : hoveredRect;
+      const menuContainer = hoveredItem.closest('div[class*="fixed bg-white"]');
+      const menuRect = menuContainer ? menuContainer.getBoundingClientRect() : rect;
       
       setContainerSize({
-        top: menuRect.top,  // Top of the menu container (not hovered item)
-        left: menuRect.right + 4  // Right of menu container + small padding
+        top: menuRect.top,
+        left: menuRect.right + 4
       });
       
-      console.log('[AttachmentPreview] Menu container top:', menuRect.top, 'Menu container right:', menuRect.right, 'Final left:', menuRect.right + 4);
+      e.stopPropagation();
+    } else if (view === 'table') {
+      const tableCell = hoveredItem.closest('td');
+      const cellRect = tableCell ? tableCell.getBoundingClientRect() : rect;
+      
+      setContainerSize({
+        top: cellRect.top,
+        left: cellRect.right + 8
+      });
+      
       e.stopPropagation();
     } else {
-      // For non-menu views, get position of the hovered element
-      const rect = e.currentTarget.getBoundingClientRect();
+      // For all other views (detail, card, comment), use element position
       setContainerSize({
         top: rect.top,
         left: rect.right + 8
@@ -131,7 +127,7 @@ export default function AttachmentPreview({ attachment, children, position = 'le
     >
       {children}
       
-      {showPreview && view === 'menu' ? createPortal(
+      {showPreview && createPortal(
         <div 
           className="fixed bg-white border border-gray-300 rounded-lg shadow-xl p-2 z-[99999999]"
           style={{
@@ -151,67 +147,8 @@ export default function AttachmentPreview({ attachment, children, position = 'le
                   alt={attachment.filename}
                   className="object-contain rounded"
                   style={{ 
-                    maxWidth: '1200px', 
-                    maxHeight: '800px' 
-                  }}
-                />
-              )}
-              
-              {previewContent.type === 'pdf' && (
-                <div className="text-center py-16 px-24">
-                  <div className="text-6xl mb-4">📄</div>
-                  <div className="text-lg text-gray-600">PDF Document</div>
-                </div>
-              )}
-              
-              {previewContent.type === 'text' && (
-                <div className="bg-gray-50 p-6 rounded text-sm font-mono overflow-y-auto" style={{ maxHeight: '320px', maxWidth: '640px' }}>
-                  {previewContent.content}
-                </div>
-              )}
-              
-              {(previewContent.type === 'unsupported' || previewContent.type === 'error') && (
-                <div className="text-center py-16 px-24 text-gray-500 text-lg">
-                  {previewContent.message}
-                </div>
-              )}
-            </div>
-          ) : null}
-        </div>,
-        document.body
-      ) : showPreview && createPortal(
-        <div 
-          className="fixed bg-white border border-gray-300 rounded-lg shadow-xl p-2 z-[99999999]"
-          style={view === 'card' ? {
-            top: '50%',
-            right: '20%',
-            transform: 'translateY(-50%)'
-          } : view === 'detail' ? {
-            top: '25%',
-            left: '50%',
-            transform: 'translateX(-50%)'
-          } : view === 'comment' ? {
-            top: '40%',
-            left: '50%',
-            transform: 'translateX(-50%)'
-          } : {
-            top: containerSize?.top || '0',
-            left: containerSize?.left || '100%'
-          }}>
-          {loading ? (
-            <div className="flex items-center justify-center py-8 px-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : previewContent ? (
-            <div>
-              {previewContent.type === 'image' && (
-                <img 
-                  src={previewContent.url} 
-                  alt={attachment.filename}
-                  className="object-contain rounded"
-                  style={{ 
-                    maxWidth: view === 'card' ? '400px' : view === 'comment' ? '213px' : '640px', 
-                    maxHeight: view === 'card' ? '300px' : view === 'comment' ? '160px' : '480px' 
+                    maxWidth: view === 'comment' ? '213px' : '640px', 
+                    maxHeight: view === 'comment' ? '160px' : '480px' 
                   }}
                 />
               )}

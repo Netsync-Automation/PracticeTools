@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { getSSMParameter } from '../../../../lib/ssm.js';
 
 export async function POST(request) {
   try {
@@ -9,10 +10,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Test email address is required' }, { status: 400 });
     }
     
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpUser = process.env.SMTP_USERNAME;
-    const smtpPassword = process.env.SMTP_PW;
-    const smtpPort = process.env.SMTP_PORT || '587';
+    const [smtpHost, smtpUser, smtpPassword, smtpPort] = await Promise.all([
+      getSSMParameter('SMTP_HOST'),
+      getSSMParameter('SMTP_USERNAME'),
+      getSSMParameter('SMTP_PW'),
+      getSSMParameter('SMTP_PORT')
+    ]);
+    
+    const port = smtpPort || '587';
     
     if (!smtpHost || !smtpUser || !smtpPassword) {
       return NextResponse.json({ error: 'SMTP configuration not found. Please configure SMTP settings first.' }, { status: 400 });
@@ -20,7 +25,7 @@ export async function POST(request) {
     
     // Try multiple port configurations for Exchange/OWA servers
     const portConfigs = [
-      { port: parseInt(smtpPort), secure: parseInt(smtpPort) === 465, requireTLS: parseInt(smtpPort) === 587 },
+      { port: parseInt(port), secure: parseInt(port) === 465, requireTLS: parseInt(port) === 587 },
       { port: 587, secure: false, requireTLS: true },
       { port: 25, secure: false, requireTLS: false },
       { port: 465, secure: true, requireTLS: false },

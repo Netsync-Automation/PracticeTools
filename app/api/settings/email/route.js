@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/dynamodb';
 import { validateUserSession } from '../../../../lib/auth-check';
-import { SSMClient, PutParameterCommand } from '@aws-sdk/client-ssm';
+import { SSMClient, PutParameterCommand, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
 const ENV = process.env.ENVIRONMENT || 'prod';
@@ -75,16 +75,39 @@ export async function POST(request) {
   }
 }
 
+async function getSSMParameter(paramName) {
+  try {
+    const ssmPath = ENV === 'prod' ? `/PracticeTools/${paramName}` : `/PracticeTools/${ENV}/${paramName}`;
+    const command = new GetParameterCommand({
+      Name: ssmPath,
+      WithDecryption: true
+    });
+    const response = await ssmClient.send(command);
+    return response.Parameter?.Value || '';
+  } catch (error) {
+    console.error(`Failed to get SSM parameter ${ssmPath}:`, error.message);
+    return '';
+  }
+}
+
 export async function GET() {
   try {
     const emailNotifications = await db.getSetting('emailNotifications');
     
+    // Get all SMTP settings from SSM
+    const [smtpHost, smtpPort, smtpUser, smtpPassword] = await Promise.all([
+      getSSMParameter('SMTP_HOST'),
+      getSSMParameter('SMTP_PORT'),
+      getSSMParameter('SMTP_USERNAME'),
+      getSSMParameter('SMTP_PW')
+    ]);
+    
     return NextResponse.json({
       emailNotifications: emailNotifications === 'true',
-      smtpHost: process.env.SMTP_HOST || '',
-      smtpPort: process.env.SMTP_PORT || '587',
-      smtpUser: process.env.SMTP_USERNAME || '',
-      smtpPassword: process.env.SMTP_PW ? '••••••••' : ''
+      smtpHost: smtpHost || '',
+      smtpPort: smtpPort || '587',
+      smtpUser: smtpUser || '',
+      smtpPassword: smtpPassword ? '••••••••' : ''
     });
   } catch (error) {
     console.error('Error loading email settings:', error);

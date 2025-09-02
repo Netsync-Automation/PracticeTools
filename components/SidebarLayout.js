@@ -13,7 +13,8 @@ import {
   ChevronRightIcon,
   PlusIcon,
   MinusIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  FolderIcon
 } from '@heroicons/react/24/outline';
 
 const menuItems = [
@@ -37,6 +38,21 @@ const menuItems = [
         href: '/practice-issues-leadership',
         description: 'Leadership view for practice management',
         leadershipOnly: true
+      }
+    ]
+  },
+  {
+    id: 'projects',
+    name: 'Projects',
+    href: '/projects',
+    icon: FolderIcon,
+    description: 'Manage projects and resources',
+    submenu: [
+      {
+        id: 'resource-assignments',
+        name: 'Resource Assignments',
+        href: '/projects/resource-assignments',
+        description: 'Manage project resource assignments'
       }
     ]
   },

@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import AttachmentPreview from './AttachmentPreview';
 
 export default function MultiAttachmentPreview({ attachments, children, position = 'right' }) {
   const [showMenu, setShowMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const menuTimeoutRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -50,13 +52,23 @@ export default function MultiAttachmentPreview({ attachments, children, position
       clearTimeout(menuTimeoutRef.current);
       menuTimeoutRef.current = null;
     }
+    
+    // Calculate position for portal
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.top,
+        left: position === 'right' ? rect.right + 8 : rect.left - 288
+      });
+    }
+    
     setShowMenu(true);
   };
 
   const handleMouseLeave = () => {
     menuTimeoutRef.current = setTimeout(() => {
       setShowMenu(false);
-    }, 300);
+    }, 100);
   };
 
   return (
@@ -68,18 +80,21 @@ export default function MultiAttachmentPreview({ attachments, children, position
     >
       {children}
       
-      {showMenu && (
+      {showMenu && typeof window !== 'undefined' && createPortal(
         <div 
-          className={`absolute bg-white border border-gray-200 rounded-lg shadow-xl p-3 z-[99999] min-w-[280px] ${
-            position === 'right' ? 'left-full ml-2 top-0' : 'right-full mr-2 top-0'
-          }`}
+          className="fixed bg-white border border-gray-200 rounded-lg shadow-xl p-3 z-[99999999] min-w-[320px]"
+          style={{
+            top: menuPosition.top,
+            left: menuPosition.left,
+            zIndex: 99999999
+          }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
           <div className="text-xs font-medium text-gray-500 mb-2 px-1">
             {attachments.length} attachment{attachments.length > 1 ? 's' : ''}
           </div>
-          <div className="space-y-1">
+          <div className="flex flex-col space-y-1">
             {attachments.map((attachment, index) => {
               console.log('[MultiAttachmentPreview] Rendering AttachmentPreview for:', attachment.filename, 'index:', index);
               return (
@@ -115,7 +130,8 @@ export default function MultiAttachmentPreview({ attachments, children, position
               );
             })}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
