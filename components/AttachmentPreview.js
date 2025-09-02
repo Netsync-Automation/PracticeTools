@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function AttachmentPreview({ attachment, children, position = 'left', view = 'detail' }) {
   const [showPreview, setShowPreview] = useState(false);
@@ -19,11 +20,15 @@ export default function AttachmentPreview({ attachment, children, position = 'le
   };
 
   const loadPreview = async () => {
-    if (loading || previewContent) return;
+    console.log('[AttachmentPreview] loadPreview called - loading:', loading, 'previewContent:', previewContent, 'filename:', attachment.filename);
+    if (loading || previewContent) {
+      console.log('[AttachmentPreview] Skipping load - already loading or content exists');
+      return;
+    }
     
     setLoading(true);
     try {
-      console.log('Loading preview for:', attachment.filename);
+      console.log('[AttachmentPreview] Loading preview for:', attachment.filename);
       if (isImage(attachment.filename)) {
         console.log('Detected as image');
         setPreviewContent({
@@ -63,6 +68,10 @@ export default function AttachmentPreview({ attachment, children, position = 'le
   };
 
   const handleMouseEnter = (e) => {
+    console.log('[AttachmentPreview] Mouse enter - view:', view, 'filename:', attachment.filename);
+    // Clear previous preview content to prevent stacking
+    setPreviewContent(null);
+    setLoading(false);
     setShowPreview(true);
     loadPreview();
     
@@ -77,10 +86,41 @@ export default function AttachmentPreview({ attachment, children, position = 'le
         });
       }
     }
+    
+    // For menu view, get position of hovered element and menu container
+    if (view === 'menu') {
+      const hoveredItem = e.currentTarget;
+      const menuContainer = hoveredItem.closest('div[class*="absolute bg-white"]');
+      
+      const hoveredRect = hoveredItem.getBoundingClientRect();
+      const menuRect = menuContainer ? menuContainer.getBoundingClientRect() : hoveredRect;
+      
+      setContainerSize({
+        top: menuRect.top,  // Top of the menu container (not hovered item)
+        left: menuRect.right + 4  // Right of menu container + small padding
+      });
+      
+      console.log('[AttachmentPreview] Menu container top:', menuRect.top, 'Menu container right:', menuRect.right, 'Final left:', menuRect.right + 4);
+      e.stopPropagation();
+    } else {
+      // For non-menu views, get position of the hovered element
+      const rect = e.currentTarget.getBoundingClientRect();
+      setContainerSize({
+        top: rect.top,
+        left: rect.right + 8
+      });
+    }
   };
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = (e) => {
+    console.log('[AttachmentPreview] Mouse leave - view:', view, 'filename:', attachment.filename);
     setShowPreview(false);
+    
+    // For menu view, prevent event bubbling
+    if (view === 'menu') {
+      console.log('[AttachmentPreview] Menu view - stopping propagation on leave');
+      e.stopPropagation();
+    }
   };
 
   return (
@@ -91,24 +131,73 @@ export default function AttachmentPreview({ attachment, children, position = 'le
     >
       {children}
       
-      {showPreview && (
-        <div className={`${view === 'card' || view === 'detail' || view === 'comment' ? 'fixed' : 'absolute'} bg-white border border-gray-300 rounded-lg shadow-xl p-2 ${
-          view === 'card' || view === 'detail' || view === 'comment' ? 'z-[999999]' : 'z-[99999]'
-        } ${
-          view === 'card' ? '' : view === 'detail' ? '' : view === 'comment' ? '' : '-top-2 left-full ml-2'
-        }`} style={view === 'card' ? {
-          top: '50%',
-          right: '20%',
-          transform: 'translateY(-50%)'
-        } : view === 'detail' ? {
-          top: '25%',
-          left: '50%',
-          transform: 'translateX(-50%)'
-        } : view === 'comment' ? {
-          top: '40%',
-          left: '50%',
-          transform: 'translateX(-50%)'
-        } : {}}>
+      {showPreview && view === 'menu' ? createPortal(
+        <div 
+          className="fixed bg-white border border-gray-300 rounded-lg shadow-xl p-2 z-[99999999]"
+          style={{
+            top: containerSize?.top || '0',
+            left: containerSize?.left || '100%'
+          }}
+        >
+          {loading ? (
+            <div className="flex items-center justify-center py-8 px-16">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : previewContent ? (
+            <div>
+              {previewContent.type === 'image' && (
+                <img 
+                  src={previewContent.url} 
+                  alt={attachment.filename}
+                  className="object-contain rounded"
+                  style={{ 
+                    maxWidth: '1200px', 
+                    maxHeight: '800px' 
+                  }}
+                />
+              )}
+              
+              {previewContent.type === 'pdf' && (
+                <div className="text-center py-16 px-24">
+                  <div className="text-6xl mb-4">📄</div>
+                  <div className="text-lg text-gray-600">PDF Document</div>
+                </div>
+              )}
+              
+              {previewContent.type === 'text' && (
+                <div className="bg-gray-50 p-6 rounded text-sm font-mono overflow-y-auto" style={{ maxHeight: '320px', maxWidth: '640px' }}>
+                  {previewContent.content}
+                </div>
+              )}
+              
+              {(previewContent.type === 'unsupported' || previewContent.type === 'error') && (
+                <div className="text-center py-16 px-24 text-gray-500 text-lg">
+                  {previewContent.message}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>,
+        document.body
+      ) : showPreview && createPortal(
+        <div 
+          className="fixed bg-white border border-gray-300 rounded-lg shadow-xl p-2 z-[99999999]"
+          style={view === 'card' ? {
+            top: '50%',
+            right: '20%',
+            transform: 'translateY(-50%)'
+          } : view === 'detail' ? {
+            top: '25%',
+            left: '50%',
+            transform: 'translateX(-50%)'
+          } : view === 'comment' ? {
+            top: '40%',
+            left: '50%',
+            transform: 'translateX(-50%)'
+          } : {
+            top: containerSize?.top || '0',
+            left: containerSize?.left || '100%'
+          }}>
           {loading ? (
             <div className="flex items-center justify-center py-8 px-16">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -147,7 +236,8 @@ export default function AttachmentPreview({ attachment, children, position = 'le
               )}
             </div>
           ) : null}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

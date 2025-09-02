@@ -1,10 +1,29 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../../lib/dynamodb';
+import { validateUserSession } from '../../../../../lib/auth-check';
+import { validateIssueAccess } from '../../../../../lib/access-control';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request, { params }) {
   try {
+    const userCookie = request.cookies.get('user-session');
+    const validation = await validateUserSession(userCookie);
+    
+    if (!validation.valid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const issue = await db.getIssueById(params.id);
+    if (!issue) {
+      return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
+    }
+    
+    const accessValidation = validateIssueAccess(issue, validation.user, 'view');
+    if (!accessValidation.success) {
+      return NextResponse.json({ error: accessValidation.error }, { status: accessValidation.statusCode });
+    }
+    
     const comments = await db.getComments(params.id);
     return NextResponse.json({ comments });
   } catch (error) {
@@ -23,11 +42,30 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const user = JSON.parse(userCookie.value);
+    const user = validation.user;
+    
+    // Validate user session
+    const { validateUserSession } = await import('../../../../../lib/auth-check');
+    const validation = await validateUserSession(userCookie);
+    
+    if (!validation.valid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     
     // Check if issue is closed and prevent comments for all users
     const issue = await db.getIssueById(params.id);
-    if (issue && issue.status === 'Closed') {
+    if (!issue) {
+      return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
+    }
+    
+    // Validate access for Leadership Questions
+    const { validateIssueAccess } = await import('../../../../../lib/access-control');
+    const accessValidation = validateIssueAccess(issue, validation.user, 'comment');
+    if (!accessValidation.success) {
+      return NextResponse.json({ error: accessValidation.error }, { status: accessValidation.statusCode });
+    }
+    
+    if (issue.status === 'Closed') {
       return NextResponse.json({ error: 'Cannot add comments to closed issues' }, { status: 403 });
     }
     

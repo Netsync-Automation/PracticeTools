@@ -9,9 +9,11 @@ import AccessCheck from '../../components/AccessCheck';
 import { MagnifyingGlassIcon, FunnelIcon, HandThumbUpIcon, PencilIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import AttachmentViewer from '../../components/AttachmentViewer';
 import AttachmentPreview from '../../components/AttachmentPreview';
+import MultiAttachmentPreview from '../../components/MultiAttachmentPreview';
 import Pagination from '../../components/Pagination';
 import TimestampDisplay from '../../components/TimestampDisplay';
 import UserDisplay from '../../components/UserDisplay';
+import { getLeadershipVisibilityText, fetchLeadershipVisibilityData } from '../../lib/leadership-visibility';
 
 function FollowButton({ issueId, compact = false }) {
   const [following, setFollowing] = useState(false);
@@ -155,6 +157,7 @@ export default function PracticeIssuesPage() {
   const [issueTypes, setIssueTypes] = useState([]);
   const [showPracticeModal, setShowPracticeModal] = useState(false);
   const [tempPracticeSelection, setTempPracticeSelection] = useState([]);
+  const [visibilityData, setVisibilityData] = useState({});
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -319,7 +322,9 @@ export default function PracticeIssuesPage() {
     try {
       const response = await fetch('/api/issues');
       const data = await response.json();
-      setIssues(data.issues || []);
+      const issuesList = data.issues || [];
+      setIssues(issuesList);
+      await loadVisibilityData(issuesList);
     } catch (error) {
       console.error('Error fetching issues:', error);
     } finally {
@@ -362,6 +367,19 @@ export default function PracticeIssuesPage() {
     } catch (error) {
       console.error('Error fetching issue types:', error);
     }
+  };
+
+  const loadVisibilityData = async (issues) => {
+    const newVisibilityData = {};
+    for (const issue of issues) {
+      if (issue.issue_type === 'Leadership Question') {
+        const data = await fetchLeadershipVisibilityData(issue);
+        if (data) {
+          newVisibilityData[issue.id] = data;
+        }
+      }
+    }
+    setVisibilityData(newVisibilityData);
   };
 
   const handleLogout = async () => {
@@ -810,6 +828,7 @@ export default function PracticeIssuesPage() {
             <IssueTable 
               issues={filteredIssues}
               user={user}
+              visibilityData={visibilityData}
               onUpvote={handleUpvote}
               onUpdate={(updatedIssue) => {
                 setIssues(issues.map(i => i.id === updatedIssue.id ? updatedIssue : i));
@@ -958,7 +977,7 @@ export default function PracticeIssuesPage() {
   );
 }
 
-function IssueTable({ issues, user, onUpvote, onUpdate, columnSort, onColumnSort }) {
+function IssueTable({ issues, user, visibilityData, onUpvote, onUpdate, columnSort, onColumnSort }) {
   const router = useRouter();
   
   return (
@@ -996,14 +1015,29 @@ function IssueTable({ issues, user, onUpvote, onUpdate, columnSort, onColumnSort
                     <div className="min-w-0">
                       <div className="flex items-center gap-1 mb-1">
                         {attachments.length > 0 && (
-                          <AttachmentPreview attachment={attachments[0]} position="right" view="table">
-                            <span className="text-xs text-blue-600">
-                              📎 {attachments.length}
-                            </span>
-                          </AttachmentPreview>
+                          attachments.length === 1 ? (
+                            <AttachmentPreview attachment={attachments[0]} position="right" view="table">
+                              <span className="text-xs text-blue-600">
+                                📎 {attachments.length}
+                              </span>
+                            </AttachmentPreview>
+                          ) : (
+                            <MultiAttachmentPreview attachments={attachments} position="right">
+                              <span className="text-xs text-blue-600">
+                                📎 {attachments.length}
+                              </span>
+                            </MultiAttachmentPreview>
+                          )
                         )}
                       </div>
-                      <p className="text-sm font-medium text-gray-900 truncate mb-1" title={issue.title}>{issue.title}</p>
+                      <p className="text-sm font-medium text-gray-900 truncate mb-1" title={issue.title}>
+                        {issue.title}
+                        {getLeadershipVisibilityText(issue, user, visibilityData[issue.id]) && (
+                          <span className="ml-2 text-xs text-orange-600 font-normal">
+                            {getLeadershipVisibilityText(issue, user, visibilityData[issue.id])}
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-gray-500 line-clamp-1" title={issue.description}>{issue.description}</p>
                       <p className="text-xs text-gray-400 mt-1">
                         By <UserDisplay email={issue.email} />

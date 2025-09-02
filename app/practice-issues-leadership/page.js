@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { CogIcon, MagnifyingGlassIcon, HandThumbUpIcon, EyeIcon } from '@heroicons/react/24/outline';
 import AttachmentPreview from '../../components/AttachmentPreview';
+import MultiAttachmentPreview from '../../components/MultiAttachmentPreview';
 import Pagination from '../../components/Pagination';
 import Navbar from '../../components/Navbar';
 import SidebarLayout from '../../components/SidebarLayout';
@@ -798,11 +799,19 @@ function AssignedIssuesTable({ issues, user, router, issueTypes }) {
                     <div className="min-w-0">
                       <div className="flex items-center gap-1 mb-1">
                         {attachments.length > 0 && (
-                          <AttachmentPreview attachment={attachments[0]} position="right" view="table">
-                            <span className="text-xs text-blue-600">
-                              📎 {attachments.length}
-                            </span>
-                          </AttachmentPreview>
+                          attachments.length === 1 ? (
+                            <AttachmentPreview attachment={attachments[0]} position="right" view="table">
+                              <span className="text-xs text-blue-600">
+                                📎 {attachments.length}
+                              </span>
+                            </AttachmentPreview>
+                          ) : (
+                            <MultiAttachmentPreview attachments={attachments} position="right">
+                              <span className="text-xs text-blue-600">
+                                📎 {attachments.length}
+                              </span>
+                            </MultiAttachmentPreview>
+                          )
                         )}
                       </div>
                       <p className="text-sm font-medium text-gray-900 truncate mb-1" title={issue.title}>{issue.title}</p>

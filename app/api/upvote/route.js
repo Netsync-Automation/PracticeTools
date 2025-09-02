@@ -27,6 +27,13 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
     }
     
+    // Validate access for Leadership Questions
+    const { validateIssueAccess } = await import('../../../lib/access-control');
+    const accessValidation = validateIssueAccess(issue, user, 'upvote');
+    if (!accessValidation.success) {
+      return NextResponse.json({ error: accessValidation.error }, { status: accessValidation.statusCode });
+    }
+    
     if (issue.email === user.email) {
       return NextResponse.json({ 
         error: 'You cannot upvote your own issue' 

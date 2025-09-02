@@ -7641,6 +7641,544 @@
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1756784456264,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/api/issues/[id]/comments/route.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.264Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js"
+      ]
+    },
+    {
+      "id": 1756784456310,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/follow/route.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.310Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784456421,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/api/issues/[id]/route.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.421Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784456496,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/status-history/route.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.496Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784456543,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/upvoters/route.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.543Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784456829,
+      "description": "Enhanced layout with specific functionality improvements",
+      "details": {
+        "file": "app/layout.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.829Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784457193,
+      "description": "Enhanced AttachmentPreview with specific functionality improvements",
+      "details": {
+        "file": "components/AttachmentPreview.js"
+      },
+      "timestamp": "2025-09-02T03:40:57.193Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460061,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/api/issues/[id]/comments/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.061Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460125,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/follow/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.125Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460190,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/api/issues/[id]/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.190Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460269,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/status-history/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.269Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460375,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/upvoters/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.375Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460687,
+      "description": "Enhanced layout with specific functionality improvements",
+      "details": {
+        "file": "app/layout.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.687Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784461047,
+      "description": "Enhanced AttachmentPreview with specific functionality improvements",
+      "details": {
+        "file": "components/AttachmentPreview.js"
+      },
+      "timestamp": "2025-09-02T03:41:01.047Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463091,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/api/issues/[id]/comments/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.091Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463151,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/follow/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.151Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463199,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/api/issues/[id]/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.199Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463288,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/status-history/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.288Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463349,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/upvoters/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.349Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463660,
+      "description": "Enhanced layout with specific functionality improvements",
+      "details": {
+        "file": "app/layout.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.660Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784464036,
+      "description": "Enhanced AttachmentPreview with specific functionality improvements",
+      "details": {
+        "file": "components/AttachmentPreview.js"
+      },
+      "timestamp": "2025-09-02T03:41:04.036Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -25730,6 +26268,597 @@
         "apprunner-prod.yaml",
         "apprunner.yaml",
         "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784456620,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/route.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.620Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784456683,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/api/upvote/route.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.683Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784456766,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/issue/[id]/page.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.766Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784456922,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/new-issue/page.js"
+      },
+      "timestamp": "2025-09-02T03:40:56.922Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784457013,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-issues-leadership/page.js"
+      },
+      "timestamp": "2025-09-02T03:40:57.013Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784457103,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/practice-issues/page.js"
+      },
+      "timestamp": "2025-09-02T03:40:57.103Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784457281,
+      "description": "Enhanced s3 with specific functionality improvements",
+      "details": {
+        "file": "lib/s3.js"
+      },
+      "timestamp": "2025-09-02T03:40:57.281Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460450,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.450Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460525,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/api/upvote/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.525Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460612,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/issue/[id]/page.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.612Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460757,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/new-issue/page.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.757Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460806,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-issues-leadership/page.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.806Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460894,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/practice-issues/page.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.894Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784460986,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-02T03:41:00.986Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784461135,
+      "description": "Enhanced s3 with specific functionality improvements",
+      "details": {
+        "file": "lib/s3.js"
+      },
+      "timestamp": "2025-09-02T03:41:01.135Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463425,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.425Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463512,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/api/upvote/route.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.512Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463585,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/issue/[id]/page.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.585Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463720,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/new-issue/page.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.720Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463806,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-issues-leadership/page.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.806Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463882,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "app/practice-issues/page.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.882Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784463946,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-02T03:41:03.946Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756784464097,
+      "description": "Enhanced s3 with specific functionality improvements",
+      "details": {
+        "file": "lib/s3.js"
+      },
+      "timestamp": "2025-09-02T03:41:04.097Z",
+      "files": [
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/issues/[id]/follow/route.js",
+        "app/api/issues/[id]/route.js",
+        "app/api/issues/[id]/status-history/route.js",
+        "app/api/issues/[id]/upvoters/route.js",
+        "app/api/issues/route.js",
+        "app/api/upvote/route.js",
+        "app/issue/[id]/page.js",
+        "app/layout.js",
+        "app/new-issue/page.js",
+        "app/practice-issues-leadership/page.js",
+        "app/practice-issues/page.js",
+        "commit-and-push.js",
+        "components/AttachmentPreview.js",
+        "lib/s3.js",
         "pending-changes.json"
       ]
     }

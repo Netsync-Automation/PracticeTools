@@ -421,6 +421,8 @@ class CommitBuilder {
       'samlconfig': 'Fixed SAML metadata parsing to properly extract SSO URLs and certificates from Duo XML',
       'saml': 'Fixed SAML login URL generation by correcting metadata storage and parsing logic',
       'auto-tracker': 'Fixed commit analysis system to correctly identify file paths and prevent misclassification of changes'
+          'layout': 'Improved Root Page with better user experience and session management',
+          's3': 'Enhanced s3 Service with improved functionality and error handling',
     };
     
     // Check for pattern matches

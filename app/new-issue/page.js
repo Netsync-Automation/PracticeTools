@@ -52,7 +52,8 @@ function FileDropZone({ onFilesSelected, files }) {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       const validFiles = validateFiles(e.target.files);
-      onFilesSelected(validFiles);
+      const newFiles = [...files, ...validFiles].slice(0, 5);
+      onFilesSelected(newFiles);
     }
   };
 
@@ -512,7 +513,7 @@ export default function NewIssuePage() {
                   <p className="text-sm text-gray-500 italic">No leadership found for this practice</p>
                 ) : (
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600 mb-3">Your issue will only be viewable by the leadership you select</p>
+                    <p className="text-sm text-orange-600 mb-3">Your issue will only be viewable by the leadership you select</p>
                     {practiceLeadership.map(leader => (
                       <label key={leader.email} className="flex items-center">
                         <input

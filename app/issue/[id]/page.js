@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { PaperClipIcon, XMarkIcon, DocumentIcon, PhotoIcon, HandThumbUpIcon, EyeIcon } from '@heroicons/react/24/outline';
 import AttachmentPreview from '../../../components/AttachmentPreview';
+import MultiAttachmentPreview from '../../../components/MultiAttachmentPreview';
 import Navbar from '../../../components/Navbar';
 import SidebarLayout from '../../../components/SidebarLayout';
 import Breadcrumb from '../../../components/Breadcrumb';
@@ -12,6 +13,7 @@ import AccessCheck from '../../../components/AccessCheck';
 import TimestampDisplay from '../../../components/TimestampDisplay';
 import UserDisplay from '../../../components/UserDisplay';
 import { useAuth } from '../../../hooks/useAuth';
+import { getLeadershipVisibilityText, fetchLeadershipVisibilityData } from '../../../lib/leadership-visibility';
 
 function FileDropZone({ onFilesSelected, files }) {
   const [dragActive, setDragActive] = useState(false);
@@ -932,6 +934,7 @@ export default function IssuePage({ params }) {
   const [upvoters, setUpvoters] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [visibilityData, setVisibilityData] = useState(null);
 
   const fetchIssue = useCallback(async () => {
     try {
@@ -939,6 +942,7 @@ export default function IssuePage({ params }) {
       if (response.ok) {
         const data = await response.json();
         setIssue(data.issue);
+        await loadVisibilityData(data.issue);
       } else if (response.status === 404) {
         console.error('Issue not found:', params.id);
         setIssue(null);
@@ -985,6 +989,13 @@ export default function IssuePage({ params }) {
       }
     } catch (error) {
       console.error('Error fetching upvoters:', error);
+    }
+  };
+
+  const loadVisibilityData = async (issue) => {
+    if (issue?.issue_type === 'Leadership Question') {
+      const data = await fetchLeadershipVisibilityData(issue);
+      setVisibilityData(data);
     }
   };
 
@@ -1294,20 +1305,38 @@ export default function IssuePage({ params }) {
             <div className="card flex-1">
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h1 className="text-2xl font-bold text-gray-900">Issue Details - #{issue.issue_number}</h1>
                   <div className="flex items-center gap-3">
                     {attachments.length > 0 && (
-                      <AttachmentPreview attachment={attachments[0]}>
-                        <a
-                          href={`/api/files/${attachments[0].path}`}
-                          download={attachments[0].filename}
-                          title={attachments[0].filename}
-                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-150 hover:scale-105 active:scale-95"
-                        >
-                          <PaperClipIcon className="h-5 w-5" />
-                        </a>
-                      </AttachmentPreview>
+                      attachments.length === 1 ? (
+                        <AttachmentPreview attachment={attachments[0]}>
+                          <a
+                            href={`/api/files/${attachments[0].path}`}
+                            download={attachments[0].filename}
+                            title={attachments[0].filename}
+                            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-150 hover:scale-105 active:scale-95"
+                          >
+                            <PaperClipIcon className="h-5 w-5" />
+                          </a>
+                        </AttachmentPreview>
+                      ) : (
+                        <MultiAttachmentPreview attachments={attachments}>
+                          <div className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-150 hover:scale-105 active:scale-95">
+                            <PaperClipIcon className="h-5 w-5" />
+                            <span className="ml-1 text-xs">{attachments.length}</span>
+                          </div>
+                        </MultiAttachmentPreview>
+                      )
                     )}
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900">Issue Details - #{issue.issue_number}</h1>
+                      {getLeadershipVisibilityText(issue, user, visibilityData) && (
+                        <p className="text-sm text-orange-600 mt-1">
+                          {getLeadershipVisibilityText(issue, user, visibilityData)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
                     <div className="flex gap-2">
                       <button
                         onClick={handleUpvote}

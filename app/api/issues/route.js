@@ -1,13 +1,24 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb';
 import { uploadFileToS3 } from '../../../lib/s3';
+import { validateUserSession } from '../../../lib/auth-check';
+import { filterIssuesByAccess } from '../../../lib/access-control';
 
 export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const issues = await db.getAllIssues();
-    return NextResponse.json({ issues });
+    const userCookie = request.cookies.get('user-session');
+    const validation = await validateUserSession(userCookie);
+    
+    if (!validation.valid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const allIssues = await db.getAllIssues();
+    const filteredIssues = filterIssuesByAccess(allIssues, validation.user);
+    
+    return NextResponse.json({ issues: filteredIssues });
   } catch (error) {
     console.error('Error fetching issues:', error);
     return NextResponse.json({ error: 'Failed to fetch issues' }, { status: 500 });
