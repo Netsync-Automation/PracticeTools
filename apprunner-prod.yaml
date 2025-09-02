@@ -1,7 +1,5 @@
 version: 1
 runtime: nodejs22
-instance:
-  role: arn:aws:iam::501399536130:role/AppRunnerInstanceRole
 build:
   commands:
     build:
@@ -22,10 +20,11 @@ run:
     - name: S3_BUCKET
       value: netsync-practicetools-bucket
     - name: NODE_ENV
-      value: production
+      value: development
     - name: ENVIRONMENT
-      value: prod
+      value: dev
   secrets:
+
     - name: NEXTAUTH_URL
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/NEXTAUTH_URL
     - name: WEBEX_SCOOP_ACCESS_TOKEN
