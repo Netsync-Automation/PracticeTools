@@ -20,9 +20,9 @@ run:
     - name: S3_BUCKET
       value: netsync-practicetools-bucket
     - name: NODE_ENV
-      value: development
+      value: production
     - name: ENVIRONMENT
-      value: dev
+      value: prod
   secrets:
 
     - name: NEXTAUTH_URL
