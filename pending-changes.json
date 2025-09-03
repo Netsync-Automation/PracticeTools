@@ -14452,6 +14452,1916 @@
         "pending-changes.json",
         "push-to-prod.js"
       ]
+    },
+    {
+      "id": 1756916689243,
+      "description": "Updated check-dev-settings-schema.js",
+      "details": {
+        "file": "check-dev-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.243Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689288,
+      "description": "Updated check-prod-settings-schema.js",
+      "details": {
+        "file": "check-prod-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.288Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689358,
+      "description": "Updated check-prod-version.js",
+      "details": {
+        "file": "check-prod-version.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.358Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689403,
+      "description": "Updated check-v1-notes.js",
+      "details": {
+        "file": "check-v1-notes.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.403Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689447,
+      "description": "Updated clean-prod-releases.js",
+      "details": {
+        "file": "clean-prod-releases.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.447Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689508,
+      "description": "Updated create-prod-settings-table.js",
+      "details": {
+        "file": "create-prod-settings-table.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.508Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689576,
+      "description": "Updated fix-prod-version-setting.js",
+      "details": {
+        "file": "fix-prod-version-setting.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.576Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689652,
+      "description": "Updated fix-settings-schema.js",
+      "details": {
+        "file": "fix-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.652Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689714,
+      "description": "Updated restore-current-version.js",
+      "details": {
+        "file": "restore-current-version.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.714Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689776,
+      "description": "Updated restore-prod-v1.js",
+      "details": {
+        "file": "restore-prod-v1.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.776Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689861,
+      "description": "Updated scan-prod-settings.js",
+      "details": {
+        "file": "scan-prod-settings.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.861Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689920,
+      "description": "Updated simple-add-version.js",
+      "details": {
+        "file": "simple-add-version.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.920Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916689997,
+      "description": "Updated verify-prod-clean.js",
+      "details": {
+        "file": "verify-prod-clean.js"
+      },
+      "timestamp": "2025-09-03T16:24:49.997Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916691730,
+      "description": "Updated check-dev-settings-schema.js",
+      "details": {
+        "file": "check-dev-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:24:51.730Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916691794,
+      "description": "Updated check-prod-settings-schema.js",
+      "details": {
+        "file": "check-prod-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:24:51.794Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916691857,
+      "description": "Updated check-prod-version.js",
+      "details": {
+        "file": "check-prod-version.js"
+      },
+      "timestamp": "2025-09-03T16:24:51.857Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916691934,
+      "description": "Updated check-v1-notes.js",
+      "details": {
+        "file": "check-v1-notes.js"
+      },
+      "timestamp": "2025-09-03T16:24:51.934Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916691996,
+      "description": "Updated clean-prod-releases.js",
+      "details": {
+        "file": "clean-prod-releases.js"
+      },
+      "timestamp": "2025-09-03T16:24:51.996Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916692074,
+      "description": "Updated create-prod-settings-table.js",
+      "details": {
+        "file": "create-prod-settings-table.js"
+      },
+      "timestamp": "2025-09-03T16:24:52.074Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916692122,
+      "description": "Updated fix-prod-version-setting.js",
+      "details": {
+        "file": "fix-prod-version-setting.js"
+      },
+      "timestamp": "2025-09-03T16:24:52.122Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916692187,
+      "description": "Updated fix-settings-schema.js",
+      "details": {
+        "file": "fix-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:24:52.187Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916692282,
+      "description": "Updated restore-current-version.js",
+      "details": {
+        "file": "restore-current-version.js"
+      },
+      "timestamp": "2025-09-03T16:24:52.282Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916692347,
+      "description": "Updated restore-prod-v1.js",
+      "details": {
+        "file": "restore-prod-v1.js"
+      },
+      "timestamp": "2025-09-03T16:24:52.347Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916692440,
+      "description": "Updated scan-prod-settings.js",
+      "details": {
+        "file": "scan-prod-settings.js"
+      },
+      "timestamp": "2025-09-03T16:24:52.440Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916692501,
+      "description": "Updated simple-add-version.js",
+      "details": {
+        "file": "simple-add-version.js"
+      },
+      "timestamp": "2025-09-03T16:24:52.501Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916692582,
+      "description": "Updated verify-prod-clean.js",
+      "details": {
+        "file": "verify-prod-clean.js"
+      },
+      "timestamp": "2025-09-03T16:24:52.582Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694276,
+      "description": "Updated check-dev-settings-schema.js",
+      "details": {
+        "file": "check-dev-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.276Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694374,
+      "description": "Updated check-prod-settings-schema.js",
+      "details": {
+        "file": "check-prod-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.374Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694435,
+      "description": "Updated check-prod-version.js",
+      "details": {
+        "file": "check-prod-version.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.435Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694528,
+      "description": "Updated check-v1-notes.js",
+      "details": {
+        "file": "check-v1-notes.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.528Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694590,
+      "description": "Updated clean-prod-releases.js",
+      "details": {
+        "file": "clean-prod-releases.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.590Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694668,
+      "description": "Updated create-prod-settings-table.js",
+      "details": {
+        "file": "create-prod-settings-table.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.668Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694733,
+      "description": "Updated fix-prod-version-setting.js",
+      "details": {
+        "file": "fix-prod-version-setting.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.733Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694814,
+      "description": "Updated fix-settings-schema.js",
+      "details": {
+        "file": "fix-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.814Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694863,
+      "description": "Updated restore-current-version.js",
+      "details": {
+        "file": "restore-current-version.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.863Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916694923,
+      "description": "Updated restore-prod-v1.js",
+      "details": {
+        "file": "restore-prod-v1.js"
+      },
+      "timestamp": "2025-09-03T16:24:54.923Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916695005,
+      "description": "Updated scan-prod-settings.js",
+      "details": {
+        "file": "scan-prod-settings.js"
+      },
+      "timestamp": "2025-09-03T16:24:55.005Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916695082,
+      "description": "Updated simple-add-version.js",
+      "details": {
+        "file": "simple-add-version.js"
+      },
+      "timestamp": "2025-09-03T16:24:55.082Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916695148,
+      "description": "Updated verify-prod-clean.js",
+      "details": {
+        "file": "verify-prod-clean.js"
+      },
+      "timestamp": "2025-09-03T16:24:55.148Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916793633,
+      "description": "Updated check-dev-settings-schema.js",
+      "details": {
+        "file": "check-dev-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:26:33.633Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916793711,
+      "description": "Updated check-prod-settings-schema.js",
+      "details": {
+        "file": "check-prod-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:26:33.711Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916793788,
+      "description": "Updated check-prod-version.js",
+      "details": {
+        "file": "check-prod-version.js"
+      },
+      "timestamp": "2025-09-03T16:26:33.788Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916793850,
+      "description": "Updated check-v1-notes.js",
+      "details": {
+        "file": "check-v1-notes.js"
+      },
+      "timestamp": "2025-09-03T16:26:33.850Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916793926,
+      "description": "Updated clean-prod-releases.js",
+      "details": {
+        "file": "clean-prod-releases.js"
+      },
+      "timestamp": "2025-09-03T16:26:33.926Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916794062,
+      "description": "Updated create-prod-settings-table.js",
+      "details": {
+        "file": "create-prod-settings-table.js"
+      },
+      "timestamp": "2025-09-03T16:26:34.062Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916794141,
+      "description": "Updated fix-prod-version-setting.js",
+      "details": {
+        "file": "fix-prod-version-setting.js"
+      },
+      "timestamp": "2025-09-03T16:26:34.141Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916794204,
+      "description": "Updated fix-settings-schema.js",
+      "details": {
+        "file": "fix-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:26:34.204Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916794252,
+      "description": "Updated restore-current-version.js",
+      "details": {
+        "file": "restore-current-version.js"
+      },
+      "timestamp": "2025-09-03T16:26:34.252Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916794342,
+      "description": "Updated restore-prod-v1.js",
+      "details": {
+        "file": "restore-prod-v1.js"
+      },
+      "timestamp": "2025-09-03T16:26:34.342Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916794391,
+      "description": "Updated scan-prod-settings.js",
+      "details": {
+        "file": "scan-prod-settings.js"
+      },
+      "timestamp": "2025-09-03T16:26:34.391Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916794453,
+      "description": "Updated simple-add-version.js",
+      "details": {
+        "file": "simple-add-version.js"
+      },
+      "timestamp": "2025-09-03T16:26:34.453Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916794512,
+      "description": "Updated verify-prod-clean.js",
+      "details": {
+        "file": "verify-prod-clean.js"
+      },
+      "timestamp": "2025-09-03T16:26:34.512Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796297,
+      "description": "Updated check-dev-settings-schema.js",
+      "details": {
+        "file": "check-dev-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.297Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796345,
+      "description": "Updated check-prod-settings-schema.js",
+      "details": {
+        "file": "check-prod-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.345Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796392,
+      "description": "Updated check-prod-version.js",
+      "details": {
+        "file": "check-prod-version.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.392Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796442,
+      "description": "Updated check-v1-notes.js",
+      "details": {
+        "file": "check-v1-notes.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.442Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796505,
+      "description": "Updated clean-prod-releases.js",
+      "details": {
+        "file": "clean-prod-releases.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.505Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796630,
+      "description": "Updated create-prod-settings-table.js",
+      "details": {
+        "file": "create-prod-settings-table.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.630Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796677,
+      "description": "Updated fix-prod-version-setting.js",
+      "details": {
+        "file": "fix-prod-version-setting.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.677Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796725,
+      "description": "Updated fix-settings-schema.js",
+      "details": {
+        "file": "fix-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.725Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796772,
+      "description": "Updated restore-current-version.js",
+      "details": {
+        "file": "restore-current-version.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.772Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796818,
+      "description": "Updated restore-prod-v1.js",
+      "details": {
+        "file": "restore-prod-v1.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.818Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796866,
+      "description": "Updated scan-prod-settings.js",
+      "details": {
+        "file": "scan-prod-settings.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.866Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796934,
+      "description": "Updated simple-add-version.js",
+      "details": {
+        "file": "simple-add-version.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.934Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916797031,
+      "description": "Updated verify-prod-clean.js",
+      "details": {
+        "file": "verify-prod-clean.js"
+      },
+      "timestamp": "2025-09-03T16:26:37.031Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916798782,
+      "description": "Updated check-dev-settings-schema.js",
+      "details": {
+        "file": "check-dev-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:26:38.782Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916798861,
+      "description": "Updated check-prod-settings-schema.js",
+      "details": {
+        "file": "check-prod-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:26:38.861Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916798912,
+      "description": "Updated check-prod-version.js",
+      "details": {
+        "file": "check-prod-version.js"
+      },
+      "timestamp": "2025-09-03T16:26:38.912Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916798993,
+      "description": "Updated check-v1-notes.js",
+      "details": {
+        "file": "check-v1-notes.js"
+      },
+      "timestamp": "2025-09-03T16:26:38.993Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799059,
+      "description": "Updated clean-prod-releases.js",
+      "details": {
+        "file": "clean-prod-releases.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.059Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799247,
+      "description": "Updated create-prod-settings-table.js",
+      "details": {
+        "file": "create-prod-settings-table.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.247Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799298,
+      "description": "Updated fix-prod-version-setting.js",
+      "details": {
+        "file": "fix-prod-version-setting.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.298Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799360,
+      "description": "Updated fix-settings-schema.js",
+      "details": {
+        "file": "fix-settings-schema.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.360Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799440,
+      "description": "Updated restore-current-version.js",
+      "details": {
+        "file": "restore-current-version.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.440Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799533,
+      "description": "Updated restore-prod-v1.js",
+      "details": {
+        "file": "restore-prod-v1.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.533Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799595,
+      "description": "Updated scan-prod-settings.js",
+      "details": {
+        "file": "scan-prod-settings.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.595Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799681,
+      "description": "Updated simple-add-version.js",
+      "details": {
+        "file": "simple-add-version.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.681Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799746,
+      "description": "Updated verify-prod-clean.js",
+      "details": {
+        "file": "verify-prod-clean.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.746Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
     }
   ],
   "other": [
@@ -28871,6 +30781,81 @@
       "files": [
         "apprunner-prod.yaml",
         "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756916794001,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-03T16:26:34.001Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916796569,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-03T16:26:36.569Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
+      ]
+    },
+    {
+      "id": 1756916799162,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-03T16:26:39.162Z",
+      "files": [
+        "check-dev-settings-schema.js",
+        "check-prod-settings-schema.js",
+        "check-prod-version.js",
+        "check-v1-notes.js",
+        "clean-prod-releases.js",
+        "commit-and-push.js",
+        "create-prod-settings-table.js",
+        "fix-prod-version-setting.js",
+        "fix-settings-schema.js",
+        "pending-changes.json",
+        "restore-current-version.js",
+        "restore-prod-v1.js",
+        "scan-prod-settings.js",
+        "simple-add-version.js",
+        "verify-prod-clean.js"
       ]
     }
   ]
