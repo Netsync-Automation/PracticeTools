@@ -3,7 +3,9 @@ import { db } from '../../../lib/dynamodb';
 
 export async function GET() {
   try {
-    const releases = await db.getReleases();
+    // Use ENVIRONMENT variable as single source of truth from apprunner.yaml
+    const environment = process.env.ENVIRONMENT || 'dev';
+    const releases = await db.getReleases(environment);
     
 
     
