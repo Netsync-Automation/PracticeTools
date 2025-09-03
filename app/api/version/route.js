@@ -15,7 +15,7 @@ export async function GET() {
     
     // First try to get current version from settings (faster)
     try {
-      const currentVersionSetting = await db.getSetting('current_version');
+      const currentVersionSetting = await db.getSetting('current_version', environment);
       if (currentVersionSetting) {
         console.log('Found current_version setting:', currentVersionSetting);
         // Verify it matches the environment
@@ -29,7 +29,7 @@ export async function GET() {
     }
     
     // Fallback to releases table
-    const releases = await db.getReleases();
+    const releases = await db.getReleases(environment);
     console.log('Releases found:', releases ? releases.length : 0);
     
     if (releases && releases.length > 0) {
@@ -77,7 +77,7 @@ export async function GET() {
       const currentVersion = latestVersionObj.version;
       
       // Cache in settings for faster access
-      await db.saveSetting('current_version', currentVersion);
+      await db.saveSetting('current_version', currentVersion, environment);
       return NextResponse.json({ version: currentVersion });
     }
     
