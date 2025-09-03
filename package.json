@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node startup-env-sync.js",
+    "prestart": "node startup-env-sync.js",
+    "prebuild": "node startup-env-sync.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -11,7 +14,9 @@
     "track": "node track-change.js",
     "commit-push": "node commit-and-push.js",
     "preview": "node smart-commit.js",
-    "version-sync": "node version-sync.js"
+    "version-sync": "node version-sync.js",
+    "push-to-prod": "node push-to-prod.js",
+    "env-sync": "node startup-env-sync.js"
   },
   "dependencies": {
     "@aws-sdk/client-apprunner": "^3.876.0",
