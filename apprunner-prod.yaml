@@ -1,0 +1,74 @@
+version: 1
+runtime: nodejs22
+build:
+  commands:
+    build:
+      - echo "Installing dependencies..."
+      - npm install
+      - echo "Building application..."
+      - npm run build
+      - echo "=== BUILD COMPLETED ==="
+      - echo "Auto-versioning handled by local commit script"
+run:
+  command: npm start
+  network:
+    port: 3000
+    env: PORT=3000
+  env:
+    - name: AWS_DEFAULT_REGION
+      value: us-east-1
+    - name: S3_BUCKET
+      value: netsync-practicetools-bucket
+    - name: NODE_ENV
+      value: development
+    - name: ENVIRONMENT
+      value: dev
+  secrets:
+
+    - name: NEXTAUTH_URL
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/NEXTAUTH_URL
+    - name: ADMIN_API_KEY
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/ADMIN_API_KEY
+    - name: DEFAULT_ADMIN_EMAIL
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/DEFAULT_ADMIN_EMAIL
+    - name: DEFAULT_ADMIN_PASSWORD
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/DEFAULT_ADMIN_PASSWORD
+    - name: DEFAULT_ADMIN_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/DEFAULT_ADMIN_NAME
+    - name: CSRF_SECRET
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/CSRF_SECRET
+    - name: DEFAULT_TIMEZONE
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/DEFAULT_TIMEZONE
+    - name: TZ
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/DEFAULT_TIMEZONE
+    - name: SSO_ENABLED
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/SSO_ENABLED
+    - name: DUO_METADATA_FILE
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/DUO_METADATA_FILE
+    - name: DUO_ENTITY_ID
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/DUO_ENTITY_ID
+    - name: DUO_CERT_FILE
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/DUO_CERT_FILE
+    - name: DUO_ACS
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/DUO_ACS
+    - name: SMTP_HOST
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/SMTP_HOST
+    - name: SMTP_USERNAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/SMTP_USERNAME
+    - name: SMTP_PW
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/SMTP_PW
+    - name: SMTP_PORT
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/SMTP_PORT
+    - name: WEBEX_AUDIO_VISUAL_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_AUDIO_VISUAL_ACCESS_TOKEN
+    - name: WEBEX_AUDIO_VISUAL_ROOM_ID_1
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_AUDIO_VISUAL_ROOM_ID_1
+    - name: WEBEX_AUDIO_VISUAL_ROOM_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_AUDIO_VISUAL_ROOM_NAME
+    - name: WEBEX_DATA_CENTER_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_DATA_CENTER_ACCESS_TOKEN
+    - name: WEBEX_DATA_CENTER_ROOM_ID_1
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_DATA_CENTER_ROOM_ID_1
+    - name: WEBEX_DATA_CENTER_ROOM_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_DATA_CENTER_ROOM_NAME
+      

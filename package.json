@@ -1,0 +1,108 @@
+{
+  "name": "issues-tracker",
+  "version": "3.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "track": "node track-change.js",
+    "commit-push": "node commit-and-push.js",
+    "preview": "node smart-commit.js",
+    "version-sync": "node version-sync.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-apprunner": "^3.876.0",
+    "@aws-sdk/client-dynamodb": "^3.872.0",
+    "@aws-sdk/client-s3": "^3.450.0",
+    "@aws-sdk/client-ssm": "^3.876.0",
+    "@aws-sdk/credential-providers": "^3.872.0",
+    "@aws-sdk/s3-request-presigner": "^3.450.0",
+    "@azure/msal-node": "^3.7.3",
+    "@duosecurity/duo_universal": "^3.0.0",
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
+    "@xenova/transformers": "^2.17.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^17.2.1",
+    "ews-javascript-api": "^0.15.3",
+    "googleapis": "^159.0.0",
+    "httpntlm": "^1.8.13",
+    "js-yaml": "^4.1.0",
+    "microsoft-graph": "^3.11.20",
+    "next": "^14.2.32",
+    "next-auth": "^4.24.0",
+    "nodemailer": "^6.10.1",
+    "react": "^18",
+    "react-dom": "^18",
+    "readline-sync": "^1.4.10",
+    "saml2-js": "^4.0.4",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@semantic-release/commit-analyzer": "^11.1.0",
+    "@semantic-release/github": "^9.2.6",
+    "@semantic-release/release-notes-generator": "^12.1.0",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.16",
+    "conventional-changelog-conventionalcommits": "^7.0.2",
+    "eslint": "^8",
+    "eslint-config-next": "^14.0.0",
+    "ignore-loader": "^0.1.2",
+    "postcss": "^8.4.31",
+    "semantic-release": "^22.0.12",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
+  },
+  "release": {
+    "branches": [
+      "main",
+      {
+        "name": "dev",
+        "prerelease": "dev"
+      }
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "releaseRules": [
+            {
+              "type": "feat",
+              "release": "minor"
+            },
+            {
+              "type": "fix",
+              "release": "patch"
+            },
+            {
+              "type": "perf",
+              "release": "patch"
+            },
+            {
+              "type": "docs",
+              "release": "patch"
+            },
+            {
+              "breaking": true,
+              "release": "major"
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits"
+        }
+      ],
+      "@semantic-release/github",
+      "./release-plugin.js"
+    ]
+  }
+}

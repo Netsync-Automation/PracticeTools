@@ -1,0 +1,232 @@
+[
+  {
+    "version": "3.0.0",
+    "date": "2025-08-26",
+    "type": "Major Release",
+    "features": [
+      "Intelligent Code Analysis Engine with pattern recognition and confidence scoring",
+      "Historical Version Reversion System for accurate semantic versioning",
+      "Enhanced Release Notes with detailed user-friendly descriptions",
+      "Version Synchronization across database, git, GitHub, and UI"
+    ],
+    "improvements": [
+      "Enhanced database operations for better version tracking and data integrity",
+      "Improved version display system to show accurate release information",
+      "Enhanced commit system reliability and user experience"
+    ],
+    "bugFixes": [
+      "Fixed navigation bar to display current version correctly",
+      "Enhanced release notes page to display corrected version history",
+      "Resolved commit staging conflicts in commit-and-push system"
+    ],
+    "breaking": [
+      "Enhanced version validation system with stricter compliance checking",
+      "Historical version corrections applied for accuracy"
+    ],
+    "notes": "## 🚨 Breaking Changes\n\n- **Enhanced version validation system** with stricter compliance checking (may require developer review)\n- **Intelligent code analysis engine** now analyzes actual code changes for accurate semantic versioning\n- **Historical version corrections** applied to maintain proper version sequence\n\n## ✨ New Features\n\n- **Intelligent Code Analysis Engine** - Advanced semantic versioning classification using code diff analysis\n- **Historical Version Reversion System** - Corrected all previous versions based on actual code changes\n- **Enhanced Release Notes** - More detailed, user-friendly descriptions of changes\n- **Version Synchronization** - Perfect alignment between database, git tags, GitHub, and UI\n\n## 🔧 Improvements\n\n- **Database Operations** - Enhanced for better version tracking and data integrity\n- **Version Display** - Improved system to show accurate release information throughout UI\n- **Commit System** - Enhanced reliability and user experience with better conflict resolution\n- **Documentation** - Comprehensive feature tracking and version history details\n\n## 🐛 Bug Fixes\n\n- **Navigation Bar** - Fixed to display current version correctly\n- **Release Notes Page** - Enhanced to display corrected version history\n- **Commit Staging** - Resolved conflicts in commit-and-push system",
+    "helpContent": "",
+    "created_at": "2025-08-26T21:33:54.591Z"
+  },
+  {
+    "version": "1.1.0",
+    "date": "2025-08-26",
+    "type": "minor",
+    "features": [],
+    "improvements": [],
+    "bugFixes": [],
+    "breaking": [],
+    "notes": "\n\n---\n\n**📝 Version Correction Notice:**\nThis release was originally versioned as 1.1.0 but has been corrected to 2.0.0 based on intelligent code analysis.\n\n**Reason:** Should be MAJOR not MINOR: 2 breaking changes\n\n**Original Release Notes:**\n# 🎉 Version 1.1.0\n\n## ✨ Feature Update\n\nNew features and enhancements to make Issues Tracker even better.\n\n### ✨ New Features\n\n- **Automatic Timezone Detection**: Your local timezone is now automatically detected and all timestamps are displayed in your time zone\n- **Enhanced Time Display**: Smart relative time formatting (\"2h ago\", \"3d ago\") with full timestamp tooltips\n- **Improved WebEx Notifications**: All WebEx notifications now use consistent timezone formatting\n- **Enhanced Development Protocols**: Strengthened development safety protocols with industry best practices\n\n### 🔧 System Improvements\n\n- **Cross-Platform Compatibility**: Timezone system works seamlessly in both development and AWS App Runner production\n- **Server-Side Optimization**: Improved server-side timezone handling for better performance\n- **Client Persistence**: Timezone preferences are now cached for consistent experience across sessions\n\n### 🐛 Bug Fixes\n\n- **Notification System**: Resolved JSON parsing errors in WebEx notification system\n- **Timestamp Display**: Fixed inconsistent timestamp formatting across different components\n\n---\n\n**📅 Released:** August 26, 2025\n**📦 Version:** 1.1.0\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "### Automatic Timezone Detection\nYour local timezone is now automatically detected and all timestamps are displayed in your time zone\n\n### Enhanced Time Display\nSmart relative time formatting (\"2h ago\", \"3d ago\") with full timestamp tooltips\n\n### Improved WebEx Notifications\nAll WebEx notifications now use consistent timezone formatting\n\n### Enhanced Development Protocols\nStrengthened development safety protocols with industry best practices\n\n### Cross-Platform Compatibility\nTimezone system works seamlessly in both development and AWS App Runner production\n\n### Server-Side Optimization\nImproved server-side timezone handling for better performance\n\n### Client Persistence\nTimezone preferences are now cached for consistent experience across sessions\n\n### Notification System\nResolved JSON parsing errors in WebEx notification system\n\n### Timestamp Display\nFixed inconsistent timestamp formatting across different components\n",
+    "created_at": "2025-08-26T19:34:14.064Z"
+  },
+  {
+    "version": "3.0.4",
+    "date": "2025-08-26",
+    "type": "patch",
+    "features": [],
+    "improvements": [],
+    "bugFixes": [],
+    "breaking": [],
+    "notes": "# 🎉 Version 3.0.4\n\n## 🔧 Maintenance Update\n\nBug fixes and improvements to keep everything running smoothly.\n\n### 🐛 Bug Fixes\n\n- Enhanced commit system to use fix: instead of chore: for proper semantic versioning\n- Improved version detection and synchronization across all systems\n- Fixed maintenance changes to trigger patch releases correctly\n- Added comprehensive version synchronization system\n\n---\n\n**📅 Released:** August 26, 2025\n**📦 Version:** 3.0.4\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "",
+    "created_at": "2025-08-26T22:49:12.390Z"
+  },
+  {
+    "version": "1.2.0",
+    "date": "2025-08-26",
+    "type": "minor",
+    "features": [],
+    "improvements": [],
+    "bugFixes": [],
+    "breaking": [],
+    "notes": "\n\n---\n\n**📝 Version Correction Notice:**\nThis release was originally versioned as 1.2.0 but has been corrected to 2.1.0 based on intelligent code analysis.\n\n**Reason:** Should be MINOR not MINOR: 1 new features\n\n**Original Release Notes:**\n# 🎉 Version 1.2.0\n\n## ✨ Feature Update\n\nNew features and enhancements to make Issues Tracker even better.\n\n### ✨ New Features\n\n- **Enhanced Release Notes System**: Completely redesigned release notes with visually appealing formatting, user-friendly language, and professional styling\n- **Improved Automated Versioning**: Enhanced semantic-release system with better classification and error handling\n- **Better Development Protocols**: Enhanced breaking change prevention system with comprehensive validation\n\n### 🔧 System Improvements\n\n- **Semantic Release Integration**: Improved release note generation with better commit classification\n- **GitHub Actions Compatibility**: Enhanced deployment pipeline reliability\n- **Code Quality Enhancements**: Improved error handling and debugging capabilities\n\n### 🐛 Bug Fixes\n\n- **Release Plugin Errors**: Fixed context issues in semantic-release plugin\n- **Template Processing**: Resolved date parsing errors in release note generation\n- **Version Classification**: Fixed incorrect major version detection\n\n---\n\n**📅 Released:** August 26, 2025\n**📦 Version:** 1.2.0\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "### Enhanced Release Notes System\nCompletely redesigned release notes with visually appealing formatting, user-friendly language, and professional styling\n\n### Improved Automated Versioning\nEnhanced semantic-release system with better classification and error handling\n\n### Better Development Protocols\nEnhanced breaking change prevention system with comprehensive validation\n\n### Semantic Release Integration\nImproved release note generation with better commit classification\n\n### GitHub Actions Compatibility\nEnhanced deployment pipeline reliability\n\n### Code Quality Enhancements\nImproved error handling and debugging capabilities\n\n### Release Plugin Errors\nFixed context issues in semantic-release plugin\n\n### Template Processing\nResolved date parsing errors in release note generation\n\n### Version Classification\nFixed incorrect major version detection\n",
+    "created_at": "2025-08-26T19:34:14.391Z"
+  },
+  {
+    "version": "5.0.0-dev.3",
+    "date": "2025-08-30",
+    "type": "major",
+    "features": [],
+    "improvements": [],
+    "bugFixes": [],
+    "breaking": [],
+    "notes": "# 🎉 Version 5.0.0-dev.3\n\n## 🚀 Major Update\n\nThis is a significant update with new features and improvements that enhance your experience with Issues Tracker.\n\n### ✨ New Features\n\n- Updated SSO settings to use secure SSM parameter storage\n\n### 🐛 Bug Fixes\n\n- Updated system file: pending-changes.json\n\n---\n\n**📅 Released:** August 30, 2025\n**📦 Version:** 5.0.0-dev.3\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "",
+    "created_at": "2025-08-30T05:00:08.287Z"
+  },
+  {
+    "version": "3.0.1",
+    "date": "2025-08-26",
+    "type": "Major Release",
+    "features": [],
+    "improvements": [
+      "Enhanced commit system reliability with better conflict resolution",
+      "Improved release notes management and update capabilities",
+      "Better error handling and recovery in version operations",
+      "Enhanced API endpoints for release content management"
+    ],
+    "bugFixes": [
+      "Resolved staging conflicts in commit-and-push system",
+      "Fixed release creation and update processes",
+      "Improved version synchronization between systems"
+    ],
+    "breaking": [],
+    "notes": "## 🔧 Patch Update\n\nThis patch release includes important fixes and improvements following the major v3.0.0 update.\n\n## 🐛 Bug Fixes\n\n- **Commit System Reliability** - Resolved staging conflicts in the commit-and-push system that could cause commit failures\n- **Release Notes Management** - Enhanced release creation and update system for better content management\n- **Version Synchronization** - Improved alignment between automated and manual release processes\n\n## 🔧 Improvements\n\n- **Error Handling** - Better error messages and recovery in commit operations\n- **API Endpoints** - Added release update functionality for better content management\n- **System Stability** - Enhanced reliability of version management operations",
+    "helpContent": "",
+    "created_at": "2025-08-26T21:35:10.513Z"
+  },
+  {
+    "version": "1.4.0",
+    "date": "2025-08-26",
+    "type": "minor",
+    "features": [],
+    "improvements": [],
+    "bugFixes": [],
+    "breaking": [],
+    "notes": "\n\n---\n\n**📝 Version Correction Notice:**\nThis release was originally versioned as 1.4.0 but has been corrected to 2.2.1 based on intelligent code analysis.\n\n**Reason:** Should be PATCH not MINOR: maintenance changes\n\n**Original Release Notes:**\n# 🎉 Version 1.4.0\n\n## ✨ Feature Update\n\nNew features and enhancements to make Issues Tracker even better.\n\n### ✨ New Features\n\n- **Enhanced Release Notes**: Improved v1.3.0 release notes with comprehensive feature descriptions\n- **Better Commit Humanization**: Added specific patterns for semantic versioning related commits\n- **Release Plugin Enhancement**: Improved commit message processing for future releases\n\n### 🔧 System Improvements\n\n- **Pattern Matching**: Added 8 new humanization patterns for versioning-related commits\n- **Release Notes Generation**: Enhanced processing of technical commit messages\n- **User Communication**: Better translation of technical changes to user-friendly descriptions\n\n### 🐛 Bug Fixes\n\n- **Empty Release Notes**: Fixed issue where commits weren't matching humanization patterns\n- **Version Display**: Improved release notes formatting and content detail\n- **Commit Processing**: Enhanced pattern matching for better release note generation\n\n---\n\n**📅 Released:** August 26, 2025\n**📦 Version:** 1.4.0\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "### Enhanced Release Notes\nImproved v1.3.0 release notes with comprehensive feature descriptions\n\n### Better Commit Humanization\nAdded specific patterns for semantic versioning related commits\n\n### Release Plugin Enhancement\nImproved commit message processing for future releases\n\n### Pattern Matching\nAdded 8 new humanization patterns for versioning-related commits\n\n### Release Notes Generation\nEnhanced processing of technical commit messages\n\n### User Communication\nBetter translation of technical changes to user-friendly descriptions\n\n### Empty Release Notes\nFixed issue where commits weren't matching humanization patterns\n\n### Version Display\nImproved release notes formatting and content detail\n\n### Commit Processing\nEnhanced pattern matching for better release note generation\n",
+    "created_at": "2025-08-26T20:00:19.863Z"
+  },
+  {
+    "version": "1.0.0",
+    "date": "2025-08-24",
+    "type": "Major Release",
+    "features": [],
+    "improvements": [],
+    "bugFixes": [],
+    "breaking": [],
+    "notes": "## 🎉 Initial Release - Netsync Issues Tracker v1.0.0\n\nWelcome to the comprehensive issue tracking system designed for modern teams!\n\n## ✨ Core Features\n\n- **Complete Issue Management**: Create, track, and resolve bug reports, feature requests, and general questions\n- **Smart Duplicate Detection**: AI-powered duplicate prevention using TF-IDF similarity matching\n- **Real-time Collaboration**: Live updates, comments, and notifications via Server-Sent Events\n- **WebEx Integration**: Seamless notifications and adaptive cards for team communication\n- **Advanced Search & Filtering**: Powerful tools to find and organize issues efficiently\n\n## 🔄 Workflow Management\n\n- **Status Tracking**: Open → In Progress → Pending Testing → Backlog → Rejected → Closed\n- **Assignment System**: Admin-controlled issue assignment with requirement enforcement\n- **Resolution Comments**: Mandatory detailed resolution notes for closed issues\n- **Status History**: Complete audit trail of all changes with timestamps\n\n## 👥 User Experience\n\n- **Upvoting System**: Community-driven issue prioritization\n- **Following System**: Stay updated on issues you care about\n- **File Attachments**: Support for images, documents, and various file types\n- **Emoji Support**: Express yourself with emoji picker in comments\n- **Responsive Design**: Optimized for desktop and mobile devices\n\n## 🔒 Security & Authentication\n\n- **SAML SSO Integration**: Enterprise-grade single sign-on\n- **Role-based Access**: Admin and user permissions with proper controls\n- **Secure File Storage**: AWS S3 integration with access controls\n- **Session Management**: Secure authentication with automatic logout\n\n## 🤖 Automation & Intelligence\n\n- **Automated Versioning**: Semantic versioning with feature change detection\n- **Release Notes Generation**: Automatic user-friendly release documentation\n- **Weekly Analytics**: Comprehensive reporting sent to administrators\n- **Post-deployment Processing**: Automatic feature tracking and version management\n\n## 📊 Admin Dashboard\n\n- **System Statistics**: Real-time metrics and issue counts\n- **User Management**: Create, edit, and manage user accounts\n- **Assigned Issues View**: Dedicated workspace for admin-assigned tasks\n- **Settings Management**: Configure WebEx integration and system preferences\n\nThis release establishes the foundation for efficient issue tracking and team collaboration.",
+    "helpContent": "## Getting Started\n\nWelcome to the Netsync Issues Tracker! This comprehensive guide will help you make the most of all available features.\n\n## Issue Management\n\n### Creating Issues\nSubmit bug reports, feature requests, or general questions through our intuitive form interface. Each issue is automatically assigned a unique number for easy reference.\n\n### Issue Types\n- **Bug Report**: Report software defects or unexpected behavior\n- **Feature Request**: Suggest new functionality or improvements  \n- **General Question**: Ask questions or seek clarification\n\n### Smart Duplicate Detection\nOur AI-powered system uses advanced TF-IDF similarity matching to prevent duplicate submissions by showing you similar existing issues before you submit.\n\n### Issue Editing\nEdit your own issues after submission to add more details or clarify information.\n\n## Collaboration Features\n\n### Following Issues\nStay updated on issues that matter to you:\n- Click the \"Follow\" button on any issue\n- Automatically follow issues you create or comment on\n- Receive WebEx notifications when followed issues are updated\n- Unfollow at any time to stop receiving notifications\n\n### Comments & Discussions\n- Add comments to provide additional information\n- Attach files and images to your comments (up to 5MB each)\n- Use the emoji picker to express reactions\n- Paste images directly from your clipboard\n- Admin comments are highlighted for visibility\n- Comments are locked when issues are closed\n\n### Upvoting System\nShow support for issues by upvoting them:\n- One upvote per user per issue\n- Higher upvoted issues get more visibility\n- Upvote counts update in real-time\n- Cannot upvote your own issues\n\n## Real-time Features\n\n### Live Updates\n- See new comments and status changes instantly via Server-Sent Events\n- Browser tab notifications when you're away\n- Audio alerts for new activity\n- Auto-scroll to new content\n- Real-time upvote count updates\n\n### WebEx Integration\n- Automatic notifications sent to WebEx rooms\n- Rich adaptive cards with issue details and actions\n- Direct messages for status updates and comments\n- Weekly analytics reports sent to administrators\n- Follower notifications for issue closures\n\n## Search & Organization\n\n### Advanced Search\n- Search across titles, descriptions, and creators\n- Filter by issue type (Bug Report, Feature Request, General Question)\n- Filter by status (Open, In Progress, Pending Testing, Backlog, Rejected, Closed)\n- Filter by assignment status\n- Sort by creation date or upvote count\n- Clear all filters with one click\n\n### View Options\n- **Table View**: Compact list with sortable columns\n- **Card View**: Visual cards with more details\n- Pagination for easy browsing of large issue lists\n- \"My Issues\" filter to see only issues you created\n\n## Status Management\n\n### Issue Lifecycle\n- **Open**: New issues awaiting review\n- **In Progress**: Issues being actively worked on  \n- **Pending Testing**: Issues awaiting verification\n- **Backlog**: Issues scheduled for future work\n- **Rejected**: Issues that won't be addressed\n- **Closed**: Completed issues with resolution\n\n### Assignment Requirements\n- Issues must be assigned to an admin before status changes\n- Only admins can change issue status\n- Mandatory resolution comments when closing issues\n- Complete status history with audit trail\n\n## File Management\n\n### Attachments\n- Upload files up to 5MB each\n- Support for images, documents, and various file types\n- Secure AWS S3 cloud storage with access controls\n- Download links provided in notifications\n- File previews where supported\n- Attachment support in both issues and comments\n\n## Admin Features\n\n### Admin Dashboard\n- Comprehensive system statistics and metrics\n- Real-time issue counts by status and type\n- User management interface\n- Assigned issues workspace with full table functionality\n\n### Issue Assignment\n- Assign issues to team members\n- Track workload distribution across admins\n- View all issues assigned to you in dedicated dashboard\n- Search, filter, and paginate assigned issues\n\n### User Management\n- Create and manage user accounts\n- Assign admin or user roles\n- Support for SAML SSO and local authentication\n- Password reset functionality for local accounts\n- User creation from multiple sources (SAML, manual, WebEx sync)\n\n### System Administration\n- Issue renumbering and resequencing tools\n- WebEx integration settings and configuration\n- Manual release notes creation\n- Settings management for app-wide configuration\n- Automated versioning with feature change detection\n\n## Notifications\n\n### WebEx Notifications\n- New issue alerts with adaptive cards\n- Status change notifications with before/after states\n- Comment notifications for issue followers\n- Weekly analytics summaries with assigned issue counts\n- Automatic user synchronization from WebEx rooms\n\n### Real-time Browser Notifications\n- Instant updates via Server-Sent Events\n- Browser tab title alerts when away\n- Audio notifications for new activity\n- Visual indicators for new content\n\n## Security & Authentication\n\n### Authentication Methods\n- **SAML SSO**: Enterprise-grade single sign-on integration\n- **Local Authentication**: Username/password for standalone use\n- Secure session management with automatic logout\n- Role-based access control (Admin vs User permissions)\n\n### Data Protection\n- Secure file storage with AWS S3 integration\n- Access controls and permission enforcement\n- Complete audit trails for all changes\n- Status change logging with timestamps\n- Data privacy compliance measures\n\n## Automated Features\n\n### Versioning System\n- Semantic versioning with automated release notes\n- Feature change detection and documentation\n- Post-deployment processing for version management\n- Automatic UI updates with new version numbers\n- Release notes generation from feature changes\n\n### Analytics & Reporting\n- Weekly analytics reports sent to administrators\n- System usage statistics and metrics\n- Issue trend analysis and reporting\n- Performance monitoring and health checks\n\n## Advanced Features\n\n### Following System\n- Automatic following for issue creators and commenters\n- Explicit follow/unfollow functionality\n- Smart notification delivery to followers only\n- Follow status persistence across sessions\n\n### Duplicate Detection\n- TF-IDF + Cosine Similarity algorithm for accurate detection\n- 30% similarity threshold for duplicate identification\n- Preprocessing with stop word removal\n- Vector-based similarity calculations\n\n### Real-time Communication\n- Server-Sent Events for instant updates\n- WebSocket-like functionality without WebSocket complexity\n- Automatic reconnection and error handling\n- Multi-channel event distribution\n\n## Tips for Success\n\n1. **Be Descriptive**: Provide clear titles and detailed descriptions\n2. **Use Attachments**: Include screenshots or files when helpful\n3. **Follow Up**: Stay engaged with comments and updates\n4. **Search First**: Check for existing issues before creating new ones\n5. **Use Upvotes**: Show support for issues you care about\n6. **Follow Issues**: Stay informed about issues that affect you\n7. **Provide Context**: Include problem links for bug reports\n8. **Use Appropriate Types**: Choose the right issue type for better organization\n\n## Troubleshooting\n\n### Common Issues\n- **Can't see updates**: Check if JavaScript is enabled and refresh the page\n- **File upload fails**: Ensure file is under 5MB and try again\n- **Not receiving notifications**: Check your WebEx settings and follow status\n- **Search not working**: Try clearing filters and search terms\n- **Can't change status**: Ensure issue is assigned to an admin first\n\n### Getting Help\n1. Check this help documentation first\n2. Search existing issues for similar problems\n3. Create a new issue with detailed information\n4. Contact your system administrator\n5. Check the release notes for recent changes\n\nFor technical support, create a bug report with:\n- Detailed description of the problem\n- Steps to reproduce the issue\n- Screenshots or attachments if helpful\n- Browser and system information",
+    "created_at": "2025-08-25T00:14:10.117Z"
+  },
+  {
+    "version": "1.5.0",
+    "date": "2025-08-26",
+    "type": "minor",
+    "features": [],
+    "improvements": [],
+    "bugFixes": [],
+    "breaking": [],
+    "notes": "\n\n---\n\n**📝 Version Correction Notice:**\nThis release was originally versioned as 1.5.0 but has been corrected to 2.3.0 based on intelligent code analysis.\n\n**Reason:** Should be MINOR not MINOR: 1 new features, 1 bug fixes\n\n**Original Release Notes:**\n# 🎉 Version 1.5.0\n\n## ✨ Feature Update\n\nNew features and enhancements to make Issues Tracker even better.\n\n### ✨ New Features\n\n- **Industry-Standard Semantic Versioning Compliance**: Full adherence to SemVer 2.0.0 standards with comprehensive validation\n- **Enhanced Database Operations with SemVer Compliance Validation**: Improved database operations with semantic versioning validation\n- **Interactive Commit Approval System**: Enhanced navigation and commit system with user approval workflow\n- **Updated Navigation Component with Version Display**: Improved navbar with better version display and user experience\n- **Application Configuration Updates**: Enhanced configuration management for better semantic versioning support\n\n### 🔧 System Improvements\n\n- **SemVer 2.0.0 Compliance**: Strict adherence to industry standards for version classification\n- **Interactive Preview System**: Comprehensive commit preview with detailed release notes generation\n- **GitHub Version Synchronization**: Enhanced alignment between local and remote version tracking\n- **Breaking Change Prevention**: Advanced validation to prevent incorrect major version increments\n\n---\n\n**📅 Released:** August 26, 2025\n**📦 Version:** 1.5.0\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "### Industry-Standard Semantic Versioning Compliance\nFull adherence to SemVer 2.0.0 standards with comprehensive validation\n\n### Enhanced Database Operations with SemVer Compliance Validation\nImproved database operations with semantic versioning validation\n\n### Interactive Commit Approval System\nEnhanced navigation and commit system with user approval workflow\n\n### Updated Navigation Component with Version Display\nImproved navbar with better version display and user experience\n\n### Application Configuration Updates\nEnhanced configuration management for better semantic versioning support\n\n### SemVer 2.0.0 Compliance\nStrict adherence to industry standards for version classification\n\n### Interactive Preview System\nComprehensive commit preview with detailed release notes generation\n\n### GitHub Version Synchronization\nEnhanced alignment between local and remote version tracking\n\n### Breaking Change Prevention\nAdvanced validation to prevent incorrect major version increments\n",
+    "created_at": "2025-08-26T20:28:35.127Z"
+  },
+  {
+    "version": "3.0.2",
+    "date": "2025-08-26",
+    "type": "Major Release",
+    "features": [],
+    "improvements": [
+      "Enhanced commit system to use fix: instead of chore: for proper semantic versioning",
+      "Improved version detection and synchronization across all systems",
+      "Fixed maintenance changes to trigger patch releases correctly",
+      "Added comprehensive version synchronization system",
+      "Updated project configuration to support comprehensive version management",
+      "Improved commit system reliability and user experience"
+    ],
+    "bugFixes": [
+      "Fixed commit system semantic versioning classification",
+      "Resolved version detection and synchronization issues",
+      "Corrected maintenance change handling for proper patch releases",
+      "Enhanced project configuration for version management",
+      "Improved commit-push script reliability and error handling"
+    ],
+    "breaking": [],
+    "notes": "# 🎉 Version 3.0.2\n\n## 🔧 Patch Update\n\nBug fixes and improvements to keep everything running smoothly.\n\n### 🐛 Bug Fixes\n\n- **Enhanced Commit System** - Fixed commit system to use fix: instead of chore: for proper semantic versioning\n- **Improved Version Detection** - Enhanced version detection and synchronization across all systems  \n- **Patch Release Triggers** - Fixed maintenance changes to trigger patch releases correctly\n- **Version Synchronization Script** - Added comprehensive version synchronization system for system maintenance\n- **Project Configuration** - Updated project configuration to support comprehensive version management\n- **Commit-Push Script Reliability** - Improved commit system reliability and user experience with better error handling\n\n---\n\n**📅 Released:** August 26, 2025\n**📦 Version:** 3.0.2\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "",
+    "created_at": "2025-08-26T22:26:19.474Z"
+  },
+  {
+    "version": "4.0.0",
+    "date": "2025-08-26",
+    "type": "Major Release",
+    "features": [],
+    "improvements": [
+      "Enhanced commit system with interactive approval and detailed preview",
+      "Added comprehensive version synchronization across all systems",
+      "Implemented intelligent release notes generation",
+      "Added advanced testing infrastructure for release validation",
+      "Integrated semantic versioning compliance with SemVer 2.0.0",
+      "Added breaking change prevention protocol for safer development"
+    ],
+    "bugFixes": [
+      "Fixed commit classification for maintenance changes",
+      "Resolved version detection and synchronization issues",
+      "Enhanced release plugin commit body processing",
+      "Corrected database release management and tracking"
+    ],
+    "breaking": [],
+    "notes": "# 🎉 Version 4.0.0\n\n## 🚀 Major Update\n\nThis is a significant update with new features and improvements that enhance your experience with Issues Tracker.\n\n### ✨ New Features\n\n- **Enhanced Commit System** - Completely redesigned commit-push system with interactive approval and detailed preview\n- **Comprehensive Version Synchronization** - Added automated version sync across GitHub, database, and UI systems\n- **Detailed Release Notes Generation** - Implemented intelligent release notes with user-friendly descriptions\n- **Advanced Testing Infrastructure** - Added comprehensive test suite for release system validation\n- **Semantic Versioning Compliance** - Enhanced version classification with industry-standard SemVer 2.0.0 compliance\n- **Breaking Change Prevention Protocol** - Integrated mandatory safety checks before any code modifications\n\n### 🐛 Bug Fixes\n\n- **Fixed Commit Classification** - Resolved maintenance changes to properly trigger patch releases instead of being ignored\n- **Enhanced Version Detection** - Improved synchronization between package.json, GitHub tags, and database versions\n- **Release Plugin Processing** - Fixed commit body extraction for detailed release notes generation\n- **Database Release Management** - Corrected release entry creation and version tracking\n\n### 🔧 Improvements\n\n- **Interactive User Experience** - Added approval system with detailed commit previews before execution\n- **System Reliability** - Enhanced error handling and recovery in commit operations\n- **Documentation Quality** - Improved release notes with context-aware, user-friendly descriptions\n- **Development Workflow** - Streamlined version management with automated synchronization tools\n\n---\n\n**📅 Released:** August 26, 2025\n**📦 Version:** 4.0.0\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "",
+    "created_at": "2025-08-26T23:05:41.866Z"
+  },
+  {
+    "version": "3.0.3",
+    "date": "2025-08-26",
+    "type": "Major Release",
+    "features": [],
+    "improvements": [
+      "Enhanced commit system to use fix: instead of chore: for proper semantic versioning",
+      "Improved version detection and synchronization across all systems",
+      "Fixed maintenance changes to trigger patch releases correctly",
+      "Enhanced release notes generation system",
+      "Improved overall system reliability and performance"
+    ],
+    "bugFixes": [
+      "Fixed commit system semantic versioning classification",
+      "Resolved version detection and synchronization issues",
+      "Corrected maintenance change handling for proper patch releases",
+      "Enhanced release plugin with detailed processing",
+      "Improved system reliability and error handling"
+    ],
+    "breaking": [],
+    "notes": "# 🎉 Version 3.0.3\n\n## 🔧 Patch Update\n\nBug fixes and improvements to keep everything running smoothly.\n\n### 🐛 Bug Fixes\n\n- **Enhanced Commit System** - Fixed commit system to use fix: instead of chore: for proper semantic versioning\n- **Improved Version Detection** - Enhanced version detection and synchronization across all systems\n- **Fixed Maintenance Changes** - Corrected maintenance changes to trigger patch releases correctly\n- **Release Plugin Enhancement** - Enhanced release notes generation system with detailed commit body processing\n- **System Reliability** - Improved overall system reliability and performance\n\n---\n\n**📅 Released:** August 26, 2025\n**📦 Version:** 3.0.3\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "",
+    "created_at": "2025-08-26T22:42:20.256Z"
+  },
+  {
+    "version": "1.3.0",
+    "date": "2025-08-26",
+    "type": "minor",
+    "features": [],
+    "improvements": [],
+    "bugFixes": [],
+    "breaking": [],
+    "notes": "\n\n---\n\n**📝 Version Correction Notice:**\nThis release was originally versioned as 1.3.0 but has been corrected to 2.2.0 based on intelligent code analysis.\n\n**Reason:** Should be MINOR not MINOR: 1 new features\n\n**Original Release Notes:**\n# 🎉 Version 1.3.0\n\n## ✨ Feature Update\n\nNew features and enhancements to make Issues Tracker even better.\n\n### ✨ New Features\n\n- **Comprehensive Semantic Versioning**: Enhanced automated version classification system with 50+ detection patterns\n- **Breaking Change Detection**: Advanced pattern matching for API changes, authentication updates, and schema modifications\n- **Feature Classification**: Intelligent detection of new functionality, UI enhancements, and system integrations\n- **Bug Fix Recognition**: Comprehensive patterns for error handling, validation fixes, and security patches\n- **Maintenance Detection**: Smart classification of documentation, code style, and build system changes\n\n### 🔧 System Improvements\n\n- **Enhanced Pattern Matching**: 20+ patterns for breaking changes, 25+ for features, 30+ for bug fixes\n- **Accurate Version Bumping**: Prevents incorrect major version increments for minor changes\n- **Improved Release Notes**: Better humanization of technical commit messages for user-friendly descriptions\n- **Version History Correction**: Cleaned up incorrect version history and aligned all system references\n- **GitHub Integration**: Proper tag management and semantic-release compatibility\n\n### 🐛 Bug Fixes\n\n- **Version Classification**: Fixed incorrect major version detection for enhancement commits\n- **Release Notes Generation**: Resolved empty release notes by improving commit message processing\n- **Tag Management**: Corrected GitHub tag references and removed conflicting version entries\n- **Database Consistency**: Aligned release notes database with corrected semantic versioning\n\n---\n\n**📅 Released:** August 26, 2025\n**📦 Version:** 1.3.0\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "### Comprehensive Semantic Versioning\nEnhanced automated version classification system with 50+ detection patterns\n\n### Breaking Change Detection\nAdvanced pattern matching for API changes, authentication updates, and schema modifications\n\n### Feature Classification\nIntelligent detection of new functionality, UI enhancements, and system integrations\n\n### Bug Fix Recognition\nComprehensive patterns for error handling, validation fixes, and security patches\n\n### Maintenance Detection\nSmart classification of documentation, code style, and build system changes\n\n### Enhanced Pattern Matching\n20+ patterns for breaking changes, 25+ for features, 30+ for bug fixes\n\n### Accurate Version Bumping\nPrevents incorrect major version increments for minor changes\n\n### Improved Release Notes\nBetter humanization of technical commit messages for user-friendly descriptions\n\n### Version History Correction\nCleaned up incorrect version history and aligned all system references\n\n### GitHub Integration\nProper tag management and semantic-release compatibility\n\n### Version Classification\nFixed incorrect major version detection for enhancement commits\n\n### Release Notes Generation\nResolved empty release notes by improving commit message processing\n\n### Tag Management\nCorrected GitHub tag references and removed conflicting version entries\n\n### Database Consistency\nAligned release notes database with corrected semantic versioning\n",
+    "created_at": "2025-08-26T19:43:54.001Z"
+  },
+  {
+    "version": "5.0.0-dev.2",
+    "date": "2025-08-30",
+    "type": "patch",
+    "features": [],
+    "improvements": [],
+    "bugFixes": [],
+    "breaking": [],
+    "notes": "# 🎉 Version 5.0.0-dev.2\n\n## 🔧 Maintenance Update\n\nBug fixes and improvements to keep everything running smoothly.\n\n### 🐛 Bug Fixes\n\n- Fix: fix commit-and-push features issues (2 changes)\n\n---\n\n**📅 Released:** August 30, 2025\n**📦 Version:** 5.0.0-dev.2\n\n*Thank you for using Issues Tracker! 🙏*",
+    "helpContent": "",
+    "created_at": "2025-08-30T04:28:22.911Z"
+  }
+]
