@@ -175,6 +175,11 @@ class CommitBuilder {
   
   static async analyzeGitDiff(filePath) {
     try {
+      // Check if file exists first
+      if (!existsSync(filePath)) {
+        return `Removed ${filePath.split('/').pop().replace('.js', '').replace('-', ' ')} file`;
+      }
+      
       // Get the actual diff for staged changes
       const diff = execSync(`git diff --cached "${filePath}" || git diff "${filePath}"`, { 
         encoding: 'utf8', 
@@ -188,6 +193,10 @@ class CommitBuilder {
       return this.interpretDiffForUsers(diff, filePath);
       
     } catch (error) {
+      // Handle deleted files or other git errors
+      if (error.message.includes('unknown revision or path not in the working tree')) {
+        return `Removed ${filePath.split('/').pop().replace('.js', '').replace('-', ' ')} temporary file`;
+      }
       // Fallback to enhanced description if git diff fails
       return await this.getEnhancedDescription(filePath);
     }
