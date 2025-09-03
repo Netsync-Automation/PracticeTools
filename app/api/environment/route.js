@@ -3,6 +3,7 @@ import yaml from 'js-yaml';
 
 export async function GET() {
   try {
+    console.log('Environment API called');
     // Read environment from apprunner.yaml as single source of truth
     const apprunnerContent = readFileSync('apprunner.yaml', 'utf8');
     const config = yaml.load(apprunnerContent);
@@ -10,6 +11,8 @@ export async function GET() {
     const envVars = config.run?.env || [];
     const environmentVar = envVars.find(env => env.name === 'ENVIRONMENT');
     const environment = environmentVar?.value || 'dev';
+    
+    console.log('Environment API returning:', environment);
     
     return Response.json({ 
       environment,

@@ -5,7 +5,11 @@ export async function GET() {
   try {
     // Use ENVIRONMENT variable as single source of truth from apprunner.yaml
     const environment = process.env.ENVIRONMENT || 'dev';
+    console.log('Releases API called - ENVIRONMENT:', environment);
+    console.log('Database table:', `PracticeTools-${environment}-Releases`);
+    
     const releases = await db.getReleases(environment);
+    console.log('Releases found:', releases ? releases.length : 0);
     
 
     
@@ -14,6 +18,8 @@ export async function GET() {
       return compareVersions(b.version, a.version);
     });
     
+    console.log('Returning releases:', sortedReleases.length);
+    console.log('Latest releases:', sortedReleases.slice(0, 3).map(r => ({ version: r.version, date: r.date })));
 
     return NextResponse.json(sortedReleases);
   } catch (error) {
