@@ -10,6 +10,7 @@ import Breadcrumb from '../../../components/Breadcrumb';
 import Pagination from '../../../components/Pagination';
 import AttachmentPreview from '../../../components/AttachmentPreview';
 import MultiAttachmentPreview from '../../../components/MultiAttachmentPreview';
+import { PRACTICE_OPTIONS } from '../../../constants/practices';
 
 export default function ResourceAssignmentsPage() {
   const router = useRouter();
@@ -17,23 +18,20 @@ export default function ResourceAssignmentsPage() {
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState([]);
   const [filters, setFilters] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('resourceAssignmentsFilters');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    }
     return {
-      project: '',
-      resource: '',
-      status: '',
+      status: ['Pending', 'Unassigned'],
+      practice: [],
+      region: '',
+      dateFrom: '',
+      dateTo: '',
       search: '',
-      sort: 'newest',
-      practice: []
+      sort: 'newest'
     };
   });
   const [showPracticeModal, setShowPracticeModal] = useState(false);
   const [tempPracticeSelection, setTempPracticeSelection] = useState([]);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [tempStatusSelection, setTempStatusSelection] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const assignmentsPerPage = 20;
 
@@ -44,16 +42,49 @@ export default function ResourceAssignmentsPage() {
     }
   }, [filters]);
 
-  // Initialize practice filter based on user's practices
+  // Initialize filters based on user data and localStorage
   useEffect(() => {
-    if (user && user.practices && user.practices.length > 0) {
+    if (user && user.practices) {
+      console.log('User practices from database:', user.practices);
       const saved = localStorage.getItem('resourceAssignmentsFilters');
-      const savedFilters = saved ? JSON.parse(saved) : null;
-      if (!saved || !savedFilters.practice || savedFilters.practice.length === 0) {
-        setFilters(prev => ({
-          ...prev,
-          practice: user.practices
-        }));
+      let shouldSetDefaults = false;
+      
+      if (saved) {
+        try {
+          const parsedFilters = JSON.parse(saved);
+          console.log('Saved filters:', parsedFilters);
+          // Check if we need to apply defaults
+          const needsStatusDefault = !parsedFilters.status || parsedFilters.status.length === 0;
+          const needsPracticeDefault = !parsedFilters.practice || parsedFilters.practice.length === 0;
+          
+          if (needsStatusDefault) {
+            parsedFilters.status = ['Pending', 'Unassigned'];
+          }
+          if (needsPracticeDefault) {
+            parsedFilters.practice = [...(user.practices || []), 'Pending'];
+            console.log('Setting practice default to user practices + Pending:', [...(user.practices || []), 'Pending']);
+          }
+          
+          setFilters(parsedFilters);
+        } catch (error) {
+          shouldSetDefaults = true;
+        }
+      } else {
+        shouldSetDefaults = true;
+      }
+      
+      if (shouldSetDefaults) {
+        // No saved filters or parsing error, use defaults
+        console.log('Setting default filters with user practices + Pending:', [...(user.practices || []), 'Pending']);
+        setFilters({
+          status: ['Pending', 'Unassigned'],
+          practice: [...(user.practices || []), 'Pending'],
+          region: '',
+          dateFrom: '',
+          dateTo: '',
+          search: '',
+          sort: 'newest'
+        });
       }
     }
   }, [user]);
@@ -118,24 +149,40 @@ export default function ResourceAssignmentsPage() {
   };
 
   const allFilteredAssignments = assignments.filter(assignment => {
-    const matchesProject = !filters.project || assignment.projectDescription.toLowerCase().includes(filters.project.toLowerCase()) || assignment.projectNumber.toLowerCase().includes(filters.project.toLowerCase());
-    const matchesResource = !filters.resource || assignment.resourceAssigned.toLowerCase().includes(filters.resource.toLowerCase());
-    const matchesStatus = !filters.status || assignment.status === filters.status;
+    const matchesStatus = !filters.status || filters.status.length === 0 || filters.status.includes(assignment.status);
     const matchesPractice = !filters.practice || filters.practice.length === 0 || filters.practice.includes(assignment.practice);
+    const matchesRegion = !filters.region || assignment.region === filters.region;
+    
+    // Date range filtering
+    let matchesDateRange = true;
+    if (filters.dateFrom || filters.dateTo) {
+      const assignmentDate = new Date(assignment.requestDate);
+      if (filters.dateFrom) {
+        const fromDate = new Date(filters.dateFrom);
+        matchesDateRange = matchesDateRange && assignmentDate >= fromDate;
+      }
+      if (filters.dateTo) {
+        const toDate = new Date(filters.dateTo);
+        toDate.setHours(23, 59, 59, 999); // Include the entire end date
+        matchesDateRange = matchesDateRange && assignmentDate <= toDate;
+      }
+    }
+    
     const matchesSearch = !filters.search || 
       assignment.projectDescription.toLowerCase().includes(filters.search.toLowerCase()) ||
       assignment.resourceAssigned.toLowerCase().includes(filters.search.toLowerCase()) ||
       assignment.customerName.toLowerCase().includes(filters.search.toLowerCase()) ||
       assignment.projectNumber.toLowerCase().includes(filters.search.toLowerCase()) ||
-      assignment.am.toLowerCase().includes(filters.search.toLowerCase()) ||
       assignment.pm.toLowerCase().includes(filters.search.toLowerCase());
     
-    return matchesProject && matchesResource && matchesStatus && matchesPractice && matchesSearch;
+    return matchesStatus && matchesPractice && matchesRegion && matchesDateRange && matchesSearch;
   }).sort((a, b) => {
     if (filters.sort === 'project') {
       return a.projectDescription.localeCompare(b.projectDescription);
     } else if (filters.sort === 'resource') {
       return a.resourceAssigned.localeCompare(b.resourceAssigned);
+    } else if (filters.sort === 'customer') {
+      return a.customerName.localeCompare(b.customerName);
     }
     return new Date(b.requestDate) - new Date(a.requestDate);
   });
@@ -147,7 +194,7 @@ export default function ResourceAssignmentsPage() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters.project, filters.resource, filters.status, filters.search, filters.sort, filters.practice]);
+  }, [filters.status.length, filters.practice, filters.region, filters.dateFrom, filters.dateTo, filters.search, filters.sort]);
 
   if (loading || !user) {
     return (
@@ -200,8 +247,36 @@ export default function ResourceAssignmentsPage() {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Total Assignments</p>
+                    <p className="text-sm font-medium text-gray-500">Total Requests</p>
                     <p className="text-2xl font-semibold text-gray-900">{allFilteredAssignments.length}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                      <span className="text-purple-600 font-semibold text-sm">⏳</span>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Pending</p>
+                    <p className="text-2xl font-semibold text-gray-900">{allFilteredAssignments.filter(a => a.status === 'Pending').length}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                      <span className="text-orange-600 font-semibold text-sm">📁</span>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Unassigned</p>
+                    <p className="text-2xl font-semibold text-gray-900">{allFilteredAssignments.filter(a => a.status === 'Unassigned').length}</p>
                   </div>
                 </div>
               </div>
@@ -219,34 +294,6 @@ export default function ResourceAssignmentsPage() {
                   </div>
                 </div>
               </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <span className="text-purple-600 font-semibold text-sm">👥</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Unique Resources</p>
-                    <p className="text-2xl font-semibold text-gray-900">{new Set(allFilteredAssignments.map(a => a.resourceAssigned)).size}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                      <span className="text-orange-600 font-semibold text-sm">📁</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Assigned Projects</p>
-                    <p className="text-2xl font-semibold text-gray-900">{new Set(allFilteredAssignments.filter(a => a.status === 'Assigned').map(a => a.projectNumber)).size}</p>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Modern Filters */}
@@ -260,7 +307,8 @@ export default function ResourceAssignmentsPage() {
                 </h3>
                 <button
                   onClick={() => {
-                    const defaultFilters = { project: '', resource: '', status: '', search: '', sort: 'newest', practice: user?.practices || [] };
+                    const defaultFilters = { status: ['Pending', 'Unassigned'], practice: [...(user?.practices || []), 'Pending'], region: '', dateFrom: '', dateTo: '', search: '', sort: 'newest' };
+                    localStorage.removeItem('resourceAssignmentsFilters');
                     setFilters(defaultFilters);
                     setCurrentPage(1);
                   }}
@@ -278,7 +326,7 @@ export default function ResourceAssignmentsPage() {
                 <MagnifyingGlassIcon className="h-5 w-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search by project, customer, resource, AM, PM, or project #..."
+                  placeholder="Search by project, customer, resource, PM, or project #..."
                   value={filters.search}
                   onChange={(e) => setFilters({...filters, search: e.target.value})}
                   className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors"
@@ -286,7 +334,28 @@ export default function ResourceAssignmentsPage() {
               </div>
               
               {/* Filter Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                {/* Status Filter */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <button
+                    onClick={() => {
+                      setTempStatusSelection(filters.status);
+                      setShowStatusModal(true);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm text-left flex items-center justify-between"
+                  >
+                    <span>
+                      {filters.status.length === 0 ? 'All Statuses' : 
+                       filters.status.length === 1 ? filters.status[0] : 
+                       'Multiple Statuses'}
+                    </span>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+                
                 {/* Practice Filter */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Practice</label>
@@ -307,43 +376,55 @@ export default function ResourceAssignmentsPage() {
                     </svg>
                   </button>
                 </div>
-                
-                {/* Project Filter */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Project</label>
-                  <input
-                    type="text"
-                    placeholder="Filter by project"
-                    value={filters.project}
-                    onChange={(e) => setFilters({...filters, project: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                  />
-                </div>
 
-                {/* Resource Filter */}
+                {/* Region Filter */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Resource</label>
-                  <input
-                    type="text"
-                    placeholder="Filter by resource"
-                    value={filters.resource}
-                    onChange={(e) => setFilters({...filters, resource: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                  />
-                </div>
-
-                {/* Status Filter */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <label className="block text-sm font-medium text-gray-700">Region</label>
                   <select
-                    value={filters.status}
-                    onChange={(e) => setFilters({...filters, status: e.target.value})}
+                    value={filters.region}
+                    onChange={(e) => setFilters({...filters, region: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
                   >
-                    <option value="">All Statuses</option>
-                    <option value="Unassigned">🟡 Unassigned</option>
-                    <option value="Assigned">🟢 Assigned</option>
+                    <option value="">All Regions</option>
+                    <option value="CA-LAX">CA-LAX</option>
+                    <option value="CA-SAN">CA-SAN</option>
+                    <option value="CA-SFO">CA-SFO</option>
+                    <option value="FL-MIA">FL-MIA</option>
+                    <option value="FL-NORT">FL-NORT</option>
+                    <option value="KY-KENT">KY-KENT</option>
+                    <option value="LA-STATE">LA-STATE</option>
+                    <option value="OK-OKC">OK-OKC</option>
+                    <option value="OTHERS">OTHERS</option>
+                    <option value="TN-TEN">TN-TEN</option>
+                    <option value="TX-CEN">TX-CEN</option>
+                    <option value="TX-DAL">TX-DAL</option>
+                    <option value="TX-HOU">TX-HOU</option>
+                    <option value="TX-SOUT">TX-SOUT</option>
+                    <option value="US-FED">US-FED</option>
+                    <option value="US-SP">US-SP</option>
                   </select>
+                </div>
+
+                {/* Date From */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Date From</label>
+                  <input
+                    type="date"
+                    value={filters.dateFrom}
+                    onChange={(e) => setFilters({...filters, dateFrom: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                  />
+                </div>
+
+                {/* Date To */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Date To</label>
+                  <input
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={(e) => setFilters({...filters, dateTo: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                  />
                 </div>
 
                 {/* Sort By */}
@@ -356,13 +437,14 @@ export default function ResourceAssignmentsPage() {
                   >
                     <option value="newest">📅 Newest First</option>
                     <option value="project">📁 Project Name</option>
+                    <option value="customer">🏢 Customer Name</option>
                     <option value="resource">👤 Resource Name</option>
                   </select>
                 </div>
               </div>
               
               {/* Active Filters Display */}
-              {(filters.search || (filters.practice && filters.practice.length > 0) || filters.project || filters.resource || filters.status) && (
+              {(filters.search || (filters.practice && filters.practice.length > 0) || (filters.status && filters.status.length > 0) || filters.region || filters.dateFrom || filters.dateTo) && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-gray-600">Active filters:</span>
@@ -370,6 +452,16 @@ export default function ResourceAssignmentsPage() {
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                         Search: "{filters.search}"
                         <button onClick={() => setFilters({...filters, search: ''})} className="hover:bg-blue-200 rounded-full p-0.5">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    {filters.status && filters.status.length > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                        Status: {filters.status.join(', ')}
+                        <button onClick={() => setFilters({...filters, status: []})} className="hover:bg-indigo-200 rounded-full p-0.5">
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                           </svg>
@@ -386,30 +478,20 @@ export default function ResourceAssignmentsPage() {
                         </button>
                       </span>
                     )}
-                    {filters.project && (
+                    {filters.region && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                        Project: {filters.project}
-                        <button onClick={() => setFilters({...filters, project: ''})} className="hover:bg-purple-200 rounded-full p-0.5">
+                        Region: {filters.region}
+                        <button onClick={() => setFilters({...filters, region: ''})} className="hover:bg-purple-200 rounded-full p-0.5">
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                           </svg>
                         </button>
                       </span>
                     )}
-                    {filters.resource && (
+                    {(filters.dateFrom || filters.dateTo) && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
-                        Resource: {filters.resource}
-                        <button onClick={() => setFilters({...filters, resource: ''})} className="hover:bg-orange-200 rounded-full p-0.5">
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
-                        </button>
-                      </span>
-                    )}
-                    {filters.status && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-                        Status: {filters.status}
-                        <button onClick={() => setFilters({...filters, status: ''})} className="hover:bg-indigo-200 rounded-full p-0.5">
+                        Date: {filters.dateFrom || 'Start'} - {filters.dateTo || 'End'}
+                        <button onClick={() => setFilters({...filters, dateFrom: '', dateTo: ''})} className="hover:bg-orange-200 rounded-full p-0.5">
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                           </svg>
@@ -461,6 +543,80 @@ export default function ResourceAssignmentsPage() {
               onPageChange={setCurrentPage}
             />
             
+            {/* Status Filter Modal */}
+            {showStatusModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-lg max-w-md w-full">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Select Statuses</h3>
+                    
+                    <div className="space-y-3 mb-6">
+                      {[
+                        'Pending',
+                        'Unassigned',
+                        'Assigned'
+                      ].map(status => (
+                        <label key={status} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={tempStatusSelection.includes(status)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setTempStatusSelection([...tempStatusSelection, status]);
+                              } else {
+                                setTempStatusSelection(tempStatusSelection.filter(s => s !== status));
+                              }
+                            }}
+                            className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {status === 'Pending' && '🔵 '}
+                            {status === 'Unassigned' && '🟡 '}
+                            {status === 'Assigned' && '🟢 '}
+                            {status}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => {
+                          const allStatuses = ['Pending', 'Unassigned', 'Assigned'];
+                          if (tempStatusSelection.length === allStatuses.length) {
+                            setTempStatusSelection([]);
+                          } else {
+                            setTempStatusSelection(allStatuses);
+                          }
+                        }}
+                        className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                      >
+                        {tempStatusSelection.length === 3 ? 'Unselect All' : 'Select All'}
+                      </button>
+                    </div>
+                    
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowStatusModal(false)}
+                        className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFilters({...filters, status: tempStatusSelection});
+                          setShowStatusModal(false);
+                        }}
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Practice Filter Modal */}
             {showPracticeModal && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -469,20 +625,7 @@ export default function ResourceAssignmentsPage() {
                     <h3 className="text-lg font-semibold mb-4">Select Practices</h3>
                     
                     <div className="space-y-3 mb-6">
-                      {[
-                        'Audio/Visual',
-                        'Collaboration',
-                        'Contact Center',
-                        'CX',
-                        'Cyber Security',
-                        'Data Center',
-                        'Enterprise Networking',
-                        'IoT',
-                        'Physical Security',
-                        'Project Management',
-                        'WAN/Optical',
-                        'Wireless'
-                      ].sort().map(practice => (
+                      {PRACTICE_OPTIONS.sort().map(practice => (
                         <label key={practice} className="flex items-center">
                           <input
                             type="checkbox"
@@ -503,11 +646,7 @@ export default function ResourceAssignmentsPage() {
                     
                     <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => setTempPracticeSelection([
-                          'Audio/Visual', 'Collaboration', 'Contact Center', 'CX', 'Cyber Security',
-                          'Data Center', 'Enterprise Networking', 'IoT', 'Physical Security',
-                          'Project Management', 'WAN/Optical', 'Wireless'
-                        ])}
+                        onClick={() => setTempPracticeSelection([...PRACTICE_OPTIONS])}
                         className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                       >
                         All Practices
@@ -559,32 +698,38 @@ function AssignmentsTable({ assignments }) {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignment ID</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Practice</th>
+              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attachments</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project #</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Description</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Region</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AM</th>
+              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Practice</th>
+              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Project #</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignment</th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Region</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PM</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource Assigned</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETA</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Date</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Assigned</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {assignments.map((assignment) => (
               <tr 
                 key={assignment.id} 
-                className="hover:bg-gray-50 cursor-pointer"
+                className={`hover:bg-gray-50 cursor-pointer ${
+                  assignment.status === 'Pending' ? 'bg-yellow-50' : ''
+                }`}
                 onClick={() => router.push(`/projects/resource-assignments/${assignment.id}`)}
               >
                 <td className="px-2 py-3">
                   <div className="text-sm font-mono text-blue-600">#{assignment.assignment_number}</div>
+                </td>
+                <td className="px-2 py-3">
+                  <span className={`px-2 py-1 text-xs font-medium rounded ${
+                    assignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
+                    assignment.status === 'Pending' ? 'bg-blue-100 text-blue-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {assignment.status}
+                  </span>
                 </td>
                 <td className="px-2 py-3">
                   <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
@@ -592,45 +737,35 @@ function AssignmentsTable({ assignments }) {
                   </span>
                 </td>
                 <td className="px-2 py-3">
-                  <span className={`px-2 py-1 text-xs font-medium rounded ${
-                    assignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {assignment.status}
-                  </span>
-                </td>
-                <td className="px-2 py-3">
-                  <div className="flex justify-center">
-                    {(() => {
-                      const attachments = JSON.parse(assignment.attachments || '[]');
-                      if (attachments.length === 0) return null;
-                      
-                      return (
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <MultiAttachmentPreview attachments={attachments} position="right">
-                            <span className="text-xs text-blue-600">
-                              📎 {attachments.length}
-                            </span>
-                          </MultiAttachmentPreview>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </td>
-                <td className="px-2 py-3">
                   <div className="text-sm font-mono text-blue-600">{assignment.projectNumber}</div>
                 </td>
-                <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900">{assignment.customerName}</div>
+                <td className="px-3 py-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1 mb-1">
+                      {(() => {
+                        const attachments = JSON.parse(assignment.attachments || '[]');
+                        if (attachments.length === 0) return null;
+                        
+                        return (
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <MultiAttachmentPreview attachments={attachments} position="right">
+                              <span className="text-xs text-blue-600">
+                                📎 {attachments.length}
+                              </span>
+                            </MultiAttachmentPreview>
+                          </div>
+                        );
+                      })()
+                      }
+                    </div>
+                    <p className="text-sm font-medium text-gray-900 truncate mb-1" title={assignment.customerName}>
+                      {assignment.customerName}
+                    </p>
+                    <p className="text-xs text-gray-500 line-clamp-1" title={assignment.projectDescription}>{assignment.projectDescription}</p>
+                  </div>
                 </td>
-                <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900 max-w-xs truncate" title={assignment.projectDescription}>{assignment.projectDescription}</div>
-                </td>
-                <td className="px-2 py-3">
+                <td className="px-4 py-3 whitespace-nowrap">
                   <div className="text-sm text-gray-900">{assignment.region}</div>
-                </td>
-                <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900">{assignment.am}</div>
                 </td>
                 <td className="px-2 py-3">
                   <div className="text-sm text-gray-900">{assignment.pm}</div>
@@ -639,16 +774,10 @@ function AssignmentsTable({ assignments }) {
                   <div className="text-sm text-gray-900">{assignment.resourceAssigned}</div>
                 </td>
                 <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900">{new Date(assignment.eta).toLocaleDateString()}</div>
-                </td>
-                <td className="px-2 py-3">
                   <div className="text-sm text-gray-900">{new Date(assignment.requestDate).toLocaleDateString()}</div>
                 </td>
                 <td className="px-2 py-3">
                   <div className="text-sm text-gray-900">{new Date(assignment.dateAssigned).toLocaleDateString()}</div>
-                </td>
-                <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900 max-w-xs truncate" title={assignment.notes}>{assignment.notes}</div>
                 </td>
               </tr>
             ))}

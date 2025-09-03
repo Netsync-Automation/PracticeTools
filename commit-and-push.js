@@ -423,6 +423,8 @@ class CommitBuilder {
       'auto-tracker': 'Fixed commit analysis system to correctly identify file paths and prevent misclassification of changes',
       'layout': 'Improved Root Page with better user experience and session management',
       's3': 'Enhanced s3 Service with improved functionality and error handling'
+          'ewsclient': 'Enhanced ews-client Service with improved functionality and error handling',
+          'ntlmauth': 'Enhanced ntlm-auth Service with improved functionality and error handling',
     };
     
     // Check for pattern matches

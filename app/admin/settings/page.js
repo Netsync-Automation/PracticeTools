@@ -7,6 +7,7 @@ import Navbar from '../../../components/Navbar';
 import SidebarLayout from '../../../components/SidebarLayout';
 import Breadcrumb from '../../../components/Breadcrumb';
 import { useAuth } from '../../../hooks/useAuth';
+import { PRACTICE_OPTIONS } from '../../../constants/practices';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -99,20 +100,7 @@ export default function SettingsPage() {
   const [specifyPassword, setSpecifyPassword] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   
-  const practicesList = [
-    'Audio/Visual',
-    'Collaboration', 
-    'Contact Center',
-    'CX',
-    'Cyber Security',
-    'Data Center',
-    'Enterprise Networking',
-    'IoT',
-    'Physical Security',
-    'Project Management',
-    'WAN/Optical',
-    'Wireless'
-  ].sort();
+  const practicesList = PRACTICE_OPTIONS.sort();
 
   const loadWebexToken = async () => {
     try {
@@ -214,6 +202,7 @@ export default function SettingsPage() {
     { id: 'users', name: 'User Management', icon: '👥' },
     { id: 'webex', name: 'WebEx Settings', icon: '💬' },
     { id: 'email', name: 'E-mail Settings', icon: '📧' },
+    { id: 'resources', name: 'Resource Assignments', icon: '📋' },
     { id: 'sso', name: 'SSO Settings', icon: '🔐' }
   ]; // Show all tabs but restrict access
 
@@ -298,6 +287,21 @@ export default function SettingsPage() {
       if (activeTab === 'users') {
         fetchUsers();
         fetchWebexBotsForFilter();
+      }
+      
+      // Load resource assignment settings
+      if (activeTab === 'resources') {
+        try {
+          const response = await fetch('/api/settings/resources?t=' + Date.now());
+          const data = await response.json();
+          setSettings(prev => ({
+            ...prev,
+            resourceEmailEnabled: data.resourceEmailEnabled || false,
+            resourceRules: data.resourceRules || []
+          }));
+        } catch (error) {
+          console.error('Error loading resource settings:', error);
+        }
       }
 
       };
@@ -1855,6 +1859,19 @@ export default function SettingsPage() {
                     Enable email notifications
                   </label>
                 </div>
+                
+                <div className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    id="resourceMonitoringEnabled"
+                    checked={settings.resourceMonitoringEnabled || false}
+                    onChange={(e) => setSettings({...settings, resourceMonitoringEnabled: e.target.checked})}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="resourceMonitoringEnabled" className="ml-2 block text-sm text-gray-900">
+                    Enable Resource Assignment Email Monitoring
+                  </label>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
                   <input
@@ -1944,36 +1961,276 @@ export default function SettingsPage() {
                       Test EWS
                     </button>
                     
-                    <button
-                      onClick={async () => {
-                        try {
-                          const response = await fetch('/api/ews/raw-test', { method: 'POST' });
-                          const data = await response.json();
-                          
-                          if (data.success) {
-                            let msg = `Raw HTTP EWS Test Results:\n\nHost: ${data.host}\n\n`;
-                            data.results.forEach((result, i) => {
-                              msg += `${i + 1}. ${result.username}\n`;
-                              msg += `   Status: ${result.statusCode} ${result.success ? '✓ SUCCESS' : '✗ FAILED'}\n`;
-                              if (result.error) msg += `   Error: ${result.error}\n`;
-                              msg += '\n';
-                            });
-                            alert(msg);
-                          } else {
-                            alert(`Raw EWS Test Failed:\n\n${data.error}`);
-                          }
-                        } catch (error) {
-                          alert('Raw EWS test failed: Unable to connect');
-                        }
-                      }}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-                    >
-                      Raw HTTP Test
-                    </button>
+
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
                     Test SMTP configuration and EWS (Exchange Web Services) connectivity
                   </p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'resources' && !isNonAdminPracticeUser && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Resource Assignment Email Processing</h2>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-800">Automated Resource Assignment Creation</h3>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Configure email monitoring to automatically create resource assignments from specific email patterns. 
+                        The system will monitor the configured email account for messages matching sender and subject patterns, 
+                        then extract data using keyword mappings to populate new resource assignments.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center mb-6">
+                  <input
+                    type="checkbox"
+                    id="resourceEmailEnabled"
+                    checked={settings.resourceEmailEnabled || false}
+                    onChange={(e) => setSettings({...settings, resourceEmailEnabled: e.target.checked})}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="resourceEmailEnabled" className="ml-2 block text-sm text-gray-900">
+                    Enable Resource Assignment Email Processing
+                  </label>
+                </div>
+                
+                {settings.resourceEmailEnabled && (
+                  <div className="space-y-6">
+                    <div className="bg-gray-50 rounded-lg p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Email Processing Rules</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Create rules that match specific email senders and subjects, then map keywords in the email content to resource assignment fields.
+                      </p>
+                      
+                      {(settings.resourceRules || []).map((rule, index) => (
+                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-medium text-gray-900">Rule {index + 1}</h4>
+                            <button
+                              onClick={() => {
+                                const newRules = [...(settings.resourceRules || [])];
+                                newRules.splice(index, 1);
+                                setSettings({...settings, resourceRules: newRules});
+                              }}
+                              className="text-red-600 hover:text-red-800 text-sm"
+                            >
+                              Remove Rule
+                            </button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Sender Email Address
+                              </label>
+                              <input
+                                type="email"
+                                value={rule.senderEmail || ''}
+                                onChange={(e) => {
+                                  const newRules = [...(settings.resourceRules || [])];
+                                  newRules[index] = {...rule, senderEmail: e.target.value};
+                                  setSettings({...settings, resourceRules: newRules});
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="savant@netsync.com"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Subject Pattern
+                              </label>
+                              <input
+                                type="text"
+                                value={rule.subjectPattern || ''}
+                                onChange={(e) => {
+                                  const newRules = [...(settings.resourceRules || [])];
+                                  newRules[index] = {...rule, subjectPattern: e.target.value};
+                                  setSettings({...settings, resourceRules: newRules});
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="PMO - New Resource Request"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Keyword Mappings
+                            </label>
+                            <p className="text-xs text-gray-500 mb-3">
+                              Map keywords found in emails to resource assignment fields. The system will search for these keywords and extract the adjacent data.
+                            </p>
+                            
+                            {(rule.keywordMappings || []).map((mapping, mappingIndex) => (
+                              <div key={mappingIndex} className="flex space-x-2 mb-2">
+                                <input
+                                  type="text"
+                                  value={mapping.keyword || ''}
+                                  onChange={(e) => {
+                                    const newRules = [...(settings.resourceRules || [])];
+                                    const newMappings = [...(rule.keywordMappings || [])];
+                                    newMappings[mappingIndex] = {...mapping, keyword: e.target.value};
+                                    newRules[index] = {...rule, keywordMappings: newMappings};
+                                    setSettings({...settings, resourceRules: newRules});
+                                  }}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Job Number"
+                                />
+                                <select
+                                  value={mapping.field || ''}
+                                  onChange={(e) => {
+                                    const newRules = [...(settings.resourceRules || [])];
+                                    const newMappings = [...(rule.keywordMappings || [])];
+                                    newMappings[mappingIndex] = {...mapping, field: e.target.value};
+                                    newRules[index] = {...rule, keywordMappings: newMappings};
+                                    setSettings({...settings, resourceRules: newRules});
+                                  }}
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="">Select Field</option>
+                                  <option value="projectNumber">Project Number</option>
+                                  <option value="clientName">Client Name</option>
+                                  <option value="requestedBy">Requested By</option>
+                                  <option value="skillsRequired">Skills Required</option>
+                                  <option value="startDate">Start Date</option>
+                                  <option value="endDate">End Date</option>
+                                  <option value="description">Description</option>
+                                  <option value="priority">Priority</option>
+                                  <option value="region">Region</option>
+                                  <option value="pm">PM</option>
+                                  <option value="documentationLink">Documentation Link</option>
+                                  <option value="notes">Notes</option>
+                                </select>
+                                <button
+                                  onClick={() => {
+                                    const newRules = [...(settings.resourceRules || [])];
+                                    const newMappings = [...(rule.keywordMappings || [])];
+                                    newMappings.splice(mappingIndex, 1);
+                                    newRules[index] = {...rule, keywordMappings: newMappings};
+                                    setSettings({...settings, resourceRules: newRules});
+                                  }}
+                                  className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                            
+                            <button
+                              onClick={() => {
+                                const newRules = [...(settings.resourceRules || [])];
+                                const newMappings = [...(rule.keywordMappings || []), {keyword: '', field: ''}];
+                                newRules[index] = {...rule, keywordMappings: newMappings};
+                                setSettings({...settings, resourceRules: newRules});
+                              }}
+                              className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+                            >
+                              + Add Keyword Mapping
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      <button
+                        onClick={() => {
+                          const newRules = [...(settings.resourceRules || []), {
+                            senderEmail: '',
+                            subjectPattern: '',
+                            keywordMappings: []
+                          }];
+                          setSettings({...settings, resourceRules: newRules});
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        + Add Email Rule
+                      </button>
+                    </div>
+                    
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <svg className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <div>
+                          <h3 className="text-sm font-medium text-yellow-800">Email Processing Requirements</h3>
+                          <ul className="text-sm text-yellow-700 mt-1 list-disc list-inside space-y-1">
+                            <li>Email monitoring uses the same SMTP credentials configured in E-mail Settings</li>
+                            <li>The system checks for new emails every 5 minutes</li>
+                            <li>Only unread emails matching the rules will be processed</li>
+                            <li>Processed emails will be marked as read to prevent duplicate processing</li>
+                            <li>Failed processing attempts will be logged for troubleshooting</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={async () => {
+                        setSaving(prev => ({...prev, resources: true}));
+                        try {
+                          const response = await fetch('/api/settings/resources', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              resourceEmailEnabled: settings.resourceEmailEnabled,
+                              resourceRules: settings.resourceRules || []
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            alert('Resource assignment settings saved successfully!');
+                          } else {
+                            alert('Failed to save resource assignment settings');
+                          }
+                        } catch (error) {
+                          console.error('Error saving resource assignment settings:', error);
+                          alert('Error saving resource assignment settings');
+                        } finally {
+                          setSaving(prev => ({...prev, resources: false}));
+                        }
+                      }}
+                      disabled={saving.resources}
+                      className={`${saving.resources ? 'btn-disabled' : 'btn-primary'}`}
+                    >
+                      {saving.resources ? 'Saving...' : 'Save Settings'}
+                    </button>
+                    
+                    {settings.resourceEmailEnabled && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/email/process', { method: 'POST' });
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                              alert('Email processing triggered successfully! Check the server logs for processing details.');
+                            } else {
+                              alert(`Email processing failed: ${data.error}`);
+                            }
+                          } catch (error) {
+                            alert('Failed to trigger email processing');
+                          }
+                        }}
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                      >
+                        Process Emails Now
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

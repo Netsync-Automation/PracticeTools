@@ -14,6 +14,7 @@ import Pagination from '../../components/Pagination';
 import TimestampDisplay from '../../components/TimestampDisplay';
 import UserDisplay from '../../components/UserDisplay';
 import { getLeadershipVisibilityText, fetchLeadershipVisibilityData } from '../../lib/leadership-visibility';
+import { PRACTICE_OPTIONS } from '../../constants/practices';
 
 function FollowButton({ issueId, compact = false }) {
   const [following, setFollowing] = useState(false);
@@ -854,20 +855,7 @@ export default function PracticeIssuesPage() {
                 <h3 className="text-lg font-semibold mb-4">Select Practices</h3>
                 
                 <div className="space-y-3 mb-6">
-                  {[
-                    'Audio/Visual',
-                    'Collaboration',
-                    'Contact Center',
-                    'CX',
-                    'Cyber Security',
-                    'Data Center',
-                    'Enterprise Networking',
-                    'IoT',
-                    'Physical Security',
-                    'Project Management',
-                    'WAN/Optical',
-                    'Wireless'
-                  ].sort().map(practice => (
+                  {PRACTICE_OPTIONS.sort().map(practice => (
                     <label key={practice} className="flex items-center">
                       <input
                         type="checkbox"
@@ -888,11 +876,7 @@ export default function PracticeIssuesPage() {
                 
                 <div className="flex gap-2 mb-4">
                   <button
-                    onClick={() => setTempPracticeSelection([
-                      'Audio/Visual', 'Collaboration', 'Contact Center', 'CX', 'Cyber Security',
-                      'Data Center', 'Enterprise Networking', 'IoT', 'Physical Security',
-                      'Project Management', 'WAN/Optical', 'Wireless'
-                    ])}
+                    onClick={() => setTempPracticeSelection([...PRACTICE_OPTIONS])}
                     className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                   >
                     All Practices

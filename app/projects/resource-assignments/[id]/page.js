@@ -11,6 +11,8 @@ import Breadcrumb from '../../../../components/Breadcrumb';
 import AssignmentConversation from '../../../../components/AssignmentConversation';
 import AttachmentPreview from '../../../../components/AttachmentPreview';
 import MultiAttachmentPreview from '../../../../components/MultiAttachmentPreview';
+import { ASSIGNMENT_STATUS_OPTIONS } from '../../../../constants/assignmentStatus';
+import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
 function FileUploadZone({ attachments, setAttachments }) {
   const [dragActive, setDragActive] = useState(false);
@@ -405,26 +407,31 @@ export default function AssignmentDetailPage() {
                         <h2 className="text-lg font-semibold text-gray-900">Project Information</h2>
                         <span className="text-sm font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">ID: #{assignment.assignment_number}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setShowDeleteModal(true)}
-                          className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Delete
-                        </button>
-                        <button
-                          onClick={openProjectEditModal}
-                          className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                          Edit
-                        </button>
-                      </div>
+                      {(user.isAdmin || 
+                        (assignment.practice === 'Pending' && (user.role === 'practice_manager' || user.role === 'practice_principal')) ||
+                        (assignment.practice !== 'Pending' && (user.role === 'practice_manager' || user.role === 'practice_principal') && user.practices?.includes(assignment.practice))
+                      ) && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowDeleteModal(true)}
+                            className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                          </button>
+                          <button
+                            onClick={openProjectEditModal}
+                            className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Edit
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
                       <div>
@@ -449,15 +456,20 @@ export default function AssignmentDetailPage() {
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-gray-900">Assignment Information</h3>
-                      <button
-                        onClick={openEditModal}
-                        className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit
-                      </button>
+                      {(user.isAdmin || 
+                        (assignment.practice === 'Pending' && (user.role === 'practice_manager' || user.role === 'practice_principal')) ||
+                        (assignment.practice !== 'Pending' && (user.role === 'practice_manager' || user.role === 'practice_principal') && user.practices?.includes(assignment.practice))
+                      ) && (
+                        <button
+                          onClick={openEditModal}
+                          className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Edit
+                        </button>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-6 flex-1">
                       {/* Left Column - Project & Status */}
@@ -506,6 +518,21 @@ export default function AssignmentDetailPage() {
                           <dt className="text-xs font-medium text-gray-500">ETA</dt>
                           <dd className="text-sm text-gray-900">{assignment.eta ? new Date(assignment.eta).toLocaleDateString() : 'Not set'}</dd>
                         </div>
+                        {assignment.documentationLink && (
+                          <div>
+                            <dt className="text-xs font-medium text-gray-500">Documentation</dt>
+                            <dd className="text-sm">
+                              <a 
+                                href={assignment.documentationLink} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 underline"
+                              >
+                                View Documentation
+                              </a>
+                            </dd>
+                          </div>
+                        )}
                       </dl>
                     </div>
                   </div>
@@ -554,8 +581,9 @@ export default function AssignmentDetailPage() {
                             onChange={(e) => handleEditFormChange('status', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           >
-                            <option value="Unassigned">Unassigned</option>
-                            <option value="Assigned">Assigned</option>
+                            {ASSIGNMENT_STATUS_OPTIONS.map(status => (
+                              <option key={status} value={status}>{status}</option>
+                            ))}
                           </select>
                         </div>
                         <div>
@@ -565,18 +593,9 @@ export default function AssignmentDetailPage() {
                             onChange={(e) => handleEditFormChange('practice', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           >
-                            <option value="Audio/Visual">Audio/Visual</option>
-                            <option value="Collaboration">Collaboration</option>
-                            <option value="Contact Center">Contact Center</option>
-                            <option value="CX">CX</option>
-                            <option value="Cyber Security">Cyber Security</option>
-                            <option value="Data Center">Data Center</option>
-                            <option value="Enterprise Networking">Enterprise Networking</option>
-                            <option value="IoT">IoT</option>
-                            <option value="Physical Security">Physical Security</option>
-                            <option value="Project Management">Project Management</option>
-                            <option value="WAN/Optical">WAN/Optical</option>
-                            <option value="Wireless">Wireless</option>
+                            {PRACTICE_OPTIONS.map(practice => (
+                              <option key={practice} value={practice}>{practice}</option>
+                            ))}
                           </select>
                         </div>
                         <div>

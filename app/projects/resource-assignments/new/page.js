@@ -7,6 +7,8 @@ import Navbar from '../../../../components/Navbar';
 import SidebarLayout from '../../../../components/SidebarLayout';
 import AccessCheck from '../../../../components/AccessCheck';
 import Breadcrumb from '../../../../components/Breadcrumb';
+import { ASSIGNMENT_STATUS_OPTIONS } from '../../../../constants/assignmentStatus';
+import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
 function FileUploadZone({ attachments, setAttachments }) {
   const [dragActive, setDragActive] = useState(false);
@@ -137,7 +139,7 @@ export default function NewAssignmentPage() {
   const [attachments, setAttachments] = useState([]);
   const [formData, setFormData] = useState({
     practice: '',
-    status: 'Active',
+    status: 'Unassigned',
     projectNumber: '',
     requestDate: new Date().toISOString().split('T')[0],
     eta: '',
@@ -148,6 +150,7 @@ export default function NewAssignmentPage() {
     pm: '',
     resourceAssigned: '',
     dateAssigned: '',
+    documentationLink: '',
     notes: ''
   });
 
@@ -355,18 +358,9 @@ export default function NewAssignmentPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="">Select Practice</option>
-                        <option value="Audio/Visual">Audio/Visual</option>
-                        <option value="Collaboration">Collaboration</option>
-                        <option value="Contact Center">Contact Center</option>
-                        <option value="CX">CX</option>
-                        <option value="Cyber Security">Cyber Security</option>
-                        <option value="Data Center">Data Center</option>
-                        <option value="Enterprise Networking">Enterprise Networking</option>
-                        <option value="IoT">IoT</option>
-                        <option value="Physical Security">Physical Security</option>
-                        <option value="Project Management">Project Management</option>
-                        <option value="WAN/Optical">WAN/Optical</option>
-                        <option value="Wireless">Wireless</option>
+                        {PRACTICE_OPTIONS.map(practice => (
+                          <option key={practice} value={practice}>{practice}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -438,11 +432,9 @@ export default function NewAssignmentPage() {
                         required
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="Active">Active</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="On Hold">On Hold</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
+                        {ASSIGNMENT_STATUS_OPTIONS.map(status => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -452,6 +444,18 @@ export default function NewAssignmentPage() {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Additional Information</h2>
                   <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Documentation Link</label>
+                      <input
+                        type="url"
+                        name="documentationLink"
+                        value={formData.documentationLink}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="https://docs.example.com/project-specs"
+                      />
+                    </div>
+                    
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                       <textarea

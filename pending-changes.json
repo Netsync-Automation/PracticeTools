@@ -8304,6 +8304,377 @@
         "package.json",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1756860238443,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-03T00:43:58.443Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js"
+      ]
+    },
+    {
+      "id": 1756860238691,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-03T00:43:58.691Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860238832,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-03T00:43:58.832Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860238879,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-03T00:43:58.879Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860238939,
+      "description": "Enhanced ews client with specific functionality improvements",
+      "details": {
+        "file": "lib/ews-client.js"
+      },
+      "timestamp": "2025-09-03T00:43:58.939Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860238990,
+      "description": "Enhanced ntlm auth with specific functionality improvements",
+      "details": {
+        "file": "lib/ntlm-auth.js"
+      },
+      "timestamp": "2025-09-03T00:43:58.990Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860240787,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:00.787Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860241002,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:01.002Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860241111,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:01.111Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860241205,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-03T00:44:01.205Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860241256,
+      "description": "Enhanced ews client with specific functionality improvements",
+      "details": {
+        "file": "lib/ews-client.js"
+      },
+      "timestamp": "2025-09-03T00:44:01.256Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860241323,
+      "description": "Enhanced ntlm auth with specific functionality improvements",
+      "details": {
+        "file": "lib/ntlm-auth.js"
+      },
+      "timestamp": "2025-09-03T00:44:01.323Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860242646,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:02.646Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860242838,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:02.838Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860242962,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:02.962Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860243117,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-03T00:44:03.117Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860243193,
+      "description": "Enhanced ews client with specific functionality improvements",
+      "details": {
+        "file": "lib/ews-client.js"
+      },
+      "timestamp": "2025-09-03T00:44:03.193Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860243255,
+      "description": "Enhanced ntlm auth with specific functionality improvements",
+      "details": {
+        "file": "lib/ntlm-auth.js"
+      },
+      "timestamp": "2025-09-03T00:44:03.255Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -27488,6 +27859,234 @@
         "lib/dynamodb.js",
         "package-lock.json",
         "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860238508,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/ews/raw-test/route.js"
+      },
+      "timestamp": "2025-09-03T00:43:58.508Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860238626,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-issues/page.js"
+      },
+      "timestamp": "2025-09-03T00:43:58.626Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860238758,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/new/page.js"
+      },
+      "timestamp": "2025-09-03T00:43:58.758Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860240861,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/ews/raw-test/route.js"
+      },
+      "timestamp": "2025-09-03T00:44:00.861Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860240939,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-issues/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:00.939Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860241064,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/new/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:01.064Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860241157,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-03T00:44:01.157Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860242712,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/ews/raw-test/route.js"
+      },
+      "timestamp": "2025-09-03T00:44:02.712Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860242774,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-issues/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:02.774Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860242900,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/new/page.js"
+      },
+      "timestamp": "2025-09-03T00:44:02.900Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756860243024,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-03T00:44:03.024Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/ews/raw-test/route.js",
+        "app/practice-issues/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/new/page.js",
+        "app/projects/resource-assignments/page.js",
+        "commit-and-push.js",
+        "lib/dynamodb.js",
+        "lib/ews-client.js",
+        "lib/ntlm-auth.js",
         "pending-changes.json"
       ]
     }
