@@ -256,7 +256,9 @@ class ProdPushManager {
       return 'v1.0.0';
     }
     
-    const parts = currentVersion.replace('v', '').split('.').map(Number);
+    // Remove any existing 'v' prefix to avoid double prefixes
+    const cleanVersion = currentVersion.replace(/^v+/, '');
+    const parts = cleanVersion.split('.').map(Number);
     let major = parts[0] || 1;
     let minor = parts[1] || 0;
     let patch = parts[2] || 0;
@@ -659,13 +661,34 @@ class ProdPushManager {
   
   static async updateReleaseNotesPage(version, releaseNotes) {
     try {
-      const pageContent = readFileSync('app/release-notes/page.js', 'utf8');
+      // The release notes are stored in the database and the page loads them dynamically
+      // However, we should ensure the database contains the release notes in the correct format
+      console.log('✅ Release notes stored in database - page will load dynamically');
       
-      // The release notes page dynamically loads from database, so no file update needed
-      // Just ensure the page exists and is properly formatted
-      console.log('✅ Release notes page will automatically show new version from database');
+      // Verify the release was saved with the notes
+      const scanCommand = new ScanCommand({
+        TableName: 'PracticeTools-prod-Releases',
+        FilterExpression: 'version = :version',
+        ExpressionAttributeValues: {
+          ':version': { S: version }
+        }
+      });
+      
+      const result = await dynamoClient.send(scanCommand);
+      if (result.Items && result.Items.length > 0) {
+        const savedRelease = result.Items[0];
+        const savedNotes = savedRelease.notes?.S || '';
+        if (savedNotes.length > 0) {
+          console.log(`✅ Release notes verified in database (${savedNotes.length} characters)`);
+        } else {
+          console.log('⚠️  Warning: Release notes appear to be empty in database');
+        }
+      } else {
+        console.log('⚠️  Warning: Could not verify release in database');
+      }
+      
     } catch (error) {
-      console.log('⚠️  Release notes page update skipped:', error.message);
+      console.log('⚠️  Release notes verification failed:', error.message);
     }
   }
   
@@ -798,12 +821,23 @@ class ProdPushManager {
         const prodConfig = readFileSync('apprunner-prod.yaml', 'utf8');
         writeFileSync('apprunner.yaml', prodConfig);
         
-        // Commit the apprunner.yaml update
-        execSync('git add apprunner.yaml', { stdio: 'pipe' });
-        execSync('git commit -m "Update apprunner.yaml for production deployment"', { stdio: 'pipe' });
-        execSync('git push origin main', { stdio: 'inherit' });
+        // Check if there are actually changes to commit
+        try {
+          const gitStatus = execSync('git status --porcelain apprunner.yaml', { encoding: 'utf8', stdio: 'pipe' });
+          if (gitStatus.trim()) {
+            // There are changes, commit them
+            execSync('git add apprunner.yaml', { stdio: 'pipe' });
+            execSync('git commit -m "Update apprunner.yaml for production deployment"', { stdio: 'pipe' });
+            execSync('git push origin main', { stdio: 'inherit' });
+            console.log('   ✅ Production apprunner.yaml configuration applied and committed');
+          } else {
+            console.log('   ✅ Production apprunner.yaml configuration already up to date');
+          }
+        } catch (commitError) {
+          console.log('   ⚠️  Could not commit apprunner.yaml changes:', commitError.message);
+          console.log('   ✅ Production apprunner.yaml configuration applied (commit skipped)');
+        }
         
-        console.log('   ✅ Production apprunner.yaml configuration applied');
       } catch (error) {
         console.log('   ⚠️  Could not update apprunner.yaml:', error.message);
       }
