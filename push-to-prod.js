@@ -2,7 +2,7 @@
 
 import { execSync } from 'child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, basename } from 'path';
 import readline from 'readline';
 import { config } from 'dotenv';
 import { DynamoDBClient, CreateTableCommand, DescribeTableCommand, ScanCommand, ListTablesCommand, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
@@ -11,15 +11,70 @@ import { db } from './lib/dynamodb.js';
 // Load environment variables from .env.local
 config({ path: '.env.local' });
 
-const dynamoClient = new DynamoDBClient({
-  region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+// DynamoDB client will be created after region confirmation
+let dynamoClient = null;
+
+function createDynamoClient(region) {
+  if (!dynamoClient) {
+    dynamoClient = new DynamoDBClient({
+      region: region,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      }
+    });
   }
-});
+  return dynamoClient;
+}
 
 class ProdPushManager {
+  static appName = null;
+  static awsRegion = null;
+  
+  static async getApplicationName() {
+    if (this.appName) return this.appName;
+    
+    // Get default from current directory name
+    const defaultName = basename(process.cwd());
+    
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    
+    return new Promise((resolve) => {
+      rl.question(`\n📦 Application Name [${defaultName}]: `, (answer) => {
+        rl.close();
+        const appName = answer.trim() || defaultName;
+        this.appName = appName;
+        console.log(`✅ Using application name: ${appName}`);
+        resolve(appName);
+      });
+    });
+  }
+  
+  static async getAwsRegion() {
+    if (this.awsRegion) return this.awsRegion;
+    
+    // Get default from environment or hardcoded fallback
+    const defaultRegion = process.env.AWS_DEFAULT_REGION || 'us-east-1';
+    
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    
+    return new Promise((resolve) => {
+      rl.question(`\n🌍 AWS Region [${defaultRegion}]: `, (answer) => {
+        rl.close();
+        const region = answer.trim() || defaultRegion;
+        this.awsRegion = region;
+        console.log(`✅ Using AWS region: ${region}`);
+        resolve(region);
+      });
+    });
+  }
+  
   static async analyzeDiff() {
     try {
       // Fetch all branches first
@@ -198,11 +253,11 @@ class ProdPushManager {
       // Try to get current version from production settings first
       try {
         const getCommand = new GetItemCommand({
-          TableName: 'PracticeTools-prod-Settings',
+          TableName: `${this.appName}-prod-Settings`,
           Key: { setting_key: { S: 'current_version' } }
         });
         
-        const result = await dynamoClient.send(getCommand);
+        const result = await createDynamoClient(this.awsRegion).send(getCommand);
         if (result.Item && result.Item.setting_value) {
           const currentVersion = result.Item.setting_value.S;
           console.log(`Current production version from settings: ${currentVersion}`);
@@ -214,10 +269,10 @@ class ProdPushManager {
       
       // Fallback to scanning releases table
       const scanCommand = new ScanCommand({
-        TableName: 'PracticeTools-prod-Releases'
+        TableName: `${this.appName}-prod-Releases`
       });
       
-      const scanResult = await dynamoClient.send(scanCommand);
+      const scanResult = await createDynamoClient(this.awsRegion).send(scanCommand);
       const releases = (scanResult.Items || []).map(item => ({
         version: item.version?.S || '',
         date: item.date?.S || ''
@@ -397,7 +452,7 @@ class ProdPushManager {
   
   static async createBackup() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').split('.')[0];
-    const backupPath = join('D:', 'Coding', 'Backups', 'PracticeTools', 'prod', timestamp);
+    const backupPath = join('D:', 'Coding', 'Backups', this.appName, 'prod', timestamp);
     
     // Create backup directory
     mkdirSync(backupPath, { recursive: true });
@@ -422,12 +477,12 @@ class ProdPushManager {
     console.log('💾 Discovering production database tables...');
     try {
       const listCommand = new ListTablesCommand({});
-      const result = await dynamoClient.send(listCommand);
+      const result = await createDynamoClient(this.awsRegion).send(listCommand);
       const allTables = result.TableNames || [];
       
-      // Filter for PracticeTools-prod tables
+      // Filter for prod tables
       const prodTables = allTables.filter(tableName => 
-        tableName.startsWith('PracticeTools-prod')
+        tableName.startsWith(`${this.appName}-prod`)
       );
       
       if (prodTables.length === 0) {
@@ -439,7 +494,7 @@ class ProdPushManager {
           try {
             console.log(`   Backing up ${tableName}...`);
             const scanCommand = new ScanCommand({ TableName: tableName });
-            const scanResult = await dynamoClient.send(scanCommand);
+            const scanResult = await createDynamoClient(this.awsRegion).send(scanCommand);
             
             const backupData = {
               tableName: tableName,
@@ -448,7 +503,7 @@ class ProdPushManager {
               backupTimestamp: new Date().toISOString()
             };
             
-            const fileName = tableName.replace('PracticeTools-prod-', '') + '-backup.json';
+            const fileName = tableName.replace(`${this.appName}-prod-`, '') + '-backup.json';
             writeFileSync(
               join(backupPath, fileName),
               JSON.stringify(backupData, null, 2)
@@ -468,7 +523,7 @@ class ProdPushManager {
     // 3. Create backup manifest
     const manifest = {
       backupTimestamp: new Date().toISOString(),
-      appName: 'PracticeTools',
+      appName: this.appName,
       environment: 'prod',
       gitBranch: hasMainBranch ? 'main' : 'none',
       tables: backedUpTables,
@@ -521,7 +576,7 @@ class ProdPushManager {
     readme += '### Database Backup\n';
     if (manifest.status.databaseBackup) {
       manifest.tables.forEach(table => {
-        const fileName = table.replace('PracticeTools-prod-', '') + '-backup.json';
+        const fileName = table.replace(`${this.appName}-prod-`, '') + '-backup.json';
         readme += '- ' + fileName + '\n';
       });
       readme += '\n';
@@ -582,7 +637,7 @@ class ProdPushManager {
     readme += '- Project-specific deployment guides\n\n';
     
     readme += '---\n';
-    readme += '*Backup created by PracticeTools Production Push System*\n';
+    readme += `*Backup created by ${this.appName} Production Push System*\n`;
     
     return readme;
   }
@@ -626,7 +681,7 @@ class ProdPushManager {
     
     // Save to prod releases table using direct DynamoDB commands
     const releaseCommand = new PutItemCommand({
-      TableName: 'PracticeTools-prod-Releases',
+      TableName: `${this.appName}-prod-Releases`,
       Item: {
         version: { S: release.version },
         date: { S: release.date },
@@ -642,12 +697,12 @@ class ProdPushManager {
       }
     });
     
-    await dynamoClient.send(releaseCommand);
+    await createDynamoClient(this.awsRegion).send(releaseCommand);
     console.log('✅ Release saved to production releases table');
     
     // Update current version setting in prod using dev schema
     const settingCommand = new PutItemCommand({
-      TableName: 'PracticeTools-prod-Settings',
+      TableName: `${this.appName}-prod-Settings`,
       Item: {
         setting_key: { S: 'current_version' },
         setting_value: { S: version },
@@ -655,7 +710,7 @@ class ProdPushManager {
       }
     });
     
-    await dynamoClient.send(settingCommand);
+    await createDynamoClient(this.awsRegion).send(settingCommand);
     console.log('✅ Current version setting updated in production');
   }
   
@@ -667,14 +722,14 @@ class ProdPushManager {
       
       // Verify the release was saved with the notes
       const scanCommand = new ScanCommand({
-        TableName: 'PracticeTools-prod-Releases',
+        TableName: `${this.appName}-prod-Releases`,
         FilterExpression: 'version = :version',
         ExpressionAttributeValues: {
           ':version': { S: version }
         }
       });
       
-      const result = await dynamoClient.send(scanCommand);
+      const result = await createDynamoClient(this.awsRegion).send(scanCommand);
       if (result.Items && result.Items.length > 0) {
         const savedRelease = result.Items[0];
         const savedNotes = savedRelease.notes?.S || '';
@@ -697,12 +752,12 @@ class ProdPushManager {
     
     // Discover all dev tables
     const listCommand = new ListTablesCommand({});
-    const result = await dynamoClient.send(listCommand);
+    const result = await createDynamoClient(this.awsRegion).send(listCommand);
     const allTables = result.TableNames || [];
     
-    // Filter for PracticeTools-dev tables
+    // Filter for dev tables
     const devTables = allTables.filter(tableName => 
-      tableName.startsWith('PracticeTools-dev-')
+      tableName.startsWith(`${this.appName}-dev-`)
     );
     
     if (devTables.length === 0) {
@@ -716,14 +771,14 @@ class ProdPushManager {
       try {
         // Get dev table schema
         const describeCommand = new DescribeTableCommand({ TableName: devTableName });
-        const devTableInfo = await dynamoClient.send(describeCommand);
+        const devTableInfo = await createDynamoClient(this.awsRegion).send(describeCommand);
         
         // Create corresponding prod table name
-        const prodTableName = devTableName.replace('PracticeTools-dev-', 'PracticeTools-prod-');
+        const prodTableName = devTableName.replace(`${this.appName}-dev-`, `${this.appName}-prod-`);
         
         // Check if prod table already exists
         try {
-          const existingTable = await dynamoClient.send(new DescribeTableCommand({ TableName: prodTableName }));
+          const existingTable = await createDynamoClient(this.awsRegion).send(new DescribeTableCommand({ TableName: prodTableName }));
           console.log(`   ✅ Table ${prodTableName} already exists`);
           
           // Verify schema matches (optional validation)
@@ -770,7 +825,7 @@ class ProdPushManager {
               console.log(`      Including ${devTableInfo.Table.LocalSecondaryIndexes.length} LSI(s)`);
             }
             
-            await dynamoClient.send(new CreateTableCommand(createParams));
+            await createDynamoClient(this.awsRegion).send(new CreateTableCommand(createParams));
             console.log(`   ✅ Created table ${prodTableName} (exact schema copy from ${devTableName})`);
             
             // Wait for table to become active
@@ -860,6 +915,10 @@ class ProdPushManager {
 
 async function main() {
   console.log('🚀 PRODUCTION PUSH SYSTEM\n');
+  
+  // Step 0: Get and confirm application name and AWS region
+  await ProdPushManager.getApplicationName();
+  await ProdPushManager.getAwsRegion();
   
   const results = {
     diffAnalysis: false,
