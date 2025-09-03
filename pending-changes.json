@@ -8765,6 +8765,90 @@
         "lib/saml.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1756904992080,
+      "description": "Enhanced saml config with specific functionality improvements",
+      "details": {
+        "file": "lib/saml-config.js"
+      },
+      "timestamp": "2025-09-03T13:09:52.080Z",
+      "files": [
+        "app/api/auth/saml/login/route.js",
+        "lib/saml-config.js",
+        "lib/saml.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756904992136,
+      "description": "Enhanced saml with specific functionality improvements",
+      "details": {
+        "file": "lib/saml.js"
+      },
+      "timestamp": "2025-09-03T13:09:52.136Z",
+      "files": [
+        "app/api/auth/saml/login/route.js",
+        "lib/saml-config.js",
+        "lib/saml.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756904992924,
+      "description": "Enhanced saml config with specific functionality improvements",
+      "details": {
+        "file": "lib/saml-config.js"
+      },
+      "timestamp": "2025-09-03T13:09:52.924Z",
+      "files": [
+        "app/api/auth/saml/login/route.js",
+        "lib/saml-config.js",
+        "lib/saml.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756904992988,
+      "description": "Enhanced saml with specific functionality improvements",
+      "details": {
+        "file": "lib/saml.js"
+      },
+      "timestamp": "2025-09-03T13:09:52.988Z",
+      "files": [
+        "app/api/auth/saml/login/route.js",
+        "lib/saml-config.js",
+        "lib/saml.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756904993633,
+      "description": "Enhanced saml config with specific functionality improvements",
+      "details": {
+        "file": "lib/saml-config.js"
+      },
+      "timestamp": "2025-09-03T13:09:53.633Z",
+      "files": [
+        "app/api/auth/saml/login/route.js",
+        "lib/saml-config.js",
+        "lib/saml.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756904993684,
+      "description": "Enhanced saml with specific functionality improvements",
+      "details": {
+        "file": "lib/saml.js"
+      },
+      "timestamp": "2025-09-03T13:09:53.684Z",
+      "files": [
+        "app/api/auth/saml/login/route.js",
+        "lib/saml-config.js",
+        "lib/saml.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -28422,6 +28506,47 @@
         "file": "lib/saml.js"
       },
       "timestamp": "2025-09-03T02:24:59.335Z",
+      "files": [
+        "app/api/auth/saml/login/route.js",
+        "lib/saml-config.js",
+        "lib/saml.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756904992018,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/auth/saml/login/route.js"
+      },
+      "timestamp": "2025-09-03T13:09:52.018Z",
+      "files": [
+        "app/api/auth/saml/login/route.js",
+        "lib/saml-config.js",
+        "lib/saml.js"
+      ]
+    },
+    {
+      "id": 1756904992844,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/auth/saml/login/route.js"
+      },
+      "timestamp": "2025-09-03T13:09:52.844Z",
+      "files": [
+        "app/api/auth/saml/login/route.js",
+        "lib/saml-config.js",
+        "lib/saml.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1756904993562,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/auth/saml/login/route.js"
+      },
+      "timestamp": "2025-09-03T13:09:53.562Z",
       "files": [
         "app/api/auth/saml/login/route.js",
         "lib/saml-config.js",
