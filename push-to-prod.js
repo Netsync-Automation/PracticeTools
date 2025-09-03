@@ -199,12 +199,12 @@ class ProdPushManager {
       try {
         const getCommand = new GetItemCommand({
           TableName: 'PracticeTools-prod-Settings',
-          Key: { key: { S: 'current_version' } }
+          Key: { setting_key: { S: 'current_version' } }
         });
         
         const result = await dynamoClient.send(getCommand);
-        if (result.Item && result.Item.value) {
-          const currentVersion = result.Item.value.S;
+        if (result.Item && result.Item.setting_value) {
+          const currentVersion = result.Item.setting_value.S;
           console.log(`Current production version from settings: ${currentVersion}`);
           return currentVersion;
         }
@@ -643,12 +643,12 @@ class ProdPushManager {
     await dynamoClient.send(releaseCommand);
     console.log('✅ Release saved to production releases table');
     
-    // Update current version setting in prod using correct schema
+    // Update current version setting in prod using dev schema
     const settingCommand = new PutItemCommand({
       TableName: 'PracticeTools-prod-Settings',
       Item: {
-        key: { S: 'current_version' },
-        value: { S: version },
+        setting_key: { S: 'current_version' },
+        setting_value: { S: version },
         updated_at: { S: now.toISOString() }
       }
     });
@@ -708,9 +708,11 @@ class ProdPushManager {
           const prodKeys = existingTable.Table.KeySchema.map(k => `${k.AttributeName}:${k.KeyType}`).sort();
           
           if (JSON.stringify(devKeys) !== JSON.stringify(prodKeys)) {
-            console.log(`   ⚠️  Schema mismatch detected for ${prodTableName}`);
-            console.log(`      Dev keys: ${devKeys.join(', ')}`);
-            console.log(`      Prod keys: ${prodKeys.join(', ')}`);
+            console.log(`   ⚠️  SCHEMA MISMATCH: ${prodTableName}`);
+            console.log(`      Dev schema:  ${devKeys.join(', ')}`);
+            console.log(`      Prod schema: ${prodKeys.join(', ')}`);
+            console.log(`      📝 NOTE: Production table uses different schema than dev`);
+            console.log(`      ⚠️  Manual intervention may be required for this table`);
           }
           
         } catch (error) {
