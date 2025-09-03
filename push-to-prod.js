@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import readline from 'readline';
 import { config } from 'dotenv';
-import { DynamoDBClient, CreateTableCommand, DescribeTableCommand, ScanCommand, ListTablesCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, CreateTableCommand, DescribeTableCommand, ScanCommand, ListTablesCommand, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { db } from './lib/dynamodb.js';
 
 // Load environment variables from .env.local
@@ -193,7 +193,38 @@ class ProdPushManager {
   
   static async getCurrentProdVersion() {
     try {
-      const releases = await db.getAllReleases('prod');
+      console.log('Checking current production version...');
+      
+      // Try to get current version from production settings first
+      try {
+        const getCommand = new GetItemCommand({
+          TableName: 'PracticeTools-prod-Settings',
+          Key: { key: { S: 'current_version' } }
+        });
+        
+        const result = await dynamoClient.send(getCommand);
+        if (result.Item && result.Item.value) {
+          const currentVersion = result.Item.value.S;
+          console.log(`Current production version from settings: ${currentVersion}`);
+          return currentVersion;
+        }
+      } catch (settingsError) {
+        console.log('Settings table not available, checking releases table...');
+      }
+      
+      // Fallback to scanning releases table
+      const scanCommand = new ScanCommand({
+        TableName: 'PracticeTools-prod-Releases'
+      });
+      
+      const scanResult = await dynamoClient.send(scanCommand);
+      const releases = (scanResult.Items || []).map(item => ({
+        version: item.version?.S || '',
+        date: item.date?.S || ''
+      }));
+      
+      console.log(`Found ${releases.length} production releases`);
+      
       if (releases.length === 0) {
         return null;
       }
@@ -211,8 +242,10 @@ class ProdPushManager {
         return 0;
       });
       
+      console.log(`Latest production version from releases: ${sortedReleases[0].version}`);
       return sortedReleases[0].version;
     } catch (error) {
+      console.log('Error getting production version:', error.message);
       return null;
     }
   }
@@ -587,11 +620,41 @@ class ProdPushManager {
       breaking: changes.breaking.map(b => b.description)
     };
     
-    // Save to prod releases table
-    await db.saveRelease(release, 'prod');
+    console.log('Saving release to PRODUCTION database...');
     
-    // Update current version setting
-    await db.saveSetting('current_version', version, 'prod');
+    // Save to prod releases table using direct DynamoDB commands
+    const releaseCommand = new PutItemCommand({
+      TableName: 'PracticeTools-prod-Releases',
+      Item: {
+        version: { S: release.version },
+        date: { S: release.date },
+        timestamp: { S: release.timestamp },
+        type: { S: release.type },
+        features: { S: JSON.stringify(release.features) },
+        improvements: { S: JSON.stringify(release.improvements) },
+        bugFixes: { S: JSON.stringify(release.bugFixes) },
+        breaking: { S: JSON.stringify(release.breaking) },
+        notes: { S: release.notes },
+        helpContent: { S: '' },
+        created_at: { S: now.toISOString() }
+      }
+    });
+    
+    await dynamoClient.send(releaseCommand);
+    console.log('✅ Release saved to production releases table');
+    
+    // Update current version setting in prod using correct schema
+    const settingCommand = new PutItemCommand({
+      TableName: 'PracticeTools-prod-Settings',
+      Item: {
+        key: { S: 'current_version' },
+        value: { S: version },
+        updated_at: { S: now.toISOString() }
+      }
+    });
+    
+    await dynamoClient.send(settingCommand);
+    console.log('✅ Current version setting updated in production');
   }
   
   static async updateReleaseNotesPage(version, releaseNotes) {
@@ -637,13 +700,24 @@ class ProdPushManager {
         
         // Check if prod table already exists
         try {
-          await dynamoClient.send(new DescribeTableCommand({ TableName: prodTableName }));
+          const existingTable = await dynamoClient.send(new DescribeTableCommand({ TableName: prodTableName }));
           console.log(`   ✅ Table ${prodTableName} already exists`);
+          
+          // Verify schema matches (optional validation)
+          const devKeys = devTableInfo.Table.KeySchema.map(k => `${k.AttributeName}:${k.KeyType}`).sort();
+          const prodKeys = existingTable.Table.KeySchema.map(k => `${k.AttributeName}:${k.KeyType}`).sort();
+          
+          if (JSON.stringify(devKeys) !== JSON.stringify(prodKeys)) {
+            console.log(`   ⚠️  Schema mismatch detected for ${prodTableName}`);
+            console.log(`      Dev keys: ${devKeys.join(', ')}`);
+            console.log(`      Prod keys: ${prodKeys.join(', ')}`);
+          }
+          
         } catch (error) {
           if (error.name === 'ResourceNotFoundException') {
             console.log(`   📊 Creating table ${prodTableName}...`);
             
-            // Create prod table with same schema as dev table
+            // Create prod table with exact same schema as dev table
             const createParams = {
               TableName: prodTableName,
               KeySchema: devTableInfo.Table.KeySchema,
@@ -652,24 +726,43 @@ class ProdPushManager {
             };
             
             // Add GSI if dev table has them
-            if (devTableInfo.Table.GlobalSecondaryIndexes) {
+            if (devTableInfo.Table.GlobalSecondaryIndexes && devTableInfo.Table.GlobalSecondaryIndexes.length > 0) {
               createParams.GlobalSecondaryIndexes = devTableInfo.Table.GlobalSecondaryIndexes.map(gsi => ({
                 IndexName: gsi.IndexName,
                 KeySchema: gsi.KeySchema,
                 Projection: gsi.Projection
               }));
+              console.log(`      Including ${devTableInfo.Table.GlobalSecondaryIndexes.length} GSI(s)`);
+            }
+            
+            // Add LSI if dev table has them
+            if (devTableInfo.Table.LocalSecondaryIndexes && devTableInfo.Table.LocalSecondaryIndexes.length > 0) {
+              createParams.LocalSecondaryIndexes = devTableInfo.Table.LocalSecondaryIndexes.map(lsi => ({
+                IndexName: lsi.IndexName,
+                KeySchema: lsi.KeySchema,
+                Projection: lsi.Projection
+              }));
+              console.log(`      Including ${devTableInfo.Table.LocalSecondaryIndexes.length} LSI(s)`);
             }
             
             await dynamoClient.send(new CreateTableCommand(createParams));
-            console.log(`   ✅ Created table ${prodTableName} (schema copied from ${devTableName})`);
+            console.log(`   ✅ Created table ${prodTableName} (exact schema copy from ${devTableName})`);
+            
+            // Wait for table to become active
+            console.log(`      Waiting for ${prodTableName} to become active...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
           } else {
             throw error;
           }
         }
       } catch (error) {
         console.log(`   ⚠️  Failed to process ${devTableName}: ${error.message}`);
+        // Continue with other tables even if one fails
       }
     }
+    
+    console.log('   ✅ Production table setup completed');
   }
   
   static async mergeToMain() {
@@ -696,6 +789,22 @@ class ProdPushManager {
       
       // Push to main
       execSync('git push origin main', { stdio: 'inherit' });
+      
+      // Update apprunner.yaml with production configuration
+      console.log('   Updating apprunner.yaml with production configuration...');
+      try {
+        const prodConfig = readFileSync('apprunner-prod.yaml', 'utf8');
+        writeFileSync('apprunner.yaml', prodConfig);
+        
+        // Commit the apprunner.yaml update
+        execSync('git add apprunner.yaml', { stdio: 'pipe' });
+        execSync('git commit -m "Update apprunner.yaml for production deployment"', { stdio: 'pipe' });
+        execSync('git push origin main', { stdio: 'inherit' });
+        
+        console.log('   ✅ Production apprunner.yaml configuration applied');
+      } catch (error) {
+        console.log('   ⚠️  Could not update apprunner.yaml:', error.message);
+      }
       
       // Switch back to dev and restore stashed changes
       execSync('git checkout dev', { stdio: 'inherit' });
