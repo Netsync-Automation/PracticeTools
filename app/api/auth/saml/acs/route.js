@@ -82,8 +82,8 @@ export async function POST(request) {
           console.log('SSO user session created with DB permissions:', { email: user.email, name: user.name, role: user.role, isAdmin: user.isAdmin });
           
           const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-          // Always redirect to home page after successful SAML authentication
-          const redirectUrl = `${baseUrl.replace(/\/$/, '')}/home`;
+          // Always redirect to root page after successful SAML authentication
+          const redirectUrl = `${baseUrl.replace(/\/$/, '')}/`;
           console.log('SAML authentication successful, setting cookie and redirecting to:', redirectUrl);
           const redirectResponse = NextResponse.redirect(redirectUrl);
           
