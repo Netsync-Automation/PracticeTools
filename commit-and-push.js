@@ -433,8 +433,9 @@ class CommitBuilder {
       'layout': 'Improved Root Page with better user experience and session management',
       's3': 'Enhanced s3 Service with improved functionality and error handling',
       'ewsclient': 'Enhanced ews-client Service with improved functionality and error handling',
-      'ntlmauth': 'Enhanced ntlm-auth Service with improved functionality and error handling'
-          'auth': 'Enhanced auth Service with improved functionality and error handling',
+      'ntlmauth': 'Enhanced ntlm-auth Service with improved functionality and error handling',
+      'auth': 'Enhanced auth Service with improved functionality and error handling',
+          'emailprocessor': 'Enhanced email-processor Service with improved functionality and error handling',
     };
     
     // Check for pattern matches
