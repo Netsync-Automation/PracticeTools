@@ -11,8 +11,8 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const resourceEmailEnabled = await db.getSetting('resource_email_enabled') === 'true';
-    const resourceRules = JSON.parse(await db.getSetting('resource_email_rules') || '[]');
+    const resourceEmailEnabled = await db.getSetting('resourceEmailEnabled') === 'true';
+    const resourceRules = JSON.parse(await db.getSetting('resourceRules') || '[]');
 
     return NextResponse.json({
       resourceEmailEnabled,
@@ -40,8 +40,8 @@ export async function POST(request) {
     const { resourceEmailEnabled, resourceRules } = await request.json();
 
     // Save settings to database
-    await db.saveSetting('resource_email_enabled', resourceEmailEnabled ? 'true' : 'false');
-    await db.saveSetting('resource_email_rules', JSON.stringify(resourceRules || []));
+    await db.saveSetting('resourceEmailEnabled', resourceEmailEnabled ? 'true' : 'false');
+    await db.saveSetting('resourceRules', JSON.stringify(resourceRules || []));
 
     return NextResponse.json({ success: true });
 

@@ -1860,18 +1860,7 @@ export default function SettingsPage() {
                   </label>
                 </div>
                 
-                <div className="flex items-center mb-4">
-                  <input
-                    type="checkbox"
-                    id="resourceMonitoringEnabled"
-                    checked={settings.resourceMonitoringEnabled || false}
-                    onChange={(e) => setSettings({...settings, resourceMonitoringEnabled: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="resourceMonitoringEnabled" className="ml-2 block text-sm text-gray-900">
-                    Enable Resource Assignment Email Monitoring
-                  </label>
-                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
                   <input
@@ -1996,12 +1985,33 @@ export default function SettingsPage() {
                     id="resourceEmailEnabled"
                     checked={settings.resourceEmailEnabled || false}
                     onChange={(e) => setSettings({...settings, resourceEmailEnabled: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    disabled={!settings.emailNotifications || !settings.smtpHost}
+                    className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
+                      !settings.emailNotifications || !settings.smtpHost ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   />
-                  <label htmlFor="resourceEmailEnabled" className="ml-2 block text-sm text-gray-900">
+                  <label htmlFor="resourceEmailEnabled" className={`ml-2 block text-sm ${
+                    !settings.emailNotifications || !settings.smtpHost ? 'text-gray-400' : 'text-gray-900'
+                  }`}>
                     Enable Resource Assignment Email Processing
                   </label>
                 </div>
+                
+                {(!settings.emailNotifications || !settings.smtpHost) && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <div>
+                        <h3 className="text-sm font-medium text-yellow-800">Email Settings Required</h3>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          Before enabling resource assignment email processing, you must first configure and enable email settings in the E-mail Settings tab.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 {settings.resourceEmailEnabled && (
                   <div className="space-y-6">
