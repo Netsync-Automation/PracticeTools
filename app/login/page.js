@@ -71,14 +71,20 @@ function LoginForm() {
     
     // Check if SSO is enabled
     const checkSsoEnabled = async () => {
+      console.log('[LOGIN] Checking SSO status...');
       try {
         const response = await fetch('/api/auth/sso-status');
+        console.log('[LOGIN] SSO status response:', response.status, response.ok);
         if (response.ok) {
           const data = await response.json();
+          console.log('[LOGIN] SSO status data:', data);
           setSsoEnabled(data.enabled);
+          console.log('[LOGIN] SSO enabled state set to:', data.enabled);
+        } else {
+          console.error('[LOGIN] SSO status response not ok:', response.status);
         }
       } catch (error) {
-        console.error('SSO status check error:', error);
+        console.error('[LOGIN] SSO status check error:', error);
       }
     };
     

@@ -5,26 +5,42 @@ export async function GET() {
   try {
     // Use ENVIRONMENT variable as single source of truth from apprunner.yaml
     const environment = process.env.ENVIRONMENT || 'dev';
-    console.log('Releases API called - ENVIRONMENT:', environment);
-    console.log('Database table:', `PracticeTools-${environment}-Releases`);
+    console.log('[RELEASES-API] API called - ENVIRONMENT:', environment);
+    console.log('[RELEASES-API] Database table:', `PracticeTools-${environment}-Releases`);
     
     const releases = await db.getReleases(environment);
-    console.log('Releases found:', releases ? releases.length : 0);
+    console.log('[RELEASES-API] Raw releases from DB:', releases ? releases.length : 0);
     
-
+    if (!releases) {
+      console.log('[RELEASES-API] No releases returned from database');
+      return NextResponse.json([]);
+    }
+    
+    if (releases.length === 0) {
+      console.log('[RELEASES-API] Empty releases array from database');
+      return NextResponse.json([]);
+    }
+    
+    console.log('[RELEASES-API] Sample releases:', releases.slice(0, 2).map(r => ({ 
+      version: r.version, 
+      date: r.date, 
+      type: r.type,
+      notes: r.notes ? r.notes.substring(0, 50) + '...' : 'No notes'
+    })));
     
     // Sort releases by version (newest first)
     const sortedReleases = releases.sort((a, b) => {
       return compareVersions(b.version, a.version);
     });
     
-    console.log('Returning releases:', sortedReleases.length);
-    console.log('Latest releases:', sortedReleases.slice(0, 3).map(r => ({ version: r.version, date: r.date })));
+    console.log('[RELEASES-API] Returning releases:', sortedReleases.length);
+    console.log('[RELEASES-API] Latest releases:', sortedReleases.slice(0, 3).map(r => ({ version: r.version, date: r.date })));
 
     return NextResponse.json(sortedReleases);
   } catch (error) {
-    console.error('Error fetching releases:', error);
-    return NextResponse.json({ error: 'Failed to fetch releases' }, { status: 500 });
+    console.error('[RELEASES-API] Error fetching releases:', error);
+    console.error('[RELEASES-API] Error stack:', error.stack);
+    return NextResponse.json({ error: 'Failed to fetch releases', details: error.message }, { status: 500 });
   }
 }
 
