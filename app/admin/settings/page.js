@@ -8,6 +8,7 @@ import SidebarLayout from '../../../components/SidebarLayout';
 import Breadcrumb from '../../../components/Breadcrumb';
 import { useAuth } from '../../../hooks/useAuth';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
+import EmailRulesManager from '../../../components/EmailRulesManager';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -292,12 +293,22 @@ export default function SettingsPage() {
       // Load resource assignment settings
       if (activeTab === 'resources') {
         try {
-          const response = await fetch('/api/settings/resources?t=' + Date.now());
-          const data = await response.json();
+          // Load resource settings
+          const resourceResponse = await fetch('/api/settings/resources?t=' + Date.now());
+          const resourceData = await resourceResponse.json();
+          
+          // Also load email settings to check if they're configured
+          const emailResponse = await fetch('/api/settings/email?t=' + Date.now());
+          const emailData = await emailResponse.json();
+          
           setSettings(prev => ({
             ...prev,
-            resourceEmailEnabled: data.resourceEmailEnabled || false,
-            resourceRules: data.resourceRules || []
+            resourceEmailEnabled: resourceData.resourceEmailEnabled || false,
+            emailNotifications: emailData.emailNotifications,
+            smtpHost: emailData.smtpHost,
+            smtpPort: emailData.smtpPort,
+            smtpUser: emailData.smtpUser,
+            smtpPassword: emailData.smtpPassword
           }));
         } catch (error) {
           console.error('Error loading resource settings:', error);
@@ -1985,19 +1996,19 @@ export default function SettingsPage() {
                     id="resourceEmailEnabled"
                     checked={settings.resourceEmailEnabled || false}
                     onChange={(e) => setSettings({...settings, resourceEmailEnabled: e.target.checked})}
-                    disabled={!settings.emailNotifications || !settings.smtpHost}
+                    disabled={!settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword}
                     className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
                       !settings.emailNotifications || !settings.smtpHost ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   />
                   <label htmlFor="resourceEmailEnabled" className={`ml-2 block text-sm ${
-                    !settings.emailNotifications || !settings.smtpHost ? 'text-gray-400' : 'text-gray-900'
+                    !settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword ? 'text-gray-400' : 'text-gray-900'
                   }`}>
                     Enable Resource Assignment Email Processing
                   </label>
                 </div>
                 
-                {(!settings.emailNotifications || !settings.smtpHost) && (
+                {(!settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword) && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                     <div className="flex items-start">
                       <svg className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
@@ -2015,156 +2026,7 @@ export default function SettingsPage() {
                 
                 {settings.resourceEmailEnabled && (
                   <div className="space-y-6">
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">Email Processing Rules</h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Create rules that match specific email senders and subjects, then map keywords in the email content to resource assignment fields.
-                      </p>
-                      
-                      {(settings.resourceRules || []).map((rule, index) => (
-                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-medium text-gray-900">Rule {index + 1}</h4>
-                            <button
-                              onClick={() => {
-                                const newRules = [...(settings.resourceRules || [])];
-                                newRules.splice(index, 1);
-                                setSettings({...settings, resourceRules: newRules});
-                              }}
-                              className="text-red-600 hover:text-red-800 text-sm"
-                            >
-                              Remove Rule
-                            </button>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Sender Email Address
-                              </label>
-                              <input
-                                type="email"
-                                value={rule.senderEmail || ''}
-                                onChange={(e) => {
-                                  const newRules = [...(settings.resourceRules || [])];
-                                  newRules[index] = {...rule, senderEmail: e.target.value};
-                                  setSettings({...settings, resourceRules: newRules});
-                                }}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="savant@netsync.com"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Subject Pattern
-                              </label>
-                              <input
-                                type="text"
-                                value={rule.subjectPattern || ''}
-                                onChange={(e) => {
-                                  const newRules = [...(settings.resourceRules || [])];
-                                  newRules[index] = {...rule, subjectPattern: e.target.value};
-                                  setSettings({...settings, resourceRules: newRules});
-                                }}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="PMO - New Resource Request"
-                              />
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Keyword Mappings
-                            </label>
-                            <p className="text-xs text-gray-500 mb-3">
-                              Map keywords found in emails to resource assignment fields. The system will search for these keywords and extract the adjacent data.
-                            </p>
-                            
-                            {(rule.keywordMappings || []).map((mapping, mappingIndex) => (
-                              <div key={mappingIndex} className="flex space-x-2 mb-2">
-                                <input
-                                  type="text"
-                                  value={mapping.keyword || ''}
-                                  onChange={(e) => {
-                                    const newRules = [...(settings.resourceRules || [])];
-                                    const newMappings = [...(rule.keywordMappings || [])];
-                                    newMappings[mappingIndex] = {...mapping, keyword: e.target.value};
-                                    newRules[index] = {...rule, keywordMappings: newMappings};
-                                    setSettings({...settings, resourceRules: newRules});
-                                  }}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  placeholder="Job Number"
-                                />
-                                <select
-                                  value={mapping.field || ''}
-                                  onChange={(e) => {
-                                    const newRules = [...(settings.resourceRules || [])];
-                                    const newMappings = [...(rule.keywordMappings || [])];
-                                    newMappings[mappingIndex] = {...mapping, field: e.target.value};
-                                    newRules[index] = {...rule, keywordMappings: newMappings};
-                                    setSettings({...settings, resourceRules: newRules});
-                                  }}
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                  <option value="">Select Field</option>
-                                  <option value="projectNumber">Project Number</option>
-                                  <option value="clientName">Client Name</option>
-                                  <option value="requestedBy">Requested By</option>
-                                  <option value="skillsRequired">Skills Required</option>
-                                  <option value="startDate">Start Date</option>
-                                  <option value="endDate">End Date</option>
-                                  <option value="description">Description</option>
-                                  <option value="priority">Priority</option>
-                                  <option value="region">Region</option>
-                                  <option value="pm">PM</option>
-                                  <option value="documentationLink">Documentation Link</option>
-                                  <option value="notes">Notes</option>
-                                </select>
-                                <button
-                                  onClick={() => {
-                                    const newRules = [...(settings.resourceRules || [])];
-                                    const newMappings = [...(rule.keywordMappings || [])];
-                                    newMappings.splice(mappingIndex, 1);
-                                    newRules[index] = {...rule, keywordMappings: newMappings};
-                                    setSettings({...settings, resourceRules: newRules});
-                                  }}
-                                  className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            ))}
-                            
-                            <button
-                              onClick={() => {
-                                const newRules = [...(settings.resourceRules || [])];
-                                const newMappings = [...(rule.keywordMappings || []), {keyword: '', field: ''}];
-                                newRules[index] = {...rule, keywordMappings: newMappings};
-                                setSettings({...settings, resourceRules: newRules});
-                              }}
-                              className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
-                            >
-                              + Add Keyword Mapping
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                      
-                      <button
-                        onClick={() => {
-                          const newRules = [...(settings.resourceRules || []), {
-                            senderEmail: '',
-                            subjectPattern: '',
-                            keywordMappings: []
-                          }];
-                          setSettings({...settings, resourceRules: newRules});
-                        }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                      >
-                        + Add Email Rule
-                      </button>
-                    </div>
+                    <EmailRulesManager />
                     
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <div className="flex items-start">
@@ -2196,8 +2058,7 @@ export default function SettingsPage() {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                              resourceEmailEnabled: settings.resourceEmailEnabled,
-                              resourceRules: settings.resourceRules || []
+                              resourceEmailEnabled: settings.resourceEmailEnabled
                             })
                           });
                           

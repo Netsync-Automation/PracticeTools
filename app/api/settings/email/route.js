@@ -24,8 +24,11 @@ export async function POST(request) {
 
     const { emailNotifications, smtpHost, smtpPort, smtpUser, smtpPassword } = await request.json();
     
+    // Get environment for database operations
+    const environment = process.env.ENVIRONMENT || 'dev';
+    
     // Save email notification preference
-    await db.saveSetting('emailNotifications', emailNotifications?.toString() || 'false');
+    await db.saveSetting('emailNotifications', emailNotifications?.toString() || 'false', environment);
     
     // Update SMTP settings in SSM if provided
     if (smtpHost) {
@@ -92,7 +95,10 @@ async function getSSMParameter(paramName) {
 
 export async function GET() {
   try {
-    const emailNotifications = await db.getSetting('emailNotifications');
+    // Get environment for database operations
+    const environment = process.env.ENVIRONMENT || 'dev';
+    
+    const emailNotifications = await db.getSetting('emailNotifications', environment);
     
     // Get all SMTP settings from SSM
     const [smtpHost, smtpPort, smtpUser, smtpPassword] = await Promise.all([
