@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 import { MagnifyingGlassIcon, PaperClipIcon } from '@heroicons/react/24/outline';
 import Navbar from '../../../components/Navbar';
 import SidebarLayout from '../../../components/SidebarLayout';
@@ -10,6 +11,9 @@ import Breadcrumb from '../../../components/Breadcrumb';
 import Pagination from '../../../components/Pagination';
 import AttachmentPreview from '../../../components/AttachmentPreview';
 import MultiAttachmentPreview from '../../../components/MultiAttachmentPreview';
+import UserSelector from '../../../components/UserSelector';
+import PracticeSelector from '../../../components/PracticeSelector';
+import MultiResourceSelector from '../../../components/MultiResourceSelector';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
 
 export default function ResourceAssignmentsPage() {
@@ -17,6 +21,7 @@ export default function ResourceAssignmentsPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState([]);
+  const [practiceETAs, setPracticeETAs] = useState({});
   const [filters, setFilters] = useState(() => {
     return {
       status: ['Pending', 'Unassigned'],
@@ -116,6 +121,25 @@ export default function ResourceAssignmentsPage() {
     
     checkAuth();
     fetchAssignments();
+    
+    // Setup SSE for real-time updates
+    const eventSource = new EventSource('/api/events');
+    
+    eventSource.addEventListener('assignment_created', (event) => {
+      const data = JSON.parse(event.data);
+      console.log('New assignment created:', data);
+      fetchAssignments(); // Refresh assignments list
+    });
+    
+    eventSource.addEventListener('assignment_updated', (event) => {
+      const data = JSON.parse(event.data);
+      console.log('Assignment updated:', data);
+      fetchAssignments(); // Refresh assignments list
+    });
+    
+    return () => {
+      eventSource.close();
+    };
   }, [router]);
 
   const fetchAssignments = async () => {
@@ -133,6 +157,23 @@ export default function ResourceAssignmentsPage() {
       setAssignments([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPracticeETAs = async () => {
+    if (filters.practice && filters.practice.length > 0) {
+      try {
+        const practicesParam = filters.practice.join(',');
+        const response = await fetch(`/api/practice-etas?practices=${encodeURIComponent(practicesParam)}`);
+        const data = await response.json();
+        if (data.success) {
+          setPracticeETAs(data.etas);
+        }
+      } catch (error) {
+        console.error('Error fetching practice ETAs:', error);
+      }
+    } else {
+      setPracticeETAs({});
     }
   };
 
@@ -191,10 +232,25 @@ export default function ResourceAssignmentsPage() {
   const startIndex = (currentPage - 1) * assignmentsPerPage;
   const filteredAssignments = allFilteredAssignments.slice(startIndex, startIndex + assignmentsPerPage);
 
-  // Reset to page 1 when filters change
+  // Reset to page 1 when filters change and fetch ETAs
   useEffect(() => {
     setCurrentPage(1);
+    fetchPracticeETAs();
   }, [filters.status.length, filters.practice, filters.region, filters.dateFrom, filters.dateTo, filters.search, filters.sort]);
+
+  // Calculate average ETAs from filtered practices and convert to days
+  const calculateAverageETA = (etaType) => {
+    const relevantETAs = Object.values(practiceETAs)
+      .filter(eta => eta[etaType] > 0)
+      .map(eta => eta[etaType]);
+    
+    if (relevantETAs.length === 0) return 0;
+    const averageHours = relevantETAs.reduce((sum, hours) => sum + hours, 0) / relevantETAs.length;
+    return Math.round(averageHours * 10) / 240; // Convert to days with 1 decimal place (hours/24, then round to 0.1)
+  };
+
+  const practiceAssignmentETA = calculateAverageETA('practice_assignment_eta_hours');
+  const resourceAssignmentETA = calculateAverageETA('resource_assignment_eta_hours');
 
   if (loading || !user) {
     return (
@@ -238,7 +294,7 @@ export default function ResourceAssignmentsPage() {
             </div>
 
             {/* Stats Containers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -291,6 +347,38 @@ export default function ResourceAssignmentsPage() {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">Assigned</p>
                     <p className="text-2xl font-semibold text-gray-900">{allFilteredAssignments.filter(a => a.status === 'Assigned').length}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-indigo-600 font-semibold text-sm">🏢</span>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Practice Assignment ETA</p>
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {practiceAssignmentETA > 0 ? `${practiceAssignmentETA} days` : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+                      <span className="text-teal-600 font-semibold text-sm">👤</span>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-gray-500">Resource Assignment ETA</p>
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {resourceAssignmentETA > 0 ? `${resourceAssignmentETA} days` : 'N/A'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -533,7 +621,12 @@ export default function ResourceAssignmentsPage() {
                 </button>
               </div>
             ) : (
-              <AssignmentsTable assignments={filteredAssignments} />
+              <AssignmentsTable 
+                assignments={filteredAssignments} 
+                user={user} 
+                onAssignmentUpdate={fetchAssignments}
+                allAssignments={assignments}
+              />
             )}
             
             {/* Bottom Pagination */}
@@ -689,8 +782,44 @@ export default function ResourceAssignmentsPage() {
   );
 }
 
-function AssignmentsTable({ assignments }) {
+function AssignmentsTable({ assignments, user, onAssignmentUpdate, allAssignments }) {
   const router = useRouter();
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [showPracticeModal, setShowPracticeModal] = useState(false);
+  const [assignmentData, setAssignmentData] = useState({
+    resourceAssigned: [],
+    dateAssigned: new Date().toISOString().split('T')[0]
+  });
+  const [practiceData, setPracticeData] = useState({
+    practice: [],
+    am: '',
+    targetStatus: '',
+    resourceAssigned: [],
+    dateAssigned: new Date().toISOString().split('T')[0]
+  });
+  const [practiceError, setPracticeError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [currentAssignmentId, setCurrentAssignmentId] = useState(null);
+
+  // Helper function to check if user can edit assignment
+  const canEditAssignment = (assignment) => {
+    if (user.isAdmin) return true;
+    
+    // For Unassigned or Assigned status, only practice managers/principals of the assigned practice can edit
+    if (assignment.status === 'Unassigned' || assignment.status === 'Assigned') {
+      return (user.role === 'practice_manager' || user.role === 'practice_principal') && 
+             user.practices?.includes(assignment.practice);
+    }
+    
+    // For Pending status, practice managers/principals can edit
+    if (assignment.practice === 'Pending') {
+      return user.role === 'practice_manager' || user.role === 'practice_principal';
+    }
+    
+    // For other statuses, practice managers/principals of the practice can edit
+    return (user.role === 'practice_manager' || user.role === 'practice_principal') && 
+           user.practices?.includes(assignment.practice);
+  };
   
   return (
     <div className="card overflow-hidden">
@@ -706,7 +835,7 @@ function AssignmentsTable({ assignments }) {
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Region</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PM</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource Assigned</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Date</th>
+              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Assigned</th>
             </tr>
           </thead>
@@ -722,14 +851,88 @@ function AssignmentsTable({ assignments }) {
                 <td className="px-2 py-3">
                   <div className="text-sm font-mono text-blue-600">#{assignment.assignment_number}</div>
                 </td>
-                <td className="px-2 py-3">
-                  <span className={`px-2 py-1 text-xs font-medium rounded ${
-                    assignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
-                    assignment.status === 'Pending' ? 'bg-blue-100 text-blue-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {assignment.status}
-                  </span>
+                <td className="px-2 py-3" onClick={(e) => e.stopPropagation()}>
+                  {canEditAssignment(assignment) ? (
+                    <select
+                      value={assignment.status}
+                      onChange={async (e) => {
+                        const newStatus = e.target.value;
+                        setCurrentAssignmentId(assignment.id);
+                        
+                        if (newStatus === 'Assigned') {
+                          // If changing from Pending, show practice modal with assignment fields
+                          if (assignment.status === 'Pending') {
+                            setPracticeData({
+                              practice: assignment.practice !== 'Pending' ? (assignment.practice ? assignment.practice.split(',').map(p => p.trim()) : []) : [],
+                              am: assignment.am || '',
+                              targetStatus: newStatus,
+                              resourceAssigned: assignment.resourceAssigned || '',
+                              dateAssigned: assignment.dateAssigned || new Date().toISOString().split('T')[0]
+                            });
+                            setPracticeError('');
+                            setShowPracticeModal(true);
+                          } else {
+                            // Show regular assignment modal for non-pending assignments
+                            setAssignmentData({
+                              resourceAssigned: assignment.resourceAssigned || '',
+                              dateAssigned: assignment.dateAssigned || new Date().toISOString().split('T')[0]
+                            });
+                            setShowAssignmentModal(true);
+                          }
+                          // Reset dropdown to current status
+                          e.target.value = assignment.status;
+                          return;
+                        }
+                        
+                        // If changing from Pending to Unassigned, show practice modal
+                        if (assignment.status === 'Pending' && newStatus === 'Unassigned') {
+                          setPracticeData({
+                            practice: assignment.practice !== 'Pending' ? (assignment.practice ? assignment.practice.split(',').map(p => p.trim()) : []) : [],
+                            am: assignment.am || '',
+                            targetStatus: newStatus
+                          });
+                          setPracticeError('');
+                          setShowPracticeModal(true);
+                          // Reset dropdown to current status
+                          e.target.value = assignment.status;
+                          return;
+                        }
+                        
+                        // For other statuses, update immediately
+                        try {
+                          const response = await fetch(`/api/assignments/${assignment.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: newStatus })
+                          });
+                          if (response.ok) {
+                            onAssignmentUpdate();
+                          }
+                        } catch (error) {
+                          console.error('Error updating status:', error);
+                        }
+                      }}
+                      className={`text-sm font-semibold px-3 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-3 focus:ring-opacity-50 ${
+                        assignment.status === 'Pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-300' :
+                        assignment.status === 'Unassigned' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
+                        assignment.status === 'Assigned' ? 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-300' :
+                        'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-300'
+                      }`}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Unassigned">Unassigned</option>
+                      <option value="Assigned">Assigned</option>
+                    </select>
+                  ) : (
+                    <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-lg ${
+                      assignment.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                      assignment.status === 'Unassigned' ? 'bg-orange-100 text-orange-800' :
+                      assignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {assignment.status}
+                    </span>
+                  )}
                 </td>
                 <td className="px-2 py-3">
                   <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
@@ -771,10 +974,36 @@ function AssignmentsTable({ assignments }) {
                   <div className="text-sm text-gray-900">{assignment.pm}</div>
                 </td>
                 <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900">{assignment.resourceAssigned}</div>
+                  <div className="text-sm text-gray-900">
+                    {assignment.resourceAssigned ? (
+                      assignment.resourceAssigned.includes(',') ? (
+                        <div className="space-y-1">
+                          {assignment.resourceAssigned.split(',').slice(0, 2).map((resource, index) => (
+                            <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full mr-1">
+                              {resource.trim()}
+                            </div>
+                          ))}
+                          {assignment.resourceAssigned.split(',').length > 2 && (
+                            <div className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              +{assignment.resourceAssigned.split(',').length - 2} more
+                            </div>
+                          )}
+                        </div>
+                      ) : assignment.resourceAssigned
+                    ) : ''}
+                  </div>
                 </td>
                 <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900">{new Date(assignment.requestDate).toLocaleDateString()}</div>
+                  <div className="text-sm text-gray-900">
+                    {new Date(assignment.requestDate).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      timeZoneName: 'short'
+                    })}
+                  </div>
                 </td>
                 <td className="px-2 py-3">
                   <div className="text-sm text-gray-900">{new Date(assignment.dateAssigned).toLocaleDateString()}</div>
@@ -784,6 +1013,253 @@ function AssignmentsTable({ assignments }) {
           </tbody>
         </table>
       </div>
+      
+      {/* Render modals using portals to center them on the page */}
+      {typeof window !== 'undefined' && showPracticeModal && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {practiceData.targetStatus === 'Assigned' ? 'Assign Resource' : 'Assign to Practice'}
+                </h3>
+              </div>
+              
+              <p className="text-gray-600 mb-6">
+                {practiceData.targetStatus === 'Assigned' 
+                  ? 'Please assign this request to a practice and resource.' 
+                  : 'Please assign this request to a practice and account manager.'}
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Practice *</label>
+                  <PracticeSelector
+                    value={practiceData.practice}
+                    onChange={(practices) => {
+                      setPracticeData(prev => ({...prev, practice: practices}));
+                      
+                      // Check if user can assign to these practices when going to Assigned or Unassigned status
+                      if ((practiceData.targetStatus === 'Assigned' || practiceData.targetStatus === 'Unassigned') && practices.length > 0 && !user.isAdmin) {
+                        const canAssignToAll = practices.every(practice => 
+                          user.practices?.includes(practice) && 
+                          (user.role === 'practice_manager' || user.role === 'practice_principal')
+                        );
+                        
+                        if (!canAssignToAll) {
+                          setPracticeError('Error: You are not a Practice Manager or Practice Principal of all selected practices');
+                        } else {
+                          setPracticeError('');
+                        }
+                      } else {
+                        setPracticeError('');
+                      }
+                    }}
+                    placeholder="Select practices..."
+                    excludePending={true}
+                    required
+                    className={practiceError ? 'border-red-300 bg-red-50' : ''}
+                  />
+                  {practiceError && (
+                    <p className="mt-1 text-sm text-red-600">{practiceError}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Account Manager</label>
+                  <input
+                    type="text"
+                    value={practiceData.am}
+                    onChange={(e) => setPracticeData(prev => ({...prev, am: e.target.value}))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter account manager name (optional)"
+                  />
+                </div>
+                
+                {practiceData.targetStatus === 'Assigned' && (
+                  <>
+                    <MultiResourceSelector
+                      value={practiceData.resourceAssigned}
+                      onChange={(resources) => setPracticeData(prev => ({...prev, resourceAssigned: resources}))}
+                      assignedPractices={Array.isArray(practiceData.practice) ? practiceData.practice : (practiceData.practice ? [practiceData.practice] : [])}
+                      placeholder="Select or type a user name..."
+                      required
+                    />
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date Assigned *</label>
+                      <input
+                        type="date"
+                        value={practiceData.dateAssigned}
+                        onChange={(e) => setPracticeData(prev => ({...prev, dateAssigned: e.target.value}))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowPracticeModal(false)}
+                  disabled={saving}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!practiceData.practice || practiceData.practice.length === 0) {
+                      alert('Please select at least one practice');
+                      return;
+                    }
+                    
+                    if (practiceData.targetStatus === 'Assigned' && (!practiceData.resourceAssigned || practiceData.resourceAssigned.length === 0)) {
+                      alert('Please assign at least one resource');
+                      return;
+                    }
+                    
+                    setSaving(true);
+                    try {
+                      const updateData = {
+                        status: practiceData.targetStatus,
+                        practice: Array.isArray(practiceData.practice) ? practiceData.practice.join(',') : practiceData.practice,
+                        am: practiceData.am
+                      };
+                      
+                      // Add assignment fields if target status is Assigned
+                      if (practiceData.targetStatus === 'Assigned') {
+                        updateData.resourceAssigned = Array.isArray(practiceData.resourceAssigned) ? practiceData.resourceAssigned.join(',') : practiceData.resourceAssigned;
+                        updateData.dateAssigned = practiceData.dateAssigned;
+                      }
+                      
+                      const response = await fetch(`/api/assignments/${currentAssignmentId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updateData)
+                      });
+                      if (response.ok) {
+                        onAssignmentUpdate();
+                        setShowPracticeModal(false);
+                      } else {
+                        alert('Failed to assign to practice');
+                      }
+                    } catch (error) {
+                      console.error('Error assigning to practice:', error);
+                      alert('Failed to assign to practice');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving || !practiceData.practice || practiceData.practice.length === 0 || practiceError || (practiceData.targetStatus === 'Assigned' && (!practiceData.resourceAssigned || practiceData.resourceAssigned.length === 0))}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {saving ? 'Assigning...' : (practiceData.targetStatus === 'Assigned' ? 'Assign Resource' : 'Assign to Practice')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+      
+      {/* Assignment Modal */}
+      {typeof window !== 'undefined' && showAssignmentModal && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Assign Resource</h3>
+              </div>
+              
+              <p className="text-gray-600 mb-6">
+                Please provide the resource assignment details to mark this as assigned.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <MultiResourceSelector
+                    value={assignmentData.resourceAssigned}
+                    onChange={(resources) => setAssignmentData(prev => ({...prev, resourceAssigned: resources}))}
+                    assignedPractices={allAssignments.find(a => a.id === currentAssignmentId)?.practice ? allAssignments.find(a => a.id === currentAssignmentId).practice.split(',').map(p => p.trim()) : []}
+                    placeholder="Select or type a user name..."
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date Assigned *</label>
+                  <input
+                    type="date"
+                    value={assignmentData.dateAssigned}
+                    onChange={(e) => setAssignmentData(prev => ({...prev, dateAssigned: e.target.value}))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowAssignmentModal(false)}
+                  disabled={saving}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!assignmentData.resourceAssigned || assignmentData.resourceAssigned.length === 0) {
+                      alert('Please assign at least one resource');
+                      return;
+                    }
+                    
+                    setSaving(true);
+                    try {
+                      const response = await fetch(`/api/assignments/${currentAssignmentId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          status: 'Assigned',
+                          resourceAssigned: Array.isArray(assignmentData.resourceAssigned) ? assignmentData.resourceAssigned.join(',') : assignmentData.resourceAssigned,
+                          dateAssigned: assignmentData.dateAssigned
+                        })
+                      });
+                      if (response.ok) {
+                        onAssignmentUpdate();
+                        setShowAssignmentModal(false);
+                      } else {
+                        alert('Failed to assign resource');
+                      }
+                    } catch (error) {
+                      console.error('Error assigning resource:', error);
+                      alert('Failed to assign resource');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving || !assignmentData.resourceAssigned || assignmentData.resourceAssigned.length === 0}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                >
+                  {saving ? 'Assigning...' : 'Assign Resource'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

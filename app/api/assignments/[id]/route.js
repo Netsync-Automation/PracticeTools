@@ -86,6 +86,20 @@ export async function PUT(request, { params }) {
     
     if (success) {
       const assignment = await db.getAssignmentById(params.id);
+      
+      // Send SSE notification for assignment update
+      try {
+        const { notifyClients } = await import('../../events/route');
+        notifyClients('all', {
+          type: 'assignment_updated',
+          assignmentId: params.id,
+          assignment: assignment,
+          timestamp: Date.now()
+        });
+      } catch (sseError) {
+        console.error('Failed to send SSE notification:', sseError);
+      }
+      
       return NextResponse.json({
         success: true,
         assignment: assignment

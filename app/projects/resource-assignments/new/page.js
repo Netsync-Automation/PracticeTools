@@ -7,6 +7,9 @@ import Navbar from '../../../../components/Navbar';
 import SidebarLayout from '../../../../components/SidebarLayout';
 import AccessCheck from '../../../../components/AccessCheck';
 import Breadcrumb from '../../../../components/Breadcrumb';
+import UserSelector from '../../../../components/UserSelector';
+import PracticeSelector from '../../../../components/PracticeSelector';
+import MultiResourceSelector from '../../../../components/MultiResourceSelector';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../../../constants/assignmentStatus';
 import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
@@ -138,7 +141,7 @@ export default function NewAssignmentPage() {
   const [loading, setLoading] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [formData, setFormData] = useState({
-    practice: '',
+    practice: [],
     status: 'Unassigned',
     projectNumber: '',
     requestDate: new Date().toISOString().split('T')[0],
@@ -148,7 +151,7 @@ export default function NewAssignmentPage() {
     region: '',
     am: '',
     pm: '',
-    resourceAssigned: '',
+    resourceAssigned: [],
     dateAssigned: '',
     documentationLink: '',
     notes: ''
@@ -211,6 +214,13 @@ export default function NewAssignmentPage() {
     });
   };
 
+  const handlePracticeChange = (practices) => {
+    setFormData(prev => ({
+      ...prev,
+      practice: practices
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -220,7 +230,13 @@ export default function NewAssignmentPage() {
       
       // Add form fields
       Object.keys(formData).forEach(key => {
-        formDataToSend.append(key, formData[key]);
+        if (key === 'practice') {
+          formDataToSend.append(key, Array.isArray(formData[key]) ? formData[key].join(',') : formData[key]);
+        } else if (key === 'resourceAssigned') {
+          formDataToSend.append(key, Array.isArray(formData[key]) ? formData[key].join(',') : formData[key]);
+        } else {
+          formDataToSend.append(key, formData[key]);
+        }
       });
       
       // Add attachments
@@ -350,18 +366,12 @@ export default function NewAssignmentPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Practice *</label>
-                      <select
-                        name="practice"
+                      <PracticeSelector
                         value={formData.practice}
-                        onChange={handleInputChange}
+                        onChange={handlePracticeChange}
+                        placeholder="Select practices..."
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Select Practice</option>
-                        {PRACTICE_OPTIONS.map(practice => (
-                          <option key={practice} value={practice}>{practice}</option>
-                        ))}
-                      </select>
+                      />
                     </div>
                   </div>
                 </div>
@@ -395,14 +405,25 @@ export default function NewAssignmentPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Resource Assigned</label>
-                      <input
-                        type="text"
-                        name="resourceAssigned"
+                      <MultiResourceSelector
                         value={formData.resourceAssigned}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="John Doe"
+                        onChange={(resources) => {
+                          setFormData(prev => {
+                            const newData = {
+                              ...prev,
+                              resourceAssigned: resources
+                            };
+                            
+                            // Auto-set date assigned when first resource is assigned
+                            if (resources.length > 0 && !prev.dateAssigned) {
+                              newData.dateAssigned = new Date().toISOString().split('T')[0];
+                            }
+                            
+                            return newData;
+                          });
+                        }}
+                        assignedPractices={Array.isArray(formData.practice) ? formData.practice : (formData.practice ? [formData.practice] : [])}
+                        placeholder="Select or type a user name..."
                       />
                     </div>
                   </div>
