@@ -12,12 +12,24 @@ export default function ReleaseNotes() {
   const [loading, setLoading] = useState(true);
   const [timezone, setTimezone] = useState('America/Chicago');
   const [user, setUser] = useState(null);
+  const [environment, setEnvironment] = useState('dev');
 
   useEffect(() => {
+    fetchEnvironment();
     fetchReleases();
     fetchTimezone();
     checkUserSession();
   }, []);
+  
+  const fetchEnvironment = async () => {
+    try {
+      const response = await fetch('/api/environment');
+      const data = await response.json();
+      setEnvironment(data.environment);
+    } catch (error) {
+      console.error('Error fetching environment:', error);
+    }
+  };
   
   const checkUserSession = async () => {
     try {
@@ -45,13 +57,10 @@ export default function ReleaseNotes() {
       const response = await fetch('/api/releases');
       const data = await response.json();
       
-      const envReleases = data.filter(release => {
-        return release.version.includes('-dev.');
-      });
-      
-      setReleases(envReleases);
-      if (envReleases.length > 0) {
-        setSelectedVersion(envReleases[0]);
+      // Server already filtered releases by environment
+      setReleases(data);
+      if (data.length > 0) {
+        setSelectedVersion(data[0]);
       }
     } catch (error) {
       console.error('Error fetching releases:', error);
@@ -159,7 +168,7 @@ export default function ReleaseNotes() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4">
             <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-              📋 Development Release Notes
+              📋 {environment === 'prod' ? 'Production' : 'Development'} Release Notes
             </h1>
             <p className="text-blue-100 mt-1">
               Track all updates, features, and improvements
