@@ -3,10 +3,16 @@ import { db } from '../../../lib/dynamodb';
 
 export async function GET() {
   try {
+    console.log('[RELEASES-API-DEBUG] === ENVIRONMENT DETECTION ===');
+    console.log('[RELEASES-API-DEBUG] process.env.NODE_ENV:', process.env.NODE_ENV);
+    console.log('[RELEASES-API-DEBUG] process.env.ENVIRONMENT:', process.env.ENVIRONMENT);
+    console.log('[RELEASES-API-DEBUG] All env vars starting with NODE_:', Object.keys(process.env).filter(k => k.startsWith('NODE_')));
+    console.log('[RELEASES-API-DEBUG] All env vars starting with ENV:', Object.keys(process.env).filter(k => k.includes('ENV')));
+    
     // Use ENVIRONMENT variable as single source of truth from apprunner.yaml
     const environment = process.env.ENVIRONMENT || 'dev';
-    console.log('[RELEASES-API] API called - ENVIRONMENT:', environment);
-    console.log('[RELEASES-API] Database table:', `PracticeTools-${environment}-Releases`);
+    console.log('[RELEASES-API-DEBUG] Detected environment:', environment);
+    console.log('[RELEASES-API-DEBUG] Database table:', `PracticeTools-${environment}-Releases`);
     
     const releases = await db.getReleases(environment);
     console.log('[RELEASES-API] Raw releases from DB:', releases ? releases.length : 0);

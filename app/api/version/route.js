@@ -7,11 +7,17 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    console.log('[VERSION-API-DEBUG] === ENVIRONMENT DETECTION ===');
+    console.log('[VERSION-API-DEBUG] process.env.NODE_ENV:', process.env.NODE_ENV);
+    console.log('[VERSION-API-DEBUG] process.env.ENVIRONMENT:', process.env.ENVIRONMENT);
+    console.log('[VERSION-API-DEBUG] All env vars starting with NODE_:', Object.keys(process.env).filter(k => k.startsWith('NODE_')));
+    console.log('[VERSION-API-DEBUG] All env vars starting with ENV:', Object.keys(process.env).filter(k => k.includes('ENV')));
+    
     // Use ENVIRONMENT variable as single source of truth from apprunner.yaml
     const environment = process.env.ENVIRONMENT || 'dev';
     
-    console.log('Version API called - ENVIRONMENT:', environment);
-    console.log('Database table:', `PracticeTools-${environment}-Releases`);
+    console.log('[VERSION-API-DEBUG] Detected environment:', environment);
+    console.log('[VERSION-API-DEBUG] Database table:', `PracticeTools-${environment}-Releases`);
     
     // First try to get current version from settings (faster)
     try {
