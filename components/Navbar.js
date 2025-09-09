@@ -45,13 +45,16 @@ export default function Navbar({ user, onLogout }) {
   useEffect(() => {
     const loadVersion = async () => {
       try {
-        console.log('Fetching version from API...');
+        console.log('[NAVBAR-DEBUG] Fetching version from API...');
         const response = await fetch('/api/version');
         const data = await response.json();
-        console.log('Version API response:', data);
+        console.log('[NAVBAR-DEBUG] Version API response:', data);
+        console.log('[NAVBAR-DEBUG] Version value:', data.version);
+        console.log('[NAVBAR-DEBUG] Version type:', typeof data.version);
+        console.log('[NAVBAR-DEBUG] Version length:', data.version?.length);
         setVersion(data.version);
       } catch (error) {
-        console.error('Error loading version:', error);
+        console.error('[NAVBAR-DEBUG] Error loading version:', error);
       }
     };
     
