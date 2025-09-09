@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
+export const dynamic = 'force-dynamic';
+
 const ssmClient = new SSMClient({
   region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
   credentials: fromNodeProviderChain({
@@ -12,13 +14,11 @@ const ssmClient = new SSMClient({
 
 export async function GET() {
   try {
-    // Use ENVIRONMENT variable as single source of truth from apprunner.yaml (same as version API)
+    // Use same environment detection as working version API
     const environment = process.env.ENVIRONMENT || 'dev';
-    console.log('[SSO-STATUS] API called - ENVIRONMENT:', environment);
     
-    // Check SSO_ENABLED from SSM parameter (same pattern as working SSO settings)
-    const paramName = environment === 'prod' ? '/PracticeTools/SSO_ENABLED' : `/PracticeTools/${environment}/SSO_ENABLED`;
-    console.log('[SSO-STATUS] Checking parameter:', paramName);
+    // Use same SSM parameter path as working SSO settings (always /PracticeTools/SSO_ENABLED for prod)
+    const paramName = '/PracticeTools/SSO_ENABLED';
     
     try {
       const command = new GetParameterCommand({
@@ -27,17 +27,13 @@ export async function GET() {
       });
       const result = await ssmClient.send(command);
       const ssoEnabled = result.Parameter?.Value === 'true';
-      console.log('[SSO-STATUS] SSM parameter value:', result.Parameter?.Value, '-> enabled:', ssoEnabled);
       return NextResponse.json({ enabled: ssoEnabled });
     } catch (ssmError) {
-      console.log('[SSO-STATUS] SSM error, checking env var. Error:', ssmError.message);
       // If SSM parameter doesn't exist, fall back to environment variable
       const ssoEnabled = process.env.SSO_ENABLED === 'true';
-      console.log('[SSO-STATUS] Environment variable SSO_ENABLED:', process.env.SSO_ENABLED, '-> enabled:', ssoEnabled);
       return NextResponse.json({ enabled: ssoEnabled });
     }
   } catch (error) {
-    console.error('[SSO-STATUS] Error checking SSO status:', error);
     return NextResponse.json({ enabled: false });
   }
 }
