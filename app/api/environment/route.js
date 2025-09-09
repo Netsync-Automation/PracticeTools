@@ -1,30 +1,15 @@
-import { readFileSync } from 'fs';
-import yaml from 'js-yaml';
+import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    console.log('Environment API called');
-    // Read environment from apprunner.yaml as single source of truth
-    const apprunnerContent = readFileSync('apprunner.yaml', 'utf8');
-    const config = yaml.load(apprunnerContent);
+    // Use ENVIRONMENT variable as single source of truth from apprunner.yaml (same as version API)
+    const environment = process.env.ENVIRONMENT || 'dev';
     
-    const envVars = config.run?.env || [];
-    const environmentVar = envVars.find(env => env.name === 'ENVIRONMENT');
-    const environment = environmentVar?.value || 'dev';
-    
-    console.log('Environment API returning:', environment);
-    
-    return Response.json({ 
-      environment,
-      source: 'apprunner.yaml'
-    });
+    return NextResponse.json({ environment });
   } catch (error) {
-    console.error('Error reading environment from apprunner.yaml:', error);
-    
-    // Fallback to process.env if apprunner.yaml is not available
-    return Response.json({ 
-      environment: process.env.ENVIRONMENT || 'dev',
-      source: 'process.env (fallback)'
-    });
+    console.error('Error in environment API:', error);
+    return NextResponse.json({ environment: 'dev' });
   }
 }
