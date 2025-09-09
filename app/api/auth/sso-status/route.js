@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
-const ENV = process.env.ENVIRONMENT || 'prod';
 const ssmClient = new SSMClient({
   region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
   credentials: fromNodeProviderChain({
@@ -12,11 +11,13 @@ const ssmClient = new SSMClient({
 });
 
 export async function GET() {
-  console.log('[SSO-STATUS] API called - ENV:', ENV);
+  // Use ENVIRONMENT variable as single source of truth from apprunner.yaml
+  const environment = process.env.ENVIRONMENT || 'dev';
+  console.log('[SSO-STATUS] API called - ENVIRONMENT:', environment);
   
   try {
     // Check SSO_ENABLED from SSM parameter
-    const paramName = ENV === 'prod' ? '/PracticeTools/SSO_ENABLED' : `/PracticeTools/${ENV}/SSO_ENABLED`;
+    const paramName = environment === 'prod' ? '/PracticeTools/SSO_ENABLED' : `/PracticeTools/${environment}/SSO_ENABLED`;
     console.log('[SSO-STATUS] Checking parameter:', paramName);
     
     try {

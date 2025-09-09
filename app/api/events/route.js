@@ -46,7 +46,9 @@ export async function GET(request) {
       }
       
       // Send initial connection message
-      controller.enqueue(`data: ${JSON.stringify({ type: 'connected', clientId })}\n\n`);
+      const connectMsg = { type: 'connected', clientId };
+      controller.enqueue(`event: connected\ndata: ${JSON.stringify(connectMsg)}\n\n`);
+      controller.enqueue(`data: ${JSON.stringify(connectMsg)}\n\n`);
       
       // Send heartbeat every 20 seconds to keep connection alive
       const heartbeat = setInterval(() => {
@@ -106,14 +108,23 @@ export function notifyClients(issueId, data) {
   console.log(`📡 Channel: ${issueId}`);
   console.log(`📋 Data:`, JSON.stringify(data, null, 2));
   console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
+  console.log(`🗺️ Global clients map exists:`, !!global.sseClients);
+  console.log(`🗺️ Local clients variable exists:`, !!clients);
+  console.log(`🗺️ Clients map size:`, clients?.size || 0);
+  console.log(`🗺️ All client channels:`, Array.from(clients?.keys() || []));
   
   // Special logging for 'all' channel
   if (issueId === 'all') {
-    console.log(`Attempting to notify 'all' channel clients`);
-    console.log(`Current clients map keys:`, Array.from(clients.keys()));
-    console.log(`'all' channel client count:`, clients.get('all')?.size || 0);
+    console.log(`🎯 Attempting to notify 'all' channel clients`);
+    console.log(`🎯 'all' channel exists:`, clients.has('all'));
+    console.log(`🎯 'all' channel client count:`, clients.get('all')?.size || 0);
     if (clients.get('all')) {
-      console.log(`'all' channel client IDs:`, Array.from(clients.get('all')).map(c => c.clientId));
+      console.log(`🎯 'all' channel client IDs:`, Array.from(clients.get('all')).map(c => c.clientId));
+      console.log(`🎯 'all' channel client details:`, Array.from(clients.get('all')).map(c => ({
+        clientId: c.clientId,
+        hasController: !!c.controller,
+        controllerDesiredSize: c.controller?.desiredSize
+      })));
     }
   }
   
@@ -130,11 +141,18 @@ export function notifyClients(issueId, data) {
           return;
         }
         
-        const message = `data: ${JSON.stringify(data)}\n\n`;
-        clientObj.controller.enqueue(message);
+        // Send both as typed event and generic message
+        const eventMessage = `event: ${data.type}\ndata: ${JSON.stringify(data)}\n\n`;
+        const genericMessage = `data: ${JSON.stringify(data)}\n\n`;
+        
+        clientObj.controller.enqueue(eventMessage);
+        clientObj.controller.enqueue(genericMessage);
+        
         console.log(`✅ Message sent to client ${clientObj.clientId} on channel ${issueId}`);
-        if (data.type === 'follow_updated') {
-          console.log(`🔄 Follow update sent: ${data.userEmail} ${data.following ? 'following' : 'unfollowing'} issue ${data.issueId}`);
+        console.log(`📤 Event type: ${data.type}`);
+        
+        if (data.type === 'assignment_created' || data.type === 'assignment_updated') {
+          console.log(`🔄 Assignment notification sent: ${data.type} for assignment ${data.assignmentId}`);
         }
       } catch (error) {
         console.error(`Error sending to client ${clientObj.clientId}:`, error.message);

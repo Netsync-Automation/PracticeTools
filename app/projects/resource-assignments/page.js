@@ -122,23 +122,77 @@ export default function ResourceAssignmentsPage() {
     checkAuth();
     fetchAssignments();
     
-    // Setup SSE for real-time updates
-    const eventSource = new EventSource('/api/events');
+    // Setup SSE connection for real-time assignment updates
+    let eventSource;
+    let reconnectTimer;
+    let isConnected = false;
     
-    eventSource.addEventListener('assignment_created', (event) => {
-      const data = JSON.parse(event.data);
-      console.log('New assignment created:', data);
-      fetchAssignments(); // Refresh assignments list
-    });
+    const connectAssignmentSSE = () => {
+      eventSource = new EventSource('/api/events?issueId=all');
+      
+      eventSource.onopen = () => {
+        isConnected = true;
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = null;
+        }
+      };
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'connected') {
+            isConnected = true;
+          } else if (data.type === 'assignment_created') {
+            fetchAssignments();
+          } else if (data.type === 'assignment_updated') {
+            if (data.updates) {
+              // Update specific assignment in state instead of full refresh
+              setAssignments(prevAssignments => 
+                prevAssignments.map(assignment => 
+                  assignment.id === data.assignmentId 
+                    ? { ...assignment, ...data.updates }
+                    : assignment
+                )
+              );
+            } else {
+              fetchAssignments();
+            }
+          } else if (data.type === 'heartbeat') {
+            // Heartbeat received
+          }
+        } catch (error) {
+          console.error('SSE parsing error:', error);
+        }
+      };
+      
+      eventSource.onerror = (error) => {
+        isConnected = false;
+        
+        if (eventSource.readyState === EventSource.CLOSED) {
+          if (!reconnectTimer) {
+            reconnectTimer = setTimeout(() => {
+              connectAssignmentSSE();
+            }, 2000);
+          }
+        }
+      };
+    };
     
-    eventSource.addEventListener('assignment_updated', (event) => {
-      const data = JSON.parse(event.data);
-      console.log('Assignment updated:', data);
-      fetchAssignments(); // Refresh assignments list
-    });
+    connectAssignmentSSE();
+    
+    // Periodic connection check
+    const connectionCheck = setInterval(() => {
+      if (!isConnected && eventSource?.readyState !== EventSource.CONNECTING) {
+        connectAssignmentSSE();
+      }
+    }, 10000);
     
     return () => {
-      eventSource.close();
+      if (eventSource) eventSource.close();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (connectionCheck) clearInterval(connectionCheck);
     };
   }, [router]);
 
@@ -246,7 +300,8 @@ export default function ResourceAssignmentsPage() {
     
     if (relevantETAs.length === 0) return 0;
     const averageHours = relevantETAs.reduce((sum, hours) => sum + hours, 0) / relevantETAs.length;
-    return Math.round(averageHours * 10) / 240; // Convert to days with 1 decimal place (hours/24, then round to 0.1)
+    const days = averageHours / 24; // Convert hours to days
+    return Math.round(days * 100) / 100; // Round to 2 decimal places
   };
 
   const practiceAssignmentETA = calculateAverageETA('practice_assignment_eta_hours');
@@ -361,7 +416,7 @@ export default function ResourceAssignmentsPage() {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">Practice Assignment ETA</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {practiceAssignmentETA > 0 ? `${practiceAssignmentETA} days` : 'N/A'}
+                      {practiceAssignmentETA > 0 ? `${practiceAssignmentETA.toFixed(2)} days` : 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -377,7 +432,7 @@ export default function ResourceAssignmentsPage() {
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-500">Resource Assignment ETA</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {resourceAssignmentETA > 0 ? `${resourceAssignmentETA} days` : 'N/A'}
+                      {resourceAssignmentETA > 0 ? `${resourceAssignmentETA.toFixed(2)} days` : 'N/A'}
                     </p>
                   </div>
                 </div>
