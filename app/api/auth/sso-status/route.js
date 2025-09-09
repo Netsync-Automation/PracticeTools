@@ -11,20 +11,14 @@ const ssmClient = new SSMClient({
 });
 
 export async function GET() {
-  console.log('[SSO-STATUS-DEBUG] === ENVIRONMENT DETECTION ===');
-  console.log('[SSO-STATUS-DEBUG] process.env.NODE_ENV:', process.env.NODE_ENV);
-  console.log('[SSO-STATUS-DEBUG] process.env.ENVIRONMENT:', process.env.ENVIRONMENT);
-  console.log('[SSO-STATUS-DEBUG] All env vars starting with NODE_:', Object.keys(process.env).filter(k => k.startsWith('NODE_')));
-  console.log('[SSO-STATUS-DEBUG] All env vars starting with ENV:', Object.keys(process.env).filter(k => k.includes('ENV')));
-  
-  // Use ENVIRONMENT variable as single source of truth from apprunner.yaml
-  const environment = process.env.ENVIRONMENT || 'dev';
-  console.log('[SSO-STATUS-DEBUG] Detected environment:', environment);
-  
   try {
-    // Check SSO_ENABLED from SSM parameter
+    // Use ENVIRONMENT variable as single source of truth from apprunner.yaml (same as version API)
+    const environment = process.env.ENVIRONMENT || 'dev';
+    console.log('[SSO-STATUS] API called - ENVIRONMENT:', environment);
+    
+    // Check SSO_ENABLED from SSM parameter (same pattern as working SSO settings)
     const paramName = environment === 'prod' ? '/PracticeTools/SSO_ENABLED' : `/PracticeTools/${environment}/SSO_ENABLED`;
-    console.log('[SSO-STATUS-DEBUG] SSM parameter name:', paramName);
+    console.log('[SSO-STATUS] Checking parameter:', paramName);
     
     try {
       const command = new GetParameterCommand({
