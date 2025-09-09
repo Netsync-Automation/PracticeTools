@@ -20,26 +20,18 @@ export async function GET() {
     console.log('[RELEASES-API-DEBUG] Calling db.getReleases with environment:', environment);
 
     
-    // Additional debugging for empty results
+    // Always return an array, even if empty
     if (!releases || releases.length === 0) {
       console.log('[RELEASES-API-DEBUG] No releases found - checking both environments');
       try {
         const prodReleases = await db.getReleases('prod');
         const devReleases = await db.getReleases('dev');
-        console.log('[RELEASES-API-DEBUG] Prod releases available:', prodReleases.length);
-        console.log('[RELEASES-API-DEBUG] Dev releases available:', devReleases.length);
+        console.log('[RELEASES-API-DEBUG] Prod releases available:', prodReleases ? prodReleases.length : 0);
+        console.log('[RELEASES-API-DEBUG] Dev releases available:', devReleases ? devReleases.length : 0);
       } catch (debugError) {
         console.log('[RELEASES-API-DEBUG] Debug query failed:', debugError.message);
       }
-    }
-    
-    if (!releases) {
-      console.log('[RELEASES-API] No releases returned from database');
-      return NextResponse.json([]);
-    }
-    
-    if (releases.length === 0) {
-      console.log('[RELEASES-API] Empty releases array from database');
+      console.log('[RELEASES-API] Returning empty array');
       return NextResponse.json([]);
     }
     
@@ -72,7 +64,9 @@ export async function GET() {
   } catch (error) {
     console.error('[RELEASES-API] Error fetching releases:', error);
     console.error('[RELEASES-API] Error stack:', error.stack);
-    return NextResponse.json({ error: 'Failed to fetch releases', details: error.message }, { status: 500 });
+    // Always return an empty array instead of error object to prevent frontend crashes
+    console.log('[RELEASES-API] Returning empty array due to error');
+    return NextResponse.json([]);
   }
 }
 
