@@ -51,6 +51,7 @@ function LoginForm() {
   const [appName, setAppName] = useState('');
 
   useEffect(() => {
+    console.log('[LOGIN] Component mounted, starting auth checks...');
     // Check if user is already authenticated
     const checkAuth = async () => {
       try {

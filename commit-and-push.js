@@ -436,6 +436,7 @@ class CommitBuilder {
       'ntlmauth': 'Enhanced ntlm-auth Service with improved functionality and error handling',
       'auth': 'Enhanced auth Service with improved functionality and error handling',
           'emailprocessor': 'Enhanced email-processor Service with improved functionality and error handling',
+          'emailservice': 'Enhanced email-service Service with improved functionality and error handling',
     };
     
     // Check for pattern matches

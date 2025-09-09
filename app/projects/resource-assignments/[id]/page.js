@@ -218,6 +218,69 @@ export default function AssignmentDetailPage() {
     
     checkAuth();
     fetchAssignment();
+    
+    // Setup SSE connection for real-time assignment updates
+    let eventSource;
+    let reconnectTimer;
+    let isConnected = false;
+    
+    const connectAssignmentSSE = () => {
+      eventSource = new EventSource(`/api/events?issueId=${params.id}`);
+      
+      eventSource.onopen = () => {
+        isConnected = true;
+        if (reconnectTimer) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = null;
+        }
+      };
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'connected') {
+            isConnected = true;
+          } else if (data.type === 'assignment_updated' && data.assignmentId === params.id) {
+            fetchAssignment(); // Refresh assignment data
+          } else if (data.type === 'assignment_comment_added' && data.assignmentId === params.id) {
+            // Trigger comment refresh in AssignmentConversation component
+            window.dispatchEvent(new CustomEvent('assignmentCommentAdded', { detail: data }));
+          } else if (data.type === 'heartbeat') {
+            // Heartbeat received
+          }
+        } catch (error) {
+          console.error('SSE parsing error:', error);
+        }
+      };
+      
+      eventSource.onerror = (error) => {
+        isConnected = false;
+        
+        if (eventSource.readyState === EventSource.CLOSED) {
+          if (!reconnectTimer) {
+            reconnectTimer = setTimeout(() => {
+              connectAssignmentSSE();
+            }, 2000);
+          }
+        }
+      };
+    };
+    
+    connectAssignmentSSE();
+    
+    // Periodic connection check
+    const connectionCheck = setInterval(() => {
+      if (!isConnected && eventSource?.readyState !== EventSource.CONNECTING) {
+        connectAssignmentSSE();
+      }
+    }, 10000);
+    
+    return () => {
+      if (eventSource) eventSource.close();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (connectionCheck) clearInterval(connectionCheck);
+    };
   }, [router, params.id]);
 
   const fetchAssignment = async () => {

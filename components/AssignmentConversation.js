@@ -349,6 +349,15 @@ export default function AssignmentConversation({ assignmentId, user }) {
   useEffect(() => {
     fetchComments();
     
+    // Listen for custom events from parent page SSE
+    const handleCommentAdded = (event) => {
+      if (event.detail.assignmentId === assignmentId) {
+        fetchComments();
+      }
+    };
+    
+    window.addEventListener('assignmentCommentAdded', handleCommentAdded);
+    
     let eventSource;
     let reconnectTimer;
     
@@ -441,6 +450,7 @@ export default function AssignmentConversation({ assignmentId, user }) {
     connectSSE();
     
     return () => {
+      window.removeEventListener('assignmentCommentAdded', handleCommentAdded);
       if (eventSource) eventSource.close();
       if (reconnectTimer) clearTimeout(reconnectTimer);
     };
