@@ -29,7 +29,17 @@ export async function GET() {
       return NextResponse.json([]);
     }
     
-    console.log('[RELEASES-API] Sample releases:', releases.slice(0, 2).map(r => ({ 
+    // Filter releases by environment (same logic as version API)
+    const envReleases = releases.filter(release => {
+      if (environment === 'prod') {
+        return !release.version.includes('-dev.');
+      } else {
+        return release.version.includes('-dev.');
+      }
+    });
+    
+    console.log(`[RELEASES-API] ${environment} releases found:`, envReleases.length);
+    console.log('[RELEASES-API] Sample filtered releases:', envReleases.slice(0, 2).map(r => ({ 
       version: r.version, 
       date: r.date, 
       type: r.type,
@@ -37,7 +47,7 @@ export async function GET() {
     })));
     
     // Sort releases by version (newest first)
-    const sortedReleases = releases.sort((a, b) => {
+    const sortedReleases = envReleases.sort((a, b) => {
       return compareVersions(b.version, a.version);
     });
     
