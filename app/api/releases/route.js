@@ -14,10 +14,24 @@ export async function GET() {
     // Use ENVIRONMENT variable as single source of truth from apprunner.yaml
     const environment = process.env.ENVIRONMENT || 'dev';
     console.log('[RELEASES-API-DEBUG] Detected environment:', environment);
-    console.log('[RELEASES-API-DEBUG] Database table:', `PracticeTools-${environment}-Releases`);
+    console.log('[RELEASES-API-DEBUG] Expected database table:', `PracticeTools-${environment}-Releases`);
     
-    const releases = await db.getReleases(environment);
-    console.log('[RELEASES-API] Raw releases from DB:', releases ? releases.length : 0);
+    // Force environment detection in database layer
+    console.log('[RELEASES-API-DEBUG] Calling db.getReleases with environment:', environment);
+
+    
+    // Additional debugging for empty results
+    if (!releases || releases.length === 0) {
+      console.log('[RELEASES-API-DEBUG] No releases found - checking both environments');
+      try {
+        const prodReleases = await db.getReleases('prod');
+        const devReleases = await db.getReleases('dev');
+        console.log('[RELEASES-API-DEBUG] Prod releases available:', prodReleases.length);
+        console.log('[RELEASES-API-DEBUG] Dev releases available:', devReleases.length);
+      } catch (debugError) {
+        console.log('[RELEASES-API-DEBUG] Debug query failed:', debugError.message);
+      }
+    }
     
     if (!releases) {
       console.log('[RELEASES-API] No releases returned from database');
