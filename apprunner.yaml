@@ -5,6 +5,8 @@ build:
     build:
       - echo "Installing dependencies..."
       - npm install
+      - echo "Clearing Next.js cache..."
+      - rm -rf .next
       - echo "Building application..."
       - npm run build
       - echo "=== BUILD COMPLETED ==="
