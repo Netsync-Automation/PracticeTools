@@ -18,7 +18,8 @@ export async function GET() {
     
     // Force environment detection in database layer
     console.log('[RELEASES-API-DEBUG] Calling db.getReleases with environment:', environment);
-
+    const releases = await db.getReleases(environment);
+    console.log('[RELEASES-API] Raw releases from DB:', releases ? releases.length : 0);
     
     // Always return an array, even if empty
     if (!releases || releases.length === 0) {
