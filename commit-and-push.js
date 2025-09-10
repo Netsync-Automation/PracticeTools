@@ -437,6 +437,7 @@ class CommitBuilder {
       'auth': 'Enhanced auth Service with improved functionality and error handling',
           'emailprocessor': 'Enhanced email-processor Service with improved functionality and error handling',
           'emailservice': 'Enhanced email-service Service with improved functionality and error handling',
+          'helpgenerator': 'Enhanced help-generator Service with improved functionality and error handling',
     };
     
     // Check for pattern matches

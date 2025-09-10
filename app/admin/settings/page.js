@@ -67,6 +67,7 @@ export default function SettingsPage() {
     duoCertificate: ''
   });
   const [savingSso, setSavingSso] = useState(false);
+  const [creatingBoards, setCreatingBoards] = useState(false);
   
   // User management state
   const [users, setUsers] = useState([]);
@@ -201,6 +202,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'general', name: 'General Settings', icon: '⚙️' },
     { id: 'users', name: 'User Management', icon: '👥' },
+    { id: 'practice', name: 'Practice Information', icon: '🏢' },
     { id: 'webex', name: 'WebEx Settings', icon: '💬' },
     { id: 'email', name: 'E-mail Settings', icon: '📧' },
     { id: 'resources', name: 'Resource Assignments', icon: '📋' },
@@ -1213,6 +1215,138 @@ export default function SettingsPage() {
               </div>
             )}
             
+            {activeTab === 'practice' && !isNonAdminPracticeUser && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Practice Information Settings</h2>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-800">Practice Board Management</h3>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Practice boards are automatically created based on Practice Manager role assignments. 
+                        Each Practice Manager gets a board for all their assigned practices.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-3">Practice Board Creation</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Use this button to create any missing practice boards for existing Practice Managers. 
+                      This will scan all users with the Practice Manager role and create boards for their assigned practices.
+                    </p>
+                    
+                    <div className="flex gap-4">
+                      <button
+                        onClick={async () => {
+                          setCreatingBoards(true);
+                          try {
+                            const response = await fetch('/api/practice-boards/initialize', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' }
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                              const created = data.results.filter(r => r.status === 'created').length;
+                              const existing = data.results.filter(r => r.status === 'already_exists').length;
+                              const errors = data.results.filter(r => r.status === 'error').length;
+                              
+                              let message = `Practice Board Creation Complete!\n\n`;
+                              message += `Practice Managers Found: ${data.practiceManagersFound}\n`;
+                              message += `Boards Created: ${created}\n`;
+                              message += `Boards Already Existed: ${existing}\n`;
+                              
+                              if (errors > 0) {
+                                message += `Errors: ${errors}\n\n`;
+                                message += 'Check console for error details.';
+                              }
+                              
+                              alert(message);
+                            } else {
+                              alert('Failed to create practice boards: ' + data.error);
+                            }
+                          } catch (error) {
+                            console.error('Error creating practice boards:', error);
+                            alert('Error creating practice boards');
+                          } finally {
+                            setCreatingBoards(false);
+                          }
+                        }}
+                        disabled={creatingBoards}
+                        title="Create any missing Practice Boards based on Practice Managers and which Practices they manage"
+                        className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                          creatingBoards
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                      >
+                        {creatingBoards ? 'Creating Practice Boards...' : 'Create Practice Boards'}
+                      </button>
+                      
+                      <button
+                        onClick={async () => {
+                          if (!confirm('Are you sure you want to delete ALL practice boards? This will permanently remove all boards, columns, cards, and data.')) {
+                            return;
+                          }
+                          
+                          setCreatingBoards(true);
+                          try {
+                            const response = await fetch('/api/practice-boards/delete-all', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' }
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                              const boardsCount = data.deletedBoardsCount || 0;
+                              const topicsCount = data.deletedTopicsCount || 0;
+                              alert(`Successfully deleted:\n• ${boardsCount} practice boards\n• ${topicsCount} topic configurations`);
+                            } else {
+                              alert('Failed to delete practice boards: ' + data.error);
+                            }
+                          } catch (error) {
+                            console.error('Error deleting practice boards:', error);
+                            alert('Error deleting practice boards');
+                          } finally {
+                            setCreatingBoards(false);
+                          }
+                        }}
+                        disabled={creatingBoards}
+                        title="Delete all existing practice boards - WARNING: This will permanently remove all data"
+                        className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                          creatingBoards
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
+                      >
+                        {creatingBoards ? 'Deleting...' : 'Delete All Practice Boards'}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-800 mb-2">How Practice Boards Work</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Each Practice Manager gets one board for all their assigned practices</li>
+                      <li>• Multiple practices assigned to the same manager share one board</li>
+                      <li>• Practice members can access boards for practices they belong to</li>
+                      <li>• Boards are created automatically when assigning Practice Manager roles</li>
+                      <li>• Use the button above to create boards for existing Practice Managers</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'users' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">

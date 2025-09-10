@@ -33,3 +33,100 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
 }
+
+export async function POST(request) {
+  try {
+    const userCookie = request.cookies.get('user-session');
+    const validation = await validateUserSession(userCookie);
+    
+    if (!validation.valid || !validation.user.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const { email, name, role, practices, isAdmin, status } = await request.json();
+    
+    // Auto-create practice board when practice manager is assigned
+    if (role === 'practice_manager' && practices && practices.length > 0) {
+      try {
+        const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/practice-boards/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ practices, managerId: email })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Practice board creation result:', result);
+        }
+      } catch (error) {
+        console.error('Error auto-creating practice board:', error);
+        // Don't fail user creation if board creation fails
+      }
+    }
+    
+    const success = await db.createOrUpdateUser(
+      email,
+      name,
+      'saml',
+      role,
+      null,
+      'manual',
+      false,
+      isAdmin,
+      practices,
+      status
+    );
+    
+    if (success) {
+      return NextResponse.json({ success: true });
+    } else {
+      return NextResponse.json({ error: 'Failed to create/update user' }, { status: 500 });
+    }
+  } catch (error) {
+    console.error('Error creating/updating user:', error);
+    return NextResponse.json({ error: 'Failed to create/update user' }, { status: 500 });
+  }
+}
+
+export async function PUT(request) {
+  try {
+    const userCookie = request.cookies.get('user-session');
+    const validation = await validateUserSession(userCookie);
+    
+    if (!validation.valid || !validation.user.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const { email, updates } = await request.json();
+    
+    // Auto-create practice board when practice manager is assigned
+    if (updates.role === 'practice_manager' && updates.practices && updates.practices.length > 0) {
+      try {
+        const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/practice-boards/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ practices: updates.practices, managerId: email })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Practice board creation result:', result);
+        }
+      } catch (error) {
+        console.error('Error auto-creating practice board:', error);
+        // Don't fail user update if board creation fails
+      }
+    }
+    
+    const success = await db.updateUser(email, updates);
+    
+    if (success) {
+      return NextResponse.json({ success: true });
+    } else {
+      return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+    }
+  } catch (error) {
+    console.error('Error updating user:', error);
+    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+  }
+}
