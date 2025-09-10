@@ -45,8 +45,8 @@ export default function AboutPage() {
         
         <div className="bg-white rounded-lg shadow p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">About Netsync Issues Tracker</h1>
-            <p className="text-lg text-gray-600">Streamlining issue management and collaboration</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">About Practice Tools</h1>
+            <p className="text-lg text-gray-600">Empowering practice teams with collaborative information management</p>
           </div>
 
           <div className="space-y-8">
@@ -54,9 +54,9 @@ export default function AboutPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Our Mission</h2>
               <p className="text-gray-700 leading-relaxed">
-                To provide organizations with a powerful, intuitive issue tracking system that enhances 
-                collaboration, improves transparency, and accelerates problem resolution. We believe that 
-                effective issue management is the foundation of successful project delivery and customer satisfaction.
+                To provide practice teams with an intuitive, collaborative platform for organizing and managing 
+                practice-specific information. We believe that effective information management and team collaboration 
+                are essential for practice success and operational excellence.
               </p>
             </section>
 
@@ -64,26 +64,26 @@ export default function AboutPage() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">What We Do</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                Netsync Issues Tracker is a comprehensive issue management platform designed for modern teams. 
-                Our solution combines traditional ticketing functionality with real-time collaboration features, 
-                making it easier than ever to track, manage, and resolve issues efficiently.
+                Practice Tools is a collaborative information management platform designed for practice teams. 
+                Our solution provides Kanban-style boards with real-time collaboration features, 
+                making it easier than ever to organize, track, and manage practice information efficiently.
               </p>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-blue-900 mb-2">🎯 Issue Management</h3>
-                  <p className="text-blue-800 text-sm">Complete lifecycle management from creation to resolution</p>
+                  <h3 className="font-semibold text-blue-900 mb-2">📋 Practice Boards</h3>
+                  <p className="text-blue-800 text-sm">Kanban-style boards for organizing practice information</p>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-green-900 mb-2">🔄 Real-time Updates</h3>
-                  <p className="text-green-800 text-sm">Instant notifications and live status updates</p>
+                  <p className="text-green-800 text-sm">Live collaboration with instant synchronization</p>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-purple-900 mb-2">💬 Team Collaboration</h3>
-                  <p className="text-purple-800 text-sm">Integrated messaging and file sharing capabilities</p>
+                  <p className="text-purple-800 text-sm">Comments, attachments, and team communication</p>
                 </div>
                 <div className="bg-orange-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-orange-900 mb-2">📊 Analytics & Reporting</h3>
-                  <p className="text-orange-800 text-sm">Comprehensive insights and performance metrics</p>
+                  <h3 className="font-semibent text-orange-900 mb-2">🏷️ Topic Organization</h3>
+                  <p className="text-orange-800 text-sm">Multiple topics per practice for better organization</p>
                 </div>
               </div>
             </section>
@@ -91,23 +91,23 @@ export default function AboutPage() {
             {/* Complete Feature Showcase */}
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-6">Complete Feature Showcase</h2>
-              <p className="text-gray-600 mb-8">Discover all the powerful features that make issue tracking effortless and efficient.</p>
+              <p className="text-gray-600 mb-8">Discover all the powerful features that make practice information management effortless and efficient.</p>
               
               <div className="grid gap-8 md:grid-cols-2">
                 {/* Issue Management Card */}
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl border border-blue-200">
                   <div className="flex items-center mb-4">
                     <div className="bg-blue-600 p-3 rounded-lg mr-4">
-                      <span className="text-white text-2xl">📝</span>
+                      <span className="text-white text-2xl">📋</span>
                     </div>
-                    <h3 className="text-xl font-bold text-blue-900">Smart Issue Management</h3>
+                    <h3 className="text-xl font-bold text-blue-900">Practice Board Management</h3>
                   </div>
                   <ul className="space-y-2 text-blue-800">
-                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>AI-powered duplicate detection prevents redundant issues</li>
-                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>Three issue types: Bug Reports, Feature Requests, Questions</li>
-                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>Rich file attachments with drag-and-drop support</li>
-                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>Sequential numbering for easy reference and tracking</li>
-                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>Edit your own issues anytime after creation</li>
+                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>Kanban-style boards with customizable columns</li>
+                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>Drag-and-drop cards between columns</li>
+                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>Rich card descriptions with file attachments</li>
+                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>Practice-specific boards for different teams</li>
+                    <li className="flex items-start"><span className="text-blue-600 mr-2 font-bold">•</span>Custom backgrounds and visual themes</li>
                   </ul>
                 </div>
 
@@ -115,16 +115,16 @@ export default function AboutPage() {
                 <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200">
                   <div className="flex items-center mb-4">
                     <div className="bg-green-600 p-3 rounded-lg mr-4">
-                      <span className="text-white text-2xl">🔄</span>
+                      <span className="text-white text-2xl">🏷️</span>
                     </div>
-                    <h3 className="text-xl font-bold text-green-900">Intelligent Workflow</h3>
+                    <h3 className="text-xl font-bold text-green-900">Topic Organization</h3>
                   </div>
                   <ul className="space-y-2 text-green-800">
-                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>Guided status progression: Open → In Progress → Testing → Closed</li>
-                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>Admin assignment required before status changes</li>
-                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>Mandatory resolution comments ensure closure quality</li>
-                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>Complete audit trail tracks every status change</li>
-                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>Backlog and rejection options for comprehensive management</li>
+                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>Multiple topics per practice board for organization</li>
+                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>Protected Main Topic with additional custom topics</li>
+                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>Topic-specific content with shared settings</li>
+                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>User preferences remember last selected topic</li>
+                    <li className="flex items-start"><span className="text-green-600 mr-2 font-bold">•</span>Easy topic creation, renaming, and deletion</li>
                   </ul>
                 </div>
 
@@ -134,14 +134,14 @@ export default function AboutPage() {
                     <div className="bg-purple-600 p-3 rounded-lg mr-4">
                       <span className="text-white text-2xl">💬</span>
                     </div>
-                    <h3 className="text-xl font-bold text-purple-900">Live Collaboration</h3>
+                    <h3 className="text-xl font-bold text-purple-900">Team Collaboration</h3>
                   </div>
                   <ul className="space-y-2 text-purple-800">
-                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>Real-time commenting with instant notifications</li>
-                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>Paste screenshots directly from clipboard</li>
-                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>Emoji picker for expressive communication</li>
-                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>Admin comments highlighted for authority</li>
-                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>Auto-scroll to new content keeps you updated</li>
+                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>Real-time commenting on cards</li>
+                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>File attachments with drag-and-drop support</li>
+                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>Live updates across all connected users</li>
+                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>Role-based permissions for editing and viewing</li>
+                    <li className="flex items-start"><span className="text-purple-600 mr-2 font-bold">•</span>Practice-specific access control</li>
                   </ul>
                 </div>
 
@@ -151,14 +151,14 @@ export default function AboutPage() {
                     <div className="bg-yellow-600 p-3 rounded-lg mr-4">
                       <span className="text-white text-2xl">⚡</span>
                     </div>
-                    <h3 className="text-xl font-bold text-yellow-900">Lightning-Fast Updates</h3>
+                    <h3 className="text-xl font-bold text-yellow-900">Real-Time Synchronization</h3>
                   </div>
                   <ul className="space-y-2 text-yellow-800">
-                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Instant notifications for all issue activity</li>
-                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Live upvote counts update in real-time</li>
-                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Browser tab alerts when you're away</li>
-                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Pleasant audio notifications for new activity</li>
-                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Automatic reconnection ensures you never miss updates</li>
+                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Instant updates across all connected users</li>
+                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Live board changes with Server-Sent Events</li>
+                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Automatic reconnection for reliability</li>
+                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Seamless collaboration without page refreshes</li>
+                    <li className="flex items-start"><span className="text-yellow-600 mr-2 font-bold">•</span>Conflict-free concurrent editing</li>
                   </ul>
                 </div>
 
@@ -166,16 +166,16 @@ export default function AboutPage() {
                 <div className="bg-gradient-to-br from-cyan-50 to-blue-100 p-6 rounded-xl border border-cyan-200">
                   <div className="flex items-center mb-4">
                     <div className="bg-cyan-600 p-3 rounded-lg mr-4">
-                      <span className="text-white text-2xl">📱</span>
+                      <span className="text-white text-2xl">🎨</span>
                     </div>
-                    <h3 className="text-xl font-bold text-cyan-900">WebEx Integration</h3>
+                    <h3 className="text-xl font-bold text-cyan-900">Customization</h3>
                   </div>
                   <ul className="space-y-2 text-cyan-800">
-                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Beautiful adaptive cards for new issues and updates</li>
-                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Direct messages to issue creators on status changes</li>
-                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Follower notifications keep everyone informed</li>
-                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Rich cards with issue details and quick actions</li>
-                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Automatic user synchronization</li>
+                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Custom board backgrounds and themes</li>
+                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Predefined gradient backgrounds</li>
+                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Upload custom background images</li>
+                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Practice-specific visual identity</li>
+                    <li className="flex items-start"><span className="text-cyan-600 mr-2 font-bold">•</span>Persistent settings across sessions</li>
                   </ul>
                 </div>
 
@@ -185,14 +185,14 @@ export default function AboutPage() {
                     <div className="bg-rose-600 p-3 rounded-lg mr-4">
                       <span className="text-white text-2xl">👤</span>
                     </div>
-                    <h3 className="text-xl font-bold text-rose-900">Personalized Experience</h3>
+                    <h3 className="text-xl font-bold text-rose-900">User Experience</h3>
                   </div>
                   <ul className="space-y-2 text-rose-800">
-                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Upvote issues you agree with or are experiencing</li>
-                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Follow issues to get notifications on updates</li>
-                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Auto-follow issues you create or comment on</li>
-                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Personal filters: My Issues, My Follows, My Upvotes</li>
-                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Choose between table and card view modes</li>
+                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Personalized topic preferences per practice</li>
+                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Intuitive drag-and-drop interface</li>
+                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Responsive design for all devices</li>
+                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Quick card creation and editing</li>
+                    <li className="flex items-start"><span className="text-rose-600 mr-2 font-bold">•</span>Seamless practice board switching</li>
                   </ul>
                 </div>
 
@@ -200,16 +200,16 @@ export default function AboutPage() {
                 <div className="bg-gradient-to-br from-teal-50 to-cyan-100 p-6 rounded-xl border border-teal-200">
                   <div className="flex items-center mb-4">
                     <div className="bg-teal-600 p-3 rounded-lg mr-4">
-                      <span className="text-white text-2xl">🔍</span>
+                      <span className="text-white text-2xl">🔧</span>
                     </div>
-                    <h3 className="text-xl font-bold text-teal-900">Powerful Search & Filters</h3>
+                    <h3 className="text-xl font-bold text-teal-900">Board Management</h3>
                   </div>
                   <ul className="space-y-2 text-teal-800">
-                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>Advanced search across titles, descriptions, and creators</li>
-                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>Multi-criteria filtering by type, status, and assignment</li>
-                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>Flexible sorting by date, upvotes, or relevance</li>
-                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>Smart pagination for large issue collections</li>
-                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>One-click clear buttons for easy filter reset</li>
+                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>Create and customize columns for workflow</li>
+                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>Rename and delete columns as needed</li>
+                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>Add detailed cards with descriptions</li>
+                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>Move cards between columns with drag-and-drop</li>
+                    <li className="flex items-start"><span className="text-teal-600 mr-2 font-bold">•</span>Track card creation dates and authors</li>
                   </ul>
                 </div>
 
@@ -219,14 +219,14 @@ export default function AboutPage() {
                     <div className="bg-indigo-600 p-3 rounded-lg mr-4">
                       <span className="text-white text-2xl">⚙️</span>
                     </div>
-                    <h3 className="text-xl font-bold text-indigo-900">Admin Command Center</h3>
+                    <h3 className="text-xl font-bold text-indigo-900">Administration</h3>
                   </div>
                   <ul className="space-y-2 text-indigo-800">
-                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>Comprehensive dashboard with system analytics</li>
-                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>Dedicated assigned issues management interface</li>
-                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>Complete user management with role assignment</li>
-                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>System maintenance tools and issue renumbering</li>
-                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>Automated versioning and release notes generation</li>
+                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>User management with role-based permissions</li>
+                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>Practice board creation and management</li>
+                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>Practice assignment and access control</li>
+                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>System settings and configuration</li>
+                    <li className="flex items-start"><span className="text-indigo-600 mr-2 font-bold">•</span>Automated practice board initialization</li>
                   </ul>
                 </div>
 
@@ -251,16 +251,16 @@ export default function AboutPage() {
                 <div className="bg-gradient-to-br from-orange-50 to-red-100 p-6 rounded-xl border border-orange-200">
                   <div className="flex items-center mb-4">
                     <div className="bg-orange-600 p-3 rounded-lg mr-4">
-                      <span className="text-white text-2xl">🤖</span>
+                      <span className="text-white text-2xl">🔐</span>
                     </div>
-                    <h3 className="text-xl font-bold text-orange-900">Smart Automation</h3>
+                    <h3 className="text-xl font-bold text-orange-900">Access Control</h3>
                   </div>
                   <ul className="space-y-2 text-orange-800">
-                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Automated semantic versioning based on changes</li>
-                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Dynamic release notes generation</li>
-                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Auto-generated help documentation</li>
-                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Intelligent duplicate detection and merging</li>
-                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Automatic follow relationships for creators and commenters</li>
+                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Role-based permissions (Admin, Manager, Principal, Member)</li>
+                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Practice-specific access control</li>
+                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Granular editing and viewing permissions</li>
+                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Secure authentication and session management</li>
+                    <li className="flex items-start"><span className="text-orange-600 mr-2 font-bold">•</span>Protected Main Topic prevents accidental changes</li>
                   </ul>
                 </div>
 
@@ -310,17 +310,17 @@ export default function AboutPage() {
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Get in Touch</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
                 Have questions, feedback, or need support? We're here to help you make the most of your 
-                issue tracking experience.
+                practice information management experience.
               </p>
               <div className="bg-blue-50 p-6 rounded-lg">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="font-semibold text-blue-900 mb-2">Support</h4>
-                    <p className="text-blue-800 text-sm">Create an issue in the system for technical support</p>
+                    <p className="text-blue-800 text-sm">Contact your system administrator for technical support</p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-blue-900 mb-2">Feedback</h4>
-                    <p className="text-blue-800 text-sm">Use the feature request option to suggest improvements</p>
+                    <p className="text-blue-800 text-sm">Share suggestions with your practice manager or admin</p>
                   </div>
                 </div>
               </div>
@@ -329,12 +329,12 @@ export default function AboutPage() {
             {/* Version Info */}
             <section className="border-t pt-6">
               <div className="text-center text-sm text-gray-500">
-                <p>© 2025 Netsync Issues Tracker. All rights reserved.</p>
+                <p>© 2025 Practice Tools. All rights reserved.</p>
                 <p className="mt-1 flex items-center justify-center gap-2">
                   <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                     v{version}
                   </span>
-                  - Built with ❤️ for better issue management
+                  - Built with ❤️ for better practice collaboration
                 </p>
               </div>
             </section>

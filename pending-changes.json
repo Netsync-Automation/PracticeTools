@@ -10255,6 +10255,346 @@
         "check-prod-releases.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1757540701093,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:01.093Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540701197,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/admin/users/route.js"
+      },
+      "timestamp": "2025-09-10T21:45:01.197Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540701360,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:01.360Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540701532,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-10T21:45:01.532Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540701631,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-10T21:45:01.631Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540703924,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:03.924Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540703978,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/admin/users/route.js"
+      },
+      "timestamp": "2025-09-10T21:45:03.978Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540704124,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:04.124Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540704319,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-10T21:45:04.319Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540704386,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-10T21:45:04.386Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706109,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.109Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706164,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/admin/users/route.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.164Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706312,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.312Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706528,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.528Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706595,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.595Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -34926,6 +35266,459 @@
       "files": [
         "app/api/auth/saml/acs/route.js",
         "apprunner-prod.yaml",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540700994,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/about/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:00.994Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json"
+      ]
+    },
+    {
+      "id": 1757540701292,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/help/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:01.292Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540701445,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/release-notes/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:01.445Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540701723,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "lib/help-generator.js"
+      },
+      "timestamp": "2025-09-10T21:45:01.723Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540701776,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-09-10T21:45:01.776Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540701826,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-09-10T21:45:01.826Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540703828,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/about/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:03.828Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540704055,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/help/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:04.055Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540704195,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/release-notes/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:04.195Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540704264,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-10T21:45:04.264Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540704454,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "lib/help-generator.js"
+      },
+      "timestamp": "2025-09-10T21:45:04.454Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540704523,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-09-10T21:45:04.523Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540704590,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-09-10T21:45:04.590Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706057,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/about/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.057Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706232,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/help/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.232Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706407,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/release-notes/page.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.407Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706476,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.476Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706692,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "lib/help-generator.js"
+      },
+      "timestamp": "2025-09-10T21:45:06.692Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706742,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-09-10T21:45:06.742Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757540706809,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-09-10T21:45:06.809Z",
+      "files": [
+        "app/about/page.js",
+        "app/admin/settings/page.js",
+        "app/api/admin/users/route.js",
+        "app/help/page.js",
+        "app/practice-information/page.js",
+        "app/release-notes/page.js",
+        "commit-and-push.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/help-generator.js",
+        "package-lock.json",
+        "package.json",
         "pending-changes.json"
       ]
     }
