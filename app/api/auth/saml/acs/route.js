@@ -66,7 +66,7 @@ export async function POST(request) {
             return;
           }
           
-          console.log('SAML user found in database:', { email: dbUser.email, role: dbUser.role });
+          console.log('SAML user found in database:', { email: dbUser.email, role: dbUser.role, isAdmin: dbUser.isAdmin, is_admin: dbUser.is_admin });
           
           // Create user object with database role and permissions
           const user = {
@@ -80,6 +80,7 @@ export async function POST(request) {
           };
           
           console.log('SSO user session created with DB permissions:', { email: user.email, name: user.name, role: user.role, isAdmin: user.isAdmin });
+          console.log('Raw dbUser object:', JSON.stringify(dbUser, null, 2));
           
           const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
           // Always redirect to root page after successful SAML authentication
