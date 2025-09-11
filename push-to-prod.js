@@ -893,8 +893,8 @@ class ProdPushManager {
         console.log('   ⚠️  Could not update apprunner.yaml:', error.message);
       }
       
-      // Merge dev into main with unrelated histories flag
-      execSync('git merge origin/dev --allow-unrelated-histories', { stdio: 'inherit' });
+      // Merge local dev into main with unrelated histories flag
+      execSync('git merge dev --allow-unrelated-histories', { stdio: 'inherit' });
       
       // Push to main
       execSync('git push origin main', { stdio: 'inherit' });
