@@ -30,9 +30,8 @@ export async function GET(request) {
 
       return NextResponse.json(JSON.parse(boardData));
     } else {
-      // Get all practice boards
-      const boards = await db.getAllPracticeBoards();
-      return NextResponse.json({ boards });
+      // No practiceId provided - this should go to nested routes like /list
+      return NextResponse.json({ error: 'practiceId parameter required' }, { status: 400 });
     }
   } catch (error) {
     console.error('Error fetching practice board:', error);
