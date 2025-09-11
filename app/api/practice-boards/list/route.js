@@ -3,8 +3,10 @@ import { db } from '../../../../lib/dynamodb.js';
 
 export async function GET() {
   try {
+    console.log('📋 [LIST] Starting practice boards list API');
     // Get all practice board settings
     const allSettings = await db.getAllSettings();
+    console.log('📋 [LIST] Got settings, total keys:', Object.keys(allSettings).length);
     const practiceBoards = [];
     
     for (const [key, value] of Object.entries(allSettings)) {
@@ -37,6 +39,7 @@ export async function GET() {
       }
     }
     
+    console.log('📋 [LIST] Final practice boards:', practiceBoards);
     console.log('📋 [LIST] Returning boards:', practiceBoards.length, 'total');
     return NextResponse.json({ boards: practiceBoards });
   } catch (error) {
