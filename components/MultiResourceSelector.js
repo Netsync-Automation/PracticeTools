@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function MultiResourceSelector({ 
@@ -20,7 +20,9 @@ export default function MultiResourceSelector({
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
-  const selectedResources = Array.isArray(value) ? value : (value ? [value] : []);
+  const selectedResources = useMemo(() => {
+    return Array.isArray(value) ? value : (value ? [value] : []);
+  }, [value]);
 
   useEffect(() => {
     fetchUsers();
