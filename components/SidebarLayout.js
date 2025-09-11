@@ -21,17 +21,29 @@ const menuItems = [
   {
     id: 'practice-information',
     name: 'Practice Information',
-    href: '/practice-information',
     icon: InformationCircleIcon,
-    description: 'View practice details and information'
+    description: 'Practice information and tools',
+    submenu: [
+      {
+        id: 'practice-boards',
+        name: 'Practice Boards',
+        href: '/practice-information',
+        description: 'Manage practice boards and workflows'
+      }
+    ]
   },
   {
     id: 'practice-issues',
     name: 'Practice Issues',
-    href: '/practice-issues',
     icon: ClipboardDocumentListIcon,
     description: 'View and manage all practice issues',
     submenu: [
+      {
+        id: 'practice-issues-main',
+        name: 'Practice Issues',
+        href: '/practice-issues',
+        description: 'View and manage all practice issues'
+      },
       {
         id: 'practice-leadership',
         name: 'Leadership View',
@@ -56,13 +68,7 @@ const menuItems = [
       }
     ]
   },
-  {
-    id: 'analytics',
-    name: 'Analytics',
-    href: '/analytics',
-    icon: ChartBarIcon,
-    description: 'View practice analytics and reports'
-  },
+
   {
     id: 'admin-dashboard',
     name: 'Admin',
@@ -292,8 +298,10 @@ export default function SidebarLayout({ children, user }) {
                       if (isCollapsed && item.submenu && hasAccessToAnySubmenu(item)) {
                         setIsCollapsed(false);
                         setExpandedMenus(prev => ({ ...prev, [item.id]: true }));
-                      } else {
+                      } else if (item.href) {
                         router.push(item.href);
+                      } else if (item.submenu && hasAccessToAnySubmenu(item)) {
+                        toggleMenu(item.id);
                       }
                     }}
                     className={`

@@ -215,14 +215,9 @@ export default function NewIssuePage() {
 
   useEffect(() => {
     if (user) {
-      const userPractices = user.practices || [];
-      const sortedUserPractices = userPractices.sort();
-      const defaultPractice = sortedUserPractices.length > 0 ? sortedUserPractices[0] : '';
-      
       setFormData(prev => ({ 
         ...prev, 
-        email: user.email,
-        practice: defaultPractice
+        email: user.email
       }));
     }
     
@@ -232,8 +227,6 @@ export default function NewIssuePage() {
         const response = await fetch('/api/issue-types');
         const data = await response.json();
         setIssueTypes(data.issueTypes || []);
-        
-        // Keep issue type empty to force user selection
       } catch (error) {
         console.error('Error fetching issue types:', error);
       }
@@ -241,6 +234,21 @@ export default function NewIssuePage() {
     
     fetchIssueTypes();
   }, [user]);
+  
+  useEffect(() => {
+    // Auto-select Collaboration practice for Feature Request and Bug Report, otherwise clear practice
+    if (formData.issue_type === 'Feature Request' || formData.issue_type === 'Bug Report') {
+      setFormData(prev => ({ 
+        ...prev, 
+        practice: 'Collaboration'
+      }));
+    } else if (formData.issue_type) {
+      setFormData(prev => ({ 
+        ...prev, 
+        practice: ''
+      }));
+    }
+  }, [formData.issue_type]);
   
   // Fetch practice leadership when practice changes
   useEffect(() => {
@@ -491,13 +499,19 @@ export default function NewIssuePage() {
                   value={formData.practice}
                   onChange={(e) => setFormData({...formData, practice: e.target.value})}
                   required
-                  className="input-field"
+                  disabled={formData.issue_type === 'Feature Request' || formData.issue_type === 'Bug Report'}
+                  className={`input-field ${(formData.issue_type === 'Feature Request' || formData.issue_type === 'Bug Report') ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 >
                   <option value="">Select a practice</option>
                   {practicesList.map(practice => (
                     <option key={practice} value={practice}>{practice}</option>
                   ))}
                 </select>
+                {(formData.issue_type === 'Feature Request' || formData.issue_type === 'Bug Report') && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Practice automatically set to Collaboration for {formData.issue_type}
+                  </p>
+                )}
               </div>
             </div>
             

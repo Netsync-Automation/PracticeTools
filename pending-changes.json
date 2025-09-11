@@ -10832,6 +10832,101 @@
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1757622119144,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-11T20:21:59.144Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1757622119210,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issue-types/route.js"
+      },
+      "timestamp": "2025-09-11T20:21:59.210Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622120552,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-11T20:22:00.552Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622120636,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issue-types/route.js"
+      },
+      "timestamp": "2025-09-11T20:22:00.636Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622121571,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-11T20:22:01.571Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622121638,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issue-types/route.js"
+      },
+      "timestamp": "2025-09-11T20:22:01.638Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -37006,6 +37101,150 @@
       "files": [
         "pending-changes.json",
         "push-to-prod.js"
+      ]
+    },
+    {
+      "id": 1757622119336,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/new-issue/page.js"
+      },
+      "timestamp": "2025-09-11T20:21:59.336Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622119386,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-11T20:21:59.386Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622119476,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-11T20:21:59.476Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622120746,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/new-issue/page.js"
+      },
+      "timestamp": "2025-09-11T20:22:00.746Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622120828,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-11T20:22:00.828Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622120893,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-11T20:22:00.893Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622121689,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/new-issue/page.js"
+      },
+      "timestamp": "2025-09-11T20:22:01.689Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622121766,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-11T20:22:01.766Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757622121832,
+      "description": "Updated issue types from Bug Report/Feature Request/General Question to Leadership/General/Feature/Practice/Process/Technical/Event Questions",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-11T20:22:01.832Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/issue-types/route.js",
+        "app/new-issue/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
       ]
     }
   ]

@@ -104,6 +104,26 @@ export default function SettingsPage() {
   
   const practicesList = PRACTICE_OPTIONS.sort();
 
+  // Check if current user can edit another user
+  const canEditUser = (targetUser) => {
+    // Admins can edit anyone
+    if (user?.isAdmin) return true;
+    
+    // Practice managers and principals can only edit users in their practices or users with no practices
+    if (user?.role === 'practice_manager' || user?.role === 'practice_principal') {
+      const userPractices = user.practices || [];
+      const targetPractices = targetUser.practices || [];
+      
+      // Can edit users with no practices assigned
+      if (targetPractices.length === 0) return true;
+      
+      // Can edit users who share at least one practice
+      return targetPractices.some(practice => userPractices.includes(practice));
+    }
+    
+    return false;
+  };
+
   const loadWebexToken = async () => {
     try {
       const response = await fetch('/api/webex/rooms?action=getToken');
@@ -1750,16 +1770,28 @@ export default function SettingsPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex gap-2">
-                                <button
-                                  onClick={() => setEditingUser({...userItem})}
-                                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded"
-                                  title="Edit User"
-                                >
-                                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                  </svg>
-                                </button>
-                                {userItem.auth_method === 'local' && (
+                                {canEditUser(userItem) ? (
+                                  <button
+                                    onClick={() => setEditingUser({...userItem})}
+                                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded"
+                                    title="Edit User"
+                                  >
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  </button>
+                                ) : (
+                                  <button
+                                    disabled
+                                    className="text-gray-300 p-2 rounded cursor-not-allowed"
+                                    title="No permission to edit this user"
+                                  >
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  </button>
+                                )}
+                                {userItem.auth_method === 'local' && canEditUser(userItem) && (
                                   <button
                                     onClick={() => setResetPasswordUser(userItem)}
                                     className="text-orange-600 hover:text-orange-800 hover:bg-orange-50 p-2 rounded"
@@ -1770,7 +1802,7 @@ export default function SettingsPage() {
                                     </svg>
                                   </button>
                                 )}
-                                {userItem.email !== 'admin@localhost' && userItem.created_from !== 'system_default' && (
+                                {userItem.email !== 'admin@localhost' && userItem.created_from !== 'system_default' && canEditUser(userItem) && (
                                   <button
                                     onClick={() => setShowDeleteModal(userItem)}
                                     className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded"
