@@ -2,13 +2,10 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb.js';
 
 export async function GET(request) {
-  console.log('📋 [PARENT] PRACTICE BOARDS PARENT ROUTE CALLED');
-  console.log('📋 [PARENT] Request URL:', request.url);
   try {
     const { searchParams } = new URL(request.url);
     const practiceId = searchParams.get('practiceId');
     const topic = searchParams.get('topic') || 'Main Topic';
-    console.log('📋 [PARENT] practiceId:', practiceId, 'topic:', topic);
     
     if (practiceId) {
       // Get specific practice board for topic
@@ -30,8 +27,9 @@ export async function GET(request) {
 
       return NextResponse.json(JSON.parse(boardData));
     } else {
-      // No practiceId provided - this should go to nested routes like /list
-      return NextResponse.json({ error: 'practiceId parameter required' }, { status: 400 });
+      // Get all practice boards
+      const boards = await db.getAllPracticeBoards();
+      return NextResponse.json({ boards });
     }
   } catch (error) {
     console.error('Error fetching practice board:', error);

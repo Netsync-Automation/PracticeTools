@@ -4,6 +4,9 @@ import { db } from '../../../../lib/dynamodb.js';
 console.log('📋 [LIST] MODULE LOADED - PRACTICE BOARDS LIST ROUTE');
 
 export async function GET() {
+  // Use process.stdout.write for guaranteed log visibility in production
+  process.stdout.write('\n🚨 [CRITICAL] PRACTICE BOARDS LIST API CALLED - PRODUCTION TEST\n');
+  console.error('🚨 [CRITICAL] PRACTICE BOARDS LIST API CALLED - PRODUCTION TEST');
   console.log('📋 [LIST] ===== GET FUNCTION CALLED =====');
   console.log('📋 [LIST] ===== GET FUNCTION CALLED =====');
   console.log('📋 [LIST] ===== GET FUNCTION CALLED =====');
