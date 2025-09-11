@@ -847,6 +847,16 @@ class ProdPushManager {
   
   static async mergeToMain() {
     try {
+      // Read production config BEFORE switching branches
+      console.log('   Reading production configuration...');
+      let prodConfig;
+      try {
+        prodConfig = readFileSync('apprunner-prod.yaml', 'utf8');
+        console.log('   ✅ Production configuration loaded');
+      } catch (error) {
+        throw new Error(`Could not read apprunner-prod.yaml: ${error.message}`);
+      }
+      
       // Fetch latest changes
       execSync('git fetch origin', { stdio: 'inherit' });
       
@@ -864,38 +874,22 @@ class ProdPushManager {
       // Pull latest main with unrelated histories flag
       execSync('git pull origin main --allow-unrelated-histories', { stdio: 'inherit' });
       
+      // Update apprunner.yaml with production configuration BEFORE merge
+      console.log('   Updating apprunner.yaml with production configuration...');
+      try {
+        writeFileSync('apprunner.yaml', prodConfig);
+        execSync('git add apprunner.yaml', { stdio: 'pipe' });
+        execSync('git commit -m "Update apprunner.yaml for production deployment"', { stdio: 'pipe' });
+        console.log('   ✅ Production apprunner.yaml configuration applied');
+      } catch (error) {
+        console.log('   ⚠️  Could not update apprunner.yaml:', error.message);
+      }
+      
       // Merge dev into main with unrelated histories flag
       execSync('git merge origin/dev --allow-unrelated-histories', { stdio: 'inherit' });
       
       // Push to main
       execSync('git push origin main', { stdio: 'inherit' });
-      
-      // Update apprunner.yaml with production configuration
-      console.log('   Updating apprunner.yaml with production configuration...');
-      try {
-        const prodConfig = readFileSync('apprunner-prod.yaml', 'utf8');
-        writeFileSync('apprunner.yaml', prodConfig);
-        
-        // Check if there are actually changes to commit
-        try {
-          const gitStatus = execSync('git status --porcelain apprunner.yaml', { encoding: 'utf8', stdio: 'pipe' });
-          if (gitStatus.trim()) {
-            // There are changes, commit them
-            execSync('git add apprunner.yaml', { stdio: 'pipe' });
-            execSync('git commit -m "Update apprunner.yaml for production deployment"', { stdio: 'pipe' });
-            execSync('git push origin main', { stdio: 'inherit' });
-            console.log('   ✅ Production apprunner.yaml configuration applied and committed');
-          } else {
-            console.log('   ✅ Production apprunner.yaml configuration already up to date');
-          }
-        } catch (commitError) {
-          console.log('   ⚠️  Could not commit apprunner.yaml changes:', commitError.message);
-          console.log('   ✅ Production apprunner.yaml configuration applied (commit skipped)');
-        }
-        
-      } catch (error) {
-        console.log('   ⚠️  Could not update apprunner.yaml:', error.message);
-      }
       
       // Switch back to dev and restore stashed changes
       execSync('git checkout dev', { stdio: 'inherit' });
