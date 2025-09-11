@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/dynamodb.js';
 
+console.log('📋 [LIST] MODULE LOADED - PRACTICE BOARDS LIST ROUTE');
+
 export async function GET() {
+  console.log('📋 [LIST] ===== GET FUNCTION CALLED =====');
+  console.log('📋 [LIST] ===== GET FUNCTION CALLED =====');
+  console.log('📋 [LIST] ===== GET FUNCTION CALLED =====');
   console.log('📋 [LIST] ===== PRACTICE BOARDS LIST API CALLED =====');
   console.log('📋 [LIST] Environment variables:', {
     NODE_ENV: process.env.NODE_ENV,
@@ -81,7 +86,9 @@ export async function GET() {
     console.log('📋 [LIST] Returning boards count:', practiceBoards.length);
     console.log('📋 [LIST] Response object:', { boards: practiceBoards });
     
-    return NextResponse.json({ boards: practiceBoards });
+    const response = { boards: practiceBoards, debug: { totalSettings: Object.keys(allSettings).length, practiceKeys: Object.keys(allSettings).filter(k => k.startsWith('practice_board_')) } };
+    console.log('📋 [LIST] FINAL RESPONSE:', response);
+    return NextResponse.json(response);
   } catch (error) {
     console.error('📋 [LIST] ERROR listing practice boards:', error);
     console.error('📋 [LIST] Error stack:', error.stack);
