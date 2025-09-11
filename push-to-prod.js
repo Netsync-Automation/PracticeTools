@@ -879,9 +879,16 @@ class ProdPushManager {
       try {
         writeFileSync('apprunner.yaml', prodConfig);
         execSync('git add apprunner.yaml', { stdio: 'pipe' });
-        execSync('git commit -m "Update apprunner.yaml for production deployment"', { stdio: 'pipe' });
-        execSync('git push origin main', { stdio: 'pipe' });
-        console.log('   ✅ Production apprunner.yaml configuration applied and pushed');
+        
+        // Check if there are changes to commit
+        const status = execSync('git status --porcelain apprunner.yaml', { encoding: 'utf8', stdio: 'pipe' });
+        if (status.trim()) {
+          execSync('git commit -m "Update apprunner.yaml for production deployment"', { stdio: 'pipe' });
+          execSync('git push origin main', { stdio: 'pipe' });
+          console.log('   ✅ Production apprunner.yaml configuration applied and pushed');
+        } else {
+          console.log('   ✅ Production apprunner.yaml configuration already up to date');
+        }
       } catch (error) {
         console.log('   ⚠️  Could not update apprunner.yaml:', error.message);
       }
