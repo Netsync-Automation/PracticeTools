@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb.js';
 
 export async function GET(request) {
+  console.log('📋 [PARENT] PRACTICE BOARDS PARENT ROUTE CALLED');
+  console.log('📋 [PARENT] Request URL:', request.url);
   try {
     const { searchParams } = new URL(request.url);
     const practiceId = searchParams.get('practiceId');
     const topic = searchParams.get('topic') || 'Main Topic';
+    console.log('📋 [PARENT] practiceId:', practiceId, 'topic:', topic);
     
     if (practiceId) {
       // Get specific practice board for topic
