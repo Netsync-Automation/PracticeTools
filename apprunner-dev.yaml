@@ -71,4 +71,22 @@ run:
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_DATA_CENTER_ROOM_ID_1
     - name: WEBEX_DATA_CENTER_ROOM_NAME
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_DATA_CENTER_ROOM_NAME
+    - name: WEBEX_ENTERPRISE_NETWORKING_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_ENTERPRISE_NETWORKING_ACCESS_TOKEN
+    - name: WEBEX_ENTERPRISE_NETWORKING_ID_1
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_ENTERPRISE_NETWORKING_ROOM_ID_1
+    - name: WEBEX_ENTERPRISE_NETWORKING_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_ENTERPRISE_NETWORKING_ROOM_NAME
+    - name: WEBEX_CYBER_SECURITY_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_CYBER_SECURITY_ACCESS_TOKEN
+    - name: WEBEX_CYBER_SECURITY_ID_1
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_CYBER_SECURITY_ROOM_ID_1
+    - name: WEBEX_CYBER_SECURITY_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_CYBER_SECURITY_ROOM_NAME
+    - name: WEBEX_PROJECT_MANAGEMENT_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_PROJECT_MANAGEMENT_ACCESS_TOKEN
+    - name: WEBEX_PROJECT_MANAGEMENT_ID_1
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_PROJECT_MANAGEMENT_ROOM_ID_1
+    - name: WEBEX_PROJECT_MANAGEMENT_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_PROJECT_MANAGEMENT_ROOM_NAME
       
