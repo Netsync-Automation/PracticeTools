@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb.js';
 
 export async function GET(request) {
+  console.log('🚨 [PARENT] GET REQUEST RECEIVED:', request.url);
   try {
     const { searchParams } = new URL(request.url);
     const practiceId = searchParams.get('practiceId');
     const topic = searchParams.get('topic') || 'Main Topic';
+    console.log('🚨 [PARENT] Params - practiceId:', practiceId, 'topic:', topic);
     
     if (practiceId) {
       // Get specific practice board for topic
@@ -27,9 +29,18 @@ export async function GET(request) {
 
       return NextResponse.json(JSON.parse(boardData));
     } else {
+      console.log('🚨 [PARENT] NO PRACTICE ID - CALLING getAllPracticeBoards');
+      console.log('🚨 [PARENT] db object:', typeof db, Object.keys(db));
+      console.log('🚨 [PARENT] getAllPracticeBoards exists?', typeof db.getAllPracticeBoards);
       // Get all practice boards
-      const boards = await db.getAllPracticeBoards();
-      return NextResponse.json({ boards });
+      try {
+        const boards = await db.getAllPracticeBoards();
+        console.log('🚨 [PARENT] getAllPracticeBoards returned:', boards);
+        return NextResponse.json({ boards });
+      } catch (error) {
+        console.error('🚨 [PARENT] getAllPracticeBoards ERROR:', error);
+        return NextResponse.json({ boards: [], error: error.message });
+      }
     }
   } catch (error) {
     console.error('Error fetching practice board:', error);
