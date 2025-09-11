@@ -42,6 +42,11 @@ export default function EmailRulesManager() {
         console.log('Save response:', result);
         await fetchRules();
         
+        // Debug: Log the rules after fetch to see what comes back
+        setTimeout(() => {
+          console.log('Rules after fetch:', rules);
+        }, 100);
+        
         // Show success notification
         const notification = document.createElement('div');
         notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
@@ -160,7 +165,7 @@ export default function EmailRulesManager() {
                       type="radio"
                       id={`anyone-${index}`}
                       name={`sender-${index}`}
-                      checked={!rule.senderEmail || rule.senderEmail === 'anyone'}
+                      checked={!rule.senderEmail || rule.senderEmail === '' || rule.senderEmail === 'anyone'}
                       onChange={() => updateRule(index, { senderEmail: 'anyone' })}
                       className="mr-2"
                     />
