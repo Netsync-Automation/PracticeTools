@@ -259,9 +259,13 @@ export default function PracticeInformationPage() {
 
   const loadAvailableBoards = async () => {
     try {
+      console.log('🔍 [FRONTEND] Starting loadAvailableBoards');
       const response = await fetch('/api/practice-boards/list');
+      console.log('🔍 [FRONTEND] API response status:', response.status, response.statusText);
       const data = await response.json();
+      console.log('🔍 [FRONTEND] API response data:', data);
       const boards = data.boards || [];
+      console.log('🔍 [FRONTEND] Parsed boards:', boards);
       
       setAvailableBoards(boards);
       
@@ -296,7 +300,7 @@ export default function PracticeInformationPage() {
         }
       }
     } catch (error) {
-      console.error('Error loading available boards:', error);
+      console.error('🔍 [FRONTEND] Error loading available boards:', error);
     }
   };
 
