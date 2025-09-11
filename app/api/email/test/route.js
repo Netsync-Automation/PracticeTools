@@ -4,12 +4,16 @@ import { getSSMParameter } from '../../../../lib/ssm.js';
 
 export async function POST(request) {
   try {
+    console.log('🔧 [EMAIL-TEST] Starting email test...');
     const { testEmail, appName } = await request.json();
+    console.log('📧 [EMAIL-TEST] Request data:', { testEmail, appName });
     
     if (!testEmail) {
+      console.log('❌ [EMAIL-TEST] No test email provided');
       return NextResponse.json({ error: 'Test email address is required' }, { status: 400 });
     }
     
+    console.log('🔍 [EMAIL-TEST] Fetching SMTP parameters from SSM...');
     const [smtpHost, smtpUser, smtpPassword, smtpPort] = await Promise.all([
       getSSMParameter('SMTP_HOST'),
       getSSMParameter('SMTP_USERNAME'),
@@ -19,53 +23,62 @@ export async function POST(request) {
     
     const port = smtpPort || '587';
     
+    console.log('⚙️ [EMAIL-TEST] SMTP Configuration:', {
+      host: smtpHost,
+      port: port,
+      username: smtpUser,
+      passwordLength: smtpPassword ? smtpPassword.length : 0,
+      hasPassword: !!smtpPassword
+    });
+    
     if (!smtpHost || !smtpUser || !smtpPassword) {
+      console.log('❌ [EMAIL-TEST] Missing SMTP configuration');
       return NextResponse.json({ error: 'SMTP configuration not found. Please configure SMTP settings first.' }, { status: 400 });
     }
     
-    // Try multiple port configurations for Exchange/OWA servers
-    const portConfigs = [
-      { port: parseInt(port), secure: parseInt(port) === 465, requireTLS: parseInt(port) === 587 },
-      { port: 587, secure: false, requireTLS: true },
-      { port: 25, secure: false, requireTLS: false },
-      { port: 465, secure: true, requireTLS: false },
-      { port: 2525, secure: false, requireTLS: true }
-    ];
+    console.log('🔌 [EMAIL-TEST] Creating SMTP transporter...');
+    const transporterConfig = {
+      host: smtpHost,
+      port: parseInt(port),
+      secure: parseInt(port) === 465,
+      requireTLS: parseInt(port) === 587,
+      auth: {
+        user: smtpUser,
+        pass: smtpPassword
+      },
+      tls: {
+        rejectUnauthorized: false,
+        servername: smtpHost,
+        secureProtocol: 'TLSv1_2_method'
+      },
+      connectionTimeout: 30000,
+      greetingTimeout: 20000,
+      socketTimeout: 30000,
+
+    };
     
-    let transporter = null;
-    let lastError = null;
+    console.log('📋 [EMAIL-TEST] Transporter config:', {
+      ...transporterConfig,
+      auth: { user: transporterConfig.auth.user, pass: '[REDACTED]' }
+    });
     
-    for (const config of portConfigs) {
-      try {
-        transporter = nodemailer.createTransport({
-          host: smtpHost,
-          port: config.port,
-          secure: config.secure,
-          requireTLS: config.requireTLS,
-          auth: {
-            user: smtpUser,
-            pass: smtpPassword
-          },
-          tls: {
-            rejectUnauthorized: false,
-            ciphers: 'SSLv3'
-          },
-          connectionTimeout: 15000,
-          greetingTimeout: 10000,
-          socketTimeout: 15000
-        });
-        
-        await transporter.verify();
-        break;
-        
-      } catch (error) {
-        lastError = error;
-        transporter = null;
-      }
-    }
+    const transporter = nodemailer.createTransport(transporterConfig);
     
-    if (!transporter) {
-      throw new Error(`All SMTP ports failed. Last error: ${lastError?.message}`);
+    console.log('🔍 [EMAIL-TEST] Verifying SMTP connection...');
+    try {
+      const verifyResult = await transporter.verify();
+      console.log('✅ [EMAIL-TEST] SMTP verification successful:', verifyResult);
+    } catch (verifyError) {
+      console.error('❌ [EMAIL-TEST] SMTP verification failed:', {
+        message: verifyError.message,
+        code: verifyError.code,
+        errno: verifyError.errno,
+        syscall: verifyError.syscall,
+        address: verifyError.address,
+        port: verifyError.port,
+        stack: verifyError.stack
+      });
+      throw verifyError;
     }
     
     // Test email content
@@ -87,15 +100,60 @@ export async function POST(request) {
       `
     };
     
-    // Send email
-    await transporter.sendMail(mailOptions);
+    console.log('📤 [EMAIL-TEST] Sending test email...');
+    console.log('📧 [EMAIL-TEST] Mail options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject
+    });
     
-    return NextResponse.json({ success: true });
+    try {
+      const sendResult = await transporter.sendMail(mailOptions);
+      console.log('✅ [EMAIL-TEST] Email sent successfully:', {
+        messageId: sendResult.messageId,
+        response: sendResult.response,
+        accepted: sendResult.accepted,
+        rejected: sendResult.rejected
+      });
+      
+      return NextResponse.json({ 
+        success: true,
+        messageId: sendResult.messageId,
+        response: sendResult.response
+      });
+    } catch (sendError) {
+      console.error('❌ [EMAIL-TEST] Email send failed:', {
+        message: sendError.message,
+        code: sendError.code,
+        response: sendError.response,
+        stack: sendError.stack
+      });
+      throw sendError;
+    }
     
   } catch (error) {
-    console.error('Test email error:', error);
+    console.error('💥 [EMAIL-TEST] Fatal error:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      syscall: error.syscall,
+      address: error.address,
+      port: error.port,
+      command: error.command,
+      response: error.response,
+      responseCode: error.responseCode,
+      stack: error.stack
+    });
+    
     return NextResponse.json({ 
-      error: error.message || 'Failed to send test email' 
+      error: error.message || 'Failed to send test email',
+      details: {
+        code: error.code,
+        errno: error.errno,
+        syscall: error.syscall,
+        address: error.address,
+        port: error.port
+      }
     }, { status: 500 });
   }
 }
