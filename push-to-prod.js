@@ -874,27 +874,19 @@ class ProdPushManager {
       // Pull latest main with unrelated histories flag
       execSync('git pull origin main --allow-unrelated-histories', { stdio: 'inherit' });
       
-      // Update apprunner.yaml with production configuration BEFORE merge
+      // Merge local dev into main with unrelated histories flag
+      execSync('git merge dev --allow-unrelated-histories', { stdio: 'inherit' });
+      
+      // Update apprunner.yaml with production configuration AFTER merge
       console.log('   Updating apprunner.yaml with production configuration...');
       try {
         writeFileSync('apprunner.yaml', prodConfig);
         execSync('git add apprunner.yaml', { stdio: 'pipe' });
-        
-        // Always commit the production config (force overwrite)
-        try {
-          execSync('git commit -m "Update apprunner.yaml for production deployment"', { stdio: 'pipe' });
-          execSync('git push origin main', { stdio: 'pipe' });
-          console.log('   ✅ Production apprunner.yaml configuration applied and pushed');
-        } catch (commitError) {
-          // If commit fails (no changes), that's fine - config is already correct
-          console.log('   ✅ Production apprunner.yaml configuration already up to date');
-        }
+        execSync('git commit -m "Update apprunner.yaml for production deployment"', { stdio: 'pipe' });
+        console.log('   ✅ Production apprunner.yaml configuration applied');
       } catch (error) {
         console.log('   ⚠️  Could not update apprunner.yaml:', error.message);
       }
-      
-      // Merge local dev into main with unrelated histories flag
-      execSync('git merge dev --allow-unrelated-histories', { stdio: 'inherit' });
       
       // Push to main
       execSync('git push origin main', { stdio: 'inherit' });
