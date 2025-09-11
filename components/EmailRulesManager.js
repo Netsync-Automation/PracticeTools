@@ -178,7 +178,7 @@ export default function EmailRulesManager() {
                       type="radio"
                       id={`specific-${index}`}
                       name={`sender-${index}`}
-                      checked={rule.senderEmail !== 'anyone' && rule.senderEmail !== undefined && rule.senderEmail !== null}
+                      checked={rule.senderEmail && rule.senderEmail !== '' && rule.senderEmail !== 'anyone'}
                       onChange={() => updateRule(index, { senderEmail: 'savant@netsync.com' })}
                       className="mr-2"
                     />
