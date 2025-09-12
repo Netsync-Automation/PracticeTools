@@ -1,5 +1,6 @@
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 # Set default behavior to automatically normalize line endings
 * text=auto
 
@@ -12,6 +13,9 @@
 
 # Ensure Windows files use CRLF
 *.bat text eol=crlf
+=======
+apprunner.yaml merge=keepmine
+>>>>>>> Stashed changes
 =======
 apprunner.yaml merge=keepmine
 >>>>>>> Stashed changes

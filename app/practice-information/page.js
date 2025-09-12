@@ -218,8 +218,8 @@ export default function PracticeInformationPage() {
   ];
 
   const canEdit = user && (user.isAdmin || 
-    (user.role === 'practice_manager' || user.role === 'practice_principal') && 
-    currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice)));
+    ((user.role === 'practice_manager' || user.role === 'practice_principal') && 
+    currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))));
   
   const canComment = user && (user.isAdmin || 
     (currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))));
@@ -260,6 +260,16 @@ export default function PracticeInformationPage() {
   const loadAvailableBoards = async () => {
     try {
       console.log('🔍 [FRONTEND] Starting loadAvailableBoards');
+      console.log('🔍 [FRONTEND] Current user:', {
+        email: user?.email,
+        name: user?.name,
+        role: user?.role,
+        practices: user?.practices,
+        isAdmin: user?.isAdmin,
+        auth_method: user?.auth_method,
+        created_from: user?.created_from
+      });
+      
       const response = await fetch('/api/practice-boards/list');
       console.log('🔍 [FRONTEND] API response status:', response.status, response.statusText);
       const data = await response.json();
@@ -270,30 +280,44 @@ export default function PracticeInformationPage() {
       setAvailableBoards(boards);
       
       if (boards.length === 0) {
+        console.log('🔍 [FRONTEND] No boards available, setting loading to false');
         setIsLoading(false);
       } else if (boards.length > 0 && !currentPracticeId) {
+        console.log('🔍 [FRONTEND] Finding default board for user');
         let defaultBoard;
         
         if (user?.practices && user.practices.length > 0) {
-          defaultBoard = boards.find(board => 
-            board.practices?.some(practice => user.practices.includes(practice))
-          );
+          console.log('🔍 [FRONTEND] User has practices, looking for matching board:', user.practices);
+          defaultBoard = boards.find(board => {
+            const hasMatch = board.practices?.some(practice => user.practices.includes(practice));
+            console.log('🔍 [FRONTEND] Checking board:', board.practiceId, 'practices:', board.practices, 'hasMatch:', hasMatch);
+            return hasMatch;
+          });
+          console.log('🔍 [FRONTEND] Found matching board:', defaultBoard);
         }
         
         if (!defaultBoard) {
+          console.log('🔍 [FRONTEND] No matching board found, using first board alphabetically');
           const sortedBoards = boards.sort((a, b) => 
             (a.practices?.[0] || '').localeCompare(b.practices?.[0] || '')
           );
           defaultBoard = sortedBoards[0];
+          console.log('🔍 [FRONTEND] Selected first board:', defaultBoard);
         }
         
         if (defaultBoard) {
+          console.log('🔍 [FRONTEND] Setting default board:', {
+            practiceId: defaultBoard.practiceId,
+            practices: defaultBoard.practices,
+            boardName: defaultBoard.practices?.join(', ') || ''
+          });
           setCurrentPracticeId(defaultBoard.practiceId);
           setCurrentBoardName(defaultBoard.practices?.join(', ') || '');
           setCurrentBoardPractices(defaultBoard.practices || []);
           
           // Load saved topic preference for the default board
           const savedTopic = getTopicPreference(defaultBoard.practiceId);
+          console.log('🔍 [FRONTEND] Saved topic preference:', savedTopic);
           if (savedTopic) {
             setCurrentTopic(savedTopic);
           }
@@ -964,15 +988,90 @@ export default function PracticeInformationPage() {
                   <h1 className="text-3xl font-bold text-gray-900">Practice Information Board</h1>
                   <p className="text-gray-600 mt-2">Organize and track practice information using cards and columns</p>
                 </div>
-                {canEdit && availableBoards.length > 0 && (
+                <div className="flex items-center gap-2">
+                  {canEdit && availableBoards.length > 0 && (
+                    <button
+                      onClick={() => setShowBoardSettings(true)}
+                      className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      title="Board Settings"
+                    >
+                      <CogIcon className="h-6 w-6" />
+                    </button>
+                  )}
                   <button
-                    onClick={() => setShowBoardSettings(true)}
-                    className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                    title="Board Settings"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/debug/user-analysis');
+                        const analysis = await response.json();
+                        console.log('🔍 [DEBUG] User Analysis:', analysis);
+                        
+                        // Calculate current board permissions (matching actual UI logic)
+                        const currentBoardPermissions = {
+                          canEdit: user && (user.isAdmin || 
+                            ((user.role === 'practice_manager' || user.role === 'practice_principal') && 
+                            currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice)))),
+                          canAddTopics: user && (user.isAdmin || 
+                            ((user.role === 'practice_manager' || user.role === 'practice_principal') && 
+                            currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice)))),
+                          canComment: user && (user.isAdmin || 
+                            (currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))))
+                        };
+                        
+                        let message = `DEBUG ANALYSIS\n\n`;
+                        message += `User: ${analysis.user.name} (${analysis.user.email})\n`;
+                        message += `Role: ${analysis.user.role}\n`;
+                        message += `Practices: ${analysis.user.practices.join(', ')}\n`;
+                        message += `Auth Method: ${analysis.user.auth_method}\n\n`;
+                        
+                        message += `CURRENT BOARD CONTEXT:\n`;
+                        message += `- Current Board ID: ${currentPracticeId}\n`;
+                        message += `- Current Board Name: ${currentBoardName}\n`;
+                        message += `- Current Board Practices: [${currentBoardPractices.join(', ')}]\n`;
+                        message += `- Current Topic: ${currentTopic}\n\n`;
+                        
+                        message += `CURRENT BOARD PERMISSIONS (UI Logic):\n`;
+                        message += `- Can Edit Board: ${currentBoardPermissions.canEdit}\n`;
+                        message += `- Can Add Topics: ${currentBoardPermissions.canAddTopics} (matches add topic button visibility)\n`;
+                        message += `- Can Comment: ${currentBoardPermissions.canComment}\n\n`;
+                        
+                        message += `BOARD MATCHING:\n`;
+                        message += `- Available Boards: ${analysis.practiceBoards.total}\n`;
+                        message += `- Matching Boards: ${analysis.practiceBoards.matching.length}\n`;
+                        message += `- Expected Board ID: ${analysis.practiceBoards.expectedBoardId}\n`;
+                        message += `- Has Expected Board: ${analysis.practiceBoards.hasExpectedBoard}\n`;
+                        message += `- Is Current Board Expected: ${currentPracticeId === analysis.practiceBoards.expectedBoardId}\n\n`;
+                        
+                        message += `USER PRACTICE OVERLAP:\n`;
+                        const userPractices = analysis.user.practices || [];
+                        const hasOverlap = currentBoardPractices.some(practice => userPractices.includes(practice));
+                        message += `- User Practices: [${userPractices.join(', ')}]\n`;
+                        message += `- Board Practices: [${currentBoardPractices.join(', ')}]\n`;
+                        message += `- Has Practice Overlap: ${hasOverlap}\n\n`;
+                        
+                        message += `Board ID Generation:\n`;
+                        message += `- Input: [${analysis.debugging.boardIdGeneration.input.join(', ')}]\n`;
+                        message += `- Result: "${analysis.debugging.boardIdGeneration.cleaned}"\n\n`;
+                        
+                        message += `All Available Boards:\n`;
+                        analysis.practiceBoards.all.forEach(board => {
+                          const isCurrent = board.id === currentPracticeId;
+                          message += `${isCurrent ? '→ ' : '  '}${board.id}: [${board.practices.join(', ')}]${isCurrent ? ' (CURRENT)' : ''}\n`;
+                        });
+                        
+                        alert(message);
+                      } catch (error) {
+                        console.error('Debug analysis failed:', error);
+                        alert('Debug analysis failed. Check console for details.');
+                      }
+                    }}
+                    className="text-gray-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                    title="Debug User Analysis"
                   >
-                    <CogIcon className="h-6 w-6" />
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </button>
-                )}
+                </div>
               </div>
               {availableBoards.length > 0 && (
                 <div className="flex items-center gap-6">
