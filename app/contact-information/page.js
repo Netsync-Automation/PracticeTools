@@ -125,6 +125,23 @@ export default function ContactInformationPage() {
     return false;
   };
 
+  const canAddCompaniesContacts = () => {
+    if (!user || !selectedGroup) return false;
+    
+    // Admins can add for all practice groups
+    if (user.isAdmin) return true;
+    
+    // Practice members, managers, and principals can add for their assigned practices
+    if ((user.role === 'practice_member' || user.role === 'practice_manager' || user.role === 'practice_principal') && user.practices) {
+      const selectedGroupData = practiceGroups.find(group => group.id === selectedGroup);
+      if (selectedGroupData) {
+        return selectedGroupData.practices.some(practice => user.practices.includes(practice));
+      }
+    }
+    
+    return false;
+  };
+
   const handleAddType = async () => {
     if (!newTypeName.trim()) return;
     
@@ -250,6 +267,7 @@ export default function ContactInformationPage() {
                   contactType={selectedType}
                   user={user}
                   refreshTrigger={refreshTrigger}
+                  canAddCompaniesContacts={canAddCompaniesContacts()}
                 />
               ) : (
                 <div className="text-center py-12">
