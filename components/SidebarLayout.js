@@ -29,6 +29,12 @@ const menuItems = [
         name: 'Practice Boards',
         href: '/practice-information',
         description: 'Manage practice boards and workflows'
+      },
+      {
+        id: 'contact-information',
+        name: 'Contact Information',
+        href: '/contact-information',
+        description: 'View practice contact information'
       }
     ]
   },
