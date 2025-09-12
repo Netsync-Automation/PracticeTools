@@ -1,5 +1,6 @@
 # Development configuration for AWS App Runner
 # Test comment for production push validation
+# Testing deployment pipeline with gitattributes fix
 version: 1
 runtime: nodejs22
 build:
