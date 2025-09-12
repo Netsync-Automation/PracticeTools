@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function ContactManagementSystem({ practiceGroupId, contactType, user, refreshTrigger }) {
+export default function ContactManagementSystem({ practiceGroupId, contactType, user, refreshTrigger, canAddCompaniesContacts }) {
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -347,12 +347,14 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
             </select>
           </div>
           
-          <button
-            onClick={() => setShowAddCompany(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Add Company
-          </button>
+          {canAddCompaniesContacts && (
+            <button
+              onClick={() => setShowAddCompany(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Add Company
+            </button>
+          )}
         </div>
       </div>
 
@@ -427,7 +429,7 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
             <h3 className="text-lg font-semibold text-gray-900">
               {selectedCompany ? `${selectedCompany.name} Contacts` : 'Select a Company'}
             </h3>
-            {selectedCompany && (
+            {selectedCompany && canAddCompaniesContacts && (
               <button
                 onClick={() => setShowAddContact(true)}
                 className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
