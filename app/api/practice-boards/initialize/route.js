@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../../lib/auth-check.js';
+import { validateCSRFToken } from '../../../../lib/csrf.js';
 
 export async function POST(request) {
   try {
@@ -9,6 +10,12 @@ export async function POST(request) {
     
     if (!validation.valid || !validation.user.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // CSRF Protection
+    const csrfToken = request.headers.get('x-csrf-token');
+    if (!validateCSRFToken(csrfToken, process.env.CSRF_SECRET)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
 
     // Get all users with practice_manager role

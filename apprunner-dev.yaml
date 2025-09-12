@@ -26,6 +26,8 @@ run:
       value: development
     - name: ENVIRONMENT
       value: dev
+    - name: NEXT_TELEMETRY_DISABLED
+      value: 1
   secrets:
 
     - name: NEXTAUTH_URL

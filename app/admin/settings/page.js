@@ -69,6 +69,18 @@ export default function SettingsPage() {
   const [savingSso, setSavingSso] = useState(false);
   const [creatingBoards, setCreatingBoards] = useState(false);
   
+  // CSRF token management
+  const getCSRFToken = async () => {
+    try {
+      const response = await fetch('/api/csrf-token');
+      const data = await response.json();
+      return data.token;
+    } catch (error) {
+      console.error('Failed to get CSRF token:', error);
+      return null;
+    }
+  };
+  
   // User management state
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
@@ -1256,7 +1268,7 @@ export default function SettingsPage() {
                 
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-3">Practice Board Creation</h3>
+                    <h4 className="text-lg font-medium text-gray-900 mb-3">Practice Board Creation</h4>
                     <p className="text-sm text-gray-600 mb-4">
                       Use this button to create any missing practice boards for existing Practice Managers. 
                       This will scan all users with the Practice Manager role and create boards for their assigned practices.
@@ -1267,9 +1279,18 @@ export default function SettingsPage() {
                         onClick={async () => {
                           setCreatingBoards(true);
                           try {
+                            const csrfToken = await getCSRFToken();
+                            if (!csrfToken) {
+                              alert('Security token unavailable');
+                              return;
+                            }
+                            
                             const response = await fetch('/api/practice-boards/initialize', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' }
+                              headers: { 
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                              }
                             });
                             
                             const data = await response.json();
@@ -1319,9 +1340,18 @@ export default function SettingsPage() {
                           
                           setCreatingBoards(true);
                           try {
+                            const csrfToken = await getCSRFToken();
+                            if (!csrfToken) {
+                              alert('Security token unavailable');
+                              return;
+                            }
+                            
                             const response = await fetch('/api/practice-boards/delete-all', {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' }
+                              headers: { 
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                              }
                             });
                             
                             const data = await response.json();
@@ -1362,6 +1392,131 @@ export default function SettingsPage() {
                       <li>• Boards are created automatically when assigning Practice Manager roles</li>
                       <li>• Use the button above to create boards for existing Practice Managers</li>
                     </ul>
+                  </div>
+                </div>
+                
+                {/* Contact Information Section */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <div>
+                        <h4 className="text-sm font-medium text-blue-800">Practice Group Management</h4>
+                        <p className="text-sm text-blue-700 mt-1">
+                          Practice groups are automatically created based on Practice Manager role assignments. 
+                          Use these controls to manually create missing groups or clean up existing ones.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-3">Practice Group Creation</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Use this button to create any missing practice groups for existing Practice Managers. 
+                        This will scan all users with the Practice Manager role and create groups for their assigned practices.
+                      </p>
+                      
+                      <div className="flex gap-4">
+                        <button
+                          onClick={async () => {
+                            setCreatingBoards(true);
+                            try {
+                              const csrfToken = await getCSRFToken();
+                              if (!csrfToken) {
+                                alert('Security token unavailable');
+                                return;
+                              }
+                              
+                              const response = await fetch('/api/practice-groups/create', {
+                                method: 'POST',
+                                headers: { 
+                                  'Content-Type': 'application/json',
+                                  'X-CSRF-Token': csrfToken
+                                }
+                              });
+                              const data = await response.json();
+                              if (data.success) {
+                                alert(`Practice groups created: ${data.results.created || 0}`);
+                              } else {
+                                alert('Failed to create practice groups');
+                              }
+                            } catch (error) {
+                              alert('Error creating practice groups');
+                            } finally {
+                              setCreatingBoards(false);
+                            }
+                          }}
+                          disabled={creatingBoards}
+                          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                            creatingBoards
+                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                          }`}
+                        >
+                          {creatingBoards ? 'Creating Practice Groups...' : 'Create Practice Groups'}
+                        </button>
+                        
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Are you sure you want to delete ALL practice groups? This will permanently remove all groups, contact types, companies, and contacts.')) {
+                              return;
+                            }
+                            
+                            setCreatingBoards(true);
+                            try {
+                              const csrfToken = await getCSRFToken();
+                              if (!csrfToken) {
+                                alert('Security token unavailable');
+                                return;
+                              }
+                              
+                              const response = await fetch('/api/practice-groups/delete-all', {
+                                method: 'POST',
+                                headers: { 
+                                  'Content-Type': 'application/json',
+                                  'X-CSRF-Token': csrfToken
+                                }
+                              });
+                              const data = await response.json();
+                              if (data.success) {
+                                alert('Successfully deleted all practice groups');
+                              } else {
+                                alert('Failed to delete practice groups');
+                              }
+                            } catch (error) {
+                              alert('Error deleting practice groups');
+                            } finally {
+                              setCreatingBoards(false);
+                            }
+                          }}
+                          disabled={creatingBoards}
+                          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                            creatingBoards
+                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              : 'bg-red-600 text-white hover:bg-red-700'
+                          }`}
+                        >
+                          {creatingBoards ? 'Deleting...' : 'Delete All Practice Groups'}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <h4 className="text-sm font-medium text-gray-800 mb-2">How Practice Groups Work</h4>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li>• Each Practice Manager gets one practice group for all their assigned practices</li>
+                        <li>• Practice groups are used to organize contact information by practice area</li>
+                        <li>• Each new practice group gets a default "Main Contact List" type</li>
+                        <li>• Practice members can add companies and contacts for their assigned practices</li>
+                        <li>• Use "Create Practice Groups" to add groups for new Practice Managers</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1697,8 +1852,8 @@ export default function SettingsPage() {
                           <tr key={userItem.email} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{userItem.name}</div>
-                                <div className="text-sm text-gray-500">{userItem.email}</div>
+                                <div className="text-sm font-medium text-gray-900">{userItem.name?.replace(/[<>"'&]/g, (match) => ({'<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '&': '&amp;'}[match]))}</div>
+                                <div className="text-sm text-gray-500">{userItem.email?.replace(/[<>"'&]/g, (match) => ({'<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '&': '&amp;'}[match]))}</div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">

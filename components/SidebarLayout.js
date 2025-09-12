@@ -329,19 +329,19 @@ export default function SidebarLayout({ children, user }) {
                       </div>
                     )}
                     {!isCollapsed && item.submenu && hasAccessToAnySubmenu(item) && (
-                      <button
+                      <div
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleMenu(item.id);
                         }}
-                        className="p-1 rounded-lg hover:bg-white/20 transition-colors"
+                        className="p-1 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
                       >
                         {expandedMenus[item.id] ? (
                           <ChevronDownIcon className="h-4 w-4" />
                         ) : (
                           <ChevronRightIcon className="h-4 w-4" />
                         )}
-                      </button>
+                      </div>
                     )}
                     {isActive(item.href) && !expandedMenus[item.id] && (
                       <div className="absolute right-2 w-2 h-2 bg-white rounded-full opacity-80"></div>
