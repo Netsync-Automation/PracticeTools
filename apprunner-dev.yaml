@@ -1,5 +1,6 @@
 # Development configuration for AWS App Runner
 # Test comment for production push validation
+# Testing deployment pipeline with gitattributes fix
 version: 1
 runtime: nodejs22
 build:
@@ -25,6 +26,8 @@ run:
       value: development
     - name: ENVIRONMENT
       value: dev
+    - name: NODE_OPTIONS
+      value: --max-old-space-size=512
   secrets:
 
     - name: NEXTAUTH_URL

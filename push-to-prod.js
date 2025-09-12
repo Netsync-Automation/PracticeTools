@@ -875,7 +875,21 @@ class ProdPushManager {
       execSync('git pull origin main --allow-unrelated-histories', { stdio: 'inherit' });
       
       // Merge local dev into main with unrelated histories flag
-      execSync('git merge dev --allow-unrelated-histories', { stdio: 'inherit' });
+      try {
+        execSync('git merge dev --allow-unrelated-histories', { stdio: 'inherit' });
+      } catch (mergeError) {
+        // Handle merge conflicts automatically
+        console.log('   Resolving merge conflicts...');
+        try {
+          // Keep main branch version of apprunner.yaml
+          execSync('git checkout --ours apprunner.yaml', { stdio: 'pipe' });
+          execSync('git add apprunner.yaml', { stdio: 'pipe' });
+          execSync('git commit --no-edit', { stdio: 'pipe' });
+          console.log('   ✅ Merge conflicts resolved automatically');
+        } catch (resolveError) {
+          throw new Error(`Failed to resolve merge conflicts: ${resolveError.message}`);
+        }
+      }
       
       // Update apprunner.yaml with production configuration AFTER merge
       console.log('   Updating apprunner.yaml with production configuration...');
