@@ -26,8 +26,6 @@ run:
       value: development
     - name: ENVIRONMENT
       value: dev
-    - name: NODE_OPTIONS
-      value: --max-old-space-size=512
   secrets:
 
     - name: NEXTAUTH_URL
