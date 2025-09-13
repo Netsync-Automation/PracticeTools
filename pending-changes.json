@@ -11254,6 +11254,726 @@
         "lib/csrf.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1757793195002,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:15.002Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793195138,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email-rules/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:15.138Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793195208,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/general/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:15.208Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793195352,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-13T19:53:15.352Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793195502,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-13T19:53:15.502Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793195578,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-13T19:53:15.578Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793197210,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:17.210Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793197294,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email-rules/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:17.294Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793197374,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/general/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:17.374Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793197527,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-13T19:53:17.527Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793197685,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-13T19:53:17.685Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793197762,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-13T19:53:17.762Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793199099,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:19.099Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793199177,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email-rules/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:19.177Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793199254,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/general/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:19.254Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793199407,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-13T19:53:19.407Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793199569,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-13T19:53:19.569Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793199643,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-13T19:53:19.643Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793203586,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:23.586Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793203665,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email-rules/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:23.665Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793203748,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/general/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:23.748Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793203904,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-13T19:53:23.904Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793204066,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-13T19:53:24.066Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793204144,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-13T19:53:24.144Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793205760,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:25.760Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793205839,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email-rules/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:25.839Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793205915,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/general/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:25.915Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793206070,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-13T19:53:26.070Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793206224,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-13T19:53:26.224Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793206308,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-13T19:53:26.308Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793207599,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:27.599Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793207681,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email-rules/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:27.681Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793207760,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/general/route.js"
+      },
+      "timestamp": "2025-09-13T19:53:27.760Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793207916,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-13T19:53:27.916Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793208071,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-13T19:53:28.071Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793208147,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-13T19:53:28.147Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -38730,6 +39450,365 @@
       "timestamp": "2025-09-12T02:41:08.904Z",
       "files": [
         ".gitattributes",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793194927,
+      "description": "Enhanced dsr compliance.md with specific functionality improvements",
+      "details": {
+        "file": ".amazonq/rules/dsr-compliance.md"
+      },
+      "timestamp": "2025-09-13T19:53:14.927Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js"
+      ]
+    },
+    {
+      "id": 1757793195279,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/new/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:15.279Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793195427,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-13T19:53:15.427Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793197133,
+      "description": "Enhanced dsr compliance.md with specific functionality improvements",
+      "details": {
+        "file": ".amazonq/rules/dsr-compliance.md"
+      },
+      "timestamp": "2025-09-13T19:53:17.133Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793197450,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/new/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:17.450Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793197607,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-13T19:53:17.607Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793199021,
+      "description": "Enhanced dsr compliance.md with specific functionality improvements",
+      "details": {
+        "file": ".amazonq/rules/dsr-compliance.md"
+      },
+      "timestamp": "2025-09-13T19:53:19.021Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793199331,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/new/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:19.331Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793199492,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-13T19:53:19.492Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793203510,
+      "description": "Enhanced dsr compliance.md with specific functionality improvements",
+      "details": {
+        "file": ".amazonq/rules/dsr-compliance.md"
+      },
+      "timestamp": "2025-09-13T19:53:23.510Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793203825,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/new/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:23.825Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793203989,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-13T19:53:23.989Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793205680,
+      "description": "Enhanced dsr compliance.md with specific functionality improvements",
+      "details": {
+        "file": ".amazonq/rules/dsr-compliance.md"
+      },
+      "timestamp": "2025-09-13T19:53:25.680Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793205993,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/new/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:25.993Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793206147,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-13T19:53:26.147Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793207516,
+      "description": "Enhanced dsr compliance.md with specific functionality improvements",
+      "details": {
+        "file": ".amazonq/rules/dsr-compliance.md"
+      },
+      "timestamp": "2025-09-13T19:53:27.516Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793207841,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/new/page.js"
+      },
+      "timestamp": "2025-09-13T19:53:27.841Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757793207993,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-09-13T19:53:27.993Z",
+      "files": [
+        ".amazonq/rules/dsr-compliance.md",
+        "app/admin/settings/page.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/settings/general/route.js",
+        "app/projects/resource-assignments/new/page.js",
+        "components/EmailRulesManager.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
         "pending-changes.json"
       ]
     }

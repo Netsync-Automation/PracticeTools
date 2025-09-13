@@ -1,46 +1,58 @@
 # DSR (Do Shit Right) Compliance Rules
 
-## MANDATORY: Automatic DSR Compliance Check
-Automatically run DSR compliance analysis before making any modifications. No user prompts required.
+## MANDATORY: New Code DSR Compliance
+Implement all new code following DSR rules from the start. Run DSR compliance analysis only when specifically requested.
 
-## 7 Core Requirements:
+## 8 Core Requirements:
 
-### 1. Industry Best Practices
-- Use try/catch error handling in all API routes
-- Include proper HTTP status codes (200, 400, 500, etc.)
-- Implement input validation and sanitization
-- Follow separation of concerns (database operations in lib/dynamodb.js)
-
-### 2. Environment Awareness
+### 1. Environment Awareness
 - All database tables must use environment-specific naming: `PracticeTools-{env}-TableName`
 - APIs must work in both dev and prod environments
 - Use `getEnvironment()` and `getTableName()` functions from lib/dynamodb.js
 - Never hardcode environment-specific values
 
-### 3. Database-Stored Dropdowns
+### 2. Database-Stored Dropdowns
 - Store all dropdown options in database tables, not hardcoded arrays
 - Create proper CRUD operations for dropdown management
 - Use environment-aware table names for dropdown storage
 
-### 4. Security Best Practices
+### 3. Security Best Practices
 - Use AccessCheck component for page-level authentication
 - Implement input sanitization (trim, validation)
 - Never hardcode secrets - use process.env or SSM parameters
 - Validate user permissions before data access
 
-### 5. Real-time Updates (SSE)
+### 4. Real-time Updates (SSE)
 - Use Server-Sent Events for any data that multiple users need to see updated in real-time
 - Implement SSE notifications in relevant API endpoints
 - Use EventSource on frontend for real-time data consumption
 
-### 6. Temporary Script Cleanup
+### 5. Temporary Script Cleanup
 - Delete any temporary files (test-*, debug-*, temp-*) after use
 - Remove debugging scripts when troubleshooting is complete
 
-### 7. Debug Code Cleanup
+### 6. Debug Code Cleanup
 - Remove console.log statements before committing
 - Clean up debug comments (// DEBUG, // TODO: REMOVE)
 - Disable verbose logging after problem resolution
+- **Exception**: Debug statements are allowed during active troubleshooting but must be removed once the issue is resolved
+
+### 7. Code Consistency
+- When creating new code, features, functions or APIs, always use the existing codebase as a guide for implementation consistency
+- Make new frontend/UI additions or changes look and feel the same as the rest of the application
+- Follow existing patterns for component structure, styling, and user interactions
+
+### 8. Code Reusability
+- Always look to re-use existing API routes, functions and features if they already exist for what you are trying to accomplish
+- Avoid creating duplicate functionality that leads to bloated, unnecessary code
+- Extend existing components and utilities rather than creating new ones when possible
+
+### 9. Modern User Experience Design
+- All frontend/UI changes must prioritize user-friendly, intuitive design
+- Implement modern UI patterns: searchable dropdowns, hover states, smooth transitions
+- Ensure accessibility with proper focus handling, keyboard navigation, and visual feedback
+- Use consistent styling, spacing, and visual hierarchy throughout the application
+- Provide clear user feedback for actions (loading states, success/error messages, tooltips)
 
 ## Code Patterns to Follow:
 - Database operations: Use existing patterns in `lib/dynamodb.js`

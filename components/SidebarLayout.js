@@ -60,11 +60,31 @@ const menuItems = [
     ]
   },
   {
+    id: 'pre-sales',
+    name: 'Pre-Sales',
+    icon: ChartBarIcon,
+    description: 'Manage pre-sales activities and assignments',
+    submenu: [
+      {
+        id: 'sa-to-am-mapping',
+        name: 'SA to AM Mapping',
+        href: '/pre-sales/sa-to-am-mapping',
+        description: 'Manage SA to AM mapping relationships'
+      },
+      {
+        id: 'sa-assignments',
+        name: 'SA Assignments',
+        href: '/pre-sales/sa-assignments',
+        description: 'Manage SA assignments and allocations'
+      }
+    ]
+  },
+  {
     id: 'projects',
-    name: 'Projects',
+    name: 'Post-Sales',
     href: '/projects',
     icon: FolderIcon,
-    description: 'Manage projects and resources',
+    description: 'Manage post-sales activities and resources',
     submenu: [
       {
         id: 'resource-assignments',
@@ -74,7 +94,14 @@ const menuItems = [
       }
     ]
   },
-
+  {
+    id: 'leadership',
+    name: 'Leadership',
+    icon: ChartBarIcon,
+    description: 'Leadership tools and management',
+    leadershipOnly: true,
+    submenu: []
+  },
   {
     id: 'admin-dashboard',
     name: 'Admin',
