@@ -8,21 +8,12 @@ export async function GET() {
     const environment = getEnvironment();
     const tableName = getTableName('Regions');
     
-    console.log('[DEBUG] Fetching regions from table:', tableName);
-    
     // Query the actual DynamoDB regions table
     const command = new ScanCommand({
       TableName: tableName
     });
     
     const result = await db.client.send(command);
-    console.log('[DEBUG] Regions query result:', {
-      itemCount: result.Items?.length || 0,
-      items: result.Items?.map(item => ({
-        id: item.id?.S,
-        name: item.name?.S
-      }))
-    });
     
     const regions = (result.Items || []).map(item => ({
       id: item.id?.S || '',
@@ -39,7 +30,6 @@ export async function GET() {
     
     // If table doesn't exist, create it with default regions from resource assignments
     if (error.name === 'ResourceNotFoundException') {
-      console.log('[DEBUG] Regions table not found, creating with default regions');
       await createRegionsTable();
       
       const defaultRegions = [
@@ -100,10 +90,9 @@ async function createRegionsTable() {
     });
     await db.client.send(command);
     await new Promise(resolve => setTimeout(resolve, 10000));
-    console.log('[DEBUG] Regions table created successfully');
     return true;
   } catch (error) {
-    console.error('[DEBUG] Error creating Regions table:', error);
+    console.error('Error creating Regions table:', error);
     return false;
   }
 }
@@ -123,7 +112,7 @@ async function addRegionToTable(region) {
     await db.client.send(command);
     return true;
   } catch (error) {
-    console.error('[DEBUG] Error adding region to table:', error);
+    console.error('Error adding region to table:', error);
     return false;
   }
 }

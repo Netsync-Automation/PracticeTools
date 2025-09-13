@@ -436,11 +436,11 @@ export default function SAToAMMappingPage() {
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-4">Alternative SA Assignment Method</h3>
                     <p className="text-lg text-gray-800 mb-4">
-                      This practice uses alternative SA assignment method that direct AM to SA mapping.
+                      This practice uses alternative SA assignment method than direct AM to SA mapping.
                     </p>
                     {practiceManager && (
                       <p className="text-md text-gray-700">
-                        Please reach out to <strong>{practiceManager.name}</strong> for further information.
+                        Please reach out to <strong>{practiceManager.name}</strong> at <a href={`mailto:${practiceManager.email}`} className="text-blue-600 hover:text-blue-800 underline">{practiceManager.email}</a> for further information.
                       </p>
                     )}
                     {!practiceManager && (

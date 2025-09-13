@@ -11974,6 +11974,95 @@
         "lib/email-processor.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1757794274548,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/practice-groups/[id]/manager/route.js"
+      },
+      "timestamp": "2025-09-13T20:11:14.548Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js"
+      ]
+    },
+    {
+      "id": 1757794274622,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/regions/route.js"
+      },
+      "timestamp": "2025-09-13T20:11:14.622Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794275616,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/practice-groups/[id]/manager/route.js"
+      },
+      "timestamp": "2025-09-13T20:11:15.616Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794275686,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/regions/route.js"
+      },
+      "timestamp": "2025-09-13T20:11:15.686Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794276432,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/practice-groups/[id]/manager/route.js"
+      },
+      "timestamp": "2025-09-13T20:11:16.432Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794276504,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/regions/route.js"
+      },
+      "timestamp": "2025-09-13T20:11:16.504Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -39809,6 +39898,96 @@
         "components/SidebarLayout.js",
         "lib/dynamodb.js",
         "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794274693,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/sa-mappings/route.js"
+      },
+      "timestamp": "2025-09-13T20:11:14.693Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794274764,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/pre-sales/sa-to-am-mapping/page.js"
+      },
+      "timestamp": "2025-09-13T20:11:14.764Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794275757,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/sa-mappings/route.js"
+      },
+      "timestamp": "2025-09-13T20:11:15.757Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794275827,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/pre-sales/sa-to-am-mapping/page.js"
+      },
+      "timestamp": "2025-09-13T20:11:15.827Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794276575,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/sa-mappings/route.js"
+      },
+      "timestamp": "2025-09-13T20:11:16.575Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757794276643,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/pre-sales/sa-to-am-mapping/page.js"
+      },
+      "timestamp": "2025-09-13T20:11:16.643Z",
+      "files": [
+        "app/api/practice-groups/[id]/manager/route.js",
+        "app/api/regions/route.js",
+        "app/api/settings/sa-mappings/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
         "pending-changes.json"
       ]
     }

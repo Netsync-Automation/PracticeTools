@@ -6,47 +6,58 @@ import { db } from '../../../../../lib/dynamodb';
 export async function GET(request, { params }) {
   try {
     const { id } = params;
-    const tableName = getTableName('PracticeGroups');
-    const environment = getEnvironment();
+    const { ScanCommand } = await import('@aws-sdk/client-dynamodb');
     
-    // Get practice group
-    const groupCommand = new GetItemCommand({
-      TableName: tableName,
-      Key: {
-        id: { S: id }
-      }
-    });
+    // First get the practice group to find its practices
+    const groupResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/practice-groups`);
+    const groupData = await groupResponse.json();
+    const practiceGroup = groupData.groups?.find(g => g.id === id);
     
-    const groupResult = await db.client.send(groupCommand);
-    
-    if (!groupResult.Item) {
+    if (!practiceGroup || !practiceGroup.practices) {
       return NextResponse.json({ manager: null });
     }
     
-    const practiceManagerEmail = groupResult.Item.practiceManagerEmail?.S;
-    
-    if (!practiceManagerEmail) {
-      return NextResponse.json({ manager: null });
-    }
-    
-    // Get practice manager details
+    // Scan Users table for practice managers
     const usersTableName = getTableName('Users');
-    const userCommand = new GetItemCommand({
+    const scanCommand = new ScanCommand({
       TableName: usersTableName,
-      Key: {
-        email: { S: practiceManagerEmail }
+      FilterExpression: '#role = :role',
+      ExpressionAttributeNames: {
+        '#role': 'role'
+      },
+      ExpressionAttributeValues: {
+        ':role': { S: 'practice_manager' }
       }
     });
     
-    const userResult = await db.client.send(userCommand);
+    const scanResult = await db.client.send(scanCommand);
     
-    if (!userResult.Item) {
+    // Find manager for this practice group
+    const practiceManager = scanResult.Items?.find(item => {
+      let userPractices = [];
+      
+      if (item.practices?.S) {
+        try {
+          userPractices = JSON.parse(item.practices.S);
+        } catch (e) {
+          userPractices = [];
+        }
+      } else if (item.practices?.SS) {
+        userPractices = item.practices.SS;
+      } else if (item.practices?.L) {
+        userPractices = item.practices.L.map(p => p.S);
+      }
+      
+      return userPractices.some(practice => practiceGroup.practices.includes(practice));
+    });
+    
+    if (!practiceManager) {
       return NextResponse.json({ manager: null });
     }
     
     const manager = {
-      name: userResult.Item.name?.S || '',
-      email: userResult.Item.email?.S || ''
+      name: practiceManager.name?.S || '',
+      email: practiceManager.email?.S || ''
     };
     
     return NextResponse.json({ manager });

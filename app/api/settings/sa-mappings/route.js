@@ -11,7 +11,7 @@ export async function GET() {
     const command = new GetItemCommand({
       TableName: tableName,
       Key: {
-        id: { S: `${environment}_sa_mappings` }
+        setting_key: { S: 'sa_mappings' }
       }
     });
     
@@ -21,20 +21,33 @@ export async function GET() {
     return NextResponse.json({ settings });
   } catch (error) {
     console.error('Error loading SA mapping settings:', error);
+    
+    // If table doesn't exist or schema mismatch, create it
+    if (error.name === 'ResourceNotFoundException' || error.name === 'ValidationException') {
+      try {
+        const tableName = getTableName('Settings');
+        await createSettingsTable(tableName);
+      } catch (createError) {
+        console.error('Error creating settings table:', createError);
+      }
+    }
+    
     return NextResponse.json({ settings: {} });
   }
 }
 
 export async function POST(request) {
+  let settings, tableName, environment;
+  
   try {
-    const { settings } = await request.json();
-    const tableName = getTableName('Settings');
-    const environment = getEnvironment();
+    const requestData = await request.json();
+    settings = requestData.settings;
+    tableName = getTableName('Settings');
+    environment = getEnvironment();
     
     const command = new PutItemCommand({
       TableName: tableName,
       Item: {
-        id: { S: `${environment}_sa_mappings` },
         setting_key: { S: 'sa_mappings' },
         settings: { S: JSON.stringify(settings) },
         environment: { S: environment },
@@ -58,11 +71,22 @@ export async function POST(request) {
     console.error('Error saving SA mapping settings:', error);
     
     // Check if table doesn't exist and try to create it
-    if (error.name === 'ResourceNotFoundException') {
+    if (error.name === 'ResourceNotFoundException' && tableName && settings) {
       try {
         await createSettingsTable(tableName);
-        // Retry the save operation
-        await db.client.send(command);
+        
+        // Retry the save operation with recreated command
+        const retryCommand = new PutItemCommand({
+          TableName: tableName,
+          Item: {
+            setting_key: { S: 'sa_mappings' },
+            settings: { S: JSON.stringify(settings) },
+            environment: { S: environment },
+            updated_at: { S: new Date().toISOString() }
+          }
+        });
+        
+        await db.client.send(retryCommand);
         return NextResponse.json({ success: true });
       } catch (createError) {
         console.error('Error creating settings table:', createError);
