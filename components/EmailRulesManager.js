@@ -5,15 +5,26 @@ import { useState, useEffect } from 'react';
 export default function EmailRulesManager() {
   const [rules, setRules] = useState([]);
   const [fieldMappings, setFieldMappings] = useState([]);
+  const [fieldMappingsByAction, setFieldMappingsByAction] = useState({});
   const [emailActions, setEmailActions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [expandedRules, setExpandedRules] = useState(new Set());
 
   useEffect(() => {
-    fetchRules();
-    fetchFieldMappings();
-    fetchEmailActions();
+    const initializeData = async () => {
+      await fetchRules();
+      await fetchEmailActions();
+      
+      // Fetch field mappings for both action types
+      const resourceMappings = await fetchFieldMappings('resource_assignment');
+      const saMappings = await fetchFieldMappings('sa_assignment');
+      
+      // Set default to resource assignment mappings
+      setFieldMappings(resourceMappings);
+    };
+    
+    initializeData();
   }, []);
 
   const fetchRules = async () => {
@@ -30,31 +41,26 @@ export default function EmailRulesManager() {
     }
   };
 
-  const fetchFieldMappings = async () => {
+  const fetchFieldMappings = async (action = 'resource_assignment') => {
+    // Check cache first
+    if (fieldMappingsByAction[action]) {
+      return fieldMappingsByAction[action];
+    }
+    
     try {
-      const response = await fetch('/api/email-field-mappings');
+      const response = await fetch(`/api/email-field-mappings?action=${action}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setFieldMappings(data.mappings || []);
+      const mappings = data.mappings || [];
+      
+      // Cache the mappings
+      setFieldMappingsByAction(prev => ({ ...prev, [action]: mappings }));
+      return mappings;
     } catch (error) {
       console.error('Error fetching field mappings:', error);
-      setFieldMappings([
-        { value: 'projectNumber', label: 'Project Number' },
-        { value: 'clientName', label: 'Client Name' },
-        { value: 'requestedBy', label: 'Requested By' },
-        { value: 'skillsRequired', label: 'Skills Required' },
-        { value: 'startDate', label: 'Start Date' },
-        { value: 'endDate', label: 'End Date' },
-        { value: 'description', label: 'Description' },
-        { value: 'priority', label: 'Priority' },
-        { value: 'region', label: 'Region' },
-        { value: 'pm', label: 'PM' },
-        { value: 'documentationLink', label: 'Documentation Link' },
-        { value: 'notes', label: 'Notes' },
-        { value: 'resource_assignment_notification_users', label: 'Notification Users' }
-      ]);
+      return [];
     }
   };
 
@@ -66,11 +72,13 @@ export default function EmailRulesManager() {
       }
       const data = await response.json();
       setEmailActions(data.success && data.actions ? data.actions : [
-        { value: 'resource_assignment', name: 'Resource Assignment' }
+        { value: 'resource_assignment', name: 'Resource Assignment' },
+        { value: 'sa_assignment', name: 'SA Assignment' }
       ]);
     } catch (error) {
       setEmailActions([
-        { value: 'resource_assignment', name: 'Resource Assignment' }
+        { value: 'resource_assignment', name: 'Resource Assignment' },
+        { value: 'sa_assignment', name: 'SA Assignment' }
       ]);
     }
   };
@@ -150,10 +158,14 @@ export default function EmailRulesManager() {
     setRules(newRules);
   };
 
+  const getFieldMappingsForAction = (action) => {
+    return fieldMappingsByAction[action] || [];
+  };
+
   const addRule = () => {
     const newRule = {
       name: 'New Rule',
-      friendlyName: 'Post-Sales Resource Assignment',
+      friendlyName: 'Resource Assignment',
       senderEmail: '',
       subjectPattern: '',
       keywordMappings: [],
@@ -282,7 +294,11 @@ export default function EmailRulesManager() {
                           </label>
                           <select
                             value={rule.action || 'resource_assignment'}
-                            onChange={(e) => updateRule(index, { action: e.target.value })}
+                            onChange={async (e) => {
+                              updateRule(index, { action: e.target.value });
+                              // Ensure field mappings are loaded for the new action type
+                              await fetchFieldMappings(e.target.value);
+                            }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                             {emailActions.map(action => (
@@ -391,7 +407,7 @@ export default function EmailRulesManager() {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               >
                                 <option value="">Select Field</option>
-                                {fieldMappings.map(field => (
+                                {getFieldMappingsForAction(rule.action || 'resource_assignment').map(field => (
                                   <option key={field.value} value={field.value}>
                                     {field.label}
                                   </option>

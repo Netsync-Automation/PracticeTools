@@ -11,7 +11,10 @@ export async function GET() {
     }
     
     if (!actions || actions.length === 0) {
-      actions = [{ value: 'resource_assignment', name: 'Resource Assignment' }];
+      actions = [
+        { value: 'resource_assignment', name: 'Resource Assignment' },
+        { value: 'sa_assignment', name: 'SA Assignment' }
+      ];
     }
     
     return NextResponse.json({ 
@@ -21,7 +24,10 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json({ 
       success: true, 
-      actions: [{ value: 'resource_assignment', name: 'Resource Assignment' }]
+      actions: [
+        { value: 'resource_assignment', name: 'Resource Assignment' },
+        { value: 'sa_assignment', name: 'SA Assignment' }
+      ]
     });
   }
 }
@@ -32,6 +38,11 @@ async function createDefaultActions() {
       value: 'resource_assignment', 
       name: 'Resource Assignment',
       description: 'Create a new resource assignment from email data'
+    },
+    { 
+      value: 'sa_assignment', 
+      name: 'SA Assignment',
+      description: 'Create a new SA assignment from email data'
     }
   ];
   

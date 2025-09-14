@@ -2562,6 +2562,40 @@ export default function SettingsPage() {
                             </div>
                           )}
                         </div>
+                        
+                        <div className="bg-white rounded-md border border-blue-100 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedActions);
+                              if (newExpanded.has('sa_assignment')) {
+                                newExpanded.delete('sa_assignment');
+                              } else {
+                                newExpanded.add('sa_assignment');
+                              }
+                              setExpandedActions(newExpanded);
+                            }}
+                            className="w-full p-3 text-left hover:bg-blue-50 transition-colors flex items-center justify-between"
+                          >
+                            <span className="text-sm font-semibold text-blue-900">SA Assignment</span>
+                            <svg 
+                              className={`w-4 h-4 text-blue-600 transition-transform ${expandedActions.has('sa_assignment') ? 'rotate-180' : ''}`} 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {expandedActions.has('sa_assignment') && (
+                            <div className="px-3 pb-3 border-t border-blue-100">
+                              <p className="text-sm text-blue-700 pt-2">
+                                Configure email monitoring to automatically create SA assignments from specific email patterns. 
+                                The system will monitor the configured email account for messages matching sender and subject patterns, 
+                                then extract data using keyword mappings to populate new SA assignments for pre-sales activities.
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

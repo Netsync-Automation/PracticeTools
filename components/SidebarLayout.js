@@ -74,7 +74,7 @@ const menuItems = [
       {
         id: 'sa-assignments',
         name: 'SA Assignments',
-        href: '/pre-sales/sa-assignments',
+        href: '/projects/sa-assignments',
         description: 'Manage SA assignments and allocations'
       }
     ]

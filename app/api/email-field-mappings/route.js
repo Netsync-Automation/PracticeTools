@@ -1,19 +1,24 @@
 import { NextResponse } from 'next/server';
 import { db, getEnvironment } from '../../../lib/dynamodb.js';
 
-export async function GET() {
+export async function GET(request) {
   try {
-    let mappings = await db.getEmailFieldMappings();
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get('action');
     
-    // If no mappings exist, create default ones
-    if (!mappings || mappings.length === 0) {
-      await createDefaultMappings();
-      mappings = await db.getEmailFieldMappings();
+    let mappings = [];
+    
+    if (action === 'sa_assignment') {
+      // Generate mappings directly from SA assignments table schema
+      mappings = getSaAssignmentFieldMappings();
+    } else {
+      // Default to resource assignment fields
+      mappings = getResourceAssignmentFieldMappings();
     }
     
     return NextResponse.json({ 
       success: true, 
-      mappings: (mappings || []).sort((a, b) => a.label.localeCompare(b.label))
+      mappings: mappings.sort((a, b) => a.label.localeCompare(b.label))
     });
   } catch (error) {
     console.error('Error fetching email field mappings:', error);
@@ -21,8 +26,29 @@ export async function GET() {
   }
 }
 
-async function createDefaultMappings() {
-  const defaultMappings = [
+function getSaAssignmentFieldMappings() {
+  return [
+    { value: 'practice', label: 'Practice' },
+    { value: 'status', label: 'Status' },
+    { value: 'opportunityId', label: 'Opportunity ID' },
+    { value: 'requestDate', label: 'Request Date' },
+    { value: 'eta', label: 'ETA' },
+    { value: 'customerName', label: 'Customer Name' },
+    { value: 'opportunityName', label: 'Opportunity Name' },
+    { value: 'region', label: 'Region' },
+    { value: 'am', label: 'AM' },
+    { value: 'saAssigned', label: 'SA Assigned' },
+    { value: 'dateAssigned', label: 'Date Assigned' },
+    { value: 'notes', label: 'Notes' },
+    { value: 'isr', label: 'ISR' },
+    { value: 'submittedBy', label: 'Submitted By' },
+    { value: 'sa_assignment_notification_users', label: 'SA Assignment Notification Users' },
+    { value: 'scoopUrl', label: 'SCOOP URL' }
+  ];
+}
+
+function getResourceAssignmentFieldMappings() {
+  return [
     { value: 'projectNumber', label: 'Project Number' },
     { value: 'clientName', label: 'Client Name' },
     { value: 'requestedBy', label: 'Requested By' },
@@ -37,18 +63,4 @@ async function createDefaultMappings() {
     { value: 'notes', label: 'Notes' },
     { value: 'resource_assignment_notification_users', label: 'Notification Users' }
   ];
-  
-  for (const mapping of defaultMappings) {
-    try {
-      await db.createEmailFieldMapping({
-        id: mapping.value,
-        value: mapping.value,
-        label: mapping.label,
-        created_at: new Date().toISOString(),
-        environment: getEnvironment()
-      });
-    } catch (error) {
-      console.error(`Error creating mapping ${mapping.value}:`, error);
-    }
-  }
 }
