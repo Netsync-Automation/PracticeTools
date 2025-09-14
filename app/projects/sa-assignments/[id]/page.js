@@ -11,6 +11,159 @@ import MultiResourceSelector from '../../../../components/MultiResourceSelector'
 import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
 import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
+// Color palette for practice-SA pairings
+const COLOR_PALETTE = [
+  { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' },
+  { bg: 'bg-green-50', text: 'text-green-800', border: 'border-green-200' },
+  { bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-200' },
+  { bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-200' },
+  { bg: 'bg-pink-50', text: 'text-pink-800', border: 'border-pink-200' },
+  { bg: 'bg-indigo-50', text: 'text-indigo-800', border: 'border-indigo-200' },
+  { bg: 'bg-teal-50', text: 'text-teal-800', border: 'border-teal-200' },
+  { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-200' }
+];
+
+// Component to display practices with their assigned SAs
+function PracticeDisplay({ practice, saAssigned }) {
+  const [practiceAssignments, setPracticeAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPracticeAssignments = async () => {
+      if (!practice) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/admin/users');
+        const data = await response.json();
+        
+        if (data.users) {
+          const practiceList = practice.split(',').map(p => p.trim());
+          const saList = saAssigned ? saAssigned.split(',').map(s => s.trim()) : [];
+          const assignments = [];
+          
+          practiceList.forEach((p, index) => {
+            const colors = COLOR_PALETTE[index % COLOR_PALETTE.length];
+            
+            // Find SAs assigned to this practice
+            const assignedSAs = saList.filter(saName => {
+              const user = data.users.find(u => u.name === saName);
+              return user && user.practices && user.practices.includes(p);
+            });
+            
+            assignments.push({
+              practice: p,
+              assignedSAs: assignedSAs,
+              colors: colors
+            });
+          });
+          
+          setPracticeAssignments(assignments);
+        }
+      } catch (error) {
+        console.error('Error loading practice assignments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPracticeAssignments();
+  }, [practice, saAssigned]);
+
+  if (!practice) {
+    return (
+      <div>
+        <dt className="text-xs font-medium text-gray-500">Practices</dt>
+        <dd className="text-sm text-gray-900 font-medium">Not specified</dd>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div>
+        <dt className="text-xs font-medium text-gray-500">Practices</dt>
+        <dd className="text-sm text-gray-900 font-medium">Loading...</dd>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <dt className="text-xs font-medium text-gray-500">Practices & SA Assignments</dt>
+      <dd className="text-sm text-gray-900 font-medium">
+        <div className="space-y-2 mt-1">
+          {practiceAssignments.map((assignment, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center px-2 py-1 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-full border ${assignment.colors.border} font-medium`}>
+                  {assignment.practice}
+                </span>
+                <span className="text-gray-400">→</span>
+              </div>
+              <div className="flex-shrink-0">
+                {assignment.assignedSAs.length > 0 ? (
+                  <div className="flex flex-wrap gap-1 justify-end">
+                    {assignment.assignedSAs.map((sa, saIndex) => (
+                      <span key={saIndex} className={`inline-flex items-center px-2 py-1 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded border ${assignment.colors.border} opacity-80`}>
+                        {sa}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded border border-gray-200">
+                    Unassigned
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </dd>
+    </div>
+  );
+}
+
+// This component is no longer needed since practices and SAs are shown together
+// Keeping for backward compatibility but not using it
+
+// Removed useColorMapping hook - functionality moved to PracticeDisplay component
+
+// Function to validate if all practices have assigned SAs using user practices
+const validatePracticeCoverage = async (practices, assignedSas) => {
+  if (!practices || !assignedSas) return { valid: false, uncoveredPractices: [] };
+  
+  try {
+    const response = await fetch('/api/admin/users');
+    const data = await response.json();
+    
+    if (!data.users) return { valid: false, uncoveredPractices: [] };
+    
+    const practiceList = practices.split(',').map(p => p.trim());
+    const saList = assignedSas.split(',').map(s => s.trim());
+    const coveredPractices = new Set();
+    
+    saList.forEach(saName => {
+      const user = data.users.find(u => u.name === saName);
+      if (user && user.practices) {
+        user.practices.forEach(practice => {
+          if (practiceList.includes(practice)) {
+            coveredPractices.add(practice);
+          }
+        });
+      }
+    });
+    
+    const uncoveredPractices = practiceList.filter(p => !coveredPractices.has(p));
+    return { valid: uncoveredPractices.length === 0, uncoveredPractices };
+  } catch (error) {
+    console.error('Error validating practice coverage:', error);
+    return { valid: false, uncoveredPractices: [] };
+  }
+};
+
 // Utility function to extract friendly name from "Name <email>" format
 const extractFriendlyName = (nameWithEmail) => {
   if (!nameWithEmail) return '';
@@ -104,14 +257,7 @@ export default function SaAssignmentDetailPage({ params }) {
   };
 
   const canDeleteSaAssignment = (saAssignment) => {
-    if (user.isAdmin) return true;
-    
-    if (saAssignment.practice === 'Pending') {
-      return user.role === 'practice_manager' || user.role === 'practice_principal';
-    }
-    
-    return (user.role === 'practice_manager' || user.role === 'practice_principal') && 
-           user.practices?.includes(saAssignment.practice);
+    return user.isAdmin;
   };
 
   const canEditSaAssignment = (saAssignment) => {
@@ -228,6 +374,39 @@ export default function SaAssignmentDetailPage({ params }) {
                       </div>
                       {(canEditSaAssignment(saAssignment) || canDeleteSaAssignment(saAssignment)) && (
                         <div className="flex items-center gap-2">
+                          {/* Auto-Assignment Button */}
+                          {canEditSaAssignment(saAssignment) && saAssignment.am && saAssignment.practice && saAssignment.status !== 'Assigned' && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch('/api/sa-assignments/auto-assign', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ saAssignmentId: params.id })
+                                  });
+                                  
+                                  const result = await response.json();
+                                  
+                                  if (result.success) {
+                                    alert(`Auto-assignment successful: ${result.message}`);
+                                    fetchSaAssignment(); // Refresh the data
+                                  } else {
+                                    alert(`Auto-assignment: ${result.message}`);
+                                  }
+                                } catch (error) {
+                                  console.error('Auto-assignment error:', error);
+                                  alert('Auto-assignment failed. Please try again.');
+                                }
+                              }}
+                              className="flex items-center gap-1 px-3 py-1 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Automatically assign SAs based on AM and Practice mapping"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              Auto-Assign
+                            </button>
+                          )}
                           {canDeleteSaAssignment(saAssignment) && (
                             <button
                               onClick={() => setShowDeleteModal(true)}
@@ -286,92 +465,103 @@ export default function SaAssignmentDetailPage({ params }) {
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-gray-900">Assignment Information</h3>
+                      {canEditSaAssignment(saAssignment) && (
+                        <button
+                          onClick={() => {
+                            const formData = {
+                              practice: saAssignment.practice ? saAssignment.practice.split(',').map(p => p.trim()) : [],
+                              am: extractFriendlyName(saAssignment.am) || '',
+                              region: saAssignment.region || '',
+                              saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
+                              dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0],
+                              targetStatus: saAssignment.status
+                            };
+                            setEditFormData(formData);
+                            setShowEditModal(true);
+                          }}
+                          className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Edit
+                        </button>
+                      )}
+                    </div>
+                    <div className="mb-4 grid grid-cols-2 gap-6">
+                      <div>
+                        <dt className="text-xs font-medium text-gray-500">Status</dt>
+                        <dd className="text-sm text-gray-900 font-medium">
+                          {canEditSaAssignment(saAssignment) ? (
+                            <select
+                              value={saAssignment.status}
+                              onChange={async (e) => {
+                                const newStatus = e.target.value;
+                                if ((saAssignment.status === 'Pending' && (newStatus === 'Unassigned' || newStatus === 'Assigned')) || (saAssignment.status === 'Unassigned' && newStatus === 'Assigned')) {
+                                  const formData = {
+                                    practice: saAssignment.practice ? saAssignment.practice.split(',').map(p => p.trim()) : [],
+                                    am: extractFriendlyName(saAssignment.am) || '',
+                                    region: saAssignment.region || '',
+                                    saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
+                                    dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0],
+                                    targetStatus: newStatus
+                                  };
+                                  setEditFormData(formData);
+                                  setShowEditModal(true);
+                                  return;
+                                }
+                                
+                                try {
+                                  await updateSaAssignment({ status: newStatus });
+                                } catch (error) {
+                                  console.error('Status update failed', error);
+                                }
+                              }}
+                              className={`text-sm font-semibold px-3 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-3 focus:ring-opacity-50 ${
+                                saAssignment.status === 'Pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-300' :
+                                saAssignment.status === 'Unassigned' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
+                                saAssignment.status === 'Assigned' ? 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-300' :
+                                saAssignment.status === 'Complete' ? 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-300' :
+                                'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-300'
+                              }`}
+                            >
+                              <option value="Pending">Pending</option>
+                              <option value="Unassigned">Unassigned</option>
+                              <option value="Assigned">Assigned</option>
+                              <option value="Complete">Complete</option>
+                            </select>
+                          ) : (
+                            <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-lg ${
+                              saAssignment.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                              saAssignment.status === 'Unassigned' ? 'bg-orange-100 text-orange-800' :
+                              saAssignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
+                              saAssignment.status === 'Complete' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {saAssignment.status}
+                            </span>
+                          )}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs font-medium text-gray-500">Date Assigned</dt>
+                        <dd className="text-sm text-gray-900 font-medium">
+                          <span className="inline-flex px-3 py-1.5 text-sm font-semibold rounded-lg bg-gray-100 text-gray-800">
+                            {saAssignment.dateAssigned ? new Date(saAssignment.dateAssigned).toLocaleDateString() : 'Not set'}
+                          </span>
+                        </dd>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-6 flex-1">
-                      {/* Left Column - Status & Details */}
+                      {/* Left Column */}
                       <dl className="space-y-3">
                         <div>
                           <dt className="text-xs font-medium text-gray-500">Opportunity ID</dt>
                           <dd className="text-sm text-gray-900 font-medium">{saAssignment.opportunityId}</dd>
                         </div>
                         <div>
-                          <dt className="text-xs font-medium text-gray-500">Status</dt>
-                          <dd className="text-sm text-gray-900 font-medium">
-                            {canEditSaAssignment(saAssignment) ? (
-                              <select
-                                value={saAssignment.status}
-                                onChange={async (e) => {
-                                  const newStatus = e.target.value;
-                                  console.log('DEBUG: Status change triggered', {
-                                    currentStatus: saAssignment.status,
-                                    newStatus: newStatus,
-                                    showEditModal: showEditModal
-                                  });
-                                  
-                                  console.log('DEBUG: Condition check', {
-                                    isPendingToUnassigned: saAssignment.status === 'Pending' && newStatus === 'Unassigned',
-                                    isPendingToAssigned: saAssignment.status === 'Pending' && newStatus === 'Assigned',
-                                    isUnassignedToAssigned: saAssignment.status === 'Unassigned' && newStatus === 'Assigned',
-                                    overallCondition: (saAssignment.status === 'Pending' && (newStatus === 'Unassigned' || newStatus === 'Assigned')) || (saAssignment.status === 'Unassigned' && newStatus === 'Assigned')
-                                  });
-                                  
-                                  if ((saAssignment.status === 'Pending' && (newStatus === 'Unassigned' || newStatus === 'Assigned')) || (saAssignment.status === 'Unassigned' && newStatus === 'Assigned')) {
-                                    console.log(`DEBUG: Triggering practice modal for ${saAssignment.status} -> ${newStatus}`);
-                                    const formData = {
-                                      practice: saAssignment.status === 'Pending' ? [] : (saAssignment.practice ? saAssignment.practice.split(',').map(p => p.trim()) : []),
-                                      am: extractFriendlyName(saAssignment.am) || '',
-                                      region: saAssignment.region || '',
-                                      saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
-                                      dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0],
-                                      targetStatus: newStatus
-                                    };
-                                    console.log('DEBUG: Setting form data', formData);
-                                    setEditFormData(formData);
-                                    console.log('DEBUG: Setting showEditModal to true');
-                                    setShowEditModal(true);
-                                    console.log('DEBUG: Modal state after setting', { showEditModal: true });
-                                    setTimeout(() => console.log('DEBUG: Modal state check after timeout', { showEditModal }), 100);
-                                    return;
-                                  }
-                                  
-                                  console.log('DEBUG: Direct status update', { newStatus });
-                                  try {
-                                    await updateSaAssignment({ status: newStatus });
-                                    console.log('DEBUG: Status update successful');
-                                  } catch (error) {
-                                    console.error('DEBUG: Status update failed', error);
-                                  }
-                                }}
-                                className={`text-sm font-semibold px-3 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-3 focus:ring-opacity-50 ${
-                                  saAssignment.status === 'Pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-300' :
-                                  saAssignment.status === 'Unassigned' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
-                                  saAssignment.status === 'Assigned' ? 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-300' :
-                                  'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-300'
-                                }`}
-                              >
-                                <option value="Pending">Pending</option>
-                                <option value="Unassigned">Unassigned</option>
-                                <option value="Assigned">Assigned</option>
-                              </select>
-                            ) : (
-                              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-lg ${
-                                saAssignment.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                                saAssignment.status === 'Unassigned' ? 'bg-orange-100 text-orange-800' :
-                                saAssignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {saAssignment.status}
-                              </span>
-                            )}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">Practice</dt>
-                          <dd className="text-sm text-gray-900 font-medium">{saAssignment.practice}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">Region</dt>
-                          <dd className="text-sm text-gray-900 font-medium">{saAssignment.region || 'Not specified'}</dd>
+                          <dt className="text-xs font-medium text-gray-500">Account Manager</dt>
+                          <dd className="text-sm text-gray-900">{extractFriendlyName(saAssignment.am) || 'Not assigned'}</dd>
                         </div>
                         <div>
                           <dt className="text-xs font-medium text-gray-500">Requested</dt>
@@ -388,43 +578,54 @@ export default function SaAssignmentDetailPage({ params }) {
                             }
                           </dd>
                         </div>
+
                       </dl>
                       
-                      {/* Right Column - Team & Dates */}
+                      {/* Right Column */}
                       <dl className="space-y-3">
                         <div>
-                          <dt className="text-xs font-medium text-gray-500">Account Manager</dt>
-                          <dd className="text-sm text-gray-900">{extractFriendlyName(saAssignment.am) || 'Not assigned'}</dd>
+                          <dt className="text-xs font-medium text-gray-500">Region</dt>
+                          <dd className="text-sm text-gray-900 font-medium">{saAssignment.region || 'Not specified'}</dd>
                         </div>
                         <div>
-                          <dt className="text-xs font-medium text-gray-500">ISR</dt>
+                          <dt className="text-xs font-medium text-gray-500">ISR/SA Requested</dt>
                           <dd className="text-sm text-gray-900">{extractFriendlyName(saAssignment.isr) || 'Not assigned'}</dd>
                         </div>
                         <div>
                           <dt className="text-xs font-medium text-gray-500">Submitted By</dt>
                           <dd className="text-sm text-gray-900">{extractFriendlyName(saAssignment.submittedBy) || 'Not specified'}</dd>
                         </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">SA Assigned</dt>
-                          <dd className="text-sm text-gray-900">
-                            {saAssignment.saAssigned ? (
-                              saAssignment.saAssigned.includes(',') ? (
-                                <div className="space-y-1">
-                                  {saAssignment.saAssigned.split(',').map((sa, index) => (
-                                    <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-800 text-xs rounded-full mr-1 mb-1">
-                                      {sa.trim()}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : saAssignment.saAssigned
-                            ) : 'Not assigned'}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">Date Assigned</dt>
-                          <dd className="text-sm text-gray-900">{saAssignment.dateAssigned ? new Date(saAssignment.dateAssigned).toLocaleDateString() : 'Not set'}</dd>
-                        </div>
+
                       </dl>
+                    </div>
+                    
+                    {/* Full-width sections */}
+                    <div className="mt-6 space-y-4">
+                      <div>
+                        <dt className="text-xs font-medium text-gray-500">Notification Users</dt>
+                        <dd className="text-sm text-gray-900">
+                          {(() => {
+                            const notificationUsers = JSON.parse(saAssignment.sa_assignment_notification_users || '[]');
+                            if (notificationUsers.length === 0) {
+                              return <span className="text-gray-400 italic">None specified</span>;
+                            }
+                            return (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {notificationUsers.map((user, index) => (
+                                  <span key={index} className="inline-flex items-center px-2 py-1 bg-indigo-50 text-indigo-800 text-xs rounded-full border border-indigo-200">
+                                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                    </svg>
+                                    {extractFriendlyName(user.name || user.email || user)}
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </dd>
+                      </div>
+                      
+                      <PracticeDisplay practice={saAssignment.practice} saAssigned={saAssignment.saAssigned} />
                     </div>
                   </div>
                 </div>
@@ -566,6 +767,7 @@ export default function SaAssignmentDetailPage({ params }) {
                           onChange={(resources) => setEditFormData(prev => ({...prev, saAssigned: resources}))}
                           assignedPractices={Array.isArray(editFormData.practice) ? editFormData.practice : (editFormData.practice ? editFormData.practice.split(',').map(p => p.trim()) : [])}
                           placeholder="Select or type SA names..."
+                          amEmail={saAssignment.am?.match(/<([^>]+)>/)?.[1]}
                           required
                         />
                       </div>
@@ -610,6 +812,18 @@ export default function SaAssignmentDetailPage({ params }) {
                           alert('Please assign at least one SA');
                           return;
                         }
+                        
+                        // Validate practice coverage for Assigned status
+                        const assignedSasString = Array.isArray(editFormData.saAssigned) ? editFormData.saAssigned.join(',') : editFormData.saAssigned;
+                        const validation = await validatePracticeCoverage(practices.join(','), assignedSasString);
+                        
+                        if (!validation.valid) {
+                          const confirmed = confirm(`The assignment will be saved but will remain in "Unassigned" status.\n\nThe following practices still need SA assignments:\n${validation.uncoveredPractices.join(', ')}\n\nClick OK to save with current assignments, or Cancel to continue editing.`);
+                          if (!confirmed) return;
+                          
+                          // Override target status to Unassigned since not all practices are covered
+                          editFormData.targetStatus = 'Unassigned';
+                        }
                       }
                       
                       setSaving(true);
@@ -624,6 +838,9 @@ export default function SaAssignmentDetailPage({ params }) {
                         if (editFormData.targetStatus === 'Assigned') {
                           updateData.saAssigned = Array.isArray(editFormData.saAssigned) ? editFormData.saAssigned.join(',') : editFormData.saAssigned;
                           updateData.dateAssigned = editFormData.dateAssigned;
+                        } else if (editFormData.saAssigned && (Array.isArray(editFormData.saAssigned) ? editFormData.saAssigned.length > 0 : editFormData.saAssigned)) {
+                          // Save SA assignments even for Unassigned status
+                          updateData.saAssigned = Array.isArray(editFormData.saAssigned) ? editFormData.saAssigned.join(',') : editFormData.saAssigned;
                         }
                         
                         await updateSaAssignment(updateData);

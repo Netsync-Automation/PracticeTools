@@ -38,8 +38,11 @@ export async function GET(request) {
       id: item.id?.S || '',
       saName: item.sa_name?.S || '',
       amName: item.am_name?.S || '',
+      amEmail: item.am_email?.S || '',
       region: item.region?.S || '',
       practiceGroupId: item.practice_group_id?.S || '',
+      practices: JSON.parse(item.practices?.S || '[]'),
+      isAllMapping: item.is_all_mapping?.BOOL || false,
       createdAt: item.created_at?.S || ''
     }));
     
@@ -66,8 +69,108 @@ export async function POST(request) {
     const environment = getEnvironment();
     const tableName = getTableName('SAToAMMappings');
     
+    // Handle "All" option - create mappings for all existing AMs
+    if (data.amName === 'All') {
+      const accountManagers = await db.getAllUsers();
+      const ams = accountManagers.filter(user => user.role === 'account_manager');
+      
+      // Get existing mappings to check for duplicates
+      const existingCommand = new (await import('@aws-sdk/client-dynamodb')).ScanCommand({
+        TableName: tableName
+      });
+      const existingResult = await db.client.send(existingCommand);
+      const existingMappings = (existingResult.Items || []).map(item => ({
+        saName: item.sa_name?.S || '',
+        amEmail: item.am_email?.S || '',
+        practices: JSON.parse(item.practices?.S || '[]')
+      }));
+      
+      const createdMappings = [];
+      const timestamp = new Date().toISOString();
+      
+      for (const am of ams) {
+        // Check for duplicate
+        const isDuplicate = existingMappings.some(existing => 
+          existing.saName === data.saName &&
+          existing.amEmail === am.email &&
+          JSON.stringify(existing.practices) === JSON.stringify(data.practices)
+        );
+        
+        if (isDuplicate) {
+          console.log('Skipping duplicate mapping', { saName: data.saName, amEmail: am.email });
+          continue;
+        }
+        
+        const mappingId = uuidv4();
+        const command = new PutItemCommand({
+          TableName: tableName,
+          Item: {
+            id: { S: mappingId },
+            sa_name: { S: data.saName },
+            am_name: { S: am.name },
+            am_email: { S: am.email },
+            region: { S: am.region || '' },
+            practice_group_id: { S: data.practiceGroupId },
+            practices: { S: JSON.stringify(data.practices || []) },
+            is_all_mapping: { BOOL: true }, // Flag to identify "All" mappings
+            created_at: { S: timestamp },
+            environment: { S: environment }
+          }
+        });
+        
+        await db.client.send(command);
+        createdMappings.push({ id: mappingId, amName: am.name });
+      }
+      
+      console.log('Created "All" SA to AM mappings:', {
+        saName: data.saName,
+        practiceGroupId: data.practiceGroupId,
+        practices: data.practices,
+        mappingCount: createdMappings.length
+      });
+      
+      // Send SSE notification
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sse/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'sa-to-am-mapping-update',
+          practiceGroupId: data.practiceGroupId
+        })
+      });
+      
+      return NextResponse.json({
+        success: true,
+        message: `SA to AM mappings created for ${createdMappings.length} account managers`
+      });
+    }
+    
+    // Regular single mapping creation
     const id = uuidv4();
     const timestamp = new Date().toISOString();
+    
+    // Get AM email from account managers list
+    const accountManagers = await db.getAllUsers();
+    const amUser = accountManagers.find(user => user.role === 'account_manager' && user.name === data.amName);
+    
+    // Check for duplicate mapping
+    const existingCommand = new (await import('@aws-sdk/client-dynamodb')).ScanCommand({
+      TableName: tableName,
+      FilterExpression: 'sa_name = :saName AND am_email = :amEmail AND practices = :practices',
+      ExpressionAttributeValues: {
+        ':saName': { S: data.saName },
+        ':amEmail': { S: amUser?.email || '' },
+        ':practices': { S: JSON.stringify(data.practices || []) }
+      }
+    });
+    
+    const existingResult = await db.client.send(existingCommand);
+    if (existingResult.Items && existingResult.Items.length > 0) {
+      return NextResponse.json(
+        { success: false, error: 'Mapping already exists for this SA-AM-Practice combination' },
+        { status: 409 }
+      );
+    }
     
     const command = new PutItemCommand({
       TableName: tableName,
@@ -75,8 +178,10 @@ export async function POST(request) {
         id: { S: id },
         sa_name: { S: data.saName },
         am_name: { S: data.amName },
+        am_email: { S: amUser?.email || '' },
         region: { S: data.region },
         practice_group_id: { S: data.practiceGroupId },
+        practices: { S: JSON.stringify(data.practices || []) },
         created_at: { S: timestamp },
         environment: { S: environment }
       }
@@ -107,36 +212,9 @@ export async function POST(request) {
     });
   } catch (error) {
     if (error.name === 'ResourceNotFoundException') {
-      const retryTableName = getTableName('SAToAMMappings');
-      await createSAToAMMappingsTable(retryTableName);
-      const retryCommand = new PutItemCommand({
-        TableName: retryTableName,
-        Item: {
-          id: { S: uuidv4() },
-          sa_name: { S: data.saName },
-          am_name: { S: data.amName },
-          region: { S: data.region },
-          practice_group_id: { S: data.practiceGroupId },
-          created_at: { S: new Date().toISOString() },
-          environment: { S: getEnvironment() }
-        }
-      });
-      await db.client.send(retryCommand);
-      
-      // Send SSE notification after retry
-      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sse/notify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'sa-to-am-mapping-update',
-          practiceGroupId: data.practiceGroupId
-        })
-      });
-      
-      return NextResponse.json({
-        success: true,
-        message: 'SA to AM mapping created successfully'
-      });
+      await createSAToAMMappingsTable(getTableName('SAToAMMappings'));
+      // Retry the request
+      return POST(request);
     }
     console.error('Error creating SA to AM mapping:', error);
     return NextResponse.json(
@@ -159,14 +237,98 @@ export async function PUT(request) {
       );
     }
     
+    // Handle "All" option for updates
+    if (data.amName === 'All') {
+      // Delete existing mapping
+      const deleteCommand = new DeleteItemCommand({
+        TableName: tableName,
+        Key: { id: { S: data.id } }
+      });
+      await db.client.send(deleteCommand);
+      
+      // Create new mappings for all AMs
+      const accountManagers = await db.getAllUsers();
+      const ams = accountManagers.filter(user => user.role === 'account_manager');
+      
+      const createdMappings = [];
+      const timestamp = new Date().toISOString();
+      
+      // Get existing mappings to check for duplicates
+      const existingCommand = new (await import('@aws-sdk/client-dynamodb')).ScanCommand({
+        TableName: tableName
+      });
+      const existingResult = await db.client.send(existingCommand);
+      const existingMappings = (existingResult.Items || []).map(item => ({
+        saName: item.sa_name?.S || '',
+        amEmail: item.am_email?.S || '',
+        practices: JSON.parse(item.practices?.S || '[]')
+      }));
+      
+      for (const am of ams) {
+        // Check for duplicate
+        const isDuplicate = existingMappings.some(existing => 
+          existing.saName === data.saName &&
+          existing.amEmail === am.email &&
+          JSON.stringify(existing.practices) === JSON.stringify(data.practices)
+        );
+        
+        if (isDuplicate) {
+          console.log('Skipping duplicate mapping in PUT', { saName: data.saName, amEmail: am.email });
+          continue;
+        }
+        
+        const mappingId = uuidv4();
+        const command = new PutItemCommand({
+          TableName: tableName,
+          Item: {
+            id: { S: mappingId },
+            sa_name: { S: data.saName },
+            am_name: { S: am.name },
+            am_email: { S: am.email },
+            region: { S: am.region || '' },
+            practice_group_id: { S: data.practiceGroupId },
+            practices: { S: JSON.stringify(data.practices || []) },
+            is_all_mapping: { BOOL: true },
+            created_at: { S: timestamp },
+            environment: { S: environment }
+          }
+        });
+        
+        await db.client.send(command);
+        createdMappings.push({ id: mappingId, amName: am.name });
+      }
+      
+      // Send SSE notification
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sse/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'sa-to-am-mapping-update',
+          practiceGroupId: data.practiceGroupId
+        })
+      });
+      
+      return NextResponse.json({
+        success: true,
+        message: `SA to AM mappings updated for ${createdMappings.length} account managers`
+      });
+    }
+    
+    // Get AM email from account managers list
+    const accountManagers = await db.getAllUsers();
+    const amUser = accountManagers.find(user => user.role === 'account_manager' && user.name === data.amName);
+    
+    // Regular single mapping update
     const command = new PutItemCommand({
       TableName: tableName,
       Item: {
         id: { S: data.id },
         sa_name: { S: data.saName },
         am_name: { S: data.amName },
+        am_email: { S: amUser?.email || '' },
         region: { S: data.region },
         practice_group_id: { S: data.practiceGroupId },
+        practices: { S: JSON.stringify(data.practices || []) },
         created_at: { S: new Date().toISOString() },
         environment: { S: environment }
       }

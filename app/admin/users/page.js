@@ -6,6 +6,7 @@ import { CogIcon, UsersIcon, PlusIcon } from '@heroicons/react/24/outline';
 import Navbar from '../../../components/Navbar';
 import Breadcrumb from '../../../components/Breadcrumb';
 import { useAuth } from '../../../hooks/useAuth';
+import { getRoleColor } from '../../../utils/roleColors';
 
 export default function UsersPage() {
   const router = useRouter();
@@ -29,6 +30,8 @@ export default function UsersPage() {
     role: 'user',
     auth_method: 'local'
   });
+  const [roles, setRoles] = useState([]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [specifyPassword, setSpecifyPassword] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
@@ -42,6 +45,7 @@ export default function UsersPage() {
     if (user) {
       fetchUsers();
       fetchWebexBots();
+      fetchRoles();
     }
   }, [user, router]);
 
@@ -54,6 +58,29 @@ export default function UsersPage() {
       console.error('Error fetching WebEx bots:', error);
     }
   };
+
+  const fetchRoles = async () => {
+    try {
+      const response = await fetch('/api/roles');
+      const data = await response.json();
+      if (data.success) {
+        setRoles(data.roles || []);
+      }
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      setRoles([
+        { value: 'account_manager', label: 'Account Manager' },
+        { value: 'executive', label: 'Executive' },
+        { value: 'isr', label: 'ISR' },
+        { value: 'netsync_employee', label: 'Netsync Employee' },
+        { value: 'practice_manager', label: 'Practice Manager' },
+        { value: 'practice_member', label: 'Practice Member' },
+        { value: 'practice_principal', label: 'Practice Principal' }
+      ]);
+    }
+  };
+
+
 
   const fetchUsers = async () => {
     try {
@@ -313,11 +340,7 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        userItem.role === 'admin' 
-                          ? 'bg-purple-100 text-purple-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(userItem.role)}`}>
                         {userItem.role}
                       </span>
                     </td>
@@ -427,10 +450,7 @@ export default function UsersPage() {
                       onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
                       className="input-field"
                     >
-                      {[
-                        { value: 'admin', label: 'Admin' },
-                        { value: 'user', label: 'User' }
-                      ].sort((a, b) => a.label.localeCompare(b.label)).map(role => (
+                      {roles.sort((a, b) => a.label.localeCompare(b.label)).map(role => (
                         <option key={role.value} value={role.value}>{role.label}</option>
                       ))}
                     </select>
@@ -660,10 +680,7 @@ export default function UsersPage() {
                       onChange={(e) => setNewUser({...newUser, role: e.target.value})}
                       className="input-field"
                     >
-                      {[
-                        { value: 'admin', label: 'Admin' },
-                        { value: 'user', label: 'User' }
-                      ].sort((a, b) => a.label.localeCompare(b.label)).map(role => (
+                      {roles.sort((a, b) => a.label.localeCompare(b.label)).map(role => (
                         <option key={role.value} value={role.value}>{role.label}</option>
                       ))}
                     </select>

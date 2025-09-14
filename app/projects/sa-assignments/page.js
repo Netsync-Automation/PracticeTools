@@ -84,7 +84,12 @@ export default function SaAssignmentsPage() {
             parsedFilters.status = ['Pending', 'Unassigned'];
           }
           if (needsPracticeDefault) {
-            parsedFilters.practice = [...(user.practices || []), 'Pending'];
+            // Only set practice filter for non-management roles
+            if (!['practice_manager', 'practice_principal', 'executive'].includes(user.role)) {
+              parsedFilters.practice = [...(user.practices || []), 'Pending'];
+            } else {
+              parsedFilters.practice = [];
+            }
           }
           
           setFilters(parsedFilters);
@@ -98,7 +103,7 @@ export default function SaAssignmentsPage() {
       if (shouldSetDefaults) {
         setFilters({
           status: ['Pending', 'Unassigned'],
-          practice: [...(user.practices || []), 'Pending'],
+          practice: ['practice_manager', 'practice_principal', 'executive'].includes(user.role) ? [] : [...(user.practices || []), 'Pending'],
           region: '',
           dateFrom: '',
           dateTo: '',
@@ -456,7 +461,7 @@ export default function SaAssignmentsPage() {
                 </h3>
                 <button
                   onClick={() => {
-                    const defaultFilters = { status: ['Pending', 'Unassigned'], practice: [...(user?.practices || []), 'Pending'], region: '', dateFrom: '', dateTo: '', search: '', sort: 'newest' };
+                    const defaultFilters = { status: ['Pending', 'Unassigned'], practice: ['practice_manager', 'practice_principal', 'executive'].includes(user?.role) ? [] : [...(user?.practices || []), 'Pending'], region: '', dateFrom: '', dateTo: '', search: '', sort: 'newest' };
                     localStorage.removeItem('saAssignmentsFilters');
                     setFilters(defaultFilters);
                     setCurrentPage(1);
@@ -583,6 +588,105 @@ export default function SaAssignmentsPage() {
                   </select>
                 </div>
               </div>
+              
+              {/* Active Filters Display */}
+              {(filters.status.length > 0 || filters.practice.length > 0 || filters.region || filters.dateFrom || filters.dateTo || filters.search) && (
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {/* Status Filters */}
+                    {filters.status.length > 0 && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                        Status: {filters.status.join(', ')}
+                        <button
+                          onClick={() => setFilters({...filters, status: []})}
+                          className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    
+                    {/* Practice Filters */}
+                    {filters.practice.length > 0 && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                        Practice: {filters.practice.join(', ')}
+                        <button
+                          onClick={() => setFilters({...filters, practice: []})}
+                          className="ml-1 hover:bg-green-200 rounded-full p-0.5"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    
+                    {/* Region Filter */}
+                    {filters.region && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                        Region: {filters.region}
+                        <button
+                          onClick={() => setFilters({...filters, region: ''})}
+                          className="ml-1 hover:bg-purple-200 rounded-full p-0.5"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    
+                    {/* Date Range Filters */}
+                    {filters.dateFrom && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-800 text-sm rounded-full">
+                        From: {new Date(filters.dateFrom).toLocaleDateString()}
+                        <button
+                          onClick={() => setFilters({...filters, dateFrom: ''})}
+                          className="ml-1 hover:bg-orange-200 rounded-full p-0.5"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    
+                    {filters.dateTo && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-800 text-sm rounded-full">
+                        To: {new Date(filters.dateTo).toLocaleDateString()}
+                        <button
+                          onClick={() => setFilters({...filters, dateTo: ''})}
+                          className="ml-1 hover:bg-orange-200 rounded-full p-0.5"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    
+                    {/* Search Filter */}
+                    {filters.search && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">
+                        Search: "{filters.search}"
+                        <button
+                          onClick={() => setFilters({...filters, search: ''})}
+                          className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="text-sm text-gray-500 mb-4">
@@ -627,6 +731,136 @@ export default function SaAssignmentsPage() {
             />
           </div>
         </SidebarLayout>
+        
+        {/* Status Filter Modal */}
+        {showStatusModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Status Filters</h3>
+                <div className="space-y-2 mb-6">
+                  {['Pending', 'Unassigned', 'Assigned'].map(status => (
+                    <label key={status} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={tempStatusSelection.includes(status)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTempStatusSelection([...tempStatusSelection, status]);
+                          } else {
+                            setTempStatusSelection(tempStatusSelection.filter(s => s !== status));
+                          }
+                        }}
+                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-700">{status}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="flex gap-2 mb-4">
+                  <button
+                    onClick={() => setTempStatusSelection(['Pending', 'Unassigned', 'Assigned'])}
+                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={() => setTempStatusSelection([])}
+                    className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                  >
+                    Unselect All
+                  </button>
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => setShowStatusModal(false)}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilters({...filters, status: tempStatusSelection});
+                      setShowStatusModal(false);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Practice Filter Modal */}
+        {showPracticeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Practice Filters</h3>
+                <div className="space-y-2 mb-6 max-h-64 overflow-y-auto">
+                  {PRACTICE_OPTIONS.map(practice => (
+                    <label key={practice} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={tempPracticeSelection.includes(practice)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTempPracticeSelection([...tempPracticeSelection, practice]);
+                          } else {
+                            setTempPracticeSelection(tempPracticeSelection.filter(p => p !== practice));
+                          }
+                        }}
+                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-700">{practice}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="flex gap-2 mb-4 flex-wrap">
+                  <button
+                    onClick={() => setTempPracticeSelection(PRACTICE_OPTIONS)}
+                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={() => setTempPracticeSelection([])}
+                    className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                  >
+                    Unselect All
+                  </button>
+                  {user?.practices && (
+                    <button
+                      onClick={() => setTempPracticeSelection([...user.practices, 'Pending'])}
+                      className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+                    >
+                      My Practices
+                    </button>
+                  )}
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => setShowPracticeModal(false)}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilters({...filters, practice: tempPracticeSelection});
+                      setShowPracticeModal(false);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AccessCheck>
   );
@@ -675,8 +909,8 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
             <tr>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Practice</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Opportunity ID</th>
+              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Practice</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignment</th>
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Region</th>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AM</th>
@@ -778,12 +1012,12 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                   )}
                 </td>
                 <td className="px-2 py-3">
+                  <div className="text-sm font-mono text-blue-600">{saAssignment.opportunityId}</div>
+                </td>
+                <td className="px-2 py-3">
                   <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
                     {saAssignment.practice}
                   </span>
-                </td>
-                <td className="px-2 py-3">
-                  <div className="text-sm font-mono text-blue-600">{saAssignment.opportunityId}</div>
                 </td>
                 <td className="px-3 py-3">
                   <div className="min-w-0">

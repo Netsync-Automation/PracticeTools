@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb';
 import { validateUserSession } from '../../../lib/auth-check';
 import { uploadFileToS3 } from '../../../lib/s3';
+import { processAmIsrUsers } from '../../../lib/user-manager';
 
 export async function GET(request) {
   try {
@@ -57,6 +58,12 @@ export async function POST(request) {
       }
     }
     
+    // Process AM and ISR users - ensure they exist in the system
+    const amIsrResult = await processAmIsrUsers(
+      formData.get('am'),
+      formData.get('isr')
+    );
+
     const saAssignmentId = await db.addSaAssignment(
       formData.get('practice'),
       formData.get('status') || 'Active',

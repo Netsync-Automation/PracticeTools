@@ -18,23 +18,26 @@ export default function SAToAMMappingPage() {
   const [showSaDropdown, setShowSaDropdown] = useState(false);
   const [showAmDropdown, setShowAmDropdown] = useState(false);
   const [showAddAmModal, setShowAddAmModal] = useState(false);
-  const [newAm, setNewAm] = useState({ name: '', email: '' });
+  const [newAm, setNewAm] = useState({ name: '', email: '', region: '' });
   const [amError, setAmError] = useState('');
   const saDropdownRef = useRef(null);
   const amDropdownRef = useRef(null);
   const [loadingData, setLoadingData] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newMapping, setNewMapping] = useState({ saName: '', amName: '', region: '' });
+  const [newMapping, setNewMapping] = useState({ saName: '', amName: '', region: '', practices: [] });
   const [editingMapping, setEditingMapping] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredMappings, setFilteredMappings] = useState([]);
   const [filters, setFilters] = useState({
-    region: ''
+    region: '',
+    practices: []
   });
   const [dropdownWidth, setDropdownWidth] = useState('16rem');
   const [saMappingSettings, setSaMappingSettings] = useState({});
   const [practiceManager, setPracticeManager] = useState(null);
+  const [showPracticeModal, setShowPracticeModal] = useState(false);
+  const [tempPracticeSelection, setTempPracticeSelection] = useState([]);
 
   useEffect(() => {
     if (user) {
@@ -219,6 +222,15 @@ export default function SAToAMMappingPage() {
       filtered = filtered.filter(mapping => mapping.region === filters.region);
     }
 
+    // Apply practices filter
+    if (filters.practices.length > 0) {
+      filtered = filtered.filter(mapping => 
+        filters.practices.some(practice => 
+          mapping.practices && mapping.practices.includes(practice)
+        )
+      );
+    }
+
     setFilteredMappings(filtered);
   };
 
@@ -235,8 +247,12 @@ export default function SAToAMMappingPage() {
   );
 
   const handleAddMapping = async () => {
-    if (!newMapping.saName || !newMapping.amName || !newMapping.region) {
-      alert('Please fill in all fields');
+    if (!newMapping.saName || !newMapping.amName || !newMapping.practices.length) {
+      alert('Please fill in SA name, AM name, and at least one practice');
+      return;
+    }
+    if (newMapping.amName !== 'All' && !newMapping.region) {
+      alert('Please select a region (not required for "All" mappings)');
       return;
     }
     try {
@@ -247,7 +263,7 @@ export default function SAToAMMappingPage() {
       });
       if (response.ok) {
         setShowAddModal(false);
-        setNewMapping({ saName: '', amName: '', region: '' });
+        setNewMapping({ saName: '', amName: '', region: '', practices: [] });
         fetchMappings(); // Refresh immediately
         // SSE will trigger fetchMappings() for all users
       }
@@ -257,8 +273,12 @@ export default function SAToAMMappingPage() {
   };
 
   const handleEditMapping = async () => {
-    if (!newMapping.saName || !newMapping.amName || !newMapping.region) {
-      alert('Please fill in all fields');
+    if (!newMapping.saName || !newMapping.amName || !newMapping.practices.length) {
+      alert('Please fill in SA name, AM name, and at least one practice');
+      return;
+    }
+    if (newMapping.amName !== 'All' && !newMapping.region) {
+      alert('Please select a region (not required for "All" mappings)');
       return;
     }
     try {
@@ -274,7 +294,7 @@ export default function SAToAMMappingPage() {
       if (response.ok) {
         setShowEditModal(false);
         setEditingMapping(null);
-        setNewMapping({ saName: '', amName: '', region: '' });
+        setNewMapping({ saName: '', amName: '', region: '', practices: [] });
         fetchMappings(); // Refresh immediately
       }
     } catch (error) {
@@ -286,7 +306,9 @@ export default function SAToAMMappingPage() {
     if (!confirm('Are you sure you want to delete this mapping?')) return;
     try {
       const response = await fetch(`/api/sa-to-am-mapping?id=${mappingId}&practiceGroupId=${selectedGroup}`, { method: 'DELETE' });
-      // SSE will trigger fetchMappings() for all users
+      if (response.ok) {
+        fetchMappings(); // Immediate refresh for user who deleted
+      }
     } catch (error) {
       console.error('Error deleting mapping:', error);
     }
@@ -295,8 +317,8 @@ export default function SAToAMMappingPage() {
   const handleAddAm = async () => {
     setAmError('');
     
-    if (!newAm.name.trim() || !newAm.email.trim()) {
-      setAmError('Name and email are required');
+    if (!newAm.name.trim() || !newAm.email.trim() || !newAm.region.trim()) {
+      setAmError('Name, email, and region are required');
       return;
     }
     
@@ -312,13 +334,15 @@ export default function SAToAMMappingPage() {
         body: JSON.stringify({
           name: newAm.name.trim(),
           email: newAm.email.trim(),
-          role: 'account_manager'
+          role: 'account_manager',
+          region: newAm.region.trim(),
+          auth_method: 'sso'
         })
       });
       
       if (response.ok) {
         setShowAddAmModal(false);
-        setNewAm({ name: '', email: '' });
+        setNewAm({ name: '', email: '', region: '' });
         setNewMapping({...newMapping, amName: newAm.name.trim()});
         await fetchAccountManagers(); // Refresh the list
       } else {
@@ -360,7 +384,11 @@ export default function SAToAMMappingPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Practice Group</label>
                 <select
                   value={selectedGroup}
-                  onChange={(e) => setSelectedGroup(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedGroup(e.target.value);
+                    setFilters({ region: '', practices: [] });
+                    setSearchTerm('');
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select a practice group</option>
@@ -375,24 +403,47 @@ export default function SAToAMMappingPage() {
             {/* Search and Filters */}
             {selectedGroup && selectedGroup !== '' && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-                <div className="flex flex-col lg:flex-row gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                   {/* Search */}
-                  <div className="flex-1">
+                  <div className="space-y-2 lg:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">Search</label>
                     <input
                       type="text"
                       placeholder="Search SA, AM, or region..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   
+                  {/* Practices Filter */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Practices</label>
+                    <button
+                      onClick={() => {
+                        setTempPracticeSelection(filters.practices);
+                        setShowPracticeModal(true);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm text-left flex items-center justify-between"
+                    >
+                      <span>
+                        {filters.practices.length === 0 ? 'All Practices' : 
+                         filters.practices.length === 1 ? filters.practices[0] : 
+                         'Multiple Practices'}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                  
                   {/* Region Filter */}
-                  <div className="flex gap-3">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Region</label>
                     <select
                       value={filters.region}
                       onChange={(e) => setFilters({...filters, region: e.target.value})}
-                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">All Regions</option>
                       {regions.map(region => (
@@ -401,19 +452,92 @@ export default function SAToAMMappingPage() {
                     </select>
                   </div>
                   
-                  {userCanEdit && (
+                  {/* Reset Button */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">&nbsp;</label>
                     <button
                       onClick={() => {
-                        setShowAddModal(true);
-                        fetchPracticeUsers(selectedGroup);
-                        fetchAccountManagers();
+                        setFilters({ region: '', practices: [] });
+                        setSearchTerm('');
                       }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
                     >
-                      Add New Mapping
+                      Reset
                     </button>
-                  )}
+                  </div>
+                  
+                  {/* Add New Mapping Button */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">&nbsp;</label>
+                    {userCanEdit && (
+                      <button
+                        onClick={() => {
+                          setShowAddModal(true);
+                          fetchPracticeUsers(selectedGroup);
+                          fetchAccountManagers();
+                        }}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        Add New Mapping
+                      </button>
+                    )}
+                  </div>
                 </div>
+                
+                {/* Active Filters Display */}
+                {(filters.practices.length > 0 || filters.region || searchTerm) && (
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {/* Practice Filters */}
+                      {filters.practices.length > 0 && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                          Practices: {filters.practices.join(', ')}
+                          <button
+                            onClick={() => setFilters({...filters, practices: []})}
+                            className="ml-1 hover:bg-green-200 rounded-full p-0.5"
+                          >
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </span>
+                      )}
+                      
+                      {/* Region Filter */}
+                      {filters.region && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                          Region: {filters.region}
+                          <button
+                            onClick={() => setFilters({...filters, region: ''})}
+                            className="ml-1 hover:bg-purple-200 rounded-full p-0.5"
+                          >
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </span>
+                      )}
+                      
+                      {/* Search Filter */}
+                      {searchTerm && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">
+                          Search: "{searchTerm}"
+                          <button
+                            onClick={() => setSearchTerm('')}
+                            className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                          >
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -468,7 +592,7 @@ export default function SAToAMMappingPage() {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Solutions Architect</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Account Manager</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Practice Group</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Practices</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Region</th>
                         {userCanEdit && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>}
                       </tr>
@@ -479,7 +603,16 @@ export default function SAToAMMappingPage() {
                           <td className="px-6 py-4 text-sm font-medium text-gray-900">{mapping.saName}</td>
                           <td className="px-6 py-4 text-sm text-gray-900">{mapping.amName}</td>
                           <td className="px-6 py-4 text-sm text-gray-900">
-                            {practiceGroups.find(group => group.id === mapping.practiceGroupId)?.displayName || 'Unknown'}
+                            <div className="flex flex-wrap gap-1">
+                              {(mapping.practices || []).map(practice => (
+                                <span key={practice} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  {practice}
+                                </span>
+                              ))}
+                              {(!mapping.practices || mapping.practices.length === 0) && (
+                                <span className="text-gray-400 italic">No practices assigned</span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-900">{mapping.region}</td>
                           {userCanEdit && (
@@ -491,7 +624,8 @@ export default function SAToAMMappingPage() {
                                     setNewMapping({
                                       saName: mapping.saName,
                                       amName: mapping.amName,
-                                      region: mapping.region
+                                      region: mapping.region,
+                                      practices: mapping.practices || []
                                     });
                                     setShowEditModal(true);
                                     fetchPracticeUsers(selectedGroup);
@@ -640,6 +774,16 @@ export default function SAToAMMappingPage() {
                       >
                         + Add New AM
                       </div>
+                      <div
+                        onClick={() => {
+                          setNewMapping({...newMapping, amName: 'All', region: ''});
+                          setShowAmDropdown(false);
+                        }}
+                        className="px-3 py-2 bg-green-50 hover:bg-green-100 cursor-pointer text-sm font-medium text-green-700 border-b border-gray-200"
+                        title="Map this SA to all existing Account Managers for the selected practices"
+                      >
+                        🌐 All Account Managers
+                      </div>
                       {accountManagers
                         .filter(am => 
                           am.name.toLowerCase().includes((newMapping.amName || '').toLowerCase())
@@ -648,7 +792,7 @@ export default function SAToAMMappingPage() {
                           <div
                             key={am.id}
                             onClick={() => {
-                              setNewMapping({...newMapping, amName: am.name});
+                              setNewMapping({...newMapping, amName: am.name, region: am.region || newMapping.region});
                               setShowAmDropdown(false);
                             }}
                             className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
@@ -668,24 +812,57 @@ export default function SAToAMMappingPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Practices *</label>
+                  <div className="border border-gray-300 rounded-md p-3 max-h-32 overflow-y-auto">
+                    {selectedPracticeGroup?.practices?.map(practice => (
+                      <label key={practice} className="flex items-center mb-2 last:mb-0">
+                        <input
+                          type="checkbox"
+                          checked={newMapping.practices.includes(practice)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewMapping({...newMapping, practices: [...newMapping.practices, practice]});
+                            } else {
+                              setNewMapping({...newMapping, practices: newMapping.practices.filter(p => p !== practice)});
+                            }
+                          }}
+                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-700">{practice}</span>
+                      </label>
+                    )) || (
+                      <p className="text-sm text-gray-500">No practices available for this group</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Select the practices this SA supports for this AM</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Region {newMapping.amName === 'All' && <span className="text-xs text-gray-500">(Not required for "All" mappings)</span>}
+                  </label>
                   <select
                     value={newMapping.region}
                     onChange={(e) => setNewMapping({...newMapping, region: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={newMapping.amName === 'All'}
                   >
-                    <option value="">Select a region</option>
-                    {regions.map(region => (
+                    <option value="">{newMapping.amName === 'All' ? 'No region (All AMs)' : 'Select a region'}</option>
+                    {newMapping.amName !== 'All' && regions.map(region => (
                       <option key={region.id} value={region.name}>{region.name}</option>
                     ))}
                   </select>
+                  {newMapping.amName === 'All' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Region is not assigned when mapping to all Account Managers
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => {
                     setShowAddModal(false);
-                    setNewMapping({ saName: '', amName: '', region: '' });
+                    setNewMapping({ saName: '', amName: '', region: '', practices: [] });
                     setShowSaDropdown(false);
                     setShowAmDropdown(false);
                   }}
@@ -697,7 +874,7 @@ export default function SAToAMMappingPage() {
                   onClick={handleAddMapping}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
-                  Add Mapping
+                  {newMapping.amName === 'All' ? 'Create All Mappings' : 'Add Mapping'}
                 </button>
               </div>
             </div>
@@ -808,6 +985,16 @@ export default function SAToAMMappingPage() {
                       >
                         + Add New AM
                       </div>
+                      <div
+                        onClick={() => {
+                          setNewMapping({...newMapping, amName: 'All', region: ''});
+                          setShowAmDropdown(false);
+                        }}
+                        className="px-3 py-2 bg-green-50 hover:bg-green-100 cursor-pointer text-sm font-medium text-green-700 border-b border-gray-200"
+                        title="Map this SA to all existing Account Managers for the selected practices"
+                      >
+                        🌐 All Account Managers
+                      </div>
                       {accountManagers
                         .filter(am => 
                           am.name.toLowerCase().includes((newMapping.amName || '').toLowerCase())
@@ -816,7 +1003,7 @@ export default function SAToAMMappingPage() {
                           <div
                             key={am.id}
                             onClick={() => {
-                              setNewMapping({...newMapping, amName: am.name});
+                              setNewMapping({...newMapping, amName: am.name, region: am.region || newMapping.region});
                               setShowAmDropdown(false);
                             }}
                             className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
@@ -836,17 +1023,50 @@ export default function SAToAMMappingPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Practices *</label>
+                  <div className="border border-gray-300 rounded-md p-3 max-h-32 overflow-y-auto">
+                    {selectedPracticeGroup?.practices?.map(practice => (
+                      <label key={practice} className="flex items-center mb-2 last:mb-0">
+                        <input
+                          type="checkbox"
+                          checked={newMapping.practices.includes(practice)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewMapping({...newMapping, practices: [...newMapping.practices, practice]});
+                            } else {
+                              setNewMapping({...newMapping, practices: newMapping.practices.filter(p => p !== practice)});
+                            }
+                          }}
+                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-700">{practice}</span>
+                      </label>
+                    )) || (
+                      <p className="text-sm text-gray-500">No practices available for this group</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Select the practices this SA supports for this AM</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Region {newMapping.amName === 'All' && <span className="text-xs text-gray-500">(Not required for "All" mappings)</span>}
+                  </label>
                   <select
                     value={newMapping.region}
                     onChange={(e) => setNewMapping({...newMapping, region: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={newMapping.amName === 'All'}
                   >
-                    <option value="">Select a region</option>
-                    {regions.map(region => (
+                    <option value="">{newMapping.amName === 'All' ? 'No region (All AMs)' : 'Select a region'}</option>
+                    {newMapping.amName !== 'All' && regions.map(region => (
                       <option key={region.id} value={region.name}>{region.name}</option>
                     ))}
                   </select>
+                  {newMapping.amName === 'All' && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Region is not assigned when mapping to all Account Managers
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
@@ -854,7 +1074,7 @@ export default function SAToAMMappingPage() {
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingMapping(null);
-                    setNewMapping({ saName: '', amName: '', region: '' });
+                    setNewMapping({ saName: '', amName: '', region: '', practices: [] });
                     setShowSaDropdown(false);
                     setShowAmDropdown(false);
                   }}
@@ -866,7 +1086,7 @@ export default function SAToAMMappingPage() {
                   onClick={handleEditMapping}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
-                  Update Mapping
+                  {newMapping.amName === 'All' ? 'Update All Mappings' : 'Update Mapping'}
                 </button>
               </div>
             </div>
@@ -912,13 +1132,29 @@ export default function SAToAMMappingPage() {
                   />
                   <p className="text-xs text-gray-500 mt-1">Must be a netsync.com email address</p>
                 </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Region *
+                  </label>
+                  <select
+                    value={newAm.region}
+                    onChange={(e) => setNewAm({...newAm, region: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a region</option>
+                    {regions.map(region => (
+                      <option key={region.id} value={region.name}>{region.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => {
                     setShowAddAmModal(false);
-                    setNewAm({ name: '', email: '' });
+                    setNewAm({ name: '', email: '', region: '' });
                     setAmError('');
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
@@ -931,6 +1167,80 @@ export default function SAToAMMappingPage() {
                 >
                   Add Account Manager
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Practice Filter Modal */}
+        {showPracticeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Practice Filters</h3>
+                <div className="space-y-2 mb-6 max-h-64 overflow-y-auto">
+                  {(() => {
+                    const availablePractices = selectedGroup === 'all' 
+                      ? [...new Set(practiceGroups.flatMap(group => group.practices || []))]
+                      : selectedPracticeGroup?.practices || [];
+                    
+                    return availablePractices.length > 0 ? availablePractices.map(practice => (
+                      <label key={practice} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={tempPracticeSelection.includes(practice)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setTempPracticeSelection([...tempPracticeSelection, practice]);
+                            } else {
+                              setTempPracticeSelection(tempPracticeSelection.filter(p => p !== practice));
+                            }
+                          }}
+                          className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-700">{practice}</span>
+                      </label>
+                    )) : (
+                      <p className="text-sm text-gray-500">No practices available</p>
+                    );
+                  })()}
+                </div>
+                <div className="flex gap-2 mb-4 flex-wrap">
+                  <button
+                    onClick={() => {
+                      const availablePractices = selectedGroup === 'all' 
+                        ? [...new Set(practiceGroups.flatMap(group => group.practices || []))]
+                        : selectedPracticeGroup?.practices || [];
+                      setTempPracticeSelection(availablePractices);
+                    }}
+                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={() => setTempPracticeSelection([])}
+                    className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                  >
+                    Unselect All
+                  </button>
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => setShowPracticeModal(false)}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilters({...filters, practices: tempPracticeSelection});
+                      setShowPracticeModal(false);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Apply
+                  </button>
+                </div>
               </div>
             </div>
           </div>

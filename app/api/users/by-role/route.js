@@ -16,7 +16,8 @@ export async function GET(request) {
       .map(user => ({
         id: user.email,
         name: user.name,
-        email: user.email
+        email: user.email,
+        region: user.region
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
 

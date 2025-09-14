@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb';
 import { validateUserSession } from '../../../lib/auth-check';
+import { saMappingAutoCreator } from '../../../lib/sa-mapping-auto-creator.js';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -52,10 +53,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
     
-    const { email, name, password, role, auth_method, specifyPassword, isAdmin, practices } = await request.json();
+    const { email, name, password, role, auth_method, specifyPassword, isAdmin, practices, region } = await request.json();
     
     if (!email || !name) {
       return NextResponse.json({ error: 'Email and name are required' }, { status: 400 });
+    }
+    
+    if (role === 'account_manager' && !region) {
+      return NextResponse.json({ error: 'Region is required for account managers' }, { status: 400 });
     }
     
     let finalPassword = password;
@@ -80,7 +85,10 @@ export async function POST(request) {
       'manual',
       requirePasswordChange,
       isAdmin || false,
-      practices || []
+      practices || [],
+      'active',
+      null,
+      region
     );
     
     if (success && auth_method === 'local') {
@@ -107,6 +115,18 @@ export async function POST(request) {
     }
     
     if (success) {
+      // Auto-create SA mappings if new user is an account manager
+      if (role === 'account_manager') {
+        try {
+          const mappingResult = await saMappingAutoCreator.createMappingsForNewAM(name, email);
+          if (mappingResult.success && mappingResult.created > 0) {
+            console.log(`Auto-created ${mappingResult.created} SA mappings for new AM: ${name}`);
+          }
+        } catch (mappingError) {
+          console.error('Error auto-creating SA mappings for new AM:', mappingError);
+        }
+      }
+      
       return NextResponse.json({ success: true });
     } else {
       return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });

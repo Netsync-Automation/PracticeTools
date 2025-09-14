@@ -9,6 +9,7 @@ import Breadcrumb from '../../../components/Breadcrumb';
 import { useAuth } from '../../../hooks/useAuth';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
 import EmailRulesManager from '../../../components/EmailRulesManager';
+import { getRoleColor } from '../../../utils/roleColors';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -113,12 +114,14 @@ export default function SettingsPage() {
     role: 'practice_member',
     isAdmin: false,
     practices: [],
-    auth_method: 'local'
+    auth_method: 'local',
+    region: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [specifyPassword, setSpecifyPassword] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [userRoles, setUserRoles] = useState([]);
+  const [regions, setRegions] = useState([]);
   
   const practicesList = PRACTICE_OPTIONS.sort();
 
@@ -330,6 +333,7 @@ export default function SettingsPage() {
         fetchUsers();
         fetchWebexBotsForFilter();
         fetchUserRoles();
+        fetchRegions();
       }
       
       // Load resource assignment settings
@@ -382,10 +386,10 @@ export default function SettingsPage() {
   
   // Set default practice team filter when webex bots are loaded
   useEffect(() => {
-    if (isNonAdminPracticeUser && user.practices && user.practices.length > 0 && webexBots.length > 0) {
+    if (isNonAdminPracticeUser && user.practices && user.practices.length > 0 && webexBotsForFilter.length > 0) {
       // Find matching practice teams
       const userPractices = user.practices;
-      const matchingBots = webexBots.filter(bot => 
+      const matchingBots = webexBotsForFilter.filter(bot => 
         bot.practices && bot.practices.some(practice => userPractices.includes(practice))
       );
       
@@ -394,7 +398,7 @@ export default function SettingsPage() {
         setUserFilters(prev => ({...prev, webexBot: matchingBots[0].friendlyName || matchingBots[0].name}));
       }
     }
-  }, [webexBots, isNonAdminPracticeUser, user?.practices]);
+  }, [webexBotsForFilter, isNonAdminPracticeUser, user?.practices]);
 
   // Update room name when rooms are loaded and we have a room ID
   useEffect(() => {
@@ -610,6 +614,16 @@ export default function SettingsPage() {
     }
   };
 
+  const fetchRegions = async () => {
+    try {
+      const response = await fetch('/api/regions');
+      const data = await response.json();
+      setRegions(data.regions || []);
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/admin/users');
@@ -698,6 +712,8 @@ export default function SettingsPage() {
           role: editingUser.role,
           isAdmin: editingUser.isAdmin,
           practices: editingUser.practices || [],
+          auth_method: editingUser.auth_method,
+          region: editingUser.region,
           status: 'active'
         })
       });
@@ -1808,7 +1824,7 @@ export default function SettingsPage() {
                         if (isNonAdminPracticeUser && user.practices && user.practices.length > 0) {
                           // For practice users, reset but maintain their practice team restriction
                           const userPractices = user.practices;
-                          const matchingBots = webexBots.filter(bot => 
+                          const matchingBots = webexBotsForFilter.filter(bot => 
                             bot.practices && bot.practices.some(practice => userPractices.includes(practice))
                           );
                           
@@ -1867,13 +1883,13 @@ export default function SettingsPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
                       >
                         {!isNonAdminPracticeUser && <option value="">All Teams</option>}
-                        {webexBots.filter(bot => {
+                        {webexBotsForFilter.filter(bot => {
                           // Filter bots based on user's practices for non-admin practice users
                           if (isNonAdminPracticeUser && user.practices && user.practices.length > 0) {
                             return bot.practices && bot.practices.some(practice => user.practices.includes(practice));
                           }
                           return true; // Show all bots for admins
-                        }).map(bot => (
+                        }).sort((a, b) => (a.friendlyName || a.name).localeCompare(b.friendlyName || b.name)).map(bot => (
                           <option key={bot.id} value={bot.friendlyName || bot.name}>
                             {bot.friendlyName || bot.name}
                           </option>
@@ -2031,7 +2047,12 @@ export default function SettingsPage() {
                           if (userFilters.userType === 'webex' && userItem.created_from !== 'webex_sync') return false;
                           
                           // Practice Team filter (by webex_bot_source)
-                          if (userFilters.webexBot && userItem.webex_bot_source !== userFilters.webexBot) return false;
+                          if (userFilters.webexBot) {
+                            // Check if user has webex_bot_source that matches the selected bot
+                            if (!userItem.webex_bot_source || userItem.webex_bot_source !== userFilters.webexBot) {
+                              return false;
+                            }
+                          }
                           
                           // For non-admin practice users, only show WebEx synchronized users
                           if (isNonAdminPracticeUser && userItem.created_from !== 'webex_sync') return false;
@@ -2065,15 +2086,7 @@ export default function SettingsPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex gap-1">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  userItem.role === 'practice_principal'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : userItem.role === 'practice_manager'
-                                    ? 'bg-orange-100 text-orange-800'
-                                    : userItem.role === 'netsync_employee'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-green-100 text-green-800'
-                                }`}>
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(userItem.role)}`}>
                                   {userItem.role.replace('_', ' ')}
                                 </span>
                                 {userItem.isAdmin && (
@@ -2084,21 +2097,29 @@ export default function SettingsPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="flex flex-wrap gap-1">
-                                {(userItem.practices || []).map(practice => (
-                                  <span key={practice} className="inline-flex px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">
-                                    {practice}
-                                  </span>
-                                ))}
-                                {(!userItem.practices || userItem.practices.length === 0) && (
-                                  <span className="text-xs text-gray-400">No practices assigned</span>
-                                )}
-                              </div>
+                              {['netsync_employee', 'executive', 'account_manager', 'isr'].includes(userItem.role) ? (
+                                <span className="text-xs text-gray-500 italic">Can't be assigned to practices</span>
+                              ) : (
+                                <div className="flex flex-wrap gap-1">
+                                  {(userItem.practices || []).map(practice => (
+                                    <span key={practice} className="inline-flex px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">
+                                      {practice}
+                                    </span>
+                                  ))}
+                                  {(!userItem.practices || userItem.practices.length === 0) && (
+                                    <span className="text-xs text-gray-400">No practices assigned</span>
+                                  )}
+                                </div>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm text-gray-900">
-                                {userItem.webex_bot_source || 'N/A'}
-                              </span>
+                              {['netsync_employee', 'executive', 'account_manager', 'isr'].includes(userItem.role) ? (
+                                <span className="text-xs text-gray-500 italic">Can't be assigned to practices</span>
+                              ) : (
+                                <span className="text-sm text-gray-900">
+                                  {userItem.webex_bot_source || 'N/A'}
+                                </span>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -3345,7 +3366,24 @@ export default function SettingsPage() {
                     </select>
                   </div>
                   
-                  {newUser.role !== 'netsync_employee' && (
+                  {newUser.role === 'account_manager' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Region *</label>
+                      <select
+                        value={newUser.region}
+                        onChange={(e) => setNewUser({...newUser, region: e.target.value})}
+                        className="input-field"
+                        required
+                      >
+                        <option value="">Select a region</option>
+                        {regions.map(region => (
+                          <option key={region.id} value={region.name}>{region.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {!['netsync_employee', 'account_manager', 'isr', 'executive'].includes(newUser.role) && (
                     <div>
                       <label className="block text-sm font-medium mb-2">Practices</label>
                       <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
@@ -3388,7 +3426,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => {
                       setShowAddUser(false);
-                      setNewUser({ email: '', name: '', password: '', role: 'practice_member', isAdmin: false, auth_method: 'local' });
+                      setNewUser({ email: '', name: '', password: '', role: 'practice_member', isAdmin: false, practices: [], auth_method: 'local', region: '' });
                       setShowPassword(false);
                       setSpecifyPassword(false);
                     }}
@@ -3398,7 +3436,7 @@ export default function SettingsPage() {
                   </button>
                   <button
                     onClick={handleAddUser}
-                    disabled={!newUser.email || !newUser.name || loadingActions.add}
+                    disabled={!newUser.email || !newUser.name || (newUser.role === 'account_manager' && !newUser.region) || loadingActions.add}
                     className={`flex-1 ${loadingActions.add ? 'btn-disabled' : 'btn-primary'}`}
                   >
                     {loadingActions.add ? 'Adding...' : 'Add User'}
@@ -3450,7 +3488,40 @@ export default function SettingsPage() {
                     </select>
                   </div>
                   
-                  {editingUser.role !== 'netsync_employee' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Auth Method</label>
+                    <select
+                      value={editingUser.auth_method || 'local'}
+                      onChange={(e) => setEditingUser({...editingUser, auth_method: e.target.value})}
+                      className="input-field"
+                    >
+                      {[
+                        { value: 'local', label: 'Local' },
+                        { value: 'sso', label: 'SSO' }
+                      ].sort((a, b) => a.label.localeCompare(b.label)).map(auth => (
+                        <option key={auth.value} value={auth.value}>{auth.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {editingUser.role === 'account_manager' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Region *</label>
+                      <select
+                        value={editingUser.region || ''}
+                        onChange={(e) => setEditingUser({...editingUser, region: e.target.value})}
+                        className="input-field"
+                        required
+                      >
+                        <option value="">Select a region</option>
+                        {regions.map(region => (
+                          <option key={region.id} value={region.name}>{region.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {!['netsync_employee', 'account_manager', 'isr', 'executive'].includes(editingUser.role) && (
                     <div>
                       <label className="block text-sm font-medium mb-2">Practices</label>
                       <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
@@ -3499,7 +3570,7 @@ export default function SettingsPage() {
                   </button>
                   <button
                     onClick={handleEditUser}
-                    disabled={loadingActions.edit}
+                    disabled={loadingActions.edit || (editingUser.role === 'account_manager' && !editingUser.region)}
                     className={`flex-1 ${loadingActions.edit ? 'btn-disabled' : 'btn-primary'}`}
                   >
                     {loadingActions.edit ? 'Updating...' : 'Update User'}

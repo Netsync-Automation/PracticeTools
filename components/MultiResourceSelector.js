@@ -10,13 +10,15 @@ export default function MultiResourceSelector({
   placeholder = "Select or type a user name...",
   className = "",
   required = false,
-  maxResources = 10
+  maxResources = 10,
+  amEmail = null
 }) {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userPractices, setUserPractices] = useState({});
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -27,6 +29,12 @@ export default function MultiResourceSelector({
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (users.length > 0) {
+      mapUserPractices();
+    }
+  }, [users, assignedPractices]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -78,6 +86,20 @@ export default function MultiResourceSelector({
     } finally {
       setLoading(false);
     }
+  };
+
+  const mapUserPractices = () => {
+    const practices = {};
+    users.forEach(user => {
+      if (user.practices && Array.isArray(user.practices)) {
+        const matchingPractices = user.practices.filter(p => assignedPractices.includes(p));
+        if (matchingPractices.length > 0) {
+          practices[user.name] = matchingPractices;
+        }
+      }
+    });
+    
+    setUserPractices(practices);
   };
 
   const handleUserSelect = (user) => {
@@ -140,6 +162,15 @@ export default function MultiResourceSelector({
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900 truncate">{resource}</p>
                     <p className="text-xs text-gray-500">Resource #{index + 1}</p>
+                    {userPractices[resource] && userPractices[resource].length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {userPractices[resource].map((practice, pIndex) => (
+                          <span key={pIndex} className="inline-flex items-center px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full border border-green-200">
+                            {practice}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <button

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon, PlusIcon, UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { getRoleColor } from '../utils/roleColors';
 
 function NavbarLogo() {
   const [logoSrc, setLogoSrc] = useState('/company-logo.png');
@@ -165,15 +166,15 @@ export default function Navbar({ user, onLogout }) {
                       <div className="px-4 py-3 border-b border-gray-100">
                         <div className="font-medium text-gray-900">{user?.name}</div>
                         <div className="text-sm text-gray-500">{user?.email}</div>
-                        <div className="text-xs text-blue-600 font-medium">
-                          {(() => {
-                            const roles = [];
-                            if (user?.role === 'practice_manager') roles.push('Practice Manager');
-                            if (user?.role === 'practice_principal') roles.push('Practice Principal');
-                            if (user?.role === 'practice_member') roles.push('Practice Member');
-                            if (user?.isAdmin) roles.push('Admin');
-                            return roles.join(', ') || 'User';
-                          })()}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user?.role)}`}>
+                            {user?.role?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'User'}
+                          </span>
+                          {user?.isAdmin && (
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                              Admin
+                            </span>
+                          )}
                         </div>
                       </div>
                       {user?.auth_method === 'local' && (
@@ -242,15 +243,15 @@ export default function Navbar({ user, onLogout }) {
               <div className="px-3 py-2 border-t border-gray-100 mt-2">
                 <div className="text-sm font-medium text-gray-900">{user?.name}</div>
                 <div className="text-xs text-gray-500">{user?.email}</div>
-                <div className="text-xs text-gray-500">
-                  {(() => {
-                    const roles = [];
-                    if (user?.role === 'practice_manager') roles.push('Practice Manager');
-                    if (user?.role === 'practice_principal') roles.push('Practice Principal');
-                    if (user?.role === 'practice_member') roles.push('Practice Member');
-                    if (user?.isAdmin) roles.push('Admin');
-                    return roles.join(', ') || 'User';
-                  })()}
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user?.role)}`}>
+                    {user?.role?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'User'}
+                  </span>
+                  {user?.isAdmin && (
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                      Admin
+                    </span>
+                  )}
                 </div>
               </div>
               {user?.auth_method === 'local' && (
