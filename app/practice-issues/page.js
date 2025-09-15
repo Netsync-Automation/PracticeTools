@@ -14,22 +14,21 @@ import Pagination from '../../components/Pagination';
 import TimestampDisplay from '../../components/TimestampDisplay';
 import UserDisplay from '../../components/UserDisplay';
 import { getLeadershipVisibilityText, fetchLeadershipVisibilityData } from '../../lib/leadership-visibility';
-import { PRACTICE_OPTIONS } from '../../constants/practices';
+import { useCsrf } from '../../hooks/useCsrf';
+import { sanitizeText } from '../../lib/sanitize';
 
 function FollowButton({ issueId, compact = false }) {
+  const { getHeaders } = useCsrf();
   const [following, setFollowing] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const checkFollowStatus = async () => {
     try {
-      console.log(`Checking initial follow status for issue: ${issueId}`);
       const response = await fetch(`/api/issues/${issueId}/follow`);
       const data = await response.json();
-      console.log(`Initial follow status response:`, data);
       setFollowing(data.following);
-      console.log(`Set following state to: ${data.following}`);
     } catch (error) {
-      console.error('Error checking follow status:', error);
+      // Error checking follow status - continue with default
     }
   };
 
@@ -55,38 +54,29 @@ function FollowButton({ issueId, compact = false }) {
   const handleFollow = async (e) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log('Follow button clicked for issue:', issueId);
     setLoading(true);
     try {
       const response = await fetch(`/api/issues/${issueId}/follow`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: getHeaders()
       });
-      console.log('Follow response status:', response.status);
       const data = await response.json();
-      console.log('Follow response data:', data);
       if (data.success) {
         setFollowing(data.following);
-        console.log('Follow status updated to:', data.following);
         
         // Force refresh the follow status to ensure consistency
         setTimeout(async () => {
           try {
             const refreshResponse = await fetch(`/api/issues/${issueId}/follow`);
             const refreshData = await refreshResponse.json();
-            console.log('Refreshed follow status:', refreshData.following);
             setFollowing(refreshData.following);
           } catch (error) {
-            console.error('Error refreshing follow status:', error);
+            // Error refreshing follow status - continue with current state
           }
         }, 500);
-      } else {
-        console.error('Follow failed:', data.error);
       }
     } catch (error) {
-      console.error('Error following issue:', error);
+      // Error following issue - continue with current state
     } finally {
       setLoading(false);
     }
@@ -128,7 +118,9 @@ function FollowButton({ issueId, compact = false }) {
 
 export default function PracticeIssuesPage() {
   const router = useRouter();
+  const { getHeaders } = useCsrf();
   const [user, setUser] = useState(null);
+  const [practiceOptions, setPracticeOptions] = useState([]);
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(() => {
@@ -196,7 +188,7 @@ export default function PracticeIssuesPage() {
           }
         }
       } catch (error) {
-        console.error('Error checking session:', error);
+        // Error checking session - continue to fallback
       }
       
       // Fallback to localStorage for client-side persistence
@@ -214,6 +206,7 @@ export default function PracticeIssuesPage() {
     fetchIssues();
     fetchUserData();
     fetchIssueTypes();
+    fetchPracticeOptions();
     
     // Load app name
     const loadAppName = async () => {
@@ -224,7 +217,7 @@ export default function PracticeIssuesPage() {
           setAppName(data.appName);
         }
       } catch (error) {
-        console.error('Error loading app name:', error);
+        // Error loading app name - continue with default
       }
     };
     loadAppName();
@@ -285,7 +278,7 @@ export default function PracticeIssuesPage() {
             // Heartbeat received
           }
         } catch (error) {
-          console.error('SSE parsing error:', error);
+          // SSE parsing error - continue
         }
       };
       
@@ -327,7 +320,7 @@ export default function PracticeIssuesPage() {
       setIssues(issuesList);
       await loadVisibilityData(issuesList);
     } catch (error) {
-      console.error('Error fetching issues:', error);
+      // Error fetching issues - continue with empty array
     } finally {
       setLoading(false);
     }
@@ -347,7 +340,7 @@ export default function PracticeIssuesPage() {
         setUserUpvotes(upvotesData.upvotes || []);
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      // Error fetching user data - continue with empty arrays
     }
   }, []);
 
@@ -366,7 +359,19 @@ export default function PracticeIssuesPage() {
       const data = await response.json();
       setIssueTypes(data.issueTypes || []);
     } catch (error) {
-      console.error('Error fetching issue types:', error);
+      // Error fetching issue types - continue with empty array
+    }
+  };
+
+  const fetchPracticeOptions = async () => {
+    try {
+      const response = await fetch('/api/practice-options');
+      const data = await response.json();
+      setPracticeOptions(data.practices || []);
+    } catch (error) {
+      // Fallback to constants until database is set up
+      const { PRACTICE_OPTIONS } = await import('../../constants/practices');
+      setPracticeOptions(PRACTICE_OPTIONS);
     }
   };
 
@@ -408,7 +413,7 @@ export default function PracticeIssuesPage() {
     try {
       const response = await fetch('/api/upvote', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ issue_id: issueId })
       });
       
@@ -420,7 +425,7 @@ export default function PracticeIssuesPage() {
         try {
           fetch('/api/notify-upvote', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify({ issueId, upvotes: data.upvotes })
           });
         } catch (error) {
@@ -855,7 +860,7 @@ export default function PracticeIssuesPage() {
                 <h3 className="text-lg font-semibold mb-4">Select Practices</h3>
                 
                 <div className="space-y-3 mb-6">
-                  {PRACTICE_OPTIONS.sort().map(practice => (
+                  {practiceOptions.sort().map(practice => (
                     <label key={practice} className="flex items-center">
                       <input
                         type="checkbox"
@@ -876,7 +881,7 @@ export default function PracticeIssuesPage() {
                 
                 <div className="flex gap-2 mb-4">
                   <button
-                    onClick={() => setTempPracticeSelection([...PRACTICE_OPTIONS])}
+                    onClick={() => setTempPracticeSelection([...practiceOptions])}
                     className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                   >
                     All Practices
@@ -981,7 +986,12 @@ function IssueTable({ issues, user, visibilityData, onUpvote, onUpdate, columnSo
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {issues.map((issue) => {
-              const attachments = JSON.parse(issue.attachments || '[]');
+              let attachments = [];
+              try {
+                attachments = JSON.parse(issue.attachments || '[]');
+              } catch (error) {
+                attachments = [];
+              }
               
               return (
                 <tr 

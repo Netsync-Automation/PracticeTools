@@ -3,7 +3,7 @@ import { db } from '../../../lib/dynamodb.js';
 
 export async function GET() {
   try {
-    // Get all practice managers
+    // Get practice managers directly
     const users = await db.getAllUsers();
     const practiceManagers = users.filter(user => user.role === 'practice_manager');
     

@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useBoardDragDrop } from '../../hooks/useBoardDragDrop';
+import { useCsrf } from '../../hooks/useCsrf';
+import { sanitizeText } from '../../lib/sanitize';
 import SidebarLayout from '../../components/SidebarLayout';
 import Navbar from '../../components/Navbar';
 import Breadcrumb from '../../components/Breadcrumb';
@@ -154,6 +156,7 @@ function FileDropZone({ onFilesSelected, files }) {
 
 export default function PracticeInformationPage() {
   const { user, loading, logout } = useAuth();
+  const { getHeaders } = useCsrf();
   const [columns, setColumns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNewColumn, setShowNewColumn] = useState(false);
@@ -217,11 +220,20 @@ export default function PracticeInformationPage() {
     { id: 'gradient3', name: 'Sunset Glow', style: { background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' } }
   ];
 
-  const canEdit = user && (user.isAdmin || 
+  const isAdminLevel = user && (user.isAdmin || user.role === 'executive');
+  
+  const canEdit = user && (isAdminLevel || 
     ((user.role === 'practice_manager' || user.role === 'practice_principal') && 
     currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))));
   
-  const canComment = user && (user.isAdmin || 
+  const canAddCards = user && (isAdminLevel || 
+    ((user.role === 'practice_manager' || user.role === 'practice_principal' || user.role === 'practice_member') && 
+    currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))));
+  
+  const canComment = user && (isAdminLevel || 
+    (user.role === 'practice_manager' && currentBoardPractices.length > 0) ||
+    (user.role === 'practice_principal' && currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))) ||
+    (user.role === 'practice_member' && currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))) ||
     (currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))));
 
   useEffect(() => {
@@ -485,7 +497,7 @@ export default function PracticeInformationPage() {
     try {
       const response = await fetch('/api/practice-boards', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ practiceId: currentPracticeId, topic: currentTopic, columns: newColumns })
       });
       
@@ -512,7 +524,7 @@ export default function PracticeInformationPage() {
     try {
       const response = await fetch('/api/practice-boards/topics', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ practiceId: currentPracticeId, topic: topicName })
       });
       
@@ -548,7 +560,7 @@ export default function PracticeInformationPage() {
     try {
       const response = await fetch('/api/practice-boards/topics', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ practiceId: currentPracticeId, oldTopic: oldName, newTopic: newName.trim() })
       });
       
@@ -584,7 +596,7 @@ export default function PracticeInformationPage() {
     try {
       const response = await fetch('/api/practice-boards/topics', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ practiceId: currentPracticeId, topic: topicName })
       });
       
@@ -611,7 +623,7 @@ export default function PracticeInformationPage() {
       // Always save background settings at practice level (shared across all topics)
       const response = await fetch('/api/practice-boards/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ practiceId: currentPracticeId, settings })
       });
       const result = await response.json();
@@ -685,10 +697,11 @@ export default function PracticeInformationPage() {
 
   // All other functions remain the same...
   const addColumn = () => {
-    if (newColumnTitle.trim()) {
+    const sanitizedTitle = sanitizeText(newColumnTitle);
+    if (sanitizedTitle) {
       const newColumn = {
         id: Date.now().toString(),
-        title: newColumnTitle.trim(),
+        title: sanitizedTitle,
         cards: [],
         createdBy: user?.email,
         createdAt: new Date().toISOString()
@@ -710,7 +723,7 @@ export default function PracticeInformationPage() {
   };
 
   const canDeleteColumn = (column) => {
-    return user && (user.isAdmin || user.email === column.createdBy);
+    return user && (isAdminLevel || user.email === column.createdBy);
   };
 
   const updateColumnTitle = (columnId, newTitle) => {
@@ -725,15 +738,18 @@ export default function PracticeInformationPage() {
   };
 
   const canDeleteCard = (card) => {
-    return user && (user.isAdmin || user.email === card.createdBy);
+    return user && (isAdminLevel || user.email === card.createdBy || 
+      (user.role === 'practice_member' && user.email === card.createdBy));
   };
 
   const addCard = (columnId) => {
-    if (newCardTitle.trim()) {
+    const sanitizedTitle = sanitizeText(newCardTitle);
+    const sanitizedDescription = sanitizeText(newCardDescription);
+    if (sanitizedTitle) {
       const newCard = {
         id: Date.now().toString(),
-        title: newCardTitle.trim(),
-        description: newCardDescription.trim(),
+        title: sanitizedTitle,
+        description: sanitizedDescription,
         createdAt: new Date().toISOString(),
         createdBy: user?.email,
         comments: [],
@@ -781,10 +797,11 @@ export default function PracticeInformationPage() {
   };
 
   const addComment = (columnId, cardId) => {
-    if (cardComment.trim()) {
+    const sanitizedComment = sanitizeText(cardComment);
+    if (sanitizedComment) {
       const comment = {
         id: Date.now().toString(),
-        text: cardComment.trim(),
+        text: sanitizedComment,
         author: user?.name || user?.email,
         createdAt: new Date().toISOString()
       };
@@ -989,7 +1006,7 @@ export default function PracticeInformationPage() {
                   <p className="text-gray-600 mt-2">Organize and track practice information using cards and columns</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {canEdit && availableBoards.length > 0 && (
+                  {canEdit && availableBoards.length > 0 && (isAdminLevel || user.role !== 'practice_member') && (
                     <button
                       onClick={() => setShowBoardSettings(true)}
                       className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -1137,7 +1154,7 @@ export default function PracticeInformationPage() {
                             <option key={topic} value={topic}>{topic}</option>
                           ))}
                         </select>
-                        {canEdit && currentTopic !== 'Main Topic' && (
+                        {canEdit && currentTopic !== 'Main Topic' && (isAdminLevel || user.role !== 'practice_member') && (
                           <button
                             onClick={() => setEditingTopic(currentTopic)}
                             className="text-gray-400 hover:text-blue-500 p-1 rounded"
@@ -1146,7 +1163,7 @@ export default function PracticeInformationPage() {
                             <PencilIcon className="h-4 w-4" />
                           </button>
                         )}
-                        {canEdit && (
+                        {canEdit && (isAdminLevel || user.role !== 'practice_member') && (
                           <button
                             onClick={() => setShowNewTopic(true)}
                             className="text-gray-400 hover:text-green-500 p-1 rounded"
@@ -1155,7 +1172,7 @@ export default function PracticeInformationPage() {
                             <PlusIcon className="h-4 w-4" />
                           </button>
                         )}
-                        {canEdit && currentTopic !== 'Main Topic' && (
+                        {canEdit && currentTopic !== 'Main Topic' && (isAdminLevel || user.role !== 'practice_member') && (
                           <button
                             onClick={() => deleteTopic(currentTopic)}
                             className="text-gray-400 hover:text-red-500 p-1 rounded"
@@ -1172,7 +1189,7 @@ export default function PracticeInformationPage() {
             </div>
           </div>
 
-          {showNewTopic && (
+          {showNewTopic && (isAdminLevel || user.role !== 'practice_member') && (
             <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center gap-3">
                 <label className="text-sm font-medium text-gray-700">New Topic Name:</label>
@@ -1268,7 +1285,7 @@ export default function PracticeInformationPage() {
                           ))}
                         </DroppableArea>
 
-                        {canEdit && (
+                        {canAddCards && (
                           <div>
                             {showNewCard[column.id] ? (
                               <div className="bg-white rounded-lg p-4 border border-gray-200 space-y-3">
@@ -1563,7 +1580,15 @@ export default function PracticeInformationPage() {
                 {!canComment && (
                   <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                     <p className="text-sm text-gray-600">
-                      You can only add attachments to boards for practices you are assigned to.
+                      {user.role === 'practice_manager' 
+                        ? 'Practice Managers can view all boards but can only add attachments to their assigned practice boards.'
+                        : user.role === 'practice_principal'
+                        ? 'Practice Principals can view all boards but can only add attachments to their assigned practice boards.'
+                        : user.role === 'practice_member'
+                        ? 'Practice Members can view all boards but can only add attachments to their assigned practice boards.'
+                        : ['account_manager', 'isr', 'netsync_employee'].includes(user.role)
+                        ? 'You have view-only access to practice boards and cannot add attachments.'
+                        : 'You can only add attachments to boards for practices you are assigned to.'}
                     </p>
                   </div>
                 )}
@@ -1637,7 +1662,15 @@ export default function PracticeInformationPage() {
                 {!canComment && (
                   <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                     <p className="text-sm text-gray-600">
-                      You can only comment on boards for practices you are assigned to.
+                      {user.role === 'practice_manager' 
+                        ? 'Practice Managers can view all boards but can only comment on their assigned practice boards.'
+                        : user.role === 'practice_principal'
+                        ? 'Practice Principals can view all boards but can only comment on their assigned practice boards.'
+                        : user.role === 'practice_member'
+                        ? 'Practice Members can view all boards but can only comment on their assigned practice boards.'
+                        : ['account_manager', 'isr', 'netsync_employee'].includes(user.role)
+                        ? 'You have view-only access to practice boards and cannot add comments.'
+                        : 'You can only comment on boards for practices you are assigned to.'}
                     </p>
                   </div>
                 )}

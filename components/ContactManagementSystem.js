@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useCsrf } from '../hooks/useCsrf';
+import { sanitizeText } from '../lib/sanitize';
 
 export default function ContactManagementSystem({ practiceGroupId, contactType, user, refreshTrigger, canAddCompaniesContacts }) {
+  const { getHeaders } = useCsrf();
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -73,7 +76,7 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       
       setFieldOptions(options);
     } catch (error) {
-      console.error('Error fetching field options:', error);
+      // Error fetching field options - continue with defaults
     }
   };
 
@@ -88,7 +91,7 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       const data = await response.json();
       setCompanies(data.companies || []);
     } catch (error) {
-      console.error('Error fetching companies:', error);
+      // Error fetching companies - continue with empty array
     } finally {
       setLoading(false);
     }
@@ -100,7 +103,7 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       const data = await response.json();
       setContacts(data.contacts || []);
     } catch (error) {
-      console.error('Error fetching contacts:', error);
+      // Error fetching contacts - continue with empty array
     }
   };
 
@@ -119,7 +122,6 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       }
       return allContacts;
     } catch (error) {
-      console.error('Error fetching all contacts:', error);
       return [];
     }
   };
@@ -216,12 +218,19 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
   const handleAddCompany = async (e) => {
     e.preventDefault();
     try {
+      const sanitizedForm = {
+        ...companyForm,
+        name: sanitizeText(companyForm.name),
+        technology: sanitizeText(companyForm.technology),
+        solutionType: sanitizeText(companyForm.solutionType),
+        website: formatWebsiteUrl(sanitizeText(companyForm.website))
+      };
+      
       const response = await fetch('/api/companies', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
-          ...companyForm,
-          website: formatWebsiteUrl(companyForm.website),
+          ...sanitizedForm,
           practiceGroupId,
           contactType,
           addedBy: user.email
@@ -242,18 +251,28 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
         setShowAddCompany(false);
       }
     } catch (error) {
-      console.error('Error adding company:', error);
+      // Error adding company - user will see no change
     }
   };
 
   const handleAddContact = async (e) => {
     e.preventDefault();
     try {
+      const sanitizedForm = {
+        ...contactForm,
+        name: sanitizeText(contactForm.name),
+        email: contactForm.email.trim(),
+        role: sanitizeText(contactForm.role),
+        cellPhone: sanitizeText(contactForm.cellPhone),
+        officePhone: sanitizeText(contactForm.officePhone),
+        fax: sanitizeText(contactForm.fax)
+      };
+      
       const response = await fetch('/api/contacts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
-          ...contactForm,
+          ...sanitizedForm,
           companyId: selectedCompany.id,
           addedBy: user.email
         })
@@ -273,7 +292,7 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
         setShowAddContact(false);
       }
     } catch (error) {
-      console.error('Error adding contact:', error);
+      // Error adding contact - user will see no change
     }
   };
 

@@ -6,9 +6,9 @@ export const dynamic = 'force-dynamic';
 export async function PUT(request, { params }) {
   try {
     const { email } = params;
-    const { name, role, auth_method, created_from, isAdmin, practices } = await request.json();
+    const { name, role, auth_method, created_from, isAdmin, practices, region } = await request.json();
     
-    console.log('Updating user:', { email, name, role, auth_method, created_from });
+    console.log('Updating user:', { email, name, role, auth_method, created_from, region, isAdmin, practices });
     
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
@@ -21,10 +21,20 @@ export async function PUT(request, { params }) {
     if (created_from) updates.created_from = created_from;
     if (typeof isAdmin === 'boolean') updates.isAdmin = isAdmin;
     if (practices) updates.practices = practices;
+    if (region !== undefined) updates.region = region;
+    
+    console.log('Updates object:', updates);
     
     // Auto-activate staged users when they get assigned role and practices
     const currentUser = await db.getUser(decodeURIComponent(email));
     if (currentUser && currentUser.status === 'staged' && role && (practices && practices.length > 0 || role === 'netsync_employee')) {
+      updates.status = 'active';
+    }
+    
+    // Ensure account managers without region are staged
+    if (role === 'account_manager' && !region) {
+      updates.status = 'staged';
+    } else if (role === 'account_manager' && region && currentUser?.status === 'staged') {
       updates.status = 'active';
     }
     

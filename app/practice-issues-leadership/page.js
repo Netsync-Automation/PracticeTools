@@ -12,10 +12,14 @@ import Breadcrumb from '../../components/Breadcrumb';
 import AccessCheck from '../../components/AccessCheck';
 import UserDisplay from '../../components/UserDisplay';
 import { useAuth } from '../../hooks/useAuth';
+import { useCsrf } from '../../hooks/useCsrf';
+import { sanitizeText } from '../../lib/sanitize';
 
 export default function PracticeIssuesLeadershipPage() {
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const { getHeaders } = useCsrf();
+  const [practiceOptions, setPracticeOptions] = useState([]);
   const [stats, setStats] = useState({
     totalIssues: 0,
     openIssues: 0,
@@ -78,6 +82,7 @@ export default function PracticeIssuesLeadershipPage() {
       fetchAllIssues();
       fetchLeaders();
       fetchIssueTypes();
+      fetchPracticeOptions();
       // Don't set default assigned admin - show all leaders by default
     }
   }, [user, router]);
@@ -102,7 +107,7 @@ export default function PracticeIssuesLeadershipPage() {
         totalUsers: users.length
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      // Error fetching stats - continue with defaults
     }
   };
 
@@ -112,7 +117,7 @@ export default function PracticeIssuesLeadershipPage() {
       const data = await response.json();
       setAllIssues(data.issues || []);
     } catch (error) {
-      console.error('Error fetching issues:', error);
+      // Error fetching issues - continue with empty array
     } finally {
       setLoadingIssues(false);
     }
@@ -123,10 +128,21 @@ export default function PracticeIssuesLeadershipPage() {
       const response = await fetch('/api/practice-leaders');
       const data = await response.json();
       const practiceLeaders = data.leaders || [];
-      console.log('Practice leaders found:', practiceLeaders);
       setLeaders(practiceLeaders);
     } catch (error) {
-      console.error('Error fetching leaders:', error);
+      // Error fetching leaders - continue with empty array
+    }
+  };
+
+  const fetchPracticeOptions = async () => {
+    try {
+      const response = await fetch('/api/practice-options');
+      const data = await response.json();
+      setPracticeOptions(data.practices || []);
+    } catch (error) {
+      // Fallback to constants until database is set up
+      const { PRACTICE_OPTIONS } = await import('../../constants/practices');
+      setPracticeOptions(PRACTICE_OPTIONS);
     }
   };
 
@@ -136,7 +152,7 @@ export default function PracticeIssuesLeadershipPage() {
       const data = await response.json();
       setIssueTypes(data.issueTypes || []);
     } catch (error) {
-      console.error('Error fetching issue types:', error);
+      // Error fetching issue types - continue with empty array
     }
   };
 
@@ -541,20 +557,7 @@ export default function PracticeIssuesLeadershipPage() {
                 <h3 className="text-lg font-semibold mb-4">Select Practices</h3>
                 
                 <div className="space-y-3 mb-6">
-                  {[
-                    'Audio/Visual',
-                    'Collaboration',
-                    'Contact Center',
-                    'CX',
-                    'Cyber Security',
-                    'Data Center',
-                    'Enterprise Networking',
-                    'IoT',
-                    'Physical Security',
-                    'Project Management',
-                    'WAN/Optical',
-                    'Wireless'
-                  ].sort().map(practice => (
+                  {practiceOptions.sort().map(practice => (
                     <label key={practice} className="flex items-center">
                       <input
                         type="checkbox"
@@ -575,11 +578,7 @@ export default function PracticeIssuesLeadershipPage() {
                 
                 <div className="flex gap-2 mb-4">
                   <button
-                    onClick={() => setTempPracticeSelection([
-                      'Audio/Visual', 'Collaboration', 'Contact Center', 'CX', 'Cyber Security',
-                      'Data Center', 'Enterprise Networking', 'IoT', 'Physical Security',
-                      'Project Management', 'WAN/Optical', 'Wireless'
-                    ])}
+                    onClick={() => setTempPracticeSelection([...practiceOptions])}
                     className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                   >
                     All Practices
@@ -621,6 +620,7 @@ export default function PracticeIssuesLeadershipPage() {
 }
 
 function FollowButton({ issueId, compact = false }) {
+  const { getHeaders } = useCsrf();
   const [following, setFollowing] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -630,7 +630,7 @@ function FollowButton({ issueId, compact = false }) {
       const data = await response.json();
       setFollowing(data.following);
     } catch (error) {
-      console.error('Error checking follow status:', error);
+      // Error checking follow status - continue with default
     }
   };
 
@@ -658,9 +658,7 @@ function FollowButton({ issueId, compact = false }) {
     try {
       const response = await fetch(`/api/issues/${issueId}/follow`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: getHeaders()
       });
       const data = await response.json();
       if (data.success) {
@@ -672,12 +670,12 @@ function FollowButton({ issueId, compact = false }) {
             const refreshData = await refreshResponse.json();
             setFollowing(refreshData.following);
           } catch (error) {
-            console.error('Error refreshing follow status:', error);
+            // Error refreshing follow status - continue with current state
           }
         }, 500);
       }
     } catch (error) {
-      console.error('Error following issue:', error);
+      // Error following issue - continue with current state
     } finally {
       setLoading(false);
     }
@@ -718,11 +716,13 @@ function FollowButton({ issueId, compact = false }) {
 }
 
 function AssignedIssuesTable({ issues, user, router, issueTypes }) {
+  const { getHeaders } = useCsrf();
+  
   const handleUpvote = async (issueId) => {
     try {
       const response = await fetch('/api/upvote', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ issue_id: issueId })
       });
       
@@ -731,17 +731,16 @@ function AssignedIssuesTable({ issues, user, router, issueTypes }) {
         try {
           fetch('/api/notify-upvote', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify({ issueId, upvotes: data.upvotes })
           });
         } catch (error) {
-          console.error('Failed to send upvote notification:', error);
+          // Failed to send upvote notification - continue
         }
       } else {
         alert(data.error || 'Failed to upvote');
       }
     } catch (error) {
-      console.error('Error upvoting:', error);
       alert('Failed to upvote');
     }
   };
@@ -781,7 +780,12 @@ function AssignedIssuesTable({ issues, user, router, issueTypes }) {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {issues.map((issue) => {
-              const attachments = JSON.parse(issue.attachments || '[]');
+              let attachments = [];
+              try {
+                attachments = JSON.parse(issue.attachments || '[]');
+              } catch (error) {
+                attachments = [];
+              }
               
               return (
                 <tr 

@@ -13,7 +13,6 @@ export async function GET(request) {
     const contactTypes = await db.getContactTypes(practiceGroupId);
     return NextResponse.json({ contactTypes });
   } catch (error) {
-    console.error('Error fetching contact types:', error);
     return NextResponse.json({ error: 'Failed to fetch contact types' }, { status: 500 });
   }
 }
@@ -29,7 +28,6 @@ export async function POST(request) {
     await db.saveContactType(practiceGroupId, typeName);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error adding contact type:', error);
     return NextResponse.json({ error: 'Failed to add contact type' }, { status: 500 });
   }
 }

@@ -13,7 +13,6 @@ export async function GET(request) {
     const contacts = await db.getContacts(companyId);
     return NextResponse.json({ contacts });
   } catch (error) {
-    console.error('Error fetching contacts:', error);
     return NextResponse.json({ error: 'Failed to fetch contacts' }, { status: 500 });
   }
 }
@@ -45,7 +44,7 @@ export async function POST(request) {
       officePhone: contact.officePhone?.trim() || '',
       fax: contact.fax?.trim() || '',
       dateAdded: new Date().toISOString(),
-      addedBy: contact.addedBy
+      addedBy: contact.addedBy.trim()
     });
 
     if (!savedContact) {
@@ -54,7 +53,6 @@ export async function POST(request) {
 
     return NextResponse.json({ contact: savedContact });
   } catch (error) {
-    console.error('Error saving contact:', error);
     return NextResponse.json({ error: 'Failed to save contact' }, { status: 500 });
   }
 }

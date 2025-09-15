@@ -16,13 +16,19 @@ export async function POST(request) {
     const existingBoard = await db.getSetting(`practice_board_${practiceId}`);
     
     if (!existingBoard) {
-      // Create new board with default columns
+      // Get database-stored columns or use defaults
+      const boardColumns = await db.getBoardColumns(practiceId);
+      const columns = boardColumns.map(col => ({
+        id: col.id,
+        title: col.title,
+        cards: [],
+        createdBy: 'system',
+        createdAt: new Date().toISOString()
+      }));
+      
+      // Create new board with database-stored columns
       const defaultBoard = {
-        columns: [
-          { id: '1', title: 'To Do', cards: [], createdBy: 'system', createdAt: new Date().toISOString() },
-          { id: '2', title: 'In Progress', cards: [], createdBy: 'system', createdAt: new Date().toISOString() },
-          { id: '3', title: 'Done', cards: [], createdBy: 'system', createdAt: new Date().toISOString() }
-        ],
+        columns,
         practices: practices,
         managerId: managerId,
         createdAt: new Date().toISOString()

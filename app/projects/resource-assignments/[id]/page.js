@@ -14,6 +14,7 @@ import MultiAttachmentPreview from '../../../../components/MultiAttachmentPrevie
 import UserSelector from '../../../../components/UserSelector';
 import PracticeSelector from '../../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../../components/MultiResourceSelector';
+import RegionSelector from '../../../../components/RegionSelector';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../../../constants/assignmentStatus';
 import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
@@ -849,28 +850,11 @@ export default function AssignmentDetailPage() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
-                          <select
+                          <RegionSelector
                             value={editFormData.region}
-                            onChange={(e) => handleEditFormChange('region', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="CA-LAX">CA-LAX</option>
-                            <option value="CA-SAN">CA-SAN</option>
-                            <option value="CA-SFO">CA-SFO</option>
-                            <option value="FL-MIA">FL-MIA</option>
-                            <option value="FL-NORT">FL-NORT</option>
-                            <option value="KY-KENT">KY-KENT</option>
-                            <option value="LA-STATE">LA-STATE</option>
-                            <option value="OK-OKC">OK-OKC</option>
-                            <option value="OTHERS">OTHERS</option>
-                            <option value="TN-TEN">TN-TEN</option>
-                            <option value="TX-CEN">TX-CEN</option>
-                            <option value="TX-DAL">TX-DAL</option>
-                            <option value="TX-HOU">TX-HOU</option>
-                            <option value="TX-SOUT">TX-SOUT</option>
-                            <option value="US-FED">US-FED</option>
-                            <option value="US-SP">US-SP</option>
-                          </select>
+                            onChange={(region) => handleEditFormChange('region', region)}
+                            placeholder="Select region..."
+                          />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Request Date</label>

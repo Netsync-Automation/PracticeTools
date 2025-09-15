@@ -140,6 +140,7 @@ export default function NewAssignmentPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [regions, setRegions] = useState([]);
   const [formData, setFormData] = useState({
     practice: [],
     status: 'Unassigned',
@@ -183,7 +184,27 @@ export default function NewAssignmentPage() {
     };
     
     checkAuth();
+    fetchRegions();
   }, [router]);
+
+  const fetchRegions = async () => {
+    try {
+      const response = await fetch('/api/regions');
+      if (!response.ok) {
+        throw new Error('Failed to fetch regions');
+      }
+      const data = await response.json();
+      setRegions(data.regions || []);
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+      // Set fallback regions if API fails
+      setRegions([
+        { code: 'CA-LAX', name: 'CA-LAX' },
+        { code: 'TX-DAL', name: 'TX-DAL' },
+        { code: 'US-FED', name: 'US-FED' }
+      ]);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -244,8 +265,17 @@ export default function NewAssignmentPage() {
         formDataToSend.append('attachments', file);
       });
 
+      const userCookie = document.cookie.split(';').find(c => c.trim().startsWith('user-session='));
+      if (!userCookie) {
+        alert('Session expired. Please log in again.');
+        return;
+      }
+      
       const response = await fetch('/api/assignments', {
         method: 'POST',
+        headers: {
+          'Cookie': userCookie
+        },
         body: formDataToSend,
       });
 
@@ -346,22 +376,11 @@ export default function NewAssignmentPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="">Select Region</option>
-                        <option value="CA-LAX">CA-LAX</option>
-                        <option value="CA-SAN">CA-SAN</option>
-                        <option value="CA-SFO">CA-SFO</option>
-                        <option value="FL-MIA">FL-MIA</option>
-                        <option value="FL-NORT">FL-NORT</option>
-                        <option value="KY-KENT">KY-KENT</option>
-                        <option value="LA-STATE">LA-STATE</option>
-                        <option value="OK-OKC">OK-OKC</option>
-                        <option value="OTHERS">OTHERS</option>
-                        <option value="TN-TEN">TN-TEN</option>
-                        <option value="TX-CEN">TX-CEN</option>
-                        <option value="TX-DAL">TX-DAL</option>
-                        <option value="TX-HOU">TX-HOU</option>
-                        <option value="TX-SOUT">TX-SOUT</option>
-                        <option value="US-FED">US-FED</option>
-                        <option value="US-SP">US-SP</option>
+                        {regions.map(region => (
+                          <option key={region.code} value={region.code}>
+                            {region.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>

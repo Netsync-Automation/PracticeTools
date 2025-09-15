@@ -10,6 +10,7 @@ import Breadcrumb from '../../components/Breadcrumb';
 import AccessCheck from '../../components/AccessCheck';
 import UserDisplay from '../../components/UserDisplay';
 import { useAuth } from '../../hooks/useAuth';
+import StatBox from '../../components/StatBox';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -165,81 +166,46 @@ export default function AdminPage() {
         {/* Header with Stats and Settings */}
         <div className="mb-8">
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100 text-sm font-medium">Total Issues</p>
-                  <p className="text-2xl font-bold">{stats.totalIssues}</p>
-                </div>
-                <div className="bg-white bg-opacity-20 rounded-lg p-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
+            <StatBox
+              title="Total Issues"
+              value={stats.totalIssues}
+              icon="📋"
+              color="blue"
+            />
+            <StatBox
+              title="Open Issues"
+              value={stats.openIssues}
+              icon="🔴"
+              color="red"
+            />
+            <StatBox
+              title="Closed Issues"
+              value={stats.closedIssues}
+              icon="✅"
+              color="green"
+            />
+            <StatBox
+              title="Total Users"
+              value={stats.totalUsers}
+              icon="👥"
+              color="purple"
+            />
             
-            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-4 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-red-100 text-sm font-medium">Open Issues</p>
-                  <p className="text-2xl font-bold">{stats.openIssues}</p>
+            {/* Settings Card - Custom implementation */}
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl shadow-sm border border-indigo-200 p-4 hover:shadow-md transition-shadow">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-white font-bold text-lg">⚙️</span>
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-lg p-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                </div>
+                <p className="text-xs font-medium text-indigo-700 mb-1 truncate">Settings</p>
+                <p className="text-xs font-bold text-indigo-900 mb-2 leading-tight">Config & Users</p>
+                <button 
+                  onClick={() => router.push('/admin/settings')}
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-1.5 px-2 rounded-lg transition-all duration-200 text-xs"
+                >
+                  Open Settings
+                </button>
               </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-100 text-sm font-medium">Closed Issues</p>
-                  <p className="text-2xl font-bold">{stats.closedIssues}</p>
-                </div>
-                <div className="bg-white bg-opacity-20 rounded-lg p-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100 text-sm font-medium">Total Users</p>
-                  <p className="text-2xl font-bold">{stats.totalUsers}</p>
-                </div>
-                <div className="bg-white bg-opacity-20 rounded-lg p-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-            
-            {/* Settings Card */}
-            <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-4 text-white shadow-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-indigo-100 text-sm font-medium">Settings</p>
-                  <p className="text-sm font-bold leading-tight">Config Settings & Manage Users</p>
-                </div>
-                <div className="bg-white bg-opacity-20 rounded-lg p-2">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-              <button 
-                onClick={() => router.push('/admin/settings')}
-                className="w-full mt-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-medium py-2 px-3 rounded-lg transition-all duration-200 text-sm"
-              >
-                Open Settings
-              </button>
             </div>
           </div>
         </div>

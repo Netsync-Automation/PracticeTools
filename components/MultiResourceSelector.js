@@ -3,6 +3,18 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
+// Color palette for practice badges - matches PracticeDisplay component
+const COLOR_PALETTE = [
+  { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200' },
+  { bg: 'bg-green-50', text: 'text-green-800', border: 'border-green-200' },
+  { bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-200' },
+  { bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-200' },
+  { bg: 'bg-pink-50', text: 'text-pink-800', border: 'border-pink-200' },
+  { bg: 'bg-indigo-50', text: 'text-indigo-800', border: 'border-indigo-200' },
+  { bg: 'bg-teal-50', text: 'text-teal-800', border: 'border-teal-200' },
+  { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-200' }
+];
+
 export default function MultiResourceSelector({ 
   value = [], 
   onChange, 
@@ -10,13 +22,15 @@ export default function MultiResourceSelector({
   placeholder = "Select or type a user name...",
   className = "",
   required = false,
-  maxResources = 10
+  maxResources = 10,
+  amEmail = null
 }) {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userPractices, setUserPractices] = useState({});
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -27,6 +41,12 @@ export default function MultiResourceSelector({
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (users.length > 0) {
+      mapUserPractices();
+    }
+  }, [users, assignedPractices]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -78,6 +98,23 @@ export default function MultiResourceSelector({
     } finally {
       setLoading(false);
     }
+  };
+
+  const mapUserPractices = () => {
+    const practices = {};
+    users.forEach(user => {
+      if (user.practices && Array.isArray(user.practices)) {
+        const matchingPractices = user.practices.filter(p => assignedPractices.includes(p));
+        if (matchingPractices.length > 0) {
+          practices[user.name] = matchingPractices.map((practice, index) => ({
+            name: practice,
+            colors: COLOR_PALETTE[assignedPractices.indexOf(practice) % COLOR_PALETTE.length]
+          }));
+        }
+      }
+    });
+    
+    setUserPractices(practices);
   };
 
   const handleUserSelect = (user) => {
@@ -140,6 +177,15 @@ export default function MultiResourceSelector({
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900 truncate">{resource}</p>
                     <p className="text-xs text-gray-500">Resource #{index + 1}</p>
+                    {userPractices[resource] && userPractices[resource].length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {userPractices[resource].map((practice, pIndex) => (
+                          <span key={pIndex} className={`inline-flex items-center px-2 py-0.5 ${practice.colors.bg} ${practice.colors.text} text-xs rounded-full border ${practice.colors.border} font-medium`}>
+                            {practice.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <button

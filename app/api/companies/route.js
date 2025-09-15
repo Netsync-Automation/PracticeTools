@@ -14,7 +14,6 @@ export async function GET(request) {
     const companies = await db.getCompanies(practiceGroupId, contactType);
     return NextResponse.json({ companies });
   } catch (error) {
-    console.error('Error fetching companies:', error);
     return NextResponse.json({ error: 'Failed to fetch companies' }, { status: 500 });
   }
 }
@@ -46,7 +45,6 @@ export async function POST(request) {
 
     return NextResponse.json({ company: savedCompany });
   } catch (error) {
-    console.error('Error saving company:', error);
     return NextResponse.json({ error: 'Failed to save company' }, { status: 500 });
   }
 }

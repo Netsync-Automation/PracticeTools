@@ -14,7 +14,6 @@ export async function GET(request) {
     const options = await db.getFieldOptions(practiceGroupId, fieldName);
     return NextResponse.json({ options });
   } catch (error) {
-    console.error('Error fetching field options:', error);
     return NextResponse.json({ error: 'Failed to fetch field options' }, { status: 500 });
   }
 }
@@ -35,7 +34,6 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error saving field options:', error);
     return NextResponse.json({ error: 'Failed to save field options' }, { status: 500 });
   }
 }

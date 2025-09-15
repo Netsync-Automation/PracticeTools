@@ -25,6 +25,12 @@ run:
       value: prod
   secrets:
 
+    - name: WEBEX_WAN_OPTICAL_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ACCESS_TOKEN
+    - name: WEBEX_WAN_OPTICAL_ROOM_ID_1
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ROOM_ID_1
+    - name: WEBEX_WAN_OPTICAL_ROOM_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ROOM_NAME
     - name: NEXTAUTH_URL
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/NEXTAUTH_URL
     - name: ADMIN_API_KEY
@@ -89,3 +95,9 @@ run:
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_PROJECT_MANAGEMENT_ROOM_ID_1
     - name: WEBEX_PROJECT_MANAGEMENT_NAME
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_PROJECT_MANAGEMENT_ROOM_NAME
+    - name: WEBEX_WAN_OPTICAL_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ACCESS_TOKEN
+    - name: WEBEX_WAN_OPTICAL_ROOM_ID_1
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ROOM_ID_1
+    - name: WEBEX_WAN_OPTICAL_ROOM_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ROOM_NAME

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,10 +9,13 @@ import Breadcrumb from '../../../components/Breadcrumb';
 import { useAuth } from '../../../hooks/useAuth';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
 import EmailRulesManager from '../../../components/EmailRulesManager';
+import { getRoleColor } from '../../../utils/roleColors';
+import { useApp } from '../../../contexts/AppContext';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const { updateAppName } = useApp();
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState({
     appName: 'Issue Tracker',
@@ -54,6 +57,7 @@ export default function SettingsPage() {
     webex: false,
     email: false
   });
+  const [expandedActions, setExpandedActions] = useState(new Set());
   const [rooms, setRooms] = useState([]);
   const [fetchingRooms, setFetchingRooms] = useState(false);
   const [showTestEmail, setShowTestEmail] = useState(false);
@@ -68,6 +72,14 @@ export default function SettingsPage() {
   });
   const [savingSso, setSavingSso] = useState(false);
   const [creatingBoards, setCreatingBoards] = useState(false);
+  const [saMappingSettings, setSaMappingSettings] = useState({});
+  const [savingMappings, setSavingMappings] = useState(false);
+  const [practiceGroups, setPracticeGroups] = useState([]);
+  const [showSSMModal, setShowSSMModal] = useState(false);
+  const [ssmSecrets, setSSMSecrets] = useState('');
+  const [ssmEnvironment, setSSMEnvironment] = useState('');
+  const [loadingSSM, setLoadingSSM] = useState(false);
+
   
   // CSRF token management
   const getCSRFToken = async () => {
@@ -108,11 +120,14 @@ export default function SettingsPage() {
     role: 'practice_member',
     isAdmin: false,
     practices: [],
-    auth_method: 'local'
+    auth_method: 'local',
+    region: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [specifyPassword, setSpecifyPassword] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
+  const [userRoles, setUserRoles] = useState([]);
+  const [regions, setRegions] = useState([]);
   
   const practicesList = PRACTICE_OPTIONS.sort();
 
@@ -234,10 +249,10 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'general', name: 'General Settings', icon: '⚙️' },
     { id: 'users', name: 'User Management', icon: '👥' },
-    { id: 'practice', name: 'Practice Information', icon: '🏢' },
+    { id: 'modules', name: 'Module Settings', icon: '🧩' },
     { id: 'webex', name: 'WebEx Settings', icon: '💬' },
     { id: 'email', name: 'E-mail Settings', icon: '📧' },
-    { id: 'resources', name: 'Resource Assignments', icon: '📋' },
+    { id: 'resources', name: 'E-mail Processing Rules', icon: '📧' },
     { id: 'sso', name: 'SSO Settings', icon: '🔐' }
   ]; // Show all tabs but restrict access
 
@@ -261,9 +276,10 @@ export default function SettingsPage() {
           const data = await response.json();
           setSettings(prev => ({
             ...prev,
-            appName: data.appName || 'Issue Tracker',
+            appName: data.appName || 'Practice Tools',
             loginLogo: data.loginLogo,
-            navbarLogo: data.navbarLogo
+            navbarLogo: data.navbarLogo,
+            allowedFileTypes: data.allowedFileTypes || '.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg'
           }));
         } catch (error) {
           console.error('Error loading general settings:', error);
@@ -322,6 +338,8 @@ export default function SettingsPage() {
       if (activeTab === 'users') {
         fetchUsers();
         fetchWebexBotsForFilter();
+        fetchUserRoles();
+        fetchRegions();
       }
       
       // Load resource assignment settings
@@ -348,6 +366,24 @@ export default function SettingsPage() {
           console.error('Error loading resource settings:', error);
         }
       }
+      
+      // Load SA mapping settings and practice groups
+      if (activeTab === 'modules') {
+        try {
+          const [settingsResponse, groupsResponse] = await Promise.all([
+            fetch('/api/settings/sa-mappings?t=' + Date.now()),
+            fetch('/api/practice-groups')
+          ]);
+          
+          const settingsData = await settingsResponse.json();
+          const groupsData = await groupsResponse.json();
+          
+          setSaMappingSettings(settingsData.settings || {});
+          setPracticeGroups((groupsData.groups || []).sort((a, b) => a.displayName.localeCompare(b.displayName)));
+        } catch (error) {
+          console.error('Error loading SA mapping settings:', error);
+        }
+      }
 
       };
       loadData();
@@ -356,10 +392,10 @@ export default function SettingsPage() {
   
   // Set default practice team filter when webex bots are loaded
   useEffect(() => {
-    if (isNonAdminPracticeUser && user.practices && user.practices.length > 0 && webexBots.length > 0) {
+    if (isNonAdminPracticeUser && user.practices && user.practices.length > 0 && webexBotsForFilter.length > 0) {
       // Find matching practice teams
       const userPractices = user.practices;
-      const matchingBots = webexBots.filter(bot => 
+      const matchingBots = webexBotsForFilter.filter(bot => 
         bot.practices && bot.practices.some(practice => userPractices.includes(practice))
       );
       
@@ -368,7 +404,7 @@ export default function SettingsPage() {
         setUserFilters(prev => ({...prev, webexBot: matchingBots[0].friendlyName || matchingBots[0].name}));
       }
     }
-  }, [webexBots, isNonAdminPracticeUser, user?.practices]);
+  }, [webexBotsForFilter, isNonAdminPracticeUser, user?.practices]);
 
   // Update room name when rooms are loaded and we have a room ID
   useEffect(() => {
@@ -387,9 +423,10 @@ export default function SettingsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          appName: settings.appName,
+          appName: settings.appName?.trim(),
           loginLogo: settings.loginLogo,
-          navbarLogo: settings.navbarLogo
+          navbarLogo: settings.navbarLogo,
+          allowedFileTypes: settings.allowedFileTypes?.trim()
         })
       });
       
@@ -400,7 +437,6 @@ export default function SettingsPage() {
         alert('Failed to save: ' + (result.error || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error saving general settings:', error);
       alert('Error saving general settings');
     } finally {
       setSaving(prev => ({...prev, general: false}));
@@ -563,6 +599,37 @@ export default function SettingsPage() {
     }
   };
 
+  const fetchUserRoles = async () => {
+    try {
+      const response = await fetch('/api/user-roles');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setUserRoles(data.roles || []);
+    } catch (error) {
+      console.error('Error fetching user roles:', error);
+      // Fallback to hardcoded roles if API fails
+      setUserRoles([
+        { value: 'account_manager', label: 'Account Manager' },
+        { value: 'netsync_employee', label: 'NetSync Employee' },
+        { value: 'practice_manager', label: 'Practice Manager' },
+        { value: 'practice_member', label: 'Practice Member' },
+        { value: 'practice_principal', label: 'Practice Principal' }
+      ]);
+    }
+  };
+
+  const fetchRegions = async () => {
+    try {
+      const response = await fetch('/api/regions');
+      const data = await response.json();
+      setRegions(data.regions || []);
+    } catch (error) {
+      console.error('Error fetching regions:', error);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/admin/users');
@@ -651,6 +718,8 @@ export default function SettingsPage() {
           role: editingUser.role,
           isAdmin: editingUser.isAdmin,
           practices: editingUser.practices || [],
+          auth_method: editingUser.auth_method,
+          region: editingUser.region,
           status: 'active'
         })
       });
@@ -783,115 +852,212 @@ export default function SettingsPage() {
 
             {/* Tab Content */}
             {activeTab === 'general' && !isNonAdminPracticeUser && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">General Settings</h2>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Application Name</label>
-                  <input
-                    type="text"
-                    value={settings.appName}
-                    onChange={(e) => setSettings({...settings, appName: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Login Logo</label>
-                  <div className="space-y-3">
-                    {settings.loginLogo && (
-                      <div className="flex items-center gap-3">
-                        <img src={settings.loginLogo} alt="Login Logo" className="h-16 w-auto border rounded" />
-                        <span className="text-sm text-gray-600">Current login logo</span>
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (e) => {
-                            setSettings({...settings, loginLogo: e.target.result});
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-sm text-gray-500">Upload image for login page logo</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Navbar Logo</label>
-                  <div className="space-y-3">
-                    {settings.navbarLogo && (
-                      <div className="flex items-center gap-3">
-                        <img src={settings.navbarLogo} alt="Navbar Logo" className="h-8 w-auto border rounded" />
-                        <span className="text-sm text-gray-600">Current navbar logo</span>
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (e) => {
-                            setSettings({...settings, navbarLogo: e.target.result});
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-sm text-gray-500">Upload image for navigation bar logo</p>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Max File Size (MB)</label>
-                  <input
-                    type="number"
-                    value={settings.maxFileSize}
-                    onChange={(e) => setSettings({...settings, maxFileSize: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Allowed File Types</label>
-                  <input
-                    type="text"
-                    value={settings.allowedFileTypes}
-                    onChange={(e) => setSettings({...settings, allowedFileTypes: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">Comma-separated file extensions</p>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="autoClose"
-                    checked={settings.autoCloseIssues}
-                    onChange={(e) => setSettings({...settings, autoCloseIssues: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="autoClose" className="ml-2 block text-sm text-gray-900">
-                    Auto-close resolved issues after 30 days
-                  </label>
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">General Settings</h2>
                   <button
                     onClick={handleSaveGeneral}
                     disabled={saving.general}
-                    className={`${saving.general ? 'btn-disabled' : 'btn-primary'}`}
+                    className={`${saving.general ? 'btn-disabled' : 'btn-primary'} flex items-center gap-2`}
                   >
-                    {saving.general ? 'Saving...' : 'Save General Settings'}
+                    {saving.general ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save Settings
+                      </>
+                    )}
                   </button>
                 </div>
+
+                {/* Application Identity */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Application Identity</h3>
+                      <p className="text-sm text-gray-600">Configure your application name and branding</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Application Name</label>
+                      <input
+                        type="text"
+                        value={settings.appName}
+                        onChange={(e) => {
+                          setSettings({...settings, appName: e.target.value});
+                          // Update app context immediately
+                          updateAppName(e.target.value);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter application name"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Login Page Logo</label>
+                        <div className="space-y-3">
+                          {settings.loginLogo && (
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                              <img src={settings.loginLogo} alt="Login Logo" className="h-16 w-auto border rounded" />
+                              <span className="text-sm text-gray-600">Current login logo</span>
+                            </div>
+                          )}
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    alert('File size must be less than 5MB');
+                                    return;
+                                  }
+                                  const reader = new FileReader();
+                                  reader.onload = (e) => {
+                                    setSettings({...settings, loginLogo: e.target.result});
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500">Upload image for login page (max 5MB)</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Navigation Bar Logo</label>
+                        <div className="space-y-3">
+                          {settings.navbarLogo && (
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                              <img src={settings.navbarLogo} alt="Navbar Logo" className="h-8 w-auto border rounded" />
+                              <span className="text-sm text-gray-600">Current navbar logo</span>
+                            </div>
+                          )}
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    alert('File size must be less than 5MB');
+                                    return;
+                                  }
+                                  const reader = new FileReader();
+                                  reader.onload = (e) => {
+                                    setSettings({...settings, navbarLogo: e.target.result});
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500">Upload image for navigation bar (max 5MB)</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* File Management */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">File Management</h3>
+                      <p className="text-sm text-gray-600">Configure file upload restrictions and allowed types</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Maximum File Size (MB)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={settings.maxFileSize}
+                        onChange={(e) => setSettings({...settings, maxFileSize: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="10"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Maximum size for uploaded files</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Allowed File Types</label>
+                      <input
+                        type="text"
+                        value={settings.allowedFileTypes}
+                        onChange={(e) => setSettings({...settings, allowedFileTypes: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Comma-separated file extensions</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* System Behavior */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">System Behavior</h3>
+                      <p className="text-sm text-gray-600">Configure automated system behaviors and preferences</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
+                      <input
+                        type="checkbox"
+                        id="autoClose"
+                        checked={settings.autoCloseIssues}
+                        onChange={(e) => setSettings({...settings, autoCloseIssues: e.target.checked})}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="autoClose" className="block text-sm font-medium text-gray-900">
+                          Auto-close resolved issues
+                        </label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Automatically close issues that have been resolved for 30 days
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
               </div>
             )}
 
@@ -899,15 +1065,77 @@ export default function SettingsPage() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-gray-900">WebEx Bot Management</h2>
-                  <button
-                    onClick={() => setShowAddBot(true)}
-                    className="btn-primary flex items-center gap-2"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Add WebEx Bot
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowAddBot(true)}
+                      className="btn-primary flex items-center gap-2"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Add WebEx Bot
+                    </button>
+                  </div>
+                </div>
+                
+                {/* WebEx SSM Configuration Export */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-900">WebEx Bot SSM Export</h3>
+                      <p className="text-sm text-blue-700 mt-1">Export WebEx bot SSM parameters for App Runner YAML files</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          setLoadingSSM(true);
+                          try {
+                            const response = await fetch('/api/admin/ssm-secrets?env=dev');
+                            const data = await response.json();
+                            if (data.success) {
+                              setSSMSecrets(data.yamlFormat);
+                              setSSMEnvironment('Development');
+                              setShowSSMModal(true);
+                            } else {
+                              alert('Failed to fetch dev WebEx SSM parameters');
+                            }
+                          } catch (error) {
+                            alert('Error fetching dev WebEx SSM parameters');
+                          } finally {
+                            setLoadingSSM(false);
+                          }
+                        }}
+                        disabled={loadingSSM}
+                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {loadingSSM ? 'Loading...' : 'Dev'}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setLoadingSSM(true);
+                          try {
+                            const response = await fetch('/api/admin/ssm-secrets?env=prod');
+                            const data = await response.json();
+                            if (data.success) {
+                              setSSMSecrets(data.yamlFormat);
+                              setSSMEnvironment('Production');
+                              setShowSSMModal(true);
+                            } else {
+                              alert('Failed to fetch prod WebEx SSM parameters');
+                            }
+                          } catch (error) {
+                            alert('Error fetching prod WebEx SSM parameters');
+                          } finally {
+                            setLoadingSSM(false);
+                          }
+                        }}
+                        disabled={loadingSSM}
+                        className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {loadingSSM ? 'Loading...' : 'Prod'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 
                 <p className="text-gray-600 text-sm">
@@ -1247,31 +1475,35 @@ export default function SettingsPage() {
               </div>
             )}
             
-            {activeTab === 'practice' && !isNonAdminPracticeUser && (
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Practice Information Settings</h2>
-                
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-start">
-                    <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                    <div>
-                      <h3 className="text-sm font-medium text-blue-800">Practice Board Management</h3>
-                      <p className="text-sm text-blue-700 mt-1">
-                        Practice boards are automatically created based on Practice Manager role assignments. 
-                        Each Practice Manager gets a board for all their assigned practices.
-                      </p>
-                    </div>
+            {activeTab === 'modules' && !isNonAdminPracticeUser && (
+              <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Module Settings</h2>
+                    <p className="text-sm text-gray-600 mt-1">Configure and manage application modules</p>
                   </div>
                 </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-lg font-medium text-gray-900 mb-3">Practice Board Creation</h4>
+
+                {/* Practice Information Section */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h4M9 7h6m-6 4h6m-6 4h6" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Practice Information</h3>
+                      <p className="text-sm text-gray-600">Manage practice-related information and settings</p>
+                    </div>
+                  </div>
+
+                  {/* Practice Boards Sub-section */}
+                  <div className="border-l-4 border-blue-500 pl-6 mb-8">
+                    <h4 className="text-md font-semibold text-gray-900 mb-4">Practice Boards</h4>
                     <p className="text-sm text-gray-600 mb-4">
-                      Use this button to create any missing practice boards for existing Practice Managers. 
-                      This will scan all users with the Practice Manager role and create boards for their assigned practices.
+                      Practice boards are automatically created based on Practice Manager role assignments. 
+                      Each Practice Manager gets a board for all their assigned practices.
                     </p>
                     
                     <div className="flex gap-4">
@@ -1298,38 +1530,24 @@ export default function SettingsPage() {
                             if (data.success) {
                               const created = data.results.filter(r => r.status === 'created').length;
                               const existing = data.results.filter(r => r.status === 'already_exists').length;
-                              const errors = data.results.filter(r => r.status === 'error').length;
-                              
-                              let message = `Practice Board Creation Complete!\n\n`;
-                              message += `Practice Managers Found: ${data.practiceManagersFound}\n`;
-                              message += `Boards Created: ${created}\n`;
-                              message += `Boards Already Existed: ${existing}\n`;
-                              
-                              if (errors > 0) {
-                                message += `Errors: ${errors}\n\n`;
-                                message += 'Check console for error details.';
-                              }
-                              
-                              alert(message);
+                              alert(`Practice Board Creation Complete!\n\nBoards Created: ${created}\nBoards Already Existed: ${existing}`);
                             } else {
                               alert('Failed to create practice boards: ' + data.error);
                             }
                           } catch (error) {
-                            console.error('Error creating practice boards:', error);
                             alert('Error creating practice boards');
                           } finally {
                             setCreatingBoards(false);
                           }
                         }}
                         disabled={creatingBoards}
-                        title="Create any missing Practice Boards based on Practice Managers and which Practices they manage"
-                        className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                           creatingBoards
                             ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             : 'bg-blue-600 text-white hover:bg-blue-700'
                         }`}
                       >
-                        {creatingBoards ? 'Creating Practice Boards...' : 'Create Practice Boards'}
+                        {creatingBoards ? 'Creating...' : 'Create Practice Boards'}
                       </button>
                       
                       <button
@@ -1364,15 +1582,13 @@ export default function SettingsPage() {
                               alert('Failed to delete practice boards: ' + data.error);
                             }
                           } catch (error) {
-                            console.error('Error deleting practice boards:', error);
                             alert('Error deleting practice boards');
                           } finally {
                             setCreatingBoards(false);
                           }
                         }}
                         disabled={creatingBoards}
-                        title="Delete all existing practice boards - WARNING: This will permanently remove all data"
-                        className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                           creatingBoards
                             ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             : 'bg-red-600 text-white hover:bg-red-700'
@@ -1382,140 +1598,213 @@ export default function SettingsPage() {
                       </button>
                     </div>
                   </div>
-                  
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-gray-800 mb-2">How Practice Boards Work</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Each Practice Manager gets one board for all their assigned practices</li>
-                      <li>• Multiple practices assigned to the same manager share one board</li>
-                      <li>• Practice members can access boards for practices they belong to</li>
-                      <li>• Boards are created automatically when assigning Practice Manager roles</li>
-                      <li>• Use the button above to create boards for existing Practice Managers</li>
-                    </ul>
-                  </div>
-                </div>
-                
-                {/* Contact Information Section */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
-                  
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <div className="flex items-start">
-                      <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      <div>
-                        <h4 className="text-sm font-medium text-blue-800">Practice Group Management</h4>
-                        <p className="text-sm text-blue-700 mt-1">
-                          Practice groups are automatically created based on Practice Manager role assignments. 
-                          Use these controls to manually create missing groups or clean up existing ones.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-3">Practice Group Creation</h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Use this button to create any missing practice groups for existing Practice Managers. 
-                        This will scan all users with the Practice Manager role and create groups for their assigned practices.
-                      </p>
-                      
-                      <div className="flex gap-4">
-                        <button
-                          onClick={async () => {
-                            setCreatingBoards(true);
-                            try {
-                              const csrfToken = await getCSRFToken();
-                              if (!csrfToken) {
-                                alert('Security token unavailable');
-                                return;
-                              }
-                              
-                              const response = await fetch('/api/practice-groups/create', {
-                                method: 'POST',
-                                headers: { 
-                                  'Content-Type': 'application/json',
-                                  'X-CSRF-Token': csrfToken
-                                }
-                              });
-                              const data = await response.json();
-                              if (data.success) {
-                                alert(`Practice groups created: ${data.results.created || 0}`);
-                              } else {
-                                alert('Failed to create practice groups');
-                              }
-                            } catch (error) {
-                              alert('Error creating practice groups');
-                            } finally {
-                              setCreatingBoards(false);
-                            }
-                          }}
-                          disabled={creatingBoards}
-                          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                            creatingBoards
-                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
-                          }`}
-                        >
-                          {creatingBoards ? 'Creating Practice Groups...' : 'Create Practice Groups'}
-                        </button>
-                        
-                        <button
-                          onClick={async () => {
-                            if (!confirm('Are you sure you want to delete ALL practice groups? This will permanently remove all groups, contact types, companies, and contacts.')) {
+
+                  {/* Contact Information Sub-section */}
+                  <div className="border-l-4 border-green-500 pl-6">
+                    <h4 className="text-md font-semibold text-gray-900 mb-4">Contact Information</h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Practice groups are automatically created based on Practice Manager role assignments. 
+                      Use these controls to manually create missing groups or clean up existing ones.
+                    </p>
+                    
+                    <div className="flex gap-4">
+                      <button
+                        onClick={async () => {
+                          setCreatingBoards(true);
+                          try {
+                            const csrfToken = await getCSRFToken();
+                            if (!csrfToken) {
+                              alert('Security token unavailable');
                               return;
                             }
                             
-                            setCreatingBoards(true);
-                            try {
-                              const csrfToken = await getCSRFToken();
-                              if (!csrfToken) {
-                                alert('Security token unavailable');
-                                return;
+                            const response = await fetch('/api/practice-groups/create', {
+                              method: 'POST',
+                              headers: { 
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
                               }
-                              
-                              const response = await fetch('/api/practice-groups/delete-all', {
-                                method: 'POST',
-                                headers: { 
-                                  'Content-Type': 'application/json',
-                                  'X-CSRF-Token': csrfToken
-                                }
-                              });
-                              const data = await response.json();
-                              if (data.success) {
-                                alert('Successfully deleted all practice groups');
-                              } else {
-                                alert('Failed to delete practice groups');
-                              }
-                            } catch (error) {
-                              alert('Error deleting practice groups');
-                            } finally {
-                              setCreatingBoards(false);
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                              alert(`Practice groups created: ${data.results.created || 0}`);
+                            } else {
+                              alert('Failed to create practice groups');
                             }
-                          }}
-                          disabled={creatingBoards}
-                          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                            creatingBoards
-                              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                              : 'bg-red-600 text-white hover:bg-red-700'
-                          }`}
-                        >
-                          {creatingBoards ? 'Deleting...' : 'Delete All Practice Groups'}
-                        </button>
-                      </div>
+                          } catch (error) {
+                            alert('Error creating practice groups');
+                          } finally {
+                            setCreatingBoards(false);
+                          }
+                        }}
+                        disabled={creatingBoards}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          creatingBoards
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
+                      >
+                        {creatingBoards ? 'Creating...' : 'Create Practice Groups'}
+                      </button>
+                      
+                      <button
+                        onClick={async () => {
+                          if (!confirm('Are you sure you want to delete ALL practice groups? This will permanently remove all groups, contact types, companies, and contacts.')) {
+                            return;
+                          }
+                          
+                          setCreatingBoards(true);
+                          try {
+                            const csrfToken = await getCSRFToken();
+                            if (!csrfToken) {
+                              alert('Security token unavailable');
+                              return;
+                            }
+                            
+                            const response = await fetch('/api/practice-groups/delete-all', {
+                              method: 'POST',
+                              headers: { 
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                              }
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                              alert('Successfully deleted all practice groups');
+                            } else {
+                              alert('Failed to delete practice groups');
+                            }
+                          } catch (error) {
+                            alert('Error deleting practice groups');
+                          } finally {
+                            setCreatingBoards(false);
+                          }
+                        }}
+                        disabled={creatingBoards}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          creatingBoards
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
+                      >
+                        {creatingBoards ? 'Deleting...' : 'Delete All Practice Groups'}
+                      </button>
                     </div>
-                    
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-sm font-medium text-gray-800 mb-2">How Practice Groups Work</h4>
-                      <ul className="text-sm text-gray-600 space-y-1">
-                        <li>• Each Practice Manager gets one practice group for all their assigned practices</li>
-                        <li>• Practice groups are used to organize contact information by practice area</li>
-                        <li>• Each new practice group gets a default "Main Contact List" type</li>
-                        <li>• Practice members can add companies and contacts for their assigned practices</li>
-                        <li>• Use "Create Practice Groups" to add groups for new Practice Managers</li>
-                      </ul>
+                  </div>
+                </div>
+
+                {/* Pre-Sales Section */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Pre-Sales</h3>
+                      <p className="text-sm text-gray-600">Configure pre-sales module settings and features</p>
+                    </div>
+                  </div>
+
+                  {/* SA to AM Mappings Sub-section */}
+                  <div className="border-l-4 border-blue-500 pl-6">
+                    <h4 className="text-md font-semibold text-gray-900 mb-4">SA to AM Mappings</h4>
+                    <p className="text-sm text-gray-600 mb-6">
+                      Enable or disable SA to AM mapping functionality for each practice group. 
+                      When disabled, the practice will show an alternative message instead of the mapping interface.
+                    </p>
+
+                    <div className="space-y-4">
+                      {practiceGroups.map(group => {
+                        const primaryPractice = group.practices?.[0] || group.displayName;
+                        return (
+                          <div key={group.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                            <div>
+                              <h5 className="font-medium text-gray-900">{group.displayName}</h5>
+                              <p className="text-sm text-gray-600 mb-2">
+                                {saMappingSettings[primaryPractice] !== false 
+                                  ? 'SA to AM mappings are enabled for this practice group'
+                                  : 'This practice group uses alternative SA assignment method'
+                                }
+                              </p>
+                              <div className="flex flex-wrap gap-1">
+                                {group.practices?.map(practice => (
+                                  <span key={practice} className="inline-flex px-2 py-1 text-xs font-medium rounded bg-blue-100 text-blue-800">
+                                    {practice}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={saMappingSettings[primaryPractice] !== false}
+                                onChange={(e) => {
+                                  setSaMappingSettings(prev => ({
+                                    ...prev,
+                                    [primaryPractice]: e.target.checked
+                                  }));
+                                }}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      <button
+                        onClick={async () => {
+                          setSavingMappings(true);
+                          try {
+                            const csrfToken = await getCSRFToken();
+                            if (!csrfToken) {
+                              alert('Security token unavailable');
+                              return;
+                            }
+                            
+                            const response = await fetch('/api/settings/sa-mappings', {
+                              method: 'POST',
+                              headers: { 
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken
+                              },
+                              body: JSON.stringify({ settings: saMappingSettings })
+                            });
+                            
+                            if (response.ok) {
+                              alert('SA to AM mapping settings saved successfully!');
+                            } else {
+                              const errorData = await response.json();
+                              alert('Failed to save SA to AM mapping settings: ' + (errorData.error || 'Unknown error'));
+                            }
+                          } catch (error) {
+                            console.error('Error saving SA mapping settings:', error);
+                            alert('Error saving SA to AM mapping settings');
+                          } finally {
+                            setSavingMappings(false);
+                          }
+                        }}
+                        disabled={savingMappings}
+                        className={`${savingMappings ? 'btn-disabled' : 'btn-primary'} flex items-center gap-2`}
+                      >
+                        {savingMappings ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Save Settings
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1609,7 +1898,7 @@ export default function SettingsPage() {
                         if (isNonAdminPracticeUser && user.practices && user.practices.length > 0) {
                           // For practice users, reset but maintain their practice team restriction
                           const userPractices = user.practices;
-                          const matchingBots = webexBots.filter(bot => 
+                          const matchingBots = webexBotsForFilter.filter(bot => 
                             bot.practices && bot.practices.some(practice => userPractices.includes(practice))
                           );
                           
@@ -1668,13 +1957,13 @@ export default function SettingsPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
                       >
                         {!isNonAdminPracticeUser && <option value="">All Teams</option>}
-                        {webexBots.filter(bot => {
+                        {webexBotsForFilter.filter(bot => {
                           // Filter bots based on user's practices for non-admin practice users
                           if (isNonAdminPracticeUser && user.practices && user.practices.length > 0) {
                             return bot.practices && bot.practices.some(practice => user.practices.includes(practice));
                           }
                           return true; // Show all bots for admins
-                        }).map(bot => (
+                        }).sort((a, b) => (a.friendlyName || a.name).localeCompare(b.friendlyName || b.name)).map(bot => (
                           <option key={bot.id} value={bot.friendlyName || bot.name}>
                             {bot.friendlyName || bot.name}
                           </option>
@@ -1691,10 +1980,9 @@ export default function SettingsPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
                       >
                         <option value="">All Roles</option>
-                        <option value="netsync_employee">NetSync Employee</option>
-                        <option value="practice_manager">Practice Manager</option>
-                        <option value="practice_member">Practice Member</option>
-                        <option value="practice_principal">Practice Principal</option>
+                        {userRoles.map(role => (
+                          <option key={role.value} value={role.value}>{role.label}</option>
+                        ))}
                       </select>
                     </div>
                     
@@ -1833,7 +2121,12 @@ export default function SettingsPage() {
                           if (userFilters.userType === 'webex' && userItem.created_from !== 'webex_sync') return false;
                           
                           // Practice Team filter (by webex_bot_source)
-                          if (userFilters.webexBot && userItem.webex_bot_source !== userFilters.webexBot) return false;
+                          if (userFilters.webexBot) {
+                            // Check if user has webex_bot_source that matches the selected bot
+                            if (!userItem.webex_bot_source || userItem.webex_bot_source !== userFilters.webexBot) {
+                              return false;
+                            }
+                          }
                           
                           // For non-admin practice users, only show WebEx synchronized users
                           if (isNonAdminPracticeUser && userItem.created_from !== 'webex_sync') return false;
@@ -1852,8 +2145,8 @@ export default function SettingsPage() {
                           <tr key={userItem.email} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{userItem.name?.replace(/[<>"'&]/g, (match) => ({'<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '&': '&amp;'}[match]))}</div>
-                                <div className="text-sm text-gray-500">{userItem.email?.replace(/[<>"'&]/g, (match) => ({'<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '&': '&amp;'}[match]))}</div>
+                                <div className="text-sm font-medium text-gray-900">{userItem.name}</div>
+                                <div className="text-sm text-gray-500">{userItem.email}</div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -1867,15 +2160,7 @@ export default function SettingsPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex gap-1">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  userItem.role === 'practice_principal'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : userItem.role === 'practice_manager'
-                                    ? 'bg-orange-100 text-orange-800'
-                                    : userItem.role === 'netsync_employee'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-green-100 text-green-800'
-                                }`}>
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(userItem.role)}`}>
                                   {userItem.role.replace('_', ' ')}
                                 </span>
                                 {userItem.isAdmin && (
@@ -1886,21 +2171,29 @@ export default function SettingsPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="flex flex-wrap gap-1">
-                                {(userItem.practices || []).map(practice => (
-                                  <span key={practice} className="inline-flex px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">
-                                    {practice}
-                                  </span>
-                                ))}
-                                {(!userItem.practices || userItem.practices.length === 0) && (
-                                  <span className="text-xs text-gray-400">No practices assigned</span>
-                                )}
-                              </div>
+                              {['netsync_employee', 'executive', 'account_manager', 'isr'].includes(userItem.role) ? (
+                                <span className="text-xs text-gray-500 italic">Can't be assigned to practices</span>
+                              ) : (
+                                <div className="flex flex-wrap gap-1">
+                                  {(userItem.practices || []).map(practice => (
+                                    <span key={practice} className="inline-flex px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-800">
+                                      {practice}
+                                    </span>
+                                  ))}
+                                  {(!userItem.practices || userItem.practices.length === 0) && (
+                                    <span className="text-xs text-gray-400">No practices assigned</span>
+                                  )}
+                                </div>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm text-gray-900">
-                                {userItem.webex_bot_source || 'N/A'}
-                              </span>
+                              {['netsync_employee', 'executive', 'account_manager', 'isr'].includes(userItem.role) ? (
+                                <span className="text-xs text-gray-500 italic">Can't be assigned to practices</span>
+                              ) : (
+                                <span className="text-sm text-gray-900">
+                                  {userItem.webex_bot_source || 'N/A'}
+                                </span>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -2293,41 +2586,117 @@ export default function SettingsPage() {
 
             {activeTab === 'resources' && !isNonAdminPracticeUser && (
               <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Resource Assignment Email Processing</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">E-mail Processing Rules</h2>
+                <div className="mb-6">
+                  <button
+                    onClick={() => setSettings({...settings, resourceEmailEnabled: !settings.resourceEmailEnabled})}
+                    disabled={!settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      settings.resourceEmailEnabled 
+                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    } ${(!settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={settings.resourceEmailEnabled ? 'Click to Disable E-mail Processing' : 'Click to Enable E-mail Processing'}
+                  >
+                    {settings.resourceEmailEnabled ? 'Enabled' : 'Disabled'}
+                  </button>
+                </div>
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <h3 className="text-sm font-medium text-yellow-800">Important: Outlook Forwarding Rules Required</h3>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        In order for E-mail processing rules to function, each Practice Manager must create a server-side forwarding rule in their outlook client that matches the "Sender Email Address" and "Subject Pattern" in your E-mail processing rule, that forwards all of those E-mails to: <a href="mailto:practicetools@netsync.com" className="underline font-medium">practicetools@netsync.com</a>. To do this, in Outlook, go to File → Automatic Replies, then click "Rules" at the bottom left hand corner of the screen. Then Add Rule.
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start">
                     <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
-                    <div>
-                      <h3 className="text-sm font-medium text-blue-800">Automated Resource Assignment Creation</h3>
-                      <p className="text-sm text-blue-700 mt-1">
-                        Configure email monitoring to automatically create resource assignments from specific email patterns. 
-                        The system will monitor the configured email account for messages matching sender and subject patterns, 
-                        then extract data using keyword mappings to populate new resource assignments.
-                      </p>
+                    <div className="w-full">
+                      <h3 className="text-sm font-medium text-blue-800 mb-3">Explanation of what actions are available</h3>
+                      <div className="space-y-2">
+                        <div className="bg-white rounded-md border border-blue-100 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedActions);
+                              if (newExpanded.has('resource_assignment')) {
+                                newExpanded.delete('resource_assignment');
+                              } else {
+                                newExpanded.add('resource_assignment');
+                              }
+                              setExpandedActions(newExpanded);
+                            }}
+                            className="w-full p-3 text-left hover:bg-blue-50 transition-colors flex items-center justify-between"
+                          >
+                            <span className="text-sm font-semibold text-blue-900">Resource Assignment</span>
+                            <svg 
+                              className={`w-4 h-4 text-blue-600 transition-transform ${expandedActions.has('resource_assignment') ? 'rotate-180' : ''}`} 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {expandedActions.has('resource_assignment') && (
+                            <div className="px-3 pb-3 border-t border-blue-100">
+                              <p className="text-sm text-blue-700 pt-2">
+                                Configure email monitoring to automatically create resource assignments from specific email patterns. 
+                                The system will monitor the configured email account for messages matching sender and subject patterns, 
+                                then extract data using keyword mappings to populate new resource assignments.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="bg-white rounded-md border border-blue-100 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedActions);
+                              if (newExpanded.has('sa_assignment')) {
+                                newExpanded.delete('sa_assignment');
+                              } else {
+                                newExpanded.add('sa_assignment');
+                              }
+                              setExpandedActions(newExpanded);
+                            }}
+                            className="w-full p-3 text-left hover:bg-blue-50 transition-colors flex items-center justify-between"
+                          >
+                            <span className="text-sm font-semibold text-blue-900">SA Assignment</span>
+                            <svg 
+                              className={`w-4 h-4 text-blue-600 transition-transform ${expandedActions.has('sa_assignment') ? 'rotate-180' : ''}`} 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {expandedActions.has('sa_assignment') && (
+                            <div className="px-3 pb-3 border-t border-blue-100">
+                              <p className="text-sm text-blue-700 pt-2">
+                                Configure email monitoring to automatically create SA assignments from specific email patterns. 
+                                The system will monitor the configured email account for messages matching sender and subject patterns, 
+                                then extract data using keyword mappings to populate new SA assignments for pre-sales activities.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center mb-6">
-                  <input
-                    type="checkbox"
-                    id="resourceEmailEnabled"
-                    checked={settings.resourceEmailEnabled || false}
-                    onChange={(e) => setSettings({...settings, resourceEmailEnabled: e.target.checked})}
-                    disabled={!settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword}
-                    className={`h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
-                      !settings.emailNotifications || !settings.smtpHost ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  />
-                  <label htmlFor="resourceEmailEnabled" className={`ml-2 block text-sm ${
-                    !settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword ? 'text-gray-400' : 'text-gray-900'
-                  }`}>
-                    Enable Resource Assignment Email Processing
-                  </label>
-                </div>
+
                 
                 {(!settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword) && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -3049,12 +3418,7 @@ export default function SettingsPage() {
                       onChange={(e) => setNewUser({...newUser, role: e.target.value})}
                       className="input-field"
                     >
-                      {[
-                        { value: 'netsync_employee', label: 'NetSync Employee' },
-                        { value: 'practice_manager', label: 'Practice Manager' },
-                        { value: 'practice_member', label: 'Practice Member' },
-                        { value: 'practice_principal', label: 'Practice Principal' }
-                      ].sort((a, b) => a.label.localeCompare(b.label)).map(role => (
+                      {userRoles.map(role => (
                         <option key={role.value} value={role.value}>{role.label}</option>
                       ))}
                     </select>
@@ -3076,7 +3440,24 @@ export default function SettingsPage() {
                     </select>
                   </div>
                   
-                  {newUser.role !== 'netsync_employee' && (
+                  {newUser.role === 'account_manager' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Region *</label>
+                      <select
+                        value={newUser.region}
+                        onChange={(e) => setNewUser({...newUser, region: e.target.value})}
+                        className="input-field"
+                        required
+                      >
+                        <option value="">Select a region</option>
+                        {regions.map(region => (
+                          <option key={region.id} value={region.name}>{region.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {!['netsync_employee', 'account_manager', 'isr', 'executive'].includes(newUser.role) && (
                     <div>
                       <label className="block text-sm font-medium mb-2">Practices</label>
                       <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
@@ -3119,7 +3500,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => {
                       setShowAddUser(false);
-                      setNewUser({ email: '', name: '', password: '', role: 'practice_member', isAdmin: false, auth_method: 'local' });
+                      setNewUser({ email: '', name: '', password: '', role: 'practice_member', isAdmin: false, practices: [], auth_method: 'local', region: '' });
                       setShowPassword(false);
                       setSpecifyPassword(false);
                     }}
@@ -3129,7 +3510,7 @@ export default function SettingsPage() {
                   </button>
                   <button
                     onClick={handleAddUser}
-                    disabled={!newUser.email || !newUser.name || loadingActions.add}
+                    disabled={!newUser.email || !newUser.name || (newUser.role === 'account_manager' && !newUser.region) || loadingActions.add}
                     className={`flex-1 ${loadingActions.add ? 'btn-disabled' : 'btn-primary'}`}
                   >
                     {loadingActions.add ? 'Adding...' : 'Add User'}
@@ -3175,18 +3556,46 @@ export default function SettingsPage() {
                       onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
                       className="input-field"
                     >
-                      {[
-                        { value: 'netsync_employee', label: 'NetSync Employee' },
-                        { value: 'practice_manager', label: 'Practice Manager' },
-                        { value: 'practice_member', label: 'Practice Member' },
-                        { value: 'practice_principal', label: 'Practice Principal' }
-                      ].sort((a, b) => a.label.localeCompare(b.label)).map(role => (
+                      {userRoles.map(role => (
                         <option key={role.value} value={role.value}>{role.label}</option>
                       ))}
                     </select>
                   </div>
                   
-                  {editingUser.role !== 'netsync_employee' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Auth Method</label>
+                    <select
+                      value={editingUser.auth_method || 'local'}
+                      onChange={(e) => setEditingUser({...editingUser, auth_method: e.target.value})}
+                      className="input-field"
+                    >
+                      {[
+                        { value: 'local', label: 'Local' },
+                        { value: 'sso', label: 'SSO' }
+                      ].sort((a, b) => a.label.localeCompare(b.label)).map(auth => (
+                        <option key={auth.value} value={auth.value}>{auth.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {editingUser.role === 'account_manager' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Region *</label>
+                      <select
+                        value={editingUser.region || ''}
+                        onChange={(e) => setEditingUser({...editingUser, region: e.target.value})}
+                        className="input-field"
+                        required
+                      >
+                        <option value="">Select a region</option>
+                        {regions.map(region => (
+                          <option key={region.id} value={region.name}>{region.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {!['netsync_employee', 'account_manager', 'isr', 'executive'].includes(editingUser.role) && (
                     <div>
                       <label className="block text-sm font-medium mb-2">Practices</label>
                       <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
@@ -3235,7 +3644,7 @@ export default function SettingsPage() {
                   </button>
                   <button
                     onClick={handleEditUser}
-                    disabled={loadingActions.edit}
+                    disabled={loadingActions.edit || (editingUser.role === 'account_manager' && !editingUser.region)}
                     className={`flex-1 ${loadingActions.edit ? 'btn-disabled' : 'btn-primary'}`}
                   >
                     {loadingActions.edit ? 'Updating...' : 'Update User'}
@@ -3364,6 +3773,61 @@ export default function SettingsPage() {
                     className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
                   >
                     {loadingActions[showDeleteModal.email] === 'delete' ? 'Deleting...' : 'Delete User'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* WebEx SSM Secrets Modal */}
+        {showSSMModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">{ssmEnvironment} WebEx Bot SSM Parameters</h3>
+                  <button
+                    onClick={() => setShowSSMModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">App Runner YAML Secrets Section</label>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(ssmSecrets);
+                        alert('WebEx SSM parameters copied to clipboard!');
+                      }}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    >
+                      Copy to Clipboard
+                    </button>
+                  </div>
+                  <textarea
+                    value={ssmSecrets}
+                    readOnly
+                    rows={15}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-sm"
+                    placeholder="No WebEx bots configured"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Copy this content into the 'secrets:' section of your App Runner YAML file
+                  </p>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setShowSSMModal(false)}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                  >
+                    Close
                   </button>
                 </div>
               </div>
