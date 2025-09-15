@@ -23,14 +23,9 @@ run:
       value: production
     - name: ENVIRONMENT
       value: prod
+    - name: NEXT_TELEMETRY_DISABLED
+      value: 1
   secrets:
-
-    - name: WEBEX_WAN_OPTICAL_ACCESS_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ACCESS_TOKEN
-    - name: WEBEX_WAN_OPTICAL_ROOM_ID_1
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ROOM_ID_1
-    - name: WEBEX_WAN_OPTICAL_ROOM_NAME
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ROOM_NAME
     - name: NEXTAUTH_URL
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/NEXTAUTH_URL
     - name: ADMIN_API_KEY
@@ -65,39 +60,40 @@ run:
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/SMTP_PW
     - name: SMTP_PORT
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/SMTP_PORT
+    - name: WEBEX_PROJECT_MANAGEMENT_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_PROJECT_MANAGEMENT_ACCESS_TOKEN
+    - name: WEBEX_PROJECT_MANAGEMENT_ROOM_ID_1
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_PROJECT_MANAGEMENT_ROOM_ID_1
+    - name: WEBEX_PROJECT_MANAGEMENT_ROOM_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_PROJECT_MANAGEMENT_ROOM_NAME
     - name: WEBEX_AUDIO_VISUAL_ACCESS_TOKEN
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_AUDIO_VISUAL_ACCESS_TOKEN
     - name: WEBEX_AUDIO_VISUAL_ROOM_ID_1
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_AUDIO_VISUAL_ROOM_ID_1
     - name: WEBEX_AUDIO_VISUAL_ROOM_NAME
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_AUDIO_VISUAL_ROOM_NAME
+    - name: WEBEX_ENTERPRISE_NETWORKING_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_ENTERPRISE_NETWORKING_ACCESS_TOKEN
+    - name: WEBEX_ENTERPRISE_NETWORKING_ROOM_ID_1
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_ENTERPRISE_NETWORKING_ROOM_ID_1
+    - name: WEBEX_ENTERPRISE_NETWORKING_ROOM_NAME
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_ENTERPRISE_NETWORKING_ROOM_NAME
     - name: WEBEX_DATA_CENTER_ACCESS_TOKEN
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_DATA_CENTER_ACCESS_TOKEN
     - name: WEBEX_DATA_CENTER_ROOM_ID_1
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_DATA_CENTER_ROOM_ID_1
     - name: WEBEX_DATA_CENTER_ROOM_NAME
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_DATA_CENTER_ROOM_NAME
-    - name: WEBEX_ENTERPRISE_NETWORKING_ACCESS_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_ENTERPRISE_NETWORKING_ACCESS_TOKEN
-    - name: WEBEX_ENTERPRISE_NETWORKING_ID_1
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_ENTERPRISE_NETWORKING_ROOM_ID_1
-    - name: WEBEX_ENTERPRISE_NETWORKING_NAME
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_ENTERPRISE_NETWORKING_ROOM_NAME
     - name: WEBEX_CYBER_SECURITY_ACCESS_TOKEN
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_CYBER_SECURITY_ACCESS_TOKEN
-    - name: WEBEX_CYBER_SECURITY_ID_1
+    - name: WEBEX_CYBER_SECURITY_ROOM_ID_1
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_CYBER_SECURITY_ROOM_ID_1
-    - name: WEBEX_CYBER_SECURITY_NAME
+    - name: WEBEX_CYBER_SECURITY_ROOM_NAME
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_CYBER_SECURITY_ROOM_NAME
-    - name: WEBEX_PROJECT_MANAGEMENT_ACCESS_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_PROJECT_MANAGEMENT_ACCESS_TOKEN
-    - name: WEBEX_PROJECT_MANAGEMENT_ID_1
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_PROJECT_MANAGEMENT_ROOM_ID_1
-    - name: WEBEX_PROJECT_MANAGEMENT_NAME
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_PROJECT_MANAGEMENT_ROOM_NAME
     - name: WEBEX_WAN_OPTICAL_ACCESS_TOKEN
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ACCESS_TOKEN
     - name: WEBEX_WAN_OPTICAL_ROOM_ID_1
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ROOM_ID_1
     - name: WEBEX_WAN_OPTICAL_ROOM_NAME
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_WAN_OPTICAL_ROOM_NAME
+
