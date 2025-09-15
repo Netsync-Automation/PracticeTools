@@ -190,10 +190,19 @@ export default function NewAssignmentPage() {
   const fetchRegions = async () => {
     try {
       const response = await fetch('/api/regions');
+      if (!response.ok) {
+        throw new Error('Failed to fetch regions');
+      }
       const data = await response.json();
       setRegions(data.regions || []);
     } catch (error) {
       console.error('Error fetching regions:', error);
+      // Set fallback regions if API fails
+      setRegions([
+        { code: 'CA-LAX', name: 'CA-LAX' },
+        { code: 'TX-DAL', name: 'TX-DAL' },
+        { code: 'US-FED', name: 'US-FED' }
+      ]);
     }
   };
 
@@ -256,8 +265,17 @@ export default function NewAssignmentPage() {
         formDataToSend.append('attachments', file);
       });
 
+      const userCookie = document.cookie.split(';').find(c => c.trim().startsWith('user-session='));
+      if (!userCookie) {
+        alert('Session expired. Please log in again.');
+        return;
+      }
+      
       const response = await fetch('/api/assignments', {
         method: 'POST',
+        headers: {
+          'Cookie': userCookie
+        },
         body: formDataToSend,
       });
 
@@ -359,7 +377,7 @@ export default function NewAssignmentPage() {
                       >
                         <option value="">Select Region</option>
                         {regions.map(region => (
-                          <option key={region.id} value={region.name}>
+                          <option key={region.code} value={region.code}>
                             {region.name}
                           </option>
                         ))}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../hooks/useAuth';
+import { useCsrf } from '../../../hooks/useCsrf';
 import SidebarLayout from '../../../components/SidebarLayout';
 import Navbar from '../../../components/Navbar';
 import Breadcrumb from '../../../components/Breadcrumb';
@@ -11,6 +12,7 @@ import { ArrowLeftIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
 export default function NewPracticeInfoPage() {
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const { getHeaders } = useCsrf();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -39,14 +41,15 @@ export default function NewPracticeInfoPage() {
       const practices = await response.json();
       setAvailablePractices(practices);
     } catch (error) {
-      console.error('Error loading practices:', error);
+      // Error loading practices - continue with empty array
     }
   };
 
   const handleInputChange = (field, value) => {
+    const sanitizedValue = typeof value === 'string' ? value.trim() : value;
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: sanitizedValue
     }));
   };
 
@@ -77,9 +80,7 @@ export default function NewPracticeInfoPage() {
     try {
       const response = await fetch('/api/practice-info-pages', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getHeaders(),
         body: JSON.stringify({
           ...formData,
           created_by: user.email
@@ -92,7 +93,6 @@ export default function NewPracticeInfoPage() {
         alert('Error creating page. Please try again.');
       }
     } catch (error) {
-      console.error('Error creating page:', error);
       alert('Error creating page. Please try again.');
     } finally {
       setIsSubmitting(false);

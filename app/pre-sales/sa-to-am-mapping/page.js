@@ -39,6 +39,27 @@ export default function SAToAMMappingPage() {
   const [showPracticeModal, setShowPracticeModal] = useState(false);
   const [tempPracticeSelection, setTempPracticeSelection] = useState([]);
   const [syncingRegions, setSyncingRegions] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedMappingHistory, setSelectedMappingHistory] = useState(null);
+
+  const formatDateTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const timeZoneAbbr = date.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
+    return {
+      date: date.toLocaleDateString('en-US', { 
+        weekday: 'short',
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      }),
+      time: date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      timeZone: timeZoneAbbr
+    };
+  };
 
   useEffect(() => {
     if (user) {
@@ -240,7 +261,7 @@ export default function SAToAMMappingPage() {
   const isMappingEnabled = selectedPracticeName ? saMappingSettings[selectedPracticeName] !== false : true;
 
   const userCanEdit = user && selectedGroup && selectedGroup !== 'all' && isMappingEnabled && (
-    user.isAdmin || 
+    user.isAdmin || user.role === 'executive' ||
     (['practice_manager', 'practice_principal', 'practice_member'].includes(user.role) && 
      user.practices && 
      practiceGroups.find(group => group.id === selectedGroup)?.practices.some(practice => user.practices.includes(practice))
@@ -638,7 +659,8 @@ export default function SAToAMMappingPage() {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Account Manager</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Practices</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Region</th>
-                        {userCanEdit && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>}
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Modified</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -659,43 +681,67 @@ export default function SAToAMMappingPage() {
                             </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-900">{mapping.region}</td>
-                          {userCanEdit && (
-                            <td className="px-6 py-4 text-sm">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => {
-                                    setEditingMapping(mapping);
-                                    setNewMapping({
-                                      saName: mapping.saName,
-                                      amName: mapping.amName,
-                                      region: mapping.region,
-                                      practices: mapping.practices || []
-                                    });
-                                    setShowEditModal(true);
-                                    fetchPracticeUsers(selectedGroup);
-                                    fetchAccountManagers();
-                                  }}
-                                  className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:border-blue-300 transition-colors duration-150"
-                                  title="Edit mapping"
-                                >
-                                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                  </svg>
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteMapping(mapping.id)}
-                                  className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 hover:border-red-300 transition-colors duration-150"
-                                  title="Delete mapping"
-                                >
-                                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                  Delete
-                                </button>
-                              </div>
-                            </td>
-                          )}
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{mapping.updated_by || mapping.created_by || 'Unknown'}</span>
+                              <span className="text-xs text-gray-500">
+                                {mapping.updated_at ? new Date(mapping.updated_at).toLocaleString() : 
+                                 mapping.created_at ? new Date(mapping.created_at).toLocaleString() : 'Unknown'}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  setSelectedMappingHistory(mapping);
+                                  setShowHistoryModal(true);
+                                }}
+                                className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:border-gray-300 transition-colors duration-150"
+                                title="View history"
+                              >
+                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                History
+                              </button>
+                              {userCanEdit && (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setEditingMapping(mapping);
+                                      setNewMapping({
+                                        saName: mapping.saName,
+                                        amName: mapping.amName,
+                                        region: mapping.region,
+                                        practices: mapping.practices || []
+                                      });
+                                      setShowEditModal(true);
+                                      fetchPracticeUsers(selectedGroup);
+                                      fetchAccountManagers();
+                                    }}
+                                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:border-blue-300 transition-colors duration-150"
+                                    title="Edit mapping"
+                                  >
+                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteMapping(mapping.id)}
+                                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 hover:border-red-300 transition-colors duration-150"
+                                    title="Delete mapping"
+                                  >
+                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -1285,6 +1331,296 @@ export default function SAToAMMappingPage() {
                     Apply
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* History Modal */}
+        {showHistoryModal && selectedMappingHistory && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] overflow-hidden border border-gray-100">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      Mapping History
+                    </h3>
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500 font-medium block mb-1">Solutions Architect</span>
+                          <span className="text-gray-900 font-semibold">{selectedMappingHistory.saName}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 font-medium block mb-1">Account Manager</span>
+                          <span className="text-gray-900 font-semibold">{selectedMappingHistory.amName}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 font-medium block mb-1">Practices</span>
+                          <div className="flex flex-wrap gap-1">
+                            {(selectedMappingHistory.practices || []).map(practice => (
+                              <span key={practice} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {practice}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 font-medium block mb-1">Region</span>
+                          <span className="text-gray-900 font-semibold">{selectedMappingHistory.region || 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowHistoryModal(false);
+                      setSelectedMappingHistory(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 hover:bg-white hover:bg-opacity-50 rounded-full p-2 transition-all duration-200"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Content */}
+              <div className="p-6 overflow-y-auto max-h-[65vh] bg-gray-50">
+                {selectedMappingHistory.history && selectedMappingHistory.history.length > 0 ? (
+                  <div className="space-y-6">
+                    {selectedMappingHistory.history.map((entry, index) => {
+                      const date = new Date(entry.timestamp);
+                      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                      const timeZoneAbbr = date.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
+                      
+                      return (
+                        <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                          {/* Entry Header */}
+                          <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                  entry.action === 'created' ? 'bg-green-100' :
+                                  entry.action === 'updated' ? 'bg-blue-100' :
+                                  entry.action === 'deleted' ? 'bg-red-100' :
+                                  entry.action === 'reinstated' ? 'bg-purple-100' :
+                                  'bg-gray-100'
+                                }`}>
+                                  {entry.action === 'created' && (
+                                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                  )}
+                                  {entry.action === 'updated' && (
+                                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  )}
+                                  {entry.action === 'deleted' && (
+                                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  )}
+                                  {entry.action === 'reinstated' && (
+                                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-3">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                                      entry.action === 'created' ? 'bg-green-100 text-green-800' :
+                                      entry.action === 'updated' ? 'bg-blue-100 text-blue-800' :
+                                      entry.action === 'deleted' ? 'bg-red-100 text-red-800' :
+                                      entry.action === 'reinstated' ? 'bg-purple-100 text-purple-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {entry.action.charAt(0).toUpperCase() + entry.action.slice(1)}
+                                    </span>
+                                    <span className="text-lg font-semibold text-gray-900">{entry.user}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {date.toLocaleDateString('en-US', { 
+                                    weekday: 'short',
+                                    year: 'numeric', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                  })}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {date.toLocaleTimeString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    second: '2-digit'
+                                  })} {timeZoneAbbr}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Entry Content */}
+                          <div className="p-6">
+                            {entry.action === 'created' && (
+                              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+                                <h4 className="text-lg font-semibold text-green-900 flex items-center gap-2 mb-3">
+                                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                  </svg>
+                                  Initial Mapping Created
+                                </h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                  <div>
+                                    <span className="text-green-700 font-medium block mb-1">Solutions Architect</span>
+                                    <span className="text-green-900 font-semibold">{selectedMappingHistory.saName}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-green-700 font-medium block mb-1">Account Manager</span>
+                                    <span className="text-green-900 font-semibold">{selectedMappingHistory.amName}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-green-700 font-medium block mb-1">Practices</span>
+                                    <div className="flex flex-wrap gap-1">
+                                      {(selectedMappingHistory.practices || []).map(practice => (
+                                        <span key={practice} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                          {practice}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="text-green-700 font-medium block mb-1">Region</span>
+                                    <span className="text-green-900 font-semibold">{selectedMappingHistory.region || 'N/A'}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {entry.changes && entry.changes.length > 0 && (
+                              <div className="space-y-4">
+                                <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                  </svg>
+                                  {entry.user} made the following changes:
+                                </h4>
+                                <div className="grid gap-4">
+                                  {entry.changes.map((change, changeIndex) => (
+                                    <div key={changeIndex} className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                                      <div className="flex items-center gap-3 mb-3">
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-200 text-blue-900">
+                                          {change.field}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-4">
+                                        {change.from !== undefined && (
+                                          <div className="flex-1">
+                                            <div className="text-xs font-medium text-blue-700 mb-2">CHANGED FROM</div>
+                                            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                                              <span className="text-red-800 font-medium">
+                                                {Array.isArray(change.from) ? 
+                                                  (change.from.length > 0 ? change.from.join(', ') : '(none)') : 
+                                                  (change.from || '(empty)')}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        )}
+                                        {change.from !== undefined && change.to !== undefined && (
+                                          <div className="flex-shrink-0 pt-6">
+                                            <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                            </svg>
+                                          </div>
+                                        )}
+                                        {change.to !== undefined && (
+                                          <div className="flex-1">
+                                            <div className="text-xs font-medium text-blue-700 mb-2">CHANGED TO</div>
+                                            <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                                              <span className="text-green-800 font-medium">
+                                                {Array.isArray(change.to) ? 
+                                                  (change.to.length > 0 ? change.to.join(', ') : '(none)') : 
+                                                  (change.to || '(empty)')}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {entry.action === 'deleted' && (
+                              <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-4 border border-red-200">
+                                <h4 className="text-lg font-semibold text-red-900 flex items-center gap-2 mb-2">
+                                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  {entry.user} deleted this mapping
+                                </h4>
+                                <p className="text-red-800">The mapping was removed from active use but preserved in history.</p>
+                              </div>
+                            )}
+                            
+                            {entry.action === 'reinstated' && (
+                              <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg p-4 border border-purple-200">
+                                <h4 className="text-lg font-semibold text-purple-900 flex items-center gap-2 mb-2">
+                                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  {entry.user} reinstated this mapping
+                                </h4>
+                                <p className="text-purple-800">The previously deleted mapping was restored to active use.</p>
+                              </div>
+                            )}
+                            
+                            {!entry.changes && entry.action === 'updated' && (
+                              <div className="text-center py-4">
+                                <span className="text-gray-500 italic">{entry.user} updated this mapping (no specific changes recorded)</span>
+                              </div>
+                            )}
+                            
+                            {entry.reason && (
+                              <div className="mt-4">
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                  <h4 className="text-sm font-semibold text-amber-900 flex items-center gap-2 mb-2">
+                                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Note
+                                  </h4>
+                                  <p className="text-amber-800">{entry.reason}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 max-w-md mx-auto">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No History Available</h3>
+                      <p className="text-gray-600">
+                        This mapping was created before history tracking was implemented.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

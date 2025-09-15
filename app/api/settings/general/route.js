@@ -54,7 +54,7 @@ export async function GET() {
     const tableName = getTableName('Settings');
     const environment = getEnvironment();
     
-    const appName = await getEnvironmentSetting(tableName, 'app_name', environment) || 'Issue Tracker';
+    const appName = await getEnvironmentSetting(tableName, 'app_name', environment) || getDefaultAppName(environment);
     let loginLogo = await getEnvironmentSetting(tableName, 'login_logo', environment);
     let navbarLogo = await getEnvironmentSetting(tableName, 'navbar_logo', environment);
     const allowedFileTypes = await getEnvironmentSetting(tableName, 'allowed_file_types', environment) || '.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg';
@@ -68,13 +68,23 @@ export async function GET() {
       navbarLogo = await initializeDefaultLogo(tableName, 'navbar_logo', 'company-logo.png', 'png', environment);
     }
     
-    return NextResponse.json({ appName, loginLogo, navbarLogo, allowedFileTypes });
-  } catch (error) {
     return NextResponse.json({ 
-      appName: 'Issue Tracker', 
+      appName, 
+      loginLogo, 
+      navbarLogo, 
+      allowedFileTypes,
+      defaultAppName: getDefaultAppName(environment),
+      defaultNavbarLogo: '/company-logo.png'
+    });
+  } catch (error) {
+    const environment = getEnvironment();
+    return NextResponse.json({ 
+      appName: getDefaultAppName(environment), 
       loginLogo: null, 
       navbarLogo: null,
-      allowedFileTypes: '.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg'
+      allowedFileTypes: '.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg',
+      defaultAppName: getDefaultAppName(environment),
+      defaultNavbarLogo: '/company-logo.png'
     });
   }
 }
@@ -121,6 +131,10 @@ async function initializeDefaultLogo(tableName, key, filename, mimeType, environ
   } catch (error) {
     return null;
   }
+}
+
+function getDefaultAppName(environment) {
+  return 'Practice Tools';
 }
 
 async function createSettingsTable(tableName) {

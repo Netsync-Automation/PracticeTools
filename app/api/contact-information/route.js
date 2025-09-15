@@ -11,12 +11,12 @@ export async function GET(request) {
     }
 
     // Get user by email (groupId is the manager's email)
-    const users = await db.getAllUsers();
-    const manager = users.find(user => user.email === groupId && user.role === 'practice_manager');
+    const manager = await db.getUser(groupId);
     
-    if (!manager) {
+    if (!manager || manager.role !== 'practice_manager') {
       return NextResponse.json({ error: 'Practice manager not found' }, { status: 404 });
     }
+
 
     const contactInfo = {
       manager: {
@@ -28,7 +28,6 @@ export async function GET(request) {
 
     return NextResponse.json({ contactInfo });
   } catch (error) {
-    console.error('Error fetching contact information:', error);
     return NextResponse.json({ error: 'Failed to fetch contact information' }, { status: 500 });
   }
 }

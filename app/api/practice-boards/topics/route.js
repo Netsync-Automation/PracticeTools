@@ -30,7 +30,6 @@ export async function GET(request) {
     
     return NextResponse.json({ topics });
   } catch (error) {
-    console.error('Error loading topics:', error);
     return NextResponse.json({ error: 'Failed to load topics' }, { status: 500 });
   }
 }
@@ -76,11 +75,14 @@ export async function POST(request) {
       
       // Create initial board data for the new topic
       const topicBoardKey = `practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
-      const defaultColumns = [
-        { id: '1', title: 'To Do', cards: [], createdBy: 'system', createdAt: new Date().toISOString() },
-        { id: '2', title: 'In Progress', cards: [], createdBy: 'system', createdAt: new Date().toISOString() },
-        { id: '3', title: 'Done', cards: [], createdBy: 'system', createdAt: new Date().toISOString() }
-      ];
+      const boardColumns = await db.getBoardColumns(practiceId);
+      const defaultColumns = boardColumns.map(col => ({
+        id: col.id,
+        title: col.title,
+        cards: [],
+        createdBy: 'system',
+        createdAt: new Date().toISOString()
+      }));
       
       await db.saveSetting(topicBoardKey, JSON.stringify({
         columns: defaultColumns,
@@ -209,7 +211,6 @@ export async function DELETE(request) {
     
     return NextResponse.json({ success: true, topics: updatedTopics });
   } catch (error) {
-    console.error('Error deleting topic:', error);
     return NextResponse.json({ error: 'Failed to delete topic' }, { status: 500 });
   }
 }

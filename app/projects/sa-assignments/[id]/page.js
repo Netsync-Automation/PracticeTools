@@ -9,6 +9,8 @@ import Breadcrumb from '../../../../components/Breadcrumb';
 import MultiAttachmentPreview from '../../../../components/MultiAttachmentPreview';
 import MultiResourceSelector from '../../../../components/MultiResourceSelector';
 import MultiAccountManagerSelector from '../../../../components/MultiAccountManagerSelector';
+import AssignResourceModal from '../../../../components/AssignResourceModal';
+import CompleteStatusModal from '../../../../components/CompleteStatusModal';
 import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
 import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
@@ -25,9 +27,36 @@ const COLOR_PALETTE = [
 ];
 
 // Component to display practices with their assigned SAs
-function PracticeDisplay({ practice, saAssigned }) {
+function PracticeDisplay({ practice, saAssigned, saAssignment, user, onStatusUpdate }) {
   const [practiceAssignments, setPracticeAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const handleSAClick = async (saName) => {
+    if (!user.isAdmin && user.name.toLowerCase() !== saName.toLowerCase()) {
+      alert('You can only change your own completion status.');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/sa-assignments/${saAssignment.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          toggleSAComplete: true,
+          targetSA: saName
+        })
+      });
+      
+      if (response.ok) {
+        onStatusUpdate();
+      } else {
+        throw new Error('Failed to update SA status');
+      }
+    } catch (error) {
+      console.error('Error updating SA status:', error);
+      alert('Failed to update status. Please try again.');
+    }
+  };
 
   useEffect(() => {
     const loadPracticeAssignments = async () => {
@@ -37,16 +66,25 @@ function PracticeDisplay({ practice, saAssigned }) {
       }
 
       try {
-        const response = await fetch('/api/admin/users');
-        const data = await response.json();
+        // Use cached users data if available from parent component
+        let data;
+        if (window.cachedUsers) {
+          data = { users: window.cachedUsers };
+        } else {
+          const response = await fetch('/api/admin/users');
+          data = await response.json();
+          window.cachedUsers = data.users; // Cache for reuse
+        }
         
         if (data.users) {
           const practiceList = practice.split(',').map(p => p.trim());
           const saList = saAssigned ? saAssigned.split(',').map(s => s.trim()) : [];
           const assignments = [];
           
-          practiceList.forEach((p, index) => {
-            const colors = COLOR_PALETTE[index % COLOR_PALETTE.length];
+          const saCompletions = JSON.parse(saAssignment?.saCompletions || '{}');
+          let colorIndex = 0;
+          practiceList.forEach((p) => {
+            const colors = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
             
             // Find SAs assigned to this practice
             const assignedSAs = saList.filter(saName => {
@@ -54,11 +92,29 @@ function PracticeDisplay({ practice, saAssigned }) {
               return user && user.practices && user.practices.includes(p);
             });
             
-            assignments.push({
-              practice: p,
-              assignedSAs: assignedSAs,
-              colors: colors
-            });
+            // Check if all SAs in this practice are complete
+            const practiceComplete = assignedSAs.length > 0 && assignedSAs.every(sa => saCompletions[sa]);
+            
+            // Create separate entry for each SA or one entry if no SAs
+            if (assignedSAs.length === 0) {
+              assignments.push({
+                practice: p,
+                assignedSAs: [],
+                colors: colors,
+                practiceComplete: false
+              });
+            } else {
+              assignedSAs.forEach(sa => {
+                assignments.push({
+                  practice: p,
+                  assignedSAs: [sa],
+                  colors: colors,
+                  saComplete: !!saCompletions[sa],
+                  practiceComplete: practiceComplete
+                });
+              });
+            }
+            colorIndex++;
           });
           
           setPracticeAssignments(assignments);
@@ -71,7 +127,7 @@ function PracticeDisplay({ practice, saAssigned }) {
     };
 
     loadPracticeAssignments();
-  }, [practice, saAssigned]);
+  }, [practice, saAssigned, saAssignment?.saCompletions]);
 
   if (!practice) {
     return (
@@ -98,9 +154,16 @@ function PracticeDisplay({ practice, saAssigned }) {
         <div className="space-y-4 mt-2">
           {practiceAssignments.map((assignment, index) => (
             <div key={index} className="flex items-center gap-3">
-              <span className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-full border ${assignment.colors.border} font-medium flex-shrink-0 shadow-sm`}>
-                {assignment.practice}
-              </span>
+              <div className="flex flex-col">
+                <span className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-full border ${assignment.colors.border} font-medium flex-shrink-0 shadow-sm`}>
+                  {assignment.practice}
+                </span>
+                <span className={`text-xs font-medium mt-1 text-left ${
+                  assignment.practiceComplete ? 'text-green-600' : 'text-orange-600'
+                }`}>
+                  {assignment.practiceComplete ? '✅ Complete' : '🔄 In Progress'}
+                </span>
+              </div>
               <div className="flex-1 flex items-center">
                 <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-gray-200"></div>
                 <div className="mx-2">
@@ -114,9 +177,20 @@ function PracticeDisplay({ practice, saAssigned }) {
                 {assignment.assignedSAs.length > 0 ? (
                   <div className="flex flex-wrap gap-1 justify-end">
                     {assignment.assignedSAs.map((sa, saIndex) => (
-                      <span key={saIndex} className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-lg border ${assignment.colors.border} shadow-sm font-medium`}>
-                        {sa}
-                      </span>
+                      <div key={saIndex} className="flex flex-col items-end">
+                        <button
+                          onClick={() => handleSAClick(sa)}
+                          className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-lg border ${assignment.colors.border} shadow-sm font-medium hover:opacity-80 transition-opacity cursor-pointer`}
+                          title={user.isAdmin || user.name.toLowerCase() === sa.toLowerCase() ? 'Click to toggle completion status' : 'You can only change your own status'}
+                        >
+                          {sa}
+                        </button>
+                        <span className={`text-xs font-medium mt-1 text-right ${
+                          assignment.saComplete ? 'text-green-600' : 'text-orange-600'
+                        }`}>
+                          {assignment.saComplete ? '✅ Complete' : '🔄 In Progress'}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -203,9 +277,11 @@ export default function SaAssignmentDetailPage({ params }) {
   const [showPracticeModal, setShowPracticeModal] = useState(false);
   const [tempPracticeSelection, setTempPracticeSelection] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editFormData, setEditFormData] = useState({});
+  const [showAssignResourceModal, setShowAssignResourceModal] = useState(false);
+  const [assignResourceData, setAssignResourceData] = useState({});
+  const [assignResourceTargetStatus, setAssignResourceTargetStatus] = useState('Assigned');
   const [allUsers, setAllUsers] = useState([]);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -249,15 +325,7 @@ export default function SaAssignmentDetailPage({ params }) {
     }
   };
 
-  // Auto-populate region when account managers are selected
-  useEffect(() => {
-    if (showEditModal && !editFormData.region && editFormData.am && Array.isArray(editFormData.am) && editFormData.am.length > 0 && allUsers.length > 0) {
-      const firstAM = allUsers.find(u => u.role === 'account_manager' && editFormData.am.includes(u.name));
-      if (firstAM && firstAM.region) {
-        setEditFormData(prev => ({...prev, region: firstAM.region}));
-      }
-    }
-  }, [showEditModal, editFormData.am, allUsers, editFormData.region]);
+
 
   const fetchSaAssignment = async () => {
     try {
@@ -305,6 +373,21 @@ export default function SaAssignmentDetailPage({ params }) {
     
     return (user.role === 'practice_manager' || user.role === 'practice_principal') && 
            user.practices?.includes(saAssignment.practice);
+  };
+  
+  const canMarkComplete = (saAssignment) => {
+    if (!user || !saAssignment) return false;
+    
+    // Admins can always mark complete
+    if (user.isAdmin) return true;
+    
+    // Assigned SAs can mark their own work complete
+    if (saAssignment.saAssigned) {
+      const assignedSAs = saAssignment.saAssigned.split(',').map(s => s.trim());
+      return assignedSAs.some(sa => sa.toLowerCase() === user.name.toLowerCase());
+    }
+    
+    return false;
   };
 
   const updateSaAssignment = async (updates) => {
@@ -505,11 +588,11 @@ export default function SaAssignmentDetailPage({ params }) {
                               am: amNames,
                               region: saAssignment.region || '',
                               saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
-                              dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0],
-                              targetStatus: 'Assigned'
+                              dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0]
                             };
-                            setEditFormData(formData);
-                            setShowEditModal(true);
+                            setAssignResourceData(formData);
+                            setAssignResourceTargetStatus('Assigned');
+                            setShowAssignResourceModal(true);
                           }}
                           className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                         >
@@ -529,6 +612,17 @@ export default function SaAssignmentDetailPage({ params }) {
                               value={saAssignment.status}
                               onChange={async (e) => {
                                 const newStatus = e.target.value;
+                                
+                                if (newStatus === 'Complete') {
+                                  if (canMarkComplete(saAssignment)) {
+                                    setShowCompleteModal(true);
+                                    return;
+                                  } else {
+                                    alert('You do not have permission to mark this assignment as complete.');
+                                    return;
+                                  }
+                                }
+                                
                                 if (newStatus === 'Assigned') {
                                   const amNames = saAssignment.am ? saAssignment.am.split(',').map(a => extractFriendlyName(a.trim())) : [];
                                   const formData = {
@@ -536,11 +630,11 @@ export default function SaAssignmentDetailPage({ params }) {
                                     am: amNames,
                                     region: saAssignment.region || '',
                                     saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
-                                    dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0],
-                                    targetStatus: newStatus
+                                    dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0]
                                   };
-                                  setEditFormData(formData);
-                                  setShowEditModal(true);
+                                  setAssignResourceData(formData);
+                                  setAssignResourceTargetStatus(newStatus);
+                                  setShowAssignResourceModal(true);
                                   return;
                                 }
                                 
@@ -551,11 +645,11 @@ export default function SaAssignmentDetailPage({ params }) {
                                     am: amNames,
                                     region: saAssignment.region || '',
                                     saAssigned: [],
-                                    dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0],
-                                    targetStatus: newStatus
+                                    dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0]
                                   };
-                                  setEditFormData(formData);
-                                  setShowEditModal(true);
+                                  setAssignResourceData(formData);
+                                  setAssignResourceTargetStatus(newStatus);
+                                  setShowAssignResourceModal(true);
                                   return;
                                 }
                                 
@@ -673,7 +767,13 @@ export default function SaAssignmentDetailPage({ params }) {
                         </dd>
                       </div>
                       
-                      <PracticeDisplay practice={saAssignment.practice} saAssigned={saAssignment.saAssigned} />
+                      <PracticeDisplay 
+                        practice={saAssignment.practice} 
+                        saAssigned={saAssignment.saAssigned} 
+                        saAssignment={saAssignment}
+                        user={user}
+                        onStatusUpdate={fetchSaAssignment}
+                      />
                     </div>
                   </div>
                 </div>
@@ -721,191 +821,70 @@ export default function SaAssignmentDetailPage({ params }) {
           </div>
         )}
         
-        {showEditModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full">
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {editFormData.targetStatus === 'Assigned' ? 'Assign Resource' : 'Assign to Practice'}
-                  </h3>
-                </div>
+        {/* Assign Resource Modal */}
+        <AssignResourceModal
+          isOpen={showAssignResourceModal}
+          onClose={() => {
+            setShowAssignResourceModal(false);
+            setAssignResourceData({});
+          }}
+          onSave={async (updateData) => {
+            // Validate practice coverage for Assigned status
+            if (assignResourceTargetStatus === 'Assigned' && updateData.saAssigned) {
+              const validation = await validatePracticeCoverage(updateData.practice, updateData.saAssigned);
+              
+              if (!validation.valid) {
+                const confirmed = confirm(`The assignment will be saved but will remain in "Unassigned" status.\n\nThe following practices still need SA assignments:\n${validation.uncoveredPractices.join(', ')}\n\nClick OK to save with current assignments, or Cancel to continue editing.`);
+                if (!confirmed) return;
                 
-                <p className="text-gray-600 mb-6">
-                  {editFormData.targetStatus === 'Assigned' 
-                    ? 'Please assign this request to a practice, region, and resource.' 
-                    : 'Please assign this request to one or more practices.'}
-                </p>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Practice *</label>
-                    <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3">
-                      {PRACTICE_OPTIONS.filter(practice => practice !== 'Pending').map(practice => (
-                        <label key={practice} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={Array.isArray(editFormData.practice) ? editFormData.practice.includes(practice) : editFormData.practice === practice}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                const currentPractices = Array.isArray(editFormData.practice) ? editFormData.practice : (editFormData.practice ? [editFormData.practice] : []);
-                                setEditFormData(prev => ({...prev, practice: [...currentPractices, practice]}));
-                              } else {
-                                const currentPractices = Array.isArray(editFormData.practice) ? editFormData.practice : (editFormData.practice ? [editFormData.practice] : []);
-                                setEditFormData(prev => ({...prev, practice: currentPractices.filter(p => p !== practice)}));
-                              }
-                            }}
-                            className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <span className="text-sm text-gray-700">{practice}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <MultiAccountManagerSelector
-                      value={editFormData.am || []}
-                      onChange={(managers) => setEditFormData(prev => ({...prev, am: managers}))}
-                      placeholder="Select or type account manager names..."
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Region *</label>
-                    <select
-                      value={editFormData.region || ''}
-                      onChange={(e) => setEditFormData(prev => ({...prev, region: e.target.value}))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    >
-                      <option value="">Select Region</option>
-                      <option value="CA-LAX">CA-LAX</option>
-                      <option value="CA-SAN">CA-SAN</option>
-                      <option value="CA-SFO">CA-SFO</option>
-                      <option value="FL-MIA">FL-MIA</option>
-                      <option value="FL-NORT">FL-NORT</option>
-                      <option value="KY-KENT">KY-KENT</option>
-                      <option value="LA-STATE">LA-STATE</option>
-                      <option value="OK-OKC">OK-OKC</option>
-                      <option value="OTHERS">OTHERS</option>
-                      <option value="TN-TEN">TN-TEN</option>
-                      <option value="TX-CEN">TX-CEN</option>
-                      <option value="TX-DAL">TX-DAL</option>
-                      <option value="TX-HOU">TX-HOU</option>
-                      <option value="TX-SOUT">TX-SOUT</option>
-                      <option value="US-FED">US-FED</option>
-                      <option value="US-SP">US-SP</option>
-                    </select>
-                  </div>
-                  
-                  {editFormData.targetStatus === 'Assigned' && (
-                    <>
-                      <div>
-                        <MultiResourceSelector
-                          value={editFormData.saAssigned || []}
-                          onChange={(resources) => setEditFormData(prev => ({...prev, saAssigned: resources}))}
-                          assignedPractices={Array.isArray(editFormData.practice) ? editFormData.practice : (editFormData.practice ? editFormData.practice.split(',').map(p => p.trim()) : [])}
-                          placeholder="Select or type SA names..."
-                          amEmail={saAssignment.am?.match(/<([^>]+)>/)?.[1]}
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date Assigned *</label>
-                        <input
-                          type="date"
-                          value={editFormData.dateAssigned || ''}
-                          onChange={(e) => setEditFormData(prev => ({...prev, dateAssigned: e.target.value}))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          required
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-                
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={() => setShowEditModal(false)}
-                    disabled={saving}
-                    className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={async () => {
-                      const practices = Array.isArray(editFormData.practice) ? editFormData.practice : (editFormData.practice ? [editFormData.practice] : []);
-                      if (practices.length === 0) {
-                        alert('Please select at least one practice');
-                        return;
-                      }
-                      
-                      if (!editFormData.region) {
-                        alert('Please select a region');
-                        return;
-                      }
-                      
-                      if (editFormData.targetStatus === 'Assigned') {
-                        if (!editFormData.saAssigned || (Array.isArray(editFormData.saAssigned) && editFormData.saAssigned.length === 0)) {
-                          alert('Please assign at least one SA');
-                          return;
-                        }
-                        
-                        // Validate practice coverage for Assigned status
-                        const assignedSasString = Array.isArray(editFormData.saAssigned) ? editFormData.saAssigned.join(',') : editFormData.saAssigned;
-                        const validation = await validatePracticeCoverage(practices.join(','), assignedSasString);
-                        
-                        if (!validation.valid) {
-                          const confirmed = confirm(`The assignment will be saved but will remain in "Unassigned" status.\n\nThe following practices still need SA assignments:\n${validation.uncoveredPractices.join(', ')}\n\nClick OK to save with current assignments, or Cancel to continue editing.`);
-                          if (!confirmed) return;
-                          
-                          // Override target status to Unassigned since not all practices are covered
-                          editFormData.targetStatus = 'Unassigned';
-                        }
-                      }
-                      
-                      setSaving(true);
-                      try {
-                        const updateData = {
-                          status: editFormData.targetStatus,
-                          practice: practices.join(','),
-                          am: Array.isArray(editFormData.am) ? editFormData.am.join(',') : editFormData.am,
-                          region: editFormData.region
-                        };
-                        
-                        if (editFormData.targetStatus === 'Assigned') {
-                          updateData.saAssigned = Array.isArray(editFormData.saAssigned) ? editFormData.saAssigned.join(',') : editFormData.saAssigned;
-                          updateData.dateAssigned = editFormData.dateAssigned;
-                        } else if (editFormData.saAssigned && (Array.isArray(editFormData.saAssigned) ? editFormData.saAssigned.length > 0 : editFormData.saAssigned)) {
-                          // Save SA assignments even for Unassigned status
-                          updateData.saAssigned = Array.isArray(editFormData.saAssigned) ? editFormData.saAssigned.join(',') : editFormData.saAssigned;
-                        }
-                        
-                        await updateSaAssignment(updateData);
-                        setShowEditModal(false);
-                      } catch (error) {
-                        console.error('Error updating SA assignment:', error);
-                      } finally {
-                        setSaving(false);
-                      }
-                    }}
-                    disabled={saving || (Array.isArray(editFormData.practice) ? editFormData.practice.length === 0 : !editFormData.practice) || !editFormData.region || (editFormData.targetStatus === 'Assigned' && (!editFormData.saAssigned || (Array.isArray(editFormData.saAssigned) && editFormData.saAssigned.length === 0)))}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {saving ? 'Assigning...' : (editFormData.targetStatus === 'Assigned' ? 'Assign Resource' : 'Assign to Practice')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+                // Override target status to Unassigned since not all practices are covered
+                updateData.status = 'Unassigned';
+              }
+            }
+            
+            setSaving(true);
+            try {
+              // Save SA assignments even for Unassigned status if they exist
+              if (assignResourceTargetStatus !== 'Assigned' && assignResourceData.saAssigned && (Array.isArray(assignResourceData.saAssigned) ? assignResourceData.saAssigned.length > 0 : assignResourceData.saAssigned)) {
+                updateData.saAssigned = Array.isArray(assignResourceData.saAssigned) ? assignResourceData.saAssigned.join(',') : assignResourceData.saAssigned;
+              }
+              
+              await updateSaAssignment(updateData);
+              setShowAssignResourceModal(false);
+              setAssignResourceData({});
+            } catch (error) {
+              console.error('Error updating SA assignment:', error);
+            } finally {
+              setSaving(false);
+            }
+          }}
+          initialData={assignResourceData}
+          targetStatus={assignResourceTargetStatus}
+          saving={saving}
+          allUsers={allUsers}
+        />
+        
+        {/* Complete Status Modal */}
+        <CompleteStatusModal
+          isOpen={showCompleteModal}
+          onClose={() => setShowCompleteModal(false)}
+          saAssignment={saAssignment}
+          user={user}
+          onComplete={async (targetSA) => {
+            try {
+              await updateSaAssignment({ 
+                markSAComplete: true,
+                targetSA: targetSA
+              });
+              // Refresh assignment data to update practice display
+              await fetchSaAssignment();
+              setShowCompleteModal(false);
+            } catch (error) {
+              console.error('Error marking SA complete:', error);
+              throw error;
+            }
+          }}
+        />
       </div>
     </AccessCheck>
   );

@@ -15,6 +15,9 @@ import UserSelector from '../../../components/UserSelector';
 import PracticeSelector from '../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../components/MultiResourceSelector';
 import MultiAccountManagerSelector from '../../../components/MultiAccountManagerSelector';
+import AssignResourceModal from '../../../components/AssignResourceModal';
+import CompleteStatusModal from '../../../components/CompleteStatusModal';
+import RegionSelector from '../../../components/RegionSelector';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
 import { getEnvironment, getTableName } from '../../../lib/dynamodb';
 import StatBox from '../../../components/StatBox';
@@ -55,7 +58,9 @@ export default function SaAssignmentsPage() {
       dateFrom: '',
       dateTo: '',
       search: '',
-      sort: 'newest'
+      sort: 'newest',
+      myWorkCompleted: false,
+      myWorkInProgress: true
     };
   });
   const [showPracticeModal, setShowPracticeModal] = useState(false);
@@ -94,6 +99,14 @@ export default function SaAssignmentsPage() {
             parsedFilters.sort = 'myAssignments';
           }
           
+          // Set defaults for my work filters if not present
+          if (parsedFilters.myWorkCompleted === undefined) {
+            parsedFilters.myWorkCompleted = false;
+          }
+          if (parsedFilters.myWorkInProgress === undefined) {
+            parsedFilters.myWorkInProgress = true;
+          }
+          
           setFilters(parsedFilters);
         } catch (error) {
           shouldSetDefaults = true;
@@ -110,7 +123,9 @@ export default function SaAssignmentsPage() {
           dateFrom: '',
           dateTo: '',
           search: '',
-          sort: user.role === 'practice_member' ? 'myAssignments' : 'newest'
+          sort: user.role === 'practice_member' ? 'myAssignments' : 'newest',
+          myWorkCompleted: false,
+          myWorkInProgress: true
         });
       }
     }
@@ -285,8 +300,27 @@ export default function SaAssignmentsPage() {
       saAssignment.am.toLowerCase().includes(filters.search.toLowerCase());
     
     // Filter for 'My Assignments' - check if current user is assigned as SA
-    const matchesMyAssignments = filters.sort !== 'myAssignments' || 
-      (saAssignment.saAssigned && saAssignment.saAssigned.toLowerCase().includes(user?.name?.toLowerCase() || ''));
+    let matchesMyAssignments = true;
+    if (filters.sort === 'myAssignments') {
+      const isAssigned = saAssignment.saAssigned && saAssignment.saAssigned.toLowerCase().includes(user?.name?.toLowerCase() || '');
+      if (!isAssigned) {
+        matchesMyAssignments = false;
+      } else {
+        // Apply my work completion filters
+        const saCompletions = JSON.parse(saAssignment.saCompletions || '{}');
+        const userComplete = !!saCompletions[user.name];
+        
+        const showCompleted = filters.myWorkCompleted;
+        const showInProgress = filters.myWorkInProgress;
+        
+        if (!showCompleted && userComplete) {
+          matchesMyAssignments = false;
+        }
+        if (!showInProgress && !userComplete) {
+          matchesMyAssignments = false;
+        }
+      }
+    }
     
     return matchesStatus && matchesPractice && matchesRegion && matchesDateRange && matchesSearch && matchesMyAssignments;
   }).sort((a, b) => {
@@ -473,7 +507,9 @@ export default function SaAssignmentsPage() {
                       dateFrom: '', 
                       dateTo: '', 
                       search: '', 
-                      sort: user?.role === 'practice_member' ? 'myAssignments' : 'newest' 
+                      sort: user?.role === 'practice_member' ? 'myAssignments' : 'newest',
+                      myWorkCompleted: false,
+                      myWorkInProgress: true
                     };
                     localStorage.removeItem('saAssignmentsFilters');
                     setFilters(defaultFilters);
@@ -542,29 +578,11 @@ export default function SaAssignmentsPage() {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Region</label>
-                  <select
+                  <RegionSelector
                     value={filters.region}
-                    onChange={(e) => setFilters({...filters, region: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                  >
-                    <option value="">All Regions</option>
-                    <option value="CA-LAX">CA-LAX</option>
-                    <option value="CA-SAN">CA-SAN</option>
-                    <option value="CA-SFO">CA-SFO</option>
-                    <option value="FL-MIA">FL-MIA</option>
-                    <option value="FL-NORT">FL-NORT</option>
-                    <option value="KY-KENT">KY-KENT</option>
-                    <option value="LA-STATE">LA-STATE</option>
-                    <option value="OK-OKC">OK-OKC</option>
-                    <option value="OTHERS">OTHERS</option>
-                    <option value="TN-TEN">TN-TEN</option>
-                    <option value="TX-CEN">TX-CEN</option>
-                    <option value="TX-DAL">TX-DAL</option>
-                    <option value="TX-HOU">TX-HOU</option>
-                    <option value="TX-SOUT">TX-SOUT</option>
-                    <option value="US-FED">US-FED</option>
-                    <option value="US-SP">US-SP</option>
-                  </select>
+                    onChange={(region) => setFilters({...filters, region})}
+                    placeholder="All Regions"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -599,6 +617,33 @@ export default function SaAssignmentsPage() {
                     <option value="customer">🏢 Customer Name</option>
                     <option value="myAssignments">👤 My Assignments</option>
                   </select>
+                  
+                  {/* My Work Sub-filters */}
+                  {filters.sort === 'myAssignments' && (
+                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <label className="block text-xs font-medium text-blue-700 mb-2">My Work Status</label>
+                      <div className="space-y-2">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={filters.myWorkInProgress}
+                            onChange={(e) => setFilters({...filters, myWorkInProgress: e.target.checked})}
+                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <span className="text-sm text-blue-700">In Progress</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={filters.myWorkCompleted}
+                            onChange={(e) => setFilters({...filters, myWorkCompleted: e.target.checked})}
+                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <span className="text-sm text-blue-700">Completed</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -881,27 +926,14 @@ export default function SaAssignmentsPage() {
 
 function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAssignments }) {
   const router = useRouter();
-  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
-  const [showPracticeModal, setShowPracticeModal] = useState(false);
-  const [assignmentData, setAssignmentData] = useState({
-    practice: [],
-    am: [],
-    region: '',
-    saAssigned: [],
-    dateAssigned: new Date().toISOString().split('T')[0]
-  });
-  const [practiceData, setPracticeData] = useState({
-    practice: [],
-    am: [],
-    region: '',
-    targetStatus: '',
-    saAssigned: [],
-    dateAssigned: new Date().toISOString().split('T')[0]
-  });
-  const [practiceError, setPracticeError] = useState('');
+  const [showAssignResourceModal, setShowAssignResourceModal] = useState(false);
+  const [assignResourceData, setAssignResourceData] = useState({});
+  const [assignResourceTargetStatus, setAssignResourceTargetStatus] = useState('Assigned');
   const [saving, setSaving] = useState(false);
   const [currentSaAssignmentId, setCurrentSaAssignmentId] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [currentSaAssignment, setCurrentSaAssignment] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -918,30 +950,12 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
     fetchUsers();
   }, []);
 
-  // Auto-populate region when account managers are selected
-  useEffect(() => {
-    if (showPracticeModal && !practiceData.region && practiceData.am && Array.isArray(practiceData.am) && practiceData.am.length > 0 && allUsers.length > 0) {
-      const firstAM = allUsers.find(u => u.role === 'account_manager' && practiceData.am.includes(u.name));
-      if (firstAM && firstAM.region) {
-        setPracticeData(prev => ({...prev, region: firstAM.region}));
-      }
-    }
-  }, [showPracticeModal, practiceData.am, allUsers, practiceData.region]);
 
-  // Auto-populate region for assignment modal
-  useEffect(() => {
-    if (showAssignmentModal && !assignmentData.region && assignmentData.am && Array.isArray(assignmentData.am) && assignmentData.am.length > 0 && allUsers.length > 0) {
-      const firstAM = allUsers.find(u => u.role === 'account_manager' && assignmentData.am.includes(u.name));
-      if (firstAM && firstAM.region) {
-        setAssignmentData(prev => ({...prev, region: firstAM.region}));
-      }
-    }
-  }, [showAssignmentModal, assignmentData.am, allUsers, assignmentData.region]);
 
 
 
   const canEditSaAssignment = (saAssignment) => {
-    if (user.isAdmin) return true;
+    if (user.isAdmin || user.role === 'executive') return true;
     
     if (saAssignment.status === 'Unassigned' || saAssignment.status === 'Assigned') {
       return (user.role === 'practice_manager' || user.role === 'practice_principal') && 
@@ -954,6 +968,21 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
     
     return (user.role === 'practice_manager' || user.role === 'practice_principal') && 
            user.practices?.includes(saAssignment.practice);
+  };
+  
+  const canMarkComplete = (saAssignment) => {
+    if (!user || !saAssignment) return false;
+    
+    // Admins and executives can always mark complete
+    if (user.isAdmin || user.role === 'executive') return true;
+    
+    // Assigned SAs can mark their own work complete
+    if (saAssignment.saAssigned) {
+      const assignedSAs = saAssignment.saAssigned.split(',').map(s => s.trim());
+      return assignedSAs.some(sa => sa.toLowerCase() === user.name.toLowerCase());
+    }
+    
+    return false;
   };
   
   return (
@@ -994,40 +1023,62 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                         const newStatus = e.target.value;
                         setCurrentSaAssignmentId(saAssignment.id);
                         
+                        if (newStatus === 'Complete') {
+                          if (canMarkComplete(saAssignment)) {
+                            setCurrentSaAssignment(saAssignment);
+                            setShowCompleteModal(true);
+                            e.target.value = saAssignment.status;
+                            return;
+                          } else {
+                            alert('You do not have permission to mark this assignment as complete.');
+                            e.target.value = saAssignment.status;
+                            return;
+                          }
+                        }
+                        
                         if (newStatus === 'Assigned') {
                           const amNames = saAssignment.am ? saAssignment.am.split(',').map(a => extractFriendlyName(a.trim())) : [];
-                          setAssignmentData({
+                          setAssignResourceData({
                             practice: saAssignment.practice && saAssignment.practice !== 'Pending' ? saAssignment.practice.split(',').map(p => p.trim()) : [],
                             am: amNames,
                             region: saAssignment.region || '',
                             saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
                             dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0]
                           });
-                          setShowAssignmentModal(true);
+                          setAssignResourceTargetStatus('Assigned');
+                          setShowAssignResourceModal(true);
                           e.target.value = saAssignment.status;
                           return;
                         }
                         
                         if ((saAssignment.status === 'Pending' && (newStatus === 'Unassigned' || newStatus === 'Assigned')) || (saAssignment.status === 'Unassigned' && newStatus === 'Assigned')) {
                           const amNames = saAssignment.am ? saAssignment.am.split(',').map(a => extractFriendlyName(a.trim())) : [];
-                          setPracticeData({
+                          setAssignResourceData({
                             practice: saAssignment.status === 'Pending' ? [] : (saAssignment.practice ? saAssignment.practice.split(',').map(p => p.trim()) : []),
                             am: amNames,
                             region: saAssignment.region || user?.region || '',
-                            targetStatus: newStatus,
                             saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
                             dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0]
                           });
-                          setPracticeError('');
-                          setShowPracticeModal(true);
+                          setAssignResourceTargetStatus(newStatus);
+                          setShowAssignResourceModal(true);
                           e.target.value = saAssignment.status;
                           return;
                         }
                         
                         try {
+                          const userCookie = document.cookie.split(';').find(c => c.trim().startsWith('user-session='));
+                          if (!userCookie) {
+                            alert('Session expired. Please log in again.');
+                            return;
+                          }
+                          
                           const response = await fetch(`/api/sa-assignments/${saAssignment.id}`, {
                             method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 
+                              'Content-Type': 'application/json',
+                              'Cookie': userCookie
+                            },
                             body: JSON.stringify({ status: newStatus })
                           });
                           if (response.ok) {
@@ -1049,6 +1100,7 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                       <option value="Unassigned">Unassigned</option>
                       <option value="Assigned">Assigned</option>
                       <option value="Complete">Complete</option>
+
                     </select>
                   ) : (
                     <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-lg ${
@@ -1141,397 +1193,72 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
         </table>
       </div>
       
-      {/* Practice Assignment Modal */}
-      {showPracticeModal && createPortal(
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {practiceData.targetStatus === 'Assigned' ? 'Assign Resource' : 'Assign to Practice'}
-                </h3>
-              </div>
-              
-              <p className="text-gray-600 mb-6">
-                {practiceData.targetStatus === 'Assigned' 
-                  ? 'Please assign this request to a practice and resource.' 
-                  : 'Please assign this request to one or more practices.'}
-              </p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Practice *</label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3">
-                    {PRACTICE_OPTIONS.filter(practice => practice !== 'Pending').map(practice => (
-                      <label key={practice} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={Array.isArray(practiceData.practice) ? practiceData.practice.includes(practice) : practiceData.practice === practice}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              const currentPractices = Array.isArray(practiceData.practice) ? practiceData.practice : (practiceData.practice ? [practiceData.practice] : []);
-                              setPracticeData(prev => ({...prev, practice: [...currentPractices, practice]}));
-                            } else {
-                              const currentPractices = Array.isArray(practiceData.practice) ? practiceData.practice : (practiceData.practice ? [practiceData.practice] : []);
-                              setPracticeData(prev => ({...prev, practice: currentPractices.filter(p => p !== practice)}));
-                            }
-                            setPracticeError('');
-                          }}
-                          className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-700">{practice}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {practiceError && (
-                    <p className="mt-1 text-sm text-red-600">{practiceError}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <MultiAccountManagerSelector
-                    value={practiceData.am || []}
-                    onChange={(managers) => setPracticeData(prev => ({...prev, am: managers}))}
-                    placeholder="Select or type account manager names..."
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Region *</label>
-                  <select
-                    value={practiceData.region}
-                    onChange={(e) => setPracticeData(prev => ({...prev, region: e.target.value}))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                    required
-                  >
-                    <option value="">Select Region</option>
-                    <option value="CA-LAX">CA-LAX</option>
-                    <option value="CA-SAN">CA-SAN</option>
-                    <option value="CA-SFO">CA-SFO</option>
-                    <option value="FL-MIA">FL-MIA</option>
-                    <option value="FL-NORT">FL-NORT</option>
-                    <option value="KY-KENT">KY-KENT</option>
-                    <option value="LA-STATE">LA-STATE</option>
-                    <option value="OK-OKC">OK-OKC</option>
-                    <option value="OTHERS">OTHERS</option>
-                    <option value="TN-TEN">TN-TEN</option>
-                    <option value="TX-CEN">TX-CEN</option>
-                    <option value="TX-DAL">TX-DAL</option>
-                    <option value="TX-HOU">TX-HOU</option>
-                    <option value="TX-SOUT">TX-SOUT</option>
-                    <option value="US-FED">US-FED</option>
-                    <option value="US-SP">US-SP</option>
-                  </select>
-                </div>
-                
-                {practiceData.targetStatus === 'Assigned' && (
-                  <>
-                    <div>
-                      <MultiResourceSelector
-                        value={practiceData.saAssigned || []}
-                        onChange={(resources) => setPracticeData(prev => ({...prev, saAssigned: resources}))}
-                        assignedPractices={Array.isArray(practiceData.practice) ? practiceData.practice : (practiceData.practice ? [practiceData.practice] : [])}
-                        placeholder="Select or type SA names..."
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date Assigned *</label>
-                      <input
-                        type="date"
-                        value={practiceData.dateAssigned}
-                        onChange={(e) => setPracticeData(prev => ({...prev, dateAssigned: e.target.value}))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-              
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowPracticeModal(false);
-                    setPracticeData({
-                      practice: [],
-                      am: [],
-                      region: '',
-                      targetStatus: '',
-                      saAssigned: [],
-                      dateAssigned: new Date().toISOString().split('T')[0]
-                    });
-                  }}
-                  disabled={saving}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    const practices = Array.isArray(practiceData.practice) ? practiceData.practice : (practiceData.practice ? [practiceData.practice] : []);
-                    if (practices.length === 0) {
-                      alert('Please select at least one practice');
-                      return;
-                    }
-                    
-                    if (!practiceData.am || (Array.isArray(practiceData.am) && practiceData.am.length === 0)) {
-                      alert('Please select at least one account manager');
-                      return;
-                    }
-                    
-                    if (!practiceData.region) {
-                      alert('Please select a region');
-                      return;
-                    }
-                    
-                    if (practiceData.targetStatus === 'Assigned' && (!practiceData.saAssigned || (Array.isArray(practiceData.saAssigned) && practiceData.saAssigned.length === 0))) {
-                      alert('Please assign at least one SA');
-                      return;
-                    }
-                    
-                    setSaving(true);
-                    try {
-                      const updateData = {
-                        status: practiceData.targetStatus,
-                        practice: practices.join(','),
-                        am: Array.isArray(practiceData.am) ? practiceData.am.join(',') : practiceData.am,
-                        region: practiceData.region
-                      };
-                      
-                      if (practiceData.targetStatus === 'Assigned') {
-                        updateData.saAssigned = Array.isArray(practiceData.saAssigned) ? practiceData.saAssigned.join(',') : practiceData.saAssigned;
-                        updateData.dateAssigned = practiceData.dateAssigned;
-                      }
-                      
-                      const response = await fetch(`/api/sa-assignments/${currentSaAssignmentId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updateData)
-                      });
-                      if (response.ok) {
-                        onSaAssignmentUpdate();
-                        setShowPracticeModal(false);
-                        setPracticeData({
-                          practice: [],
-                          am: [],
-                          region: '',
-                          targetStatus: '',
-                          saAssigned: [],
-                          dateAssigned: new Date().toISOString().split('T')[0]
-                        });
-                      } else {
-                        alert('Failed to assign to practice');
-                      }
-                    } catch (error) {
-                      console.error('Error assigning to practice:', error);
-                      alert('Failed to assign to practice');
-                    } finally {
-                      setSaving(false);
-                    }
-                  }}
-                  disabled={saving || (Array.isArray(practiceData.practice) ? practiceData.practice.length === 0 : !practiceData.practice) || !practiceData.am || (Array.isArray(practiceData.am) && practiceData.am.length === 0) || !practiceData.region || (practiceData.targetStatus === 'Assigned' && (!practiceData.saAssigned || (Array.isArray(practiceData.saAssigned) && practiceData.saAssigned.length === 0)))}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {saving ? 'Assigning...' : (practiceData.targetStatus === 'Assigned' ? 'Assign Resource' : 'Assign to Practice')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>, document.body
-      )}
+      {/* Assign Resource Modal */}
+      <AssignResourceModal
+        isOpen={showAssignResourceModal}
+        onClose={() => {
+          setShowAssignResourceModal(false);
+          setAssignResourceData({});
+        }}
+        onSave={async (updateData) => {
+          setSaving(true);
+          try {
+            const response = await fetch(`/api/sa-assignments/${currentSaAssignmentId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updateData)
+            });
+            if (response.ok) {
+              onSaAssignmentUpdate();
+              setShowAssignResourceModal(false);
+              setAssignResourceData({});
+            } else {
+              alert('Failed to assign resource');
+            }
+          } catch (error) {
+            console.error('Error assigning resource:', error);
+            alert('Failed to assign resource');
+          } finally {
+            setSaving(false);
+          }
+        }}
+        initialData={assignResourceData}
+        targetStatus={assignResourceTargetStatus}
+        saving={saving}
+        allUsers={allUsers}
+      />
       
-      {/* Assignment Modal */}
-      {showAssignmentModal && createPortal(
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Assign Resource</h3>
-              </div>
-              
-              <p className="text-gray-600 mb-6">
-                Please assign this request to a practice, region, and resource.
-              </p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Practice *</label>
-                  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3">
-                    {PRACTICE_OPTIONS.filter(practice => practice !== 'Pending').map(practice => (
-                      <label key={practice} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={Array.isArray(assignmentData.practice) ? assignmentData.practice.includes(practice) : assignmentData.practice === practice}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              const currentPractices = Array.isArray(assignmentData.practice) ? assignmentData.practice : (assignmentData.practice ? [assignmentData.practice] : []);
-                              setAssignmentData(prev => ({...prev, practice: [...currentPractices, practice]}));
-                            } else {
-                              const currentPractices = Array.isArray(assignmentData.practice) ? assignmentData.practice : (assignmentData.practice ? [assignmentData.practice] : []);
-                              setAssignmentData(prev => ({...prev, practice: currentPractices.filter(p => p !== practice)}));
-                            }
-                          }}
-                          className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-700">{practice}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <MultiAccountManagerSelector
-                    value={assignmentData.am || []}
-                    onChange={(managers) => setAssignmentData(prev => ({...prev, am: managers}))}
-                    placeholder="Select or type account manager names..."
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Region *</label>
-                  <select
-                    value={assignmentData.region}
-                    onChange={(e) => setAssignmentData(prev => ({...prev, region: e.target.value}))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                    required
-                  >
-                    <option value="">Select Region</option>
-                    <option value="CA-LAX">CA-LAX</option>
-                    <option value="CA-SAN">CA-SAN</option>
-                    <option value="CA-SFO">CA-SFO</option>
-                    <option value="FL-MIA">FL-MIA</option>
-                    <option value="FL-NORT">FL-NORT</option>
-                    <option value="KY-KENT">KY-KENT</option>
-                    <option value="LA-STATE">LA-STATE</option>
-                    <option value="OK-OKC">OK-OKC</option>
-                    <option value="OTHERS">OTHERS</option>
-                    <option value="TN-TEN">TN-TEN</option>
-                    <option value="TX-CEN">TX-CEN</option>
-                    <option value="TX-DAL">TX-DAL</option>
-                    <option value="TX-HOU">TX-HOU</option>
-                    <option value="TX-SOUT">TX-SOUT</option>
-                    <option value="US-FED">US-FED</option>
-                    <option value="US-SP">US-SP</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <MultiResourceSelector
-                    value={assignmentData.saAssigned || []}
-                    onChange={(resources) => setAssignmentData(prev => ({...prev, saAssigned: resources}))}
-                    assignedPractices={Array.isArray(assignmentData.practice) ? assignmentData.practice : (assignmentData.practice ? [assignmentData.practice] : [])}
-                    placeholder="Select or type SA names..."
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date Assigned *</label>
-                  <input
-                    type="date"
-                    value={assignmentData.dateAssigned}
-                    onChange={(e) => setAssignmentData(prev => ({...prev, dateAssigned: e.target.value}))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-              
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowAssignmentModal(false);
-                    setAssignmentData({
-                      practice: [],
-                      am: [],
-                      region: '',
-                      saAssigned: [],
-                      dateAssigned: new Date().toISOString().split('T')[0]
-                    });
-                  }}
-                  disabled={saving}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => {
-                    const practices = Array.isArray(assignmentData.practice) ? assignmentData.practice : (assignmentData.practice ? [assignmentData.practice] : []);
-                    if (practices.length === 0) {
-                      alert('Please select at least one practice');
-                      return;
-                    }
-                    
-                    if (!assignmentData.region) {
-                      alert('Please select a region');
-                      return;
-                    }
-                    
-                    if (!assignmentData.saAssigned || (Array.isArray(assignmentData.saAssigned) && assignmentData.saAssigned.length === 0)) {
-                      alert('Please assign at least one SA');
-                      return;
-                    }
-                    
-                    setSaving(true);
-                    try {
-                      const updateData = {
-                        status: 'Assigned',
-                        practice: practices.join(','),
-                        am: Array.isArray(assignmentData.am) ? assignmentData.am.join(',') : assignmentData.am,
-                        region: assignmentData.region,
-                        saAssigned: Array.isArray(assignmentData.saAssigned) ? assignmentData.saAssigned.join(',') : assignmentData.saAssigned,
-                        dateAssigned: assignmentData.dateAssigned
-                      };
-                      
-                      const response = await fetch(`/api/sa-assignments/${currentSaAssignmentId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updateData)
-                      });
-                      if (response.ok) {
-                        onSaAssignmentUpdate();
-                        setShowAssignmentModal(false);
-                        setAssignmentData({
-                          practice: [],
-                          am: [],
-                          region: '',
-                          saAssigned: [],
-                          dateAssigned: new Date().toISOString().split('T')[0]
-                        });
-                      } else {
-                        alert('Failed to assign resource');
-                      }
-                    } catch (error) {
-                      console.error('Error assigning resource:', error);
-                      alert('Failed to assign resource');
-                    } finally {
-                      setSaving(false);
-                    }
-                  }}
-                  disabled={saving || (Array.isArray(assignmentData.practice) ? assignmentData.practice.length === 0 : !assignmentData.practice) || !assignmentData.region || (!assignmentData.saAssigned || (Array.isArray(assignmentData.saAssigned) && assignmentData.saAssigned.length === 0))}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                >
-                  {saving ? 'Assigning...' : 'Assign Resource'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>, document.body
-      )}
-      
+      {/* Complete Status Modal */}
+      <CompleteStatusModal
+        isOpen={showCompleteModal}
+        onClose={() => {
+          setShowCompleteModal(false);
+          setCurrentSaAssignment(null);
+        }}
+        saAssignment={currentSaAssignment}
+        user={user}
+        onComplete={async (targetSA) => {
+          try {
+            const response = await fetch(`/api/sa-assignments/${currentSaAssignment.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                markSAComplete: true,
+                targetSA: targetSA
+              })
+            });
+            
+            if (response.ok) {
+              onSaAssignmentUpdate();
+            } else {
+              throw new Error('Failed to mark SA as complete');
+            }
+          } catch (error) {
+            console.error('Error marking SA complete:', error);
+            throw error;
+          }
+        }}
+      />
 
     </div>
   );

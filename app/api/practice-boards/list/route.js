@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/dynamodb.js';
+import { validateUserSession } from '../../../../lib/auth-check.js';
 
-export async function GET() {
+export async function GET(request) {
   try {
     console.log('🔍 [API] Starting practice board list');
+    
+    const userCookie = request.cookies.get('user-session');
+    const validation = await validateUserSession(userCookie);
+    
+    if (!validation.valid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const user = validation.user;
     
     // Get all practice board settings
     const allSettings = await db.getAllSettings();
@@ -58,8 +68,23 @@ export async function GET() {
       }
     }
     
-    console.log('🔍 [API] Final practice boards list:', practiceBoards);
-    return NextResponse.json({ boards: practiceBoards });
+    console.log('🔍 [API] All practice boards found:', practiceBoards.length);
+    
+    // Filter boards based on user permissions
+    let filteredBoards = practiceBoards;
+    
+    // Practice roles and other roles (account_manager, isr, netsync_employee) can view ALL boards
+    const viewAllRoles = ['practice_manager', 'practice_principal', 'practice_member', 'account_manager', 'isr', 'netsync_employee', 'executive'];
+    if (!user.isAdmin && !viewAllRoles.includes(user.role)) {
+      // Other users can only see boards for their assigned practices
+      filteredBoards = practiceBoards.filter(board => 
+        board.practices && board.practices.some(practice => user.practices?.includes(practice))
+      );
+      console.log('🔍 [API] Filtered boards for user:', filteredBoards.length);
+    }
+    
+    console.log('🔍 [API] Final practice boards list:', filteredBoards.length);
+    return NextResponse.json({ boards: filteredBoards });
   } catch (error) {
     console.error('🔍 [API] Error listing practice boards:', error);
     return NextResponse.json({ error: 'Failed to list practice boards' }, { status: 500 });

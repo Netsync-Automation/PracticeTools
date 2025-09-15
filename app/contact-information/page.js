@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useCsrf } from '../../hooks/useCsrf';
+import { sanitizeText } from '../../lib/sanitize';
 import Navbar from '../../components/Navbar';
 import SidebarLayout from '../../components/SidebarLayout';
 import Breadcrumb from '../../components/Breadcrumb';
@@ -11,6 +13,7 @@ import ContactSettingsModal from '../../components/ContactSettingsModal';
 
 export default function ContactInformationPage() {
   const { user, loading, logout } = useAuth();
+  const { getHeaders } = useCsrf();
   const [practiceGroups, setPracticeGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState('');
   const [selectedType, setSelectedType] = useState('Main Contact List');
@@ -65,7 +68,7 @@ export default function ContactInformationPage() {
         fetchContactTypes(selectedGroupId);
       }
     } catch (error) {
-      console.error('Error fetching practice groups:', error);
+      // Error fetching practice groups - continue with empty array
     }
   };
 
@@ -78,7 +81,7 @@ export default function ContactInformationPage() {
       const data = await response.json();
       setContactInfo(data.contactInfo || null);
     } catch (error) {
-      console.error('Error fetching contact info:', error);
+      // Error fetching contact info - continue with null
     } finally {
       setLoadingData(false);
     }
@@ -99,20 +102,32 @@ export default function ContactInformationPage() {
       const types = ['Main Contact List', ...(data.contactTypes || [])];
       setContactTypes(types);
     } catch (error) {
-      console.error('Error fetching contact types:', error);
       setContactTypes(['Main Contact List']);
     }
   };
 
   const canAddTypes = () => {
-    return user && (user.isAdmin || user.role === 'practice_manager' || user.role === 'practice_principal') && selectedGroup;
+    if (!user || !selectedGroup) return false;
+    
+    // Admins and executives can add types for all practice groups
+    if (user.isAdmin || user.role === 'executive') return true;
+    
+    // Practice managers and principals can add types for their assigned practices
+    if ((user.role === 'practice_manager' || user.role === 'practice_principal') && user.practices) {
+      const selectedGroupData = practiceGroups.find(group => group.id === selectedGroup);
+      if (selectedGroupData) {
+        return selectedGroupData.practices.some(practice => user.practices.includes(practice));
+      }
+    }
+    
+    return false;
   };
 
   const canManageSettings = () => {
     if (!user || !selectedGroup) return false;
     
-    // Admins can manage settings for all practice groups
-    if (user.isAdmin) return true;
+    // Admins and executives can manage settings for all practice groups
+    if (user.isAdmin || user.role === 'executive') return true;
     
     // Practice managers and principals can manage settings for their assigned practices
     if ((user.role === 'practice_manager' || user.role === 'practice_principal') && user.practices) {
@@ -128,8 +143,8 @@ export default function ContactInformationPage() {
   const canAddCompaniesContacts = () => {
     if (!user || !selectedGroup) return false;
     
-    // Admins can add for all practice groups
-    if (user.isAdmin) return true;
+    // Admins and executives can add for all practice groups
+    if (user.isAdmin || user.role === 'executive') return true;
     
     // Practice members, managers, and principals can add for their assigned practices
     if ((user.role === 'practice_member' || user.role === 'practice_manager' || user.role === 'practice_principal') && user.practices) {
@@ -143,26 +158,27 @@ export default function ContactInformationPage() {
   };
 
   const handleAddType = async () => {
-    if (!newTypeName.trim()) return;
+    const sanitizedTypeName = sanitizeText(newTypeName);
+    if (!sanitizedTypeName) return;
     
     try {
       const response = await fetch('/api/contact-types', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
           practiceGroupId: selectedGroup,
-          typeName: newTypeName.trim()
+          typeName: sanitizedTypeName
         })
       });
       
       if (response.ok) {
-        setContactTypes([...contactTypes, newTypeName.trim()]);
-        setSelectedType(newTypeName.trim());
+        setContactTypes([...contactTypes, sanitizedTypeName]);
+        setSelectedType(sanitizedTypeName);
         setShowAddTypeModal(false);
         setNewTypeName('');
       }
     } catch (error) {
-      console.error('Error adding contact type:', error);
+      // Error adding contact type - user will see no change
     }
   };
 

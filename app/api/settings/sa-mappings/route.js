@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
 import { db } from '../../../../lib/dynamodb';
+import { validateUserSession } from '../../../../lib/auth-check';
 
 export async function GET() {
   try {
@@ -40,8 +41,21 @@ export async function POST(request) {
   let settings, tableName, environment;
   
   try {
+    const userCookie = request.cookies.get('user-session');
+    const validation = await validateUserSession(userCookie);
+    
+    if (!validation.valid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
     const requestData = await request.json();
     settings = requestData.settings;
+    
+    // Validate settings is an object to prevent code injection
+    if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+      return NextResponse.json({ error: 'Invalid settings format' }, { status: 400 });
+    }
+    
     tableName = getTableName('Settings');
     environment = getEnvironment();
     
@@ -58,13 +72,17 @@ export async function POST(request) {
     await db.client.send(command);
     
     // Send SSE notification for real-time updates
-    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sse/notify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'sa-mapping-settings-update'
-      })
-    }).catch(() => {}); // Silent fail for SSE
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sse/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'sa-mapping-settings-update'
+        })
+      });
+    } catch (sseError) {
+      console.error('SSE notification failed:', sseError);
+    }
     
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -102,8 +120,8 @@ async function createSettingsTable(tableName) {
     const { CreateTableCommand } = await import('@aws-sdk/client-dynamodb');
     const command = new CreateTableCommand({
       TableName: tableName,
-      KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
-      AttributeDefinitions: [{ AttributeName: 'id', AttributeType: 'S' }],
+      KeySchema: [{ AttributeName: 'setting_key', KeyType: 'HASH' }],
+      AttributeDefinitions: [{ AttributeName: 'setting_key', AttributeType: 'S' }],
       BillingMode: 'PAY_PER_REQUEST'
     });
     await db.client.send(command);

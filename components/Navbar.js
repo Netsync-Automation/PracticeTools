@@ -5,20 +5,20 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon, PlusIcon, UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { getRoleColor } from '../utils/roleColors';
+import { useApp } from '../contexts/AppContext';
 
 function NavbarLogo() {
-  const [logoSrc, setLogoSrc] = useState('/company-logo.png');
+  const [logoSrc, setLogoSrc] = useState(null);
   
   useEffect(() => {
     const loadLogo = async () => {
       try {
         const response = await fetch('/api/settings/general');
         const data = await response.json();
-        if (data.navbarLogo) {
-          setLogoSrc(data.navbarLogo);
-        }
+        setLogoSrc(data.navbarLogo || data.defaultNavbarLogo || '/company-logo.png');
       } catch (error) {
         console.error('Error loading navbar logo:', error);
+        setLogoSrc('/company-logo.png');
       }
     };
     loadLogo();
@@ -37,8 +37,8 @@ export default function Navbar({ user, onLogout }) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [version, setVersion] = useState('2.3.0');
-  const [appName, setAppName] = useState('');
+  const [version, setVersion] = useState(null);
+  const { appName, updateAppName } = useApp();
 
   const dropdownRef = useRef(null);
 
@@ -53,9 +53,10 @@ export default function Navbar({ user, onLogout }) {
         console.log('[NAVBAR-DEBUG] Version value:', data.version);
         console.log('[NAVBAR-DEBUG] Version type:', typeof data.version);
         console.log('[NAVBAR-DEBUG] Version length:', data.version?.length);
-        setVersion(data.version);
+        setVersion(data.version || '1.0.0');
       } catch (error) {
         console.error('[NAVBAR-DEBUG] Error loading version:', error);
+        setVersion('1.0.0');
       }
     };
     
@@ -73,22 +74,7 @@ export default function Navbar({ user, onLogout }) {
       }
     };
     
-    // Load application name from settings
-    const loadAppName = async () => {
-      try {
-        const response = await fetch('/api/settings/general');
-        if (response.ok) {
-          const data = await response.json();
-          setAppName(data.appName || '');
-        }
-      } catch (error) {
-        console.error('Error loading app name:', error);
-        setAppName('');
-      }
-    };
-    
     loadVersion();
-    loadAppName();
     setTimeout(processPendingReleases, 2000);
   }, []);
 
@@ -128,9 +114,11 @@ export default function Navbar({ user, onLogout }) {
                     </div>
                   </button>
                   <div className="flex items-center gap-2 ml-3">
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      {version}
-                    </span>
+                    {version && (
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {version}
+                      </span>
+                    )}
                     <Link
                       href="/release-notes"
                       className="text-xs text-blue-600 hover:text-blue-800 underline"

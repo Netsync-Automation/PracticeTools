@@ -8,6 +8,7 @@ import AccessCheck from '../../../../components/AccessCheck';
 import Breadcrumb from '../../../../components/Breadcrumb';
 import PracticeSelector from '../../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../../components/MultiResourceSelector';
+import RegionSelector from '../../../../components/RegionSelector';
 import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
 
 export default function NewSaAssignmentPage() {
@@ -41,6 +42,7 @@ export default function NewSaAssignmentPage() {
           if (sessionData.user) {
             setUser(sessionData.user);
             localStorage.setItem('user', JSON.stringify(sessionData.user));
+            setLoading(false);
             return;
           }
         }
@@ -51,6 +53,7 @@ export default function NewSaAssignmentPage() {
       const userData = localStorage.getItem('user');
       if (userData) {
         setUser(JSON.parse(userData));
+        setLoading(false);
         return;
       }
       
@@ -58,7 +61,6 @@ export default function NewSaAssignmentPage() {
     };
     
     checkAuth();
-    setLoading(false);
   }, [router]);
 
   const handleLogout = async () => {
@@ -226,29 +228,11 @@ export default function NewSaAssignmentPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Region
                   </label>
-                  <select
+                  <RegionSelector
                     value={formData.region}
-                    onChange={(e) => setFormData({...formData, region: e.target.value})}
-                    className="input-field"
-                  >
-                    <option value="">Select region...</option>
-                    <option value="CA-LAX">CA-LAX</option>
-                    <option value="CA-SAN">CA-SAN</option>
-                    <option value="CA-SFO">CA-SFO</option>
-                    <option value="FL-MIA">FL-MIA</option>
-                    <option value="FL-NORT">FL-NORT</option>
-                    <option value="KY-KENT">KY-KENT</option>
-                    <option value="LA-STATE">LA-STATE</option>
-                    <option value="OK-OKC">OK-OKC</option>
-                    <option value="OTHERS">OTHERS</option>
-                    <option value="TN-TEN">TN-TEN</option>
-                    <option value="TX-CEN">TX-CEN</option>
-                    <option value="TX-DAL">TX-DAL</option>
-                    <option value="TX-HOU">TX-HOU</option>
-                    <option value="TX-SOUT">TX-SOUT</option>
-                    <option value="US-FED">US-FED</option>
-                    <option value="US-SP">US-SP</option>
-                  </select>
+                    onChange={(region) => setFormData({...formData, region})}
+                    placeholder="Select region..."
+                  />
                 </div>
 
                 <div>

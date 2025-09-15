@@ -10,10 +10,12 @@ import { useAuth } from '../../../hooks/useAuth';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
 import EmailRulesManager from '../../../components/EmailRulesManager';
 import { getRoleColor } from '../../../utils/roleColors';
+import { useApp } from '../../../contexts/AppContext';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const { updateAppName } = useApp();
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState({
     appName: 'Issue Tracker',
@@ -274,7 +276,7 @@ export default function SettingsPage() {
           const data = await response.json();
           setSettings(prev => ({
             ...prev,
-            appName: data.appName || 'Issue Tracker',
+            appName: data.appName || 'Practice Tools',
             loginLogo: data.loginLogo,
             navbarLogo: data.navbarLogo,
             allowedFileTypes: data.allowedFileTypes || '.pdf,.doc,.docx,.txt,.png,.jpg,.jpeg'
@@ -894,7 +896,11 @@ export default function SettingsPage() {
                       <input
                         type="text"
                         value={settings.appName}
-                        onChange={(e) => setSettings({...settings, appName: e.target.value})}
+                        onChange={(e) => {
+                          setSettings({...settings, appName: e.target.value});
+                          // Update app context immediately
+                          updateAppName(e.target.value);
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter application name"
                       />

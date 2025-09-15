@@ -441,6 +441,8 @@ class CommitBuilder {
           'csrf': 'Enhanced csrf Service with improved functionality and error handling',
           'authcheck': 'Enhanced auth-check Service with improved functionality and error handling',
           'automapping-utility': 'Enhanced auto-mapping-utility Service with improved functionality and error handling',
+          'saemail-service': 'Enhanced sa-email-service Service with improved functionality and error handling',
+          'sawebex-service': 'Enhanced sa-webex-service Service with improved functionality and error handling',
     };
     
     // Check for pattern matches

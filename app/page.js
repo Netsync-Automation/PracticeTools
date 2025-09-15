@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import SidebarLayout from '../components/SidebarLayout';
 import AccessCheck from '../components/AccessCheck';
+import { useApp } from '../contexts/AppContext';
 
 export default function HomePage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [appName, setAppName] = useState('');
+  const { appName } = useApp();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -46,20 +47,9 @@ export default function HomePage() {
       router.replace('/login');
     };
     
-    // Load app name
-    const loadAppName = async () => {
-      try {
-        const response = await fetch('/api/settings/general');
-        const data = await response.json();
-        setAppName(data.appName || 'Practice Tools');
-      } catch (error) {
-        console.error('Error loading app name:', error);
-        setAppName('Practice Tools');
-      }
-    };
+    // App name is now managed by AppProvider
     
     checkAuth();
-    loadAppName();
   }, [router]);
 
   const handleLogout = async () => {
@@ -92,7 +82,7 @@ export default function HomePage() {
             {/* Dashboard Header */}
             <div className="mb-8">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-3">
-                Welcome to {appName}
+                Welcome to {appName || 'Practice Tools'}
               </h1>
               <p className="text-gray-600 text-lg">
                 Your comprehensive practice management dashboard

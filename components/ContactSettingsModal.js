@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useCsrf } from '../hooks/useCsrf';
+import { sanitizeText } from '../lib/sanitize';
 
 export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId, onSettingsChange }) {
+  const { getHeaders } = useCsrf();
   const [fieldOptions, setFieldOptions] = useState({
     msaSigned: [],
     tier: [],
@@ -40,7 +43,7 @@ export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId,
       
       setFieldOptions(options);
     } catch (error) {
-      console.error('Error fetching field options:', error);
+      // Error fetching field options - continue with defaults
     } finally {
       setLoading(false);
     }
@@ -48,13 +51,18 @@ export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId,
 
   const saveFieldOptions = async (fieldName, options) => {
     try {
+      const sanitizedOptions = options
+        .filter(opt => opt !== 'Create your own options in Settings')
+        .map(opt => sanitizeText(opt))
+        .filter(opt => opt.length > 0);
+        
       const response = await fetch('/api/field-options', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
           practiceGroupId,
           fieldName,
-          options: options.filter(opt => opt !== 'Create your own options in Settings')
+          options: sanitizedOptions
         })
       });
 
@@ -69,16 +77,17 @@ export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId,
         }
       }
     } catch (error) {
-      console.error('Error saving field options:', error);
+      // Error saving field options - user will see no change
     }
   };
 
   const addOption = () => {
-    if (!newOption.trim()) return;
+    const sanitizedOption = sanitizeText(newOption);
+    if (!sanitizedOption) return;
     
     const currentOptions = fieldOptions[activeField] || [];
     const filteredOptions = currentOptions.filter(opt => opt !== 'Create your own options in Settings');
-    const newOptions = [...filteredOptions, newOption.trim()];
+    const newOptions = [...filteredOptions, sanitizedOption];
     
     saveFieldOptions(activeField, newOptions);
     setNewOption('');

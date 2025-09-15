@@ -16,6 +16,7 @@ import {
   InformationCircleIcon,
   FolderIcon
 } from '@heroicons/react/24/outline';
+import { useApp } from '../contexts/AppContext';
 
 const menuItems = [
   {
@@ -100,7 +101,14 @@ const menuItems = [
     icon: ChartBarIcon,
     description: 'Leadership tools and management',
     leadershipOnly: true,
-    submenu: []
+    submenu: [
+      {
+        id: 'analytics',
+        name: 'Analytics',
+        href: '/leadership/analytics',
+        description: 'View analytics and insights'
+      }
+    ]
   },
   {
     id: 'admin-dashboard',
@@ -121,6 +129,7 @@ const menuItems = [
 ];
 
 export default function SidebarLayout({ children, user }) {
+  const { appName } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -150,7 +159,7 @@ export default function SidebarLayout({ children, user }) {
 
   const filteredMenuItems = menuItems.filter(item => {
     if (item.adminOnly && !user?.isAdmin && user?.role !== 'practice_manager' && user?.role !== 'practice_principal') return false;
-    if (item.leadershipOnly && !user?.isAdmin && user?.role !== 'practice_manager' && user?.role !== 'practice_principal') return false;
+    if (item.leadershipOnly && !user?.isAdmin && user?.role !== 'executive' && user?.role !== 'practice_manager' && user?.role !== 'practice_principal') return false;
     return true;
   });
 
@@ -196,6 +205,27 @@ export default function SidebarLayout({ children, user }) {
     return pathname.startsWith(href);
   };
 
+  const isExactActive = (href) => {
+    return pathname === href;
+  };
+
+  const isParentActive = (item) => {
+    if (!item.submenu) return isActive(item.href);
+    // Check if any submenu item is active
+    return item.submenu.some(subItem => isActive(subItem.href));
+  };
+
+  const shouldHighlightParent = (item) => {
+    if (!item.submenu) return isActive(item.href);
+    // Only highlight parent if no submenu is expanded and parent href matches
+    if (expandedMenus[item.id]) return false;
+    // Check if current path matches parent href but not any submenu item
+    if (!item.href) return false;
+    const matchesParent = isActive(item.href);
+    const matchesSubmenu = item.submenu.some(subItem => isActive(subItem.href));
+    return matchesParent && !matchesSubmenu;
+  };
+
   const toggleMenu = (menuId) => {
     setExpandedMenus(prev => ({
       ...prev,
@@ -205,7 +235,7 @@ export default function SidebarLayout({ children, user }) {
 
   const hasAccessToSubmenu = (submenuItem) => {
     if (submenuItem.adminOnly && !user?.isAdmin) return false;
-    if (submenuItem.leadershipOnly && !user?.isAdmin && user?.role !== 'practice_manager' && user?.role !== 'practice_principal') return false;
+    if (submenuItem.leadershipOnly && !user?.isAdmin && user?.role !== 'executive' && user?.role !== 'practice_manager' && user?.role !== 'practice_principal') return false;
     return true;
   };
 
@@ -255,7 +285,7 @@ export default function SidebarLayout({ children, user }) {
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
                     <HomeIcon className="h-4 w-4 text-white" />
                   </div>
-                  <h2 className="text-lg font-bold text-gray-900">Practice Tools</h2>
+                  <h2 className="text-lg font-bold text-gray-900">{appName || 'Practice Tools'}</h2>
                 </div>
               )}
               <div className="flex items-center gap-1">
@@ -340,7 +370,7 @@ export default function SidebarLayout({ children, user }) {
                     className={`
                       w-full flex items-center rounded-xl transition-all duration-200 group relative
                       ${isCollapsed ? 'p-3 justify-center' : 'px-3 py-2.5'}
-                      ${isActive(item.href) && !expandedMenus[item.id]
+                      ${shouldHighlightParent(item)
                         ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25' 
                         : expandedMenus[item.id] && !isCollapsed
                         ? 'bg-blue-50 text-blue-700 border border-blue-200'
@@ -370,7 +400,7 @@ export default function SidebarLayout({ children, user }) {
                         )}
                       </div>
                     )}
-                    {isActive(item.href) && !expandedMenus[item.id] && (
+                    {shouldHighlightParent(item) && (
                       <div className="absolute right-2 w-2 h-2 bg-white rounded-full opacity-80"></div>
                     )}
                   </button>
@@ -385,19 +415,19 @@ export default function SidebarLayout({ children, user }) {
                         onClick={() => router.push(subItem.href)}
                         className={`
                           w-full flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 group relative
-                          ${isActive(subItem.href)
+                          ${isExactActive(subItem.href)
                             ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md'
                             : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                           }
                         `}
                       >
                         <div className={`w-1.5 h-1.5 rounded-full mr-3 transition-colors ${
-                          isActive(subItem.href) ? 'bg-white' : 'bg-gray-300 group-hover:bg-gray-400'
+                          isExactActive(subItem.href) ? 'bg-white' : 'bg-gray-300 group-hover:bg-gray-400'
                         }`}></div>
                         <div className="text-left flex-1">
                           <div className="font-medium">{subItem.name}</div>
                         </div>
-                        {isActive(subItem.href) && (
+                        {isExactActive(subItem.href) && (
                           <div className="w-2 h-2 bg-white rounded-full opacity-80"></div>
                         )}
                       </button>
@@ -412,7 +442,7 @@ export default function SidebarLayout({ children, user }) {
           {!isCollapsed && (
             <div className="p-4 border-t border-gray-100 bg-gray-50/50">
               <div className="text-xs text-gray-400 text-center font-medium">
-                Practice Management
+                {appName ? `${appName} Management` : 'Practice Management'}
               </div>
             </div>
           )}
@@ -429,7 +459,7 @@ export default function SidebarLayout({ children, user }) {
           >
             <Bars3Icon className="h-6 w-6" />
           </button>
-          <h1 className="text-lg font-semibold text-gray-900">Practice Tools</h1>
+          <h1 className="text-lg font-semibold text-gray-900">{appName || 'Practice Tools'}</h1>
           <div className="w-10"></div> {/* Spacer for centering */}
         </div>
 

@@ -14,6 +14,7 @@ import MultiAttachmentPreview from '../../../components/MultiAttachmentPreview';
 import UserSelector from '../../../components/UserSelector';
 import PracticeSelector from '../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../components/MultiResourceSelector';
+import RegionSelector from '../../../components/RegionSelector';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
 import StatBox from '../../../components/StatBox';
 
@@ -51,24 +52,26 @@ export default function ResourceAssignmentsPage() {
   // Initialize filters based on user data and localStorage
   useEffect(() => {
     if (user && user.practices) {
-      console.log('User practices from database:', user.practices);
       const saved = localStorage.getItem('resourceAssignmentsFilters');
       let shouldSetDefaults = false;
       
       if (saved) {
         try {
           const parsedFilters = JSON.parse(saved);
-          console.log('Saved filters:', parsedFilters);
           // Check if we need to apply defaults
           const needsStatusDefault = !parsedFilters.status || parsedFilters.status.length === 0;
           const needsPracticeDefault = !parsedFilters.practice || parsedFilters.practice.length === 0;
           
           if (needsStatusDefault) {
-            parsedFilters.status = ['Pending', 'Unassigned'];
+            parsedFilters.status = ['practice_manager', 'practice_principal'].includes(user.role) ? ['Pending', 'Unassigned'] : [];
           }
           if (needsPracticeDefault) {
-            parsedFilters.practice = [...(user.practices || []), 'Pending'];
-            console.log('Setting practice default to user practices + Pending:', [...(user.practices || []), 'Pending']);
+            parsedFilters.practice = ['practice_manager', 'practice_principal'].includes(user.role) ? [...(user.practices || []), 'Pending'] : [];
+          }
+          
+          // Set default sort for practice members
+          if (user.role === 'practice_member' && (!parsedFilters.sort || parsedFilters.sort === 'newest')) {
+            parsedFilters.sort = 'myAssignments';
           }
           
           setFilters(parsedFilters);
@@ -81,15 +84,14 @@ export default function ResourceAssignmentsPage() {
       
       if (shouldSetDefaults) {
         // No saved filters or parsing error, use defaults
-        console.log('Setting default filters with user practices + Pending:', [...(user.practices || []), 'Pending']);
         setFilters({
-          status: ['Pending', 'Unassigned'],
-          practice: [...(user.practices || []), 'Pending'],
+          status: ['practice_manager', 'practice_principal'].includes(user.role) ? ['Pending', 'Unassigned'] : [],
+          practice: ['practice_manager', 'practice_principal'].includes(user.role) ? [...(user.practices || []), 'Pending'] : [],
           region: '',
           dateFrom: '',
           dateTo: '',
           search: '',
-          sort: 'newest'
+          sort: user.role === 'practice_member' ? 'myAssignments' : 'newest'
         });
       }
     }
@@ -271,12 +273,21 @@ export default function ResourceAssignmentsPage() {
       assignment.projectNumber.toLowerCase().includes(filters.search.toLowerCase()) ||
       assignment.pm.toLowerCase().includes(filters.search.toLowerCase());
     
-    return matchesStatus && matchesPractice && matchesRegion && matchesDateRange && matchesSearch;
+    // Filter for 'My Assignments' - check if current user is assigned as resource
+    let matchesMyAssignments = true;
+    if (filters.sort === 'myAssignments') {
+      const isAssigned = assignment.resourceAssigned && assignment.resourceAssigned.toLowerCase().includes(user?.name?.toLowerCase() || '');
+      if (!isAssigned) {
+        matchesMyAssignments = false;
+      }
+    }
+    
+    return matchesStatus && matchesPractice && matchesRegion && matchesDateRange && matchesSearch && matchesMyAssignments;
   }).sort((a, b) => {
     if (filters.sort === 'project') {
       return a.projectDescription.localeCompare(b.projectDescription);
-    } else if (filters.sort === 'resource') {
-      return a.resourceAssigned.localeCompare(b.resourceAssigned);
+    } else if (filters.sort === 'myAssignments') {
+      return new Date(b.requestDate) - new Date(a.requestDate);
     } else if (filters.sort === 'customer') {
       return a.customerName.localeCompare(b.customerName);
     }
@@ -400,7 +411,15 @@ export default function ResourceAssignmentsPage() {
                 </h3>
                 <button
                   onClick={() => {
-                    const defaultFilters = { status: ['Pending', 'Unassigned'], practice: [...(user?.practices || []), 'Pending'], region: '', dateFrom: '', dateTo: '', search: '', sort: 'newest' };
+                    const defaultFilters = { 
+                      status: ['practice_manager', 'practice_principal'].includes(user?.role) ? ['Pending', 'Unassigned'] : [], 
+                      practice: ['practice_manager', 'practice_principal'].includes(user?.role) ? [...(user?.practices || []), 'Pending'] : [], 
+                      region: '', 
+                      dateFrom: '', 
+                      dateTo: '', 
+                      search: '', 
+                      sort: user?.role === 'practice_member' ? 'myAssignments' : 'newest' 
+                    };
                     localStorage.removeItem('resourceAssignmentsFilters');
                     setFilters(defaultFilters);
                     setCurrentPage(1);
@@ -473,29 +492,11 @@ export default function ResourceAssignmentsPage() {
                 {/* Region Filter */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Region</label>
-                  <select
+                  <RegionSelector
                     value={filters.region}
-                    onChange={(e) => setFilters({...filters, region: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                  >
-                    <option value="">All Regions</option>
-                    <option value="CA-LAX">CA-LAX</option>
-                    <option value="CA-SAN">CA-SAN</option>
-                    <option value="CA-SFO">CA-SFO</option>
-                    <option value="FL-MIA">FL-MIA</option>
-                    <option value="FL-NORT">FL-NORT</option>
-                    <option value="KY-KENT">KY-KENT</option>
-                    <option value="LA-STATE">LA-STATE</option>
-                    <option value="OK-OKC">OK-OKC</option>
-                    <option value="OTHERS">OTHERS</option>
-                    <option value="TN-TEN">TN-TEN</option>
-                    <option value="TX-CEN">TX-CEN</option>
-                    <option value="TX-DAL">TX-DAL</option>
-                    <option value="TX-HOU">TX-HOU</option>
-                    <option value="TX-SOUT">TX-SOUT</option>
-                    <option value="US-FED">US-FED</option>
-                    <option value="US-SP">US-SP</option>
-                  </select>
+                    onChange={(region) => setFilters({...filters, region})}
+                    placeholder="All Regions"
+                  />
                 </div>
 
                 {/* Date From */}
@@ -531,7 +532,7 @@ export default function ResourceAssignmentsPage() {
                     <option value="newest">📅 Newest First</option>
                     <option value="project">📁 Project Name</option>
                     <option value="customer">🏢 Customer Name</option>
-                    <option value="resource">👤 Resource Name</option>
+                    <option value="myAssignments">👤 My Assignments</option>
                   </select>
                 </div>
               </div>
@@ -808,7 +809,7 @@ function AssignmentsTable({ assignments, user, onAssignmentUpdate, allAssignment
 
   // Helper function to check if user can edit assignment
   const canEditAssignment = (assignment) => {
-    if (user.isAdmin) return true;
+    if (user.isAdmin || user.role === 'executive') return true;
     
     // For Unassigned or Assigned status, only practice managers/principals of the assigned practice can edit
     if (assignment.status === 'Unassigned' || assignment.status === 'Assigned') {
@@ -905,6 +906,11 @@ function AssignmentsTable({ assignments, user, onAssignmentUpdate, allAssignment
                         
                         // For other statuses, update immediately
                         try {
+                          // Validate assignment ID to prevent SSRF
+                          if (!assignment.id || typeof assignment.id !== 'string' || !/^[a-zA-Z0-9-_]+$/.test(assignment.id)) {
+                            throw new Error('Invalid assignment ID');
+                          }
+                          
                           const response = await fetch(`/api/assignments/${assignment.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
@@ -1050,7 +1056,7 @@ function AssignmentsTable({ assignments, user, onAssignmentUpdate, allAssignment
                       setPracticeData(prev => ({...prev, practice: practices}));
                       
                       // Check if user can assign to these practices when going to Assigned or Unassigned status
-                      if ((practiceData.targetStatus === 'Assigned' || practiceData.targetStatus === 'Unassigned') && practices.length > 0 && !user.isAdmin) {
+                      if ((practiceData.targetStatus === 'Assigned' || practiceData.targetStatus === 'Unassigned') && practices.length > 0 && !user.isAdmin && user.role !== 'executive') {
                         const canAssignToAll = practices.every(practice => 
                           user.practices?.includes(practice) && 
                           (user.role === 'practice_manager' || user.role === 'practice_principal')

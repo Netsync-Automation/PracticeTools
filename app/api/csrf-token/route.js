@@ -1,25 +1,24 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
-    const secret = process.env.CSRF_SECRET;
-    if (!secret) {
-      return NextResponse.json({ error: 'CSRF secret not configured' }, { status: 500 });
-    }
-
-    // Generate token with timestamp
-    const timestamp = Date.now().toString();
-    const token = crypto.createHmac('sha256', secret)
-      .update(timestamp)
-      .digest('hex');
-
-    return NextResponse.json({ 
-      token: `${timestamp}.${token}`,
-      expires: Date.now() + (15 * 60 * 1000) // 15 minutes
+    const token = crypto.randomBytes(32).toString('hex');
+    
+    const response = NextResponse.json({ token });
+    
+    // Set CSRF token in httpOnly cookie for server-side validation
+    response.cookies.set('csrf-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 // 24 hours
     });
+    
+    return response;
   } catch (error) {
-    console.error('Error generating CSRF token:', error);
-    return NextResponse.json({ error: 'Failed to generate token' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate CSRF token' }, { status: 500 });
   }
 }

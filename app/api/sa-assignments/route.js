@@ -60,7 +60,7 @@ export async function POST(request) {
     }
     
     // Process AM and ISR users - ensure they exist in the system
-    const amIsrResult = await processAmIsrUsers(
+    await processAmIsrUsers(
       formData.get('am'),
       formData.get('isr')
     );

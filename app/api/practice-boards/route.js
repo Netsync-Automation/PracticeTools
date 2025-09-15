@@ -2,12 +2,10 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb.js';
 
 export async function GET(request) {
-  console.log('🚨 [PARENT] GET REQUEST RECEIVED:', request.url);
   try {
     const { searchParams } = new URL(request.url);
     const practiceId = searchParams.get('practiceId');
     const topic = searchParams.get('topic') || 'Main Topic';
-    console.log('🚨 [PARENT] Params - practiceId:', practiceId, 'topic:', topic);
     
     if (practiceId) {
       // Get specific practice board for topic
@@ -18,27 +16,26 @@ export async function GET(request) {
       const boardData = await db.getSetting(boardKey);
       
       if (!boardData) {
-        return NextResponse.json({
-          columns: [
-            { id: '1', title: 'To Do', cards: [], createdBy: 'system', createdAt: new Date().toISOString() },
-            { id: '2', title: 'In Progress', cards: [], createdBy: 'system', createdAt: new Date().toISOString() },
-            { id: '3', title: 'Done', cards: [], createdBy: 'system', createdAt: new Date().toISOString() }
-          ]
-        });
+        // Get database-stored columns or use defaults
+        const boardColumns = await db.getBoardColumns(practiceId);
+        const columns = boardColumns.map(col => ({
+          id: col.id,
+          title: col.title,
+          cards: [],
+          createdBy: 'system',
+          createdAt: new Date().toISOString()
+        }));
+        
+        return NextResponse.json({ columns });
       }
 
       return NextResponse.json(JSON.parse(boardData));
     } else {
-      console.log('🚨 [PARENT] NO PRACTICE ID - CALLING getAllPracticeBoards');
-      console.log('🚨 [PARENT] db object:', typeof db, Object.keys(db));
-      console.log('🚨 [PARENT] getAllPracticeBoards exists?', typeof db.getAllPracticeBoards);
       // Get all practice boards
       try {
         const boards = await db.getAllPracticeBoards();
-        console.log('🚨 [PARENT] getAllPracticeBoards returned:', boards);
         return NextResponse.json({ boards });
       } catch (error) {
-        console.error('🚨 [PARENT] getAllPracticeBoards ERROR:', error);
         return NextResponse.json({ boards: [], error: error.message });
       }
     }
