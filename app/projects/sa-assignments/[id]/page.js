@@ -8,6 +8,7 @@ import AccessCheck from '../../../../components/AccessCheck';
 import Breadcrumb from '../../../../components/Breadcrumb';
 import MultiAttachmentPreview from '../../../../components/MultiAttachmentPreview';
 import MultiResourceSelector from '../../../../components/MultiResourceSelector';
+import MultiAccountManagerSelector from '../../../../components/MultiAccountManagerSelector';
 import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
 import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
@@ -94,26 +95,32 @@ function PracticeDisplay({ practice, saAssigned }) {
     <div>
       <dt className="text-xs font-medium text-gray-500">Practices & SA Assignments</dt>
       <dd className="text-sm text-gray-900 font-medium">
-        <div className="space-y-2 mt-1">
+        <div className="space-y-4 mt-2">
           {practiceAssignments.map((assignment, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center px-2 py-1 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-full border ${assignment.colors.border} font-medium`}>
-                  {assignment.practice}
-                </span>
-                <span className="text-gray-400">→</span>
+            <div key={index} className="flex items-center gap-3">
+              <span className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-full border ${assignment.colors.border} font-medium flex-shrink-0 shadow-sm`}>
+                {assignment.practice}
+              </span>
+              <div className="flex-1 flex items-center">
+                <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-gray-200"></div>
+                <div className="mx-2">
+                  <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-gray-300"></div>
               </div>
               <div className="flex-shrink-0">
                 {assignment.assignedSAs.length > 0 ? (
                   <div className="flex flex-wrap gap-1 justify-end">
                     {assignment.assignedSAs.map((sa, saIndex) => (
-                      <span key={saIndex} className={`inline-flex items-center px-2 py-1 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded border ${assignment.colors.border} opacity-80`}>
+                      <span key={saIndex} className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-lg border ${assignment.colors.border} shadow-sm font-medium`}>
                         {sa}
                       </span>
                     ))}
                   </div>
                 ) : (
-                  <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded border border-gray-200">
+                  <span className="inline-flex items-center px-3 py-1.5 bg-gray-50 text-gray-600 text-xs rounded-lg border border-gray-200 shadow-sm font-medium">
                     Unassigned
                   </span>
                 )}
@@ -198,6 +205,7 @@ export default function SaAssignmentDetailPage({ params }) {
   const [saving, setSaving] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({});
+  const [allUsers, setAllUsers] = useState([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -226,7 +234,30 @@ export default function SaAssignmentDetailPage({ params }) {
     
     checkAuth();
     fetchSaAssignment();
+    fetchUsers();
   }, [params.id, router]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        setAllUsers(data.users || []);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  // Auto-populate region when account managers are selected
+  useEffect(() => {
+    if (showEditModal && !editFormData.region && editFormData.am && Array.isArray(editFormData.am) && editFormData.am.length > 0 && allUsers.length > 0) {
+      const firstAM = allUsers.find(u => u.role === 'account_manager' && editFormData.am.includes(u.name));
+      if (firstAM && firstAM.region) {
+        setEditFormData(prev => ({...prev, region: firstAM.region}));
+      }
+    }
+  }, [showEditModal, editFormData.am, allUsers, editFormData.region]);
 
   const fetchSaAssignment = async () => {
     try {
@@ -468,13 +499,14 @@ export default function SaAssignmentDetailPage({ params }) {
                       {canEditSaAssignment(saAssignment) && (
                         <button
                           onClick={() => {
+                            const amNames = saAssignment.am ? saAssignment.am.split(',').map(a => extractFriendlyName(a.trim())) : [];
                             const formData = {
                               practice: saAssignment.practice ? saAssignment.practice.split(',').map(p => p.trim()) : [],
-                              am: extractFriendlyName(saAssignment.am) || '',
+                              am: amNames,
                               region: saAssignment.region || '',
                               saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
                               dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0],
-                              targetStatus: saAssignment.status
+                              targetStatus: 'Assigned'
                             };
                             setEditFormData(formData);
                             setShowEditModal(true);
@@ -497,12 +529,28 @@ export default function SaAssignmentDetailPage({ params }) {
                               value={saAssignment.status}
                               onChange={async (e) => {
                                 const newStatus = e.target.value;
-                                if ((saAssignment.status === 'Pending' && (newStatus === 'Unassigned' || newStatus === 'Assigned')) || (saAssignment.status === 'Unassigned' && newStatus === 'Assigned')) {
+                                if (newStatus === 'Assigned') {
+                                  const amNames = saAssignment.am ? saAssignment.am.split(',').map(a => extractFriendlyName(a.trim())) : [];
                                   const formData = {
-                                    practice: saAssignment.practice ? saAssignment.practice.split(',').map(p => p.trim()) : [],
-                                    am: extractFriendlyName(saAssignment.am) || '',
+                                    practice: saAssignment.practice && saAssignment.practice !== 'Pending' ? saAssignment.practice.split(',').map(p => p.trim()) : [],
+                                    am: amNames,
                                     region: saAssignment.region || '',
                                     saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
+                                    dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0],
+                                    targetStatus: newStatus
+                                  };
+                                  setEditFormData(formData);
+                                  setShowEditModal(true);
+                                  return;
+                                }
+                                
+                                if (newStatus === 'Unassigned' && saAssignment.status === 'Pending') {
+                                  const amNames = saAssignment.am ? saAssignment.am.split(',').map(a => extractFriendlyName(a.trim())) : [];
+                                  const formData = {
+                                    practice: [],
+                                    am: amNames,
+                                    region: saAssignment.region || '',
+                                    saAssigned: [],
                                     dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0],
                                     targetStatus: newStatus
                                   };
@@ -721,13 +769,10 @@ export default function SaAssignmentDetailPage({ params }) {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Account Manager</label>
-                    <input
-                      type="text"
-                      value={editFormData.am || ''}
-                      onChange={(e) => setEditFormData(prev => ({...prev, am: e.target.value}))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter account manager name (optional)"
+                    <MultiAccountManagerSelector
+                      value={editFormData.am || []}
+                      onChange={(managers) => setEditFormData(prev => ({...prev, am: managers}))}
+                      placeholder="Select or type account manager names..."
                     />
                   </div>
                   
@@ -831,7 +876,7 @@ export default function SaAssignmentDetailPage({ params }) {
                         const updateData = {
                           status: editFormData.targetStatus,
                           practice: practices.join(','),
-                          am: editFormData.am,
+                          am: Array.isArray(editFormData.am) ? editFormData.am.join(',') : editFormData.am,
                           region: editFormData.region
                         };
                         

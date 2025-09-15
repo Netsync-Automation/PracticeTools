@@ -15,6 +15,7 @@ import UserSelector from '../../../components/UserSelector';
 import PracticeSelector from '../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../components/MultiResourceSelector';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
+import StatBox from '../../../components/StatBox';
 
 export default function ResourceAssignmentsPage() {
   const router = useRouter();
@@ -349,94 +350,43 @@ export default function ResourceAssignmentsPage() {
             </div>
 
             {/* Stats Containers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-6">
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">📊</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Total Requests</p>
-                    <p className="text-2xl font-semibold text-gray-900">{allFilteredAssignments.length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <span className="text-purple-600 font-semibold text-sm">⏳</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Pending</p>
-                    <p className="text-2xl font-semibold text-gray-900">{allFilteredAssignments.filter(a => a.status === 'Pending').length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                      <span className="text-orange-600 font-semibold text-sm">📁</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Unassigned</p>
-                    <p className="text-2xl font-semibold text-gray-900">{allFilteredAssignments.filter(a => a.status === 'Unassigned').length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-semibold text-sm">✅</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Assigned</p>
-                    <p className="text-2xl font-semibold text-gray-900">{allFilteredAssignments.filter(a => a.status === 'Assigned').length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <span className="text-indigo-600 font-semibold text-sm">🏢</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Practice Assignment ETA</p>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {practiceAssignmentETA > 0 ? `${practiceAssignmentETA.toFixed(2)} days` : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
-                      <span className="text-teal-600 font-semibold text-sm">👤</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Resource Assignment ETA</p>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {resourceAssignmentETA > 0 ? `${resourceAssignmentETA.toFixed(2)} days` : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+              <StatBox
+                title="Total Requests"
+                value={allFilteredAssignments.length}
+                icon="📊"
+                color="blue"
+              />
+              <StatBox
+                title="Pending"
+                value={allFilteredAssignments.filter(a => a.status === 'Pending').length}
+                icon="⏳"
+                color="purple"
+              />
+              <StatBox
+                title="Unassigned"
+                value={allFilteredAssignments.filter(a => a.status === 'Unassigned').length}
+                icon="📁"
+                color="orange"
+              />
+              <StatBox
+                title="Assigned"
+                value={allFilteredAssignments.filter(a => a.status === 'Assigned').length}
+                icon="✅"
+                color="green"
+              />
+              <StatBox
+                title="Practice Assignment ETA"
+                value={practiceAssignmentETA > 0 ? `${practiceAssignmentETA.toFixed(2)} days` : 'N/A'}
+                icon="🏢"
+                color="indigo"
+              />
+              <StatBox
+                title="Resource Assignment ETA"
+                value={resourceAssignmentETA > 0 ? `${resourceAssignmentETA.toFixed(2)} days` : 'N/A'}
+                icon="👤"
+                color="teal"
+              />
             </div>
 
             {/* Modern Filters */}

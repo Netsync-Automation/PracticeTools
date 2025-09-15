@@ -73,6 +73,10 @@ export default function SettingsPage() {
   const [saMappingSettings, setSaMappingSettings] = useState({});
   const [savingMappings, setSavingMappings] = useState(false);
   const [practiceGroups, setPracticeGroups] = useState([]);
+  const [showSSMModal, setShowSSMModal] = useState(false);
+  const [ssmSecrets, setSSMSecrets] = useState('');
+  const [ssmEnvironment, setSSMEnvironment] = useState('');
+  const [loadingSSM, setLoadingSSM] = useState(false);
 
   
   // CSRF token management
@@ -1046,6 +1050,8 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
+
+
               </div>
             )}
 
@@ -1053,15 +1059,77 @@ export default function SettingsPage() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-gray-900">WebEx Bot Management</h2>
-                  <button
-                    onClick={() => setShowAddBot(true)}
-                    className="btn-primary flex items-center gap-2"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Add WebEx Bot
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowAddBot(true)}
+                      className="btn-primary flex items-center gap-2"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Add WebEx Bot
+                    </button>
+                  </div>
+                </div>
+                
+                {/* WebEx SSM Configuration Export */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-900">WebEx Bot SSM Export</h3>
+                      <p className="text-sm text-blue-700 mt-1">Export WebEx bot SSM parameters for App Runner YAML files</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          setLoadingSSM(true);
+                          try {
+                            const response = await fetch('/api/admin/ssm-secrets?env=dev');
+                            const data = await response.json();
+                            if (data.success) {
+                              setSSMSecrets(data.yamlFormat);
+                              setSSMEnvironment('Development');
+                              setShowSSMModal(true);
+                            } else {
+                              alert('Failed to fetch dev WebEx SSM parameters');
+                            }
+                          } catch (error) {
+                            alert('Error fetching dev WebEx SSM parameters');
+                          } finally {
+                            setLoadingSSM(false);
+                          }
+                        }}
+                        disabled={loadingSSM}
+                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {loadingSSM ? 'Loading...' : 'Dev'}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setLoadingSSM(true);
+                          try {
+                            const response = await fetch('/api/admin/ssm-secrets?env=prod');
+                            const data = await response.json();
+                            if (data.success) {
+                              setSSMSecrets(data.yamlFormat);
+                              setSSMEnvironment('Production');
+                              setShowSSMModal(true);
+                            } else {
+                              alert('Failed to fetch prod WebEx SSM parameters');
+                            }
+                          } catch (error) {
+                            alert('Error fetching prod WebEx SSM parameters');
+                          } finally {
+                            setLoadingSSM(false);
+                          }
+                        }}
+                        disabled={loadingSSM}
+                        className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50"
+                      >
+                        {loadingSSM ? 'Loading...' : 'Prod'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 
                 <p className="text-gray-600 text-sm">
@@ -3699,6 +3767,61 @@ export default function SettingsPage() {
                     className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
                   >
                     {loadingActions[showDeleteModal.email] === 'delete' ? 'Deleting...' : 'Delete User'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* WebEx SSM Secrets Modal */}
+        {showSSMModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">{ssmEnvironment} WebEx Bot SSM Parameters</h3>
+                  <button
+                    onClick={() => setShowSSMModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">App Runner YAML Secrets Section</label>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(ssmSecrets);
+                        alert('WebEx SSM parameters copied to clipboard!');
+                      }}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    >
+                      Copy to Clipboard
+                    </button>
+                  </div>
+                  <textarea
+                    value={ssmSecrets}
+                    readOnly
+                    rows={15}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-sm"
+                    placeholder="No WebEx bots configured"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Copy this content into the 'secrets:' section of your App Runner YAML file
+                  </p>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setShowSSMModal(false)}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                  >
+                    Close
                   </button>
                 </div>
               </div>

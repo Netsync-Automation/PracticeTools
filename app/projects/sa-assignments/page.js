@@ -14,8 +14,10 @@ import MultiAttachmentPreview from '../../../components/MultiAttachmentPreview';
 import UserSelector from '../../../components/UserSelector';
 import PracticeSelector from '../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../components/MultiResourceSelector';
+import MultiAccountManagerSelector from '../../../components/MultiAccountManagerSelector';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
 import { getEnvironment, getTableName } from '../../../lib/dynamodb';
+import StatBox from '../../../components/StatBox';
 
 // Utility function to extract friendly name from "Name <email>" format
 const extractFriendlyName = (nameWithEmail) => {
@@ -44,7 +46,7 @@ export default function SaAssignmentsPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saAssignments, setSaAssignments] = useState([]);
-  const [practiceETAs, setPracticeETAs] = useState({});
+  const [practiceETAs, setPracticeETAs] = useState([]);
   const [filters, setFilters] = useState(() => {
     return {
       status: ['Pending', 'Unassigned'],
@@ -81,15 +83,15 @@ export default function SaAssignmentsPage() {
           const needsPracticeDefault = !parsedFilters.practice || parsedFilters.practice.length === 0;
           
           if (needsStatusDefault) {
-            parsedFilters.status = ['Pending', 'Unassigned'];
+            parsedFilters.status = ['practice_manager', 'practice_principal', 'executive'].includes(user.role) ? ['Pending', 'Unassigned'] : [];
           }
           if (needsPracticeDefault) {
-            // Only set practice filter for non-management roles
-            if (!['practice_manager', 'practice_principal', 'executive'].includes(user.role)) {
-              parsedFilters.practice = [...(user.practices || []), 'Pending'];
-            } else {
-              parsedFilters.practice = [];
-            }
+            parsedFilters.practice = [];
+          }
+          
+          // Set default sort for practice members
+          if (user.role === 'practice_member' && (!parsedFilters.sort || parsedFilters.sort === 'newest')) {
+            parsedFilters.sort = 'myAssignments';
           }
           
           setFilters(parsedFilters);
@@ -102,13 +104,13 @@ export default function SaAssignmentsPage() {
       
       if (shouldSetDefaults) {
         setFilters({
-          status: ['Pending', 'Unassigned'],
-          practice: ['practice_manager', 'practice_principal', 'executive'].includes(user.role) ? [] : [...(user.practices || []), 'Pending'],
+          status: ['practice_manager', 'practice_principal', 'executive'].includes(user.role) ? ['Pending', 'Unassigned'] : [],
+          practice: [],
           region: '',
           dateFrom: '',
           dateTo: '',
           search: '',
-          sort: 'newest'
+          sort: user.role === 'practice_member' ? 'myAssignments' : 'newest'
         });
       }
     }
@@ -232,19 +234,15 @@ export default function SaAssignmentsPage() {
   };
 
   const fetchPracticeETAs = async () => {
-    if (filters.practice && filters.practice.length > 0) {
-      try {
-        const practicesParam = filters.practice.join(',');
-        const response = await fetch(`/api/practice-etas?practices=${encodeURIComponent(practicesParam)}`);
-        const data = await response.json();
-        if (data.success) {
-          setPracticeETAs(data.etas);
-        }
-      } catch (error) {
-        console.error('Error fetching practice ETAs:', error);
+    try {
+      const response = await fetch('/api/practice-etas');
+      const data = await response.json();
+      if (data.success) {
+        setPracticeETAs(data.etas || []);
       }
-    } else {
-      setPracticeETAs({});
+    } catch (error) {
+      console.error('Error fetching practice ETAs:', error);
+      setPracticeETAs([]);
     }
   };
 
@@ -286,12 +284,16 @@ export default function SaAssignmentsPage() {
       saAssignment.opportunityId.toLowerCase().includes(filters.search.toLowerCase()) ||
       saAssignment.am.toLowerCase().includes(filters.search.toLowerCase());
     
-    return matchesStatus && matchesPractice && matchesRegion && matchesDateRange && matchesSearch;
+    // Filter for 'My Assignments' - check if current user is assigned as SA
+    const matchesMyAssignments = filters.sort !== 'myAssignments' || 
+      (saAssignment.saAssigned && saAssignment.saAssigned.toLowerCase().includes(user?.name?.toLowerCase() || ''));
+    
+    return matchesStatus && matchesPractice && matchesRegion && matchesDateRange && matchesSearch && matchesMyAssignments;
   }).sort((a, b) => {
     if (filters.sort === 'project') {
       return a.opportunityName.localeCompare(b.opportunityName);
-    } else if (filters.sort === 'sa') {
-      return a.saAssigned.localeCompare(b.saAssigned);
+    } else if (filters.sort === 'myAssignments') {
+      return new Date(b.requestDate) - new Date(a.requestDate);
     } else if (filters.sort === 'customer') {
       return a.customerName.localeCompare(b.customerName);
     }
@@ -307,19 +309,61 @@ export default function SaAssignmentsPage() {
     fetchPracticeETAs();
   }, [filters.status.length, filters.practice, filters.region, filters.dateFrom, filters.dateTo, filters.search, filters.sort]);
 
-  const calculateAverageETA = (etaType) => {
-    const relevantETAs = Object.values(practiceETAs)
-      .filter(eta => eta[etaType] > 0)
-      .map(eta => eta[etaType]);
+  const calculateFilteredETA = (transitionType) => {
+    if (!practiceETAs || !Array.isArray(practiceETAs) || practiceETAs.length === 0) return 0;
     
-    if (relevantETAs.length === 0) return 0;
-    const averageHours = relevantETAs.reduce((sum, hours) => sum + hours, 0) / relevantETAs.length;
-    const days = averageHours / 24;
-    return Math.round(days * 100) / 100;
+    try {
+      let relevantETAs = practiceETAs.filter(eta => eta && eta.statusTransition === transitionType);
+      
+      // Apply practice filter if set
+      if (filters.practice && filters.practice.length > 0) {
+        relevantETAs = relevantETAs.filter(eta => 
+          filters.practice.includes(eta.practice)
+        );
+      }
+      
+      if (relevantETAs.length === 0) return 0;
+      
+      const averageHours = relevantETAs.reduce((sum, eta) => sum + eta.avgDurationHours, 0) / relevantETAs.length;
+      return Math.round((averageHours / 24) * 100) / 100;
+    } catch (error) {
+      console.error('Error filtering ETAs:', error);
+      return 0;
+    }
+  };
+  
+  const calculateSACompletionETA = () => {
+    if (!practiceETAs || !Array.isArray(practiceETAs) || practiceETAs.length === 0) return 0;
+    
+    try {
+      // Get assigned SAs from filtered assignments
+      const assignedSAs = allFilteredSaAssignments
+        .filter(a => a.status === 'Assigned' && a.saAssigned)
+        .map(a => a.saAssigned)
+        .filter(sa => sa);
+      
+      if (assignedSAs.length === 0) return 0;
+      
+      // Find ETAs for these specific SAs
+      const saETAs = practiceETAs.filter(eta => 
+        eta.statusTransition === 'assigned_to_completed' && 
+        eta.saName && 
+        assignedSAs.some(assignedSA => assignedSA.includes(eta.saName))
+      );
+      
+      if (saETAs.length === 0) return 0;
+      
+      const averageHours = saETAs.reduce((sum, eta) => sum + eta.avgDurationHours, 0) / saETAs.length;
+      return Math.round((averageHours / 24) * 100) / 100;
+    } catch (error) {
+      console.error('Error calculating SA completion ETA:', error);
+      return 0;
+    }
   };
 
-  const practiceAssignmentETA = calculateAverageETA('practice_assignment_eta_hours');
-  const saAssignmentETA = calculateAverageETA('sa_assignment_eta_hours');
+  const pendingToUnassignedETA = calculateFilteredETA('pending_to_unassigned');
+  const toAssignedETA = calculateFilteredETA('to_assigned');
+  const saCompletionETA = calculateSACompletionETA();
 
   if (loading || !user) {
     return (
@@ -361,94 +405,55 @@ export default function SaAssignmentsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-6">
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">📊</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Total Requests</p>
-                    <p className="text-2xl font-semibold text-gray-900">{allFilteredSaAssignments.length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <span className="text-purple-600 font-semibold text-sm">⏳</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Pending</p>
-                    <p className="text-2xl font-semibold text-gray-900">{allFilteredSaAssignments.filter(a => a.status === 'Pending').length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                      <span className="text-orange-600 font-semibold text-sm">📁</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Unassigned</p>
-                    <p className="text-2xl font-semibold text-gray-900">{allFilteredSaAssignments.filter(a => a.status === 'Unassigned').length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 font-semibold text-sm">✅</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Assigned</p>
-                    <p className="text-2xl font-semibold text-gray-900">{allFilteredSaAssignments.filter(a => a.status === 'Assigned').length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <span className="text-indigo-600 font-semibold text-sm">🏢</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Practice Assignment ETA</p>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {practiceAssignmentETA > 0 ? `${practiceAssignmentETA.toFixed(2)} days` : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
-                      <span className="text-teal-600 font-semibold text-sm">👤</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">SA Assignment ETA</p>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {saAssignmentETA > 0 ? `${saAssignmentETA.toFixed(2)} days` : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-6">
+              <StatBox
+                title="Total Requests"
+                value={allFilteredSaAssignments.length}
+                icon="📊"
+                color="blue"
+              />
+              <StatBox
+                title="Pending"
+                value={allFilteredSaAssignments.filter(a => a.status === 'Pending').length}
+                icon="⏳"
+                color="purple"
+              />
+              <StatBox
+                title="Unassigned"
+                value={allFilteredSaAssignments.filter(a => a.status === 'Unassigned').length}
+                icon="📁"
+                color="orange"
+              />
+              <StatBox
+                title="Assigned"
+                value={allFilteredSaAssignments.filter(a => a.status === 'Assigned').length}
+                icon="✅"
+                color="green"
+              />
+              <StatBox
+                title="Complete"
+                value={allFilteredSaAssignments.filter(a => a.status === 'Complete').length}
+                icon="🏁"
+                color="blue"
+              />
+              <StatBox
+                title="Practice Assignment ETA"
+                value={pendingToUnassignedETA > 0 ? `${pendingToUnassignedETA} days` : 'N/A'}
+                icon="⏱️"
+                color="indigo"
+              />
+              <StatBox
+                title="Resource Assignment ETA"
+                value={toAssignedETA > 0 ? `${toAssignedETA} days` : 'N/A'}
+                icon="🎯"
+                color="teal"
+              />
+              <StatBox
+                title="SA Completion ETA"
+                value={saCompletionETA > 0 ? `${saCompletionETA} days` : 'N/A'}
+                icon="🚀"
+                color="emerald"
+              />
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -461,7 +466,15 @@ export default function SaAssignmentsPage() {
                 </h3>
                 <button
                   onClick={() => {
-                    const defaultFilters = { status: ['Pending', 'Unassigned'], practice: ['practice_manager', 'practice_principal', 'executive'].includes(user?.role) ? [] : [...(user?.practices || []), 'Pending'], region: '', dateFrom: '', dateTo: '', search: '', sort: 'newest' };
+                    const defaultFilters = { 
+                      status: ['practice_manager', 'practice_principal', 'executive'].includes(user?.role) ? ['Pending', 'Unassigned'] : [], 
+                      practice: [], 
+                      region: '', 
+                      dateFrom: '', 
+                      dateTo: '', 
+                      search: '', 
+                      sort: user?.role === 'practice_member' ? 'myAssignments' : 'newest' 
+                    };
                     localStorage.removeItem('saAssignmentsFilters');
                     setFilters(defaultFilters);
                     setCurrentPage(1);
@@ -584,7 +597,7 @@ export default function SaAssignmentsPage() {
                     <option value="newest">📅 Newest First</option>
                     <option value="project">📁 Opportunity Name</option>
                     <option value="customer">🏢 Customer Name</option>
-                    <option value="sa">👤 SA Name</option>
+                    <option value="myAssignments">👤 My Assignments</option>
                   </select>
                 </div>
               </div>
@@ -739,7 +752,7 @@ export default function SaAssignmentsPage() {
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Status Filters</h3>
                 <div className="space-y-2 mb-6">
-                  {['Pending', 'Unassigned', 'Assigned'].map(status => (
+                  {['Pending', 'Unassigned', 'Assigned', 'Complete'].map(status => (
                     <label key={status} className="flex items-center">
                       <input
                         type="checkbox"
@@ -759,7 +772,7 @@ export default function SaAssignmentsPage() {
                 </div>
                 <div className="flex gap-2 mb-4">
                   <button
-                    onClick={() => setTempStatusSelection(['Pending', 'Unassigned', 'Assigned'])}
+                    onClick={() => setTempStatusSelection(['Pending', 'Unassigned', 'Assigned', 'Complete'])}
                     className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                   >
                     Select All
@@ -871,12 +884,16 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [showPracticeModal, setShowPracticeModal] = useState(false);
   const [assignmentData, setAssignmentData] = useState({
+    practice: [],
+    am: [],
+    region: '',
     saAssigned: [],
     dateAssigned: new Date().toISOString().split('T')[0]
   });
   const [practiceData, setPracticeData] = useState({
     practice: [],
-    am: '',
+    am: [],
+    region: '',
     targetStatus: '',
     saAssigned: [],
     dateAssigned: new Date().toISOString().split('T')[0]
@@ -884,6 +901,44 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
   const [practiceError, setPracticeError] = useState('');
   const [saving, setSaving] = useState(false);
   const [currentSaAssignmentId, setCurrentSaAssignmentId] = useState(null);
+  const [allUsers, setAllUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/admin/users');
+        if (response.ok) {
+          const data = await response.json();
+          setAllUsers(data.users || []);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  // Auto-populate region when account managers are selected
+  useEffect(() => {
+    if (showPracticeModal && !practiceData.region && practiceData.am && Array.isArray(practiceData.am) && practiceData.am.length > 0 && allUsers.length > 0) {
+      const firstAM = allUsers.find(u => u.role === 'account_manager' && practiceData.am.includes(u.name));
+      if (firstAM && firstAM.region) {
+        setPracticeData(prev => ({...prev, region: firstAM.region}));
+      }
+    }
+  }, [showPracticeModal, practiceData.am, allUsers, practiceData.region]);
+
+  // Auto-populate region for assignment modal
+  useEffect(() => {
+    if (showAssignmentModal && !assignmentData.region && assignmentData.am && Array.isArray(assignmentData.am) && assignmentData.am.length > 0 && allUsers.length > 0) {
+      const firstAM = allUsers.find(u => u.role === 'account_manager' && assignmentData.am.includes(u.name));
+      if (firstAM && firstAM.region) {
+        setAssignmentData(prev => ({...prev, region: firstAM.region}));
+      }
+    }
+  }, [showAssignmentModal, assignmentData.am, allUsers, assignmentData.region]);
+
+
 
   const canEditSaAssignment = (saAssignment) => {
     if (user.isAdmin) return true;
@@ -940,32 +995,25 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                         setCurrentSaAssignmentId(saAssignment.id);
                         
                         if (newStatus === 'Assigned') {
-                          if (saAssignment.status === 'Pending') {
-                            setPracticeData({
-                              practice: saAssignment.practice !== 'Pending' ? (saAssignment.practice ? saAssignment.practice.split(',').map(p => p.trim()) : []) : [],
-                              am: saAssignment.am || '',
-                              targetStatus: newStatus,
-                              saAssigned: saAssignment.saAssigned || '',
-                              dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0]
-                            });
-                            setPracticeError('');
-                            setShowPracticeModal(true);
-                          } else {
-                            setAssignmentData({
-                              saAssigned: saAssignment.saAssigned || '',
-                              dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0]
-                            });
-                            setShowAssignmentModal(true);
-                          }
+                          const amNames = saAssignment.am ? saAssignment.am.split(',').map(a => extractFriendlyName(a.trim())) : [];
+                          setAssignmentData({
+                            practice: saAssignment.practice && saAssignment.practice !== 'Pending' ? saAssignment.practice.split(',').map(p => p.trim()) : [],
+                            am: amNames,
+                            region: saAssignment.region || '',
+                            saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
+                            dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0]
+                          });
+                          setShowAssignmentModal(true);
                           e.target.value = saAssignment.status;
                           return;
                         }
                         
                         if ((saAssignment.status === 'Pending' && (newStatus === 'Unassigned' || newStatus === 'Assigned')) || (saAssignment.status === 'Unassigned' && newStatus === 'Assigned')) {
+                          const amNames = saAssignment.am ? saAssignment.am.split(',').map(a => extractFriendlyName(a.trim())) : [];
                           setPracticeData({
                             practice: saAssignment.status === 'Pending' ? [] : (saAssignment.practice ? saAssignment.practice.split(',').map(p => p.trim()) : []),
-                            am: extractFriendlyName(saAssignment.am) || '',
-                            region: saAssignment.region || '',
+                            am: amNames,
+                            region: saAssignment.region || user?.region || '',
                             targetStatus: newStatus,
                             saAssigned: Array.isArray(saAssignment.saAssigned) ? saAssignment.saAssigned : (saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => extractFriendlyName(s.trim())) : []),
                             dateAssigned: saAssignment.dateAssigned || new Date().toISOString().split('T')[0]
@@ -993,18 +1041,21 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                         saAssignment.status === 'Pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-300' :
                         saAssignment.status === 'Unassigned' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
                         saAssignment.status === 'Assigned' ? 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-300' :
+                        saAssignment.status === 'Complete' ? 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-300' :
                         'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-300'
                       }`}
                     >
                       <option value="Pending">Pending</option>
                       <option value="Unassigned">Unassigned</option>
                       <option value="Assigned">Assigned</option>
+                      <option value="Complete">Complete</option>
                     </select>
                   ) : (
                     <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-lg ${
                       saAssignment.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                       saAssignment.status === 'Unassigned' ? 'bg-orange-100 text-orange-800' :
                       saAssignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
+                      saAssignment.status === 'Complete' ? 'bg-blue-100 text-blue-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                       {saAssignment.status}
@@ -1091,7 +1142,7 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
       </div>
       
       {/* Practice Assignment Modal */}
-      {showPracticeModal && (
+      {showPracticeModal && createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="p-6">
@@ -1143,14 +1194,40 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Account Manager</label>
-                  <input
-                    type="text"
-                    value={practiceData.am}
-                    onChange={(e) => setPracticeData(prev => ({...prev, am: e.target.value}))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter account manager name (optional)"
+                  <MultiAccountManagerSelector
+                    value={practiceData.am || []}
+                    onChange={(managers) => setPracticeData(prev => ({...prev, am: managers}))}
+                    placeholder="Select or type account manager names..."
+                    required
                   />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Region *</label>
+                  <select
+                    value={practiceData.region}
+                    onChange={(e) => setPracticeData(prev => ({...prev, region: e.target.value}))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                    required
+                  >
+                    <option value="">Select Region</option>
+                    <option value="CA-LAX">CA-LAX</option>
+                    <option value="CA-SAN">CA-SAN</option>
+                    <option value="CA-SFO">CA-SFO</option>
+                    <option value="FL-MIA">FL-MIA</option>
+                    <option value="FL-NORT">FL-NORT</option>
+                    <option value="KY-KENT">KY-KENT</option>
+                    <option value="LA-STATE">LA-STATE</option>
+                    <option value="OK-OKC">OK-OKC</option>
+                    <option value="OTHERS">OTHERS</option>
+                    <option value="TN-TEN">TN-TEN</option>
+                    <option value="TX-CEN">TX-CEN</option>
+                    <option value="TX-DAL">TX-DAL</option>
+                    <option value="TX-HOU">TX-HOU</option>
+                    <option value="TX-SOUT">TX-SOUT</option>
+                    <option value="US-FED">US-FED</option>
+                    <option value="US-SP">US-SP</option>
+                  </select>
                 </div>
                 
                 {practiceData.targetStatus === 'Assigned' && (
@@ -1181,7 +1258,17 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
               
               <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => setShowPracticeModal(false)}
+                  onClick={() => {
+                    setShowPracticeModal(false);
+                    setPracticeData({
+                      practice: [],
+                      am: [],
+                      region: '',
+                      targetStatus: '',
+                      saAssigned: [],
+                      dateAssigned: new Date().toISOString().split('T')[0]
+                    });
+                  }}
                   disabled={saving}
                   className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
                 >
@@ -1195,6 +1282,16 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                       return;
                     }
                     
+                    if (!practiceData.am || (Array.isArray(practiceData.am) && practiceData.am.length === 0)) {
+                      alert('Please select at least one account manager');
+                      return;
+                    }
+                    
+                    if (!practiceData.region) {
+                      alert('Please select a region');
+                      return;
+                    }
+                    
                     if (practiceData.targetStatus === 'Assigned' && (!practiceData.saAssigned || (Array.isArray(practiceData.saAssigned) && practiceData.saAssigned.length === 0))) {
                       alert('Please assign at least one SA');
                       return;
@@ -1205,7 +1302,8 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                       const updateData = {
                         status: practiceData.targetStatus,
                         practice: practices.join(','),
-                        am: practiceData.am
+                        am: Array.isArray(practiceData.am) ? practiceData.am.join(',') : practiceData.am,
+                        region: practiceData.region
                       };
                       
                       if (practiceData.targetStatus === 'Assigned') {
@@ -1221,6 +1319,14 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                       if (response.ok) {
                         onSaAssignmentUpdate();
                         setShowPracticeModal(false);
+                        setPracticeData({
+                          practice: [],
+                          am: [],
+                          region: '',
+                          targetStatus: '',
+                          saAssigned: [],
+                          dateAssigned: new Date().toISOString().split('T')[0]
+                        });
                       } else {
                         alert('Failed to assign to practice');
                       }
@@ -1231,7 +1337,7 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                       setSaving(false);
                     }
                   }}
-                  disabled={saving || (Array.isArray(practiceData.practice) ? practiceData.practice.length === 0 : !practiceData.practice) || (practiceData.targetStatus === 'Assigned' && (!practiceData.saAssigned || (Array.isArray(practiceData.saAssigned) && practiceData.saAssigned.length === 0)))}
+                  disabled={saving || (Array.isArray(practiceData.practice) ? practiceData.practice.length === 0 : !practiceData.practice) || !practiceData.am || (Array.isArray(practiceData.am) && practiceData.am.length === 0) || !practiceData.region || (practiceData.targetStatus === 'Assigned' && (!practiceData.saAssigned || (Array.isArray(practiceData.saAssigned) && practiceData.saAssigned.length === 0)))}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                 >
                   {saving ? 'Assigning...' : (practiceData.targetStatus === 'Assigned' ? 'Assign Resource' : 'Assign to Practice')}
@@ -1239,11 +1345,11 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
               </div>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
       
       {/* Assignment Modal */}
-      {showAssignmentModal && (
+      {showAssignmentModal && createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="p-6">
@@ -1257,18 +1363,77 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
               </div>
               
               <p className="text-gray-600 mb-6">
-                Please provide the resource assignment details to mark this as assigned.
+                Please assign this request to a practice, region, and resource.
               </p>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">SA Assigned *</label>
-                  <input
-                    type="text"
-                    value={assignmentData.saAssigned}
-                    onChange={(e) => setAssignmentData(prev => ({...prev, saAssigned: e.target.value}))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Enter SA name"
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Practice *</label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-3">
+                    {PRACTICE_OPTIONS.filter(practice => practice !== 'Pending').map(practice => (
+                      <label key={practice} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={Array.isArray(assignmentData.practice) ? assignmentData.practice.includes(practice) : assignmentData.practice === practice}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const currentPractices = Array.isArray(assignmentData.practice) ? assignmentData.practice : (assignmentData.practice ? [assignmentData.practice] : []);
+                              setAssignmentData(prev => ({...prev, practice: [...currentPractices, practice]}));
+                            } else {
+                              const currentPractices = Array.isArray(assignmentData.practice) ? assignmentData.practice : (assignmentData.practice ? [assignmentData.practice] : []);
+                              setAssignmentData(prev => ({...prev, practice: currentPractices.filter(p => p !== practice)}));
+                            }
+                          }}
+                          className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-700">{practice}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <MultiAccountManagerSelector
+                    value={assignmentData.am || []}
+                    onChange={(managers) => setAssignmentData(prev => ({...prev, am: managers}))}
+                    placeholder="Select or type account manager names..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Region *</label>
+                  <select
+                    value={assignmentData.region}
+                    onChange={(e) => setAssignmentData(prev => ({...prev, region: e.target.value}))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                    required
+                  >
+                    <option value="">Select Region</option>
+                    <option value="CA-LAX">CA-LAX</option>
+                    <option value="CA-SAN">CA-SAN</option>
+                    <option value="CA-SFO">CA-SFO</option>
+                    <option value="FL-MIA">FL-MIA</option>
+                    <option value="FL-NORT">FL-NORT</option>
+                    <option value="KY-KENT">KY-KENT</option>
+                    <option value="LA-STATE">LA-STATE</option>
+                    <option value="OK-OKC">OK-OKC</option>
+                    <option value="OTHERS">OTHERS</option>
+                    <option value="TN-TEN">TN-TEN</option>
+                    <option value="TX-CEN">TX-CEN</option>
+                    <option value="TX-DAL">TX-DAL</option>
+                    <option value="TX-HOU">TX-HOU</option>
+                    <option value="TX-SOUT">TX-SOUT</option>
+                    <option value="US-FED">US-FED</option>
+                    <option value="US-SP">US-SP</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <MultiResourceSelector
+                    value={assignmentData.saAssigned || []}
+                    onChange={(resources) => setAssignmentData(prev => ({...prev, saAssigned: resources}))}
+                    assignedPractices={Array.isArray(assignmentData.practice) ? assignmentData.practice : (assignmentData.practice ? [assignmentData.practice] : [])}
+                    placeholder="Select or type SA names..."
                     required
                   />
                 </div>
@@ -1279,7 +1444,7 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                     type="date"
                     value={assignmentData.dateAssigned}
                     onChange={(e) => setAssignmentData(prev => ({...prev, dateAssigned: e.target.value}))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
                 </div>
@@ -1287,7 +1452,16 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
               
               <div className="flex gap-3 mt-6">
                 <button
-                  onClick={() => setShowAssignmentModal(false)}
+                  onClick={() => {
+                    setShowAssignmentModal(false);
+                    setAssignmentData({
+                      practice: [],
+                      am: [],
+                      region: '',
+                      saAssigned: [],
+                      dateAssigned: new Date().toISOString().split('T')[0]
+                    });
+                  }}
                   disabled={saving}
                   className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
                 >
@@ -1295,25 +1469,48 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                 </button>
                 <button
                   onClick={async () => {
-                    if (!assignmentData.saAssigned) {
-                      alert('Please assign an SA');
+                    const practices = Array.isArray(assignmentData.practice) ? assignmentData.practice : (assignmentData.practice ? [assignmentData.practice] : []);
+                    if (practices.length === 0) {
+                      alert('Please select at least one practice');
+                      return;
+                    }
+                    
+                    if (!assignmentData.region) {
+                      alert('Please select a region');
+                      return;
+                    }
+                    
+                    if (!assignmentData.saAssigned || (Array.isArray(assignmentData.saAssigned) && assignmentData.saAssigned.length === 0)) {
+                      alert('Please assign at least one SA');
                       return;
                     }
                     
                     setSaving(true);
                     try {
+                      const updateData = {
+                        status: 'Assigned',
+                        practice: practices.join(','),
+                        am: Array.isArray(assignmentData.am) ? assignmentData.am.join(',') : assignmentData.am,
+                        region: assignmentData.region,
+                        saAssigned: Array.isArray(assignmentData.saAssigned) ? assignmentData.saAssigned.join(',') : assignmentData.saAssigned,
+                        dateAssigned: assignmentData.dateAssigned
+                      };
+                      
                       const response = await fetch(`/api/sa-assignments/${currentSaAssignmentId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          status: 'Assigned',
-                          saAssigned: assignmentData.saAssigned,
-                          dateAssigned: assignmentData.dateAssigned
-                        })
+                        body: JSON.stringify(updateData)
                       });
                       if (response.ok) {
                         onSaAssignmentUpdate();
                         setShowAssignmentModal(false);
+                        setAssignmentData({
+                          practice: [],
+                          am: [],
+                          region: '',
+                          saAssigned: [],
+                          dateAssigned: new Date().toISOString().split('T')[0]
+                        });
                       } else {
                         alert('Failed to assign resource');
                       }
@@ -1324,7 +1521,7 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                       setSaving(false);
                     }
                   }}
-                  disabled={saving || !assignmentData.saAssigned}
+                  disabled={saving || (Array.isArray(assignmentData.practice) ? assignmentData.practice.length === 0 : !assignmentData.practice) || !assignmentData.region || (!assignmentData.saAssigned || (Array.isArray(assignmentData.saAssigned) && assignmentData.saAssigned.length === 0))}
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                 >
                   {saving ? 'Assigning...' : 'Assign Resource'}
@@ -1332,8 +1529,10 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
               </div>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
+      
+
     </div>
   );
 }

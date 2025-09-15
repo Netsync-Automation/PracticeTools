@@ -13270,6 +13270,646 @@
         "pending-changes.json",
         "scripts/view-sa-assignments.js"
       ]
+    },
+    {
+      "id": 1757912188085,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/practice-etas/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.085Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188165,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/[id]/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.165Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188309,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-to-am-mapping/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.309Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188521,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.521Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188593,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.593Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188805,
+      "description": "Enhanced auto mapping-utility with specific functionality improvements",
+      "details": {
+        "file": "lib/auto-mapping-utility.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.805Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188874,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.874Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188946,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.946Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912191604,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/practice-etas/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:31.604Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912191676,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/[id]/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:31.676Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912191818,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-to-am-mapping/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:31.818Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912192039,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:32.039Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912192110,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:32.110Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912192412,
+      "description": "Enhanced auto mapping-utility with specific functionality improvements",
+      "details": {
+        "file": "lib/auto-mapping-utility.js"
+      },
+      "timestamp": "2025-09-15T04:56:32.412Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912192483,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-15T04:56:32.483Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912192554,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-15T04:56:32.554Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912194599,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/practice-etas/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:34.599Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912194669,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/[id]/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:34.669Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912194811,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-to-am-mapping/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:34.811Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912195022,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:35.022Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912195093,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:35.093Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912195377,
+      "description": "Enhanced auto mapping-utility with specific functionality improvements",
+      "details": {
+        "file": "lib/auto-mapping-utility.js"
+      },
+      "timestamp": "2025-09-15T04:56:35.377Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912195446,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-15T04:56:35.446Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912195523,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-15T04:56:35.523Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -42601,6 +43241,619 @@
         "package.json",
         "pending-changes.json",
         "scripts/view-sa-assignments.js"
+      ]
+    },
+    {
+      "id": 1757912187928,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:27.928Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js"
+      ]
+    },
+    {
+      "id": 1757912188005,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.005Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188238,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.238Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188383,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/pre-sales/sa-to-am-mapping/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.383Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188451,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.451Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188664,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-09-15T04:56:28.664Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912188732,
+      "description": "Enhanced MultiResourceSelector with specific functionality improvements",
+      "details": {
+        "file": "components/MultiResourceSelector.js"
+      },
+      "timestamp": "2025-09-15T04:56:28.732Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912191462,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:31.462Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912191533,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:31.533Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912191746,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:31.746Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912191891,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/pre-sales/sa-to-am-mapping/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:31.891Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912191967,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:31.967Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912192182,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-09-15T04:56:32.182Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912192260,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-15T04:56:32.260Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912192336,
+      "description": "Enhanced MultiResourceSelector with specific functionality improvements",
+      "details": {
+        "file": "components/MultiResourceSelector.js"
+      },
+      "timestamp": "2025-09-15T04:56:32.336Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912194461,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:34.461Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912194529,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:34.529Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912194740,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/route.js"
+      },
+      "timestamp": "2025-09-15T04:56:34.740Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912194880,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/pre-sales/sa-to-am-mapping/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:34.880Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912194952,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-15T04:56:34.952Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912195162,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-09-15T04:56:35.162Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912195234,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-15T04:56:35.234Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1757912195304,
+      "description": "Enhanced MultiResourceSelector with specific functionality improvements",
+      "details": {
+        "file": "components/MultiResourceSelector.js"
+      },
+      "timestamp": "2025-09-15T04:56:35.304Z",
+      "files": [
+        "app/admin/page.js",
+        "app/admin/settings/page.js",
+        "app/api/practice-etas/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/sa-assignments/route.js",
+        "app/api/sa-to-am-mapping/route.js",
+        "app/pre-sales/sa-to-am-mapping/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "apprunner-prod.yaml",
+        "commit-and-push.js",
+        "components/MultiResourceSelector.js",
+        "lib/auto-mapping-utility.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
       ]
     }
   ]

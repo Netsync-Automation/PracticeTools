@@ -38,6 +38,7 @@ export default function SAToAMMappingPage() {
   const [practiceManager, setPracticeManager] = useState(null);
   const [showPracticeModal, setShowPracticeModal] = useState(false);
   const [tempPracticeSelection, setTempPracticeSelection] = useState([]);
+  const [syncingRegions, setSyncingRegions] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -544,6 +545,49 @@ export default function SAToAMMappingPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">SA to AM Mappings ({filteredMappings.length})</h3>
+                {(user?.isAdmin || ['practice_manager', 'practice_principal', 'practice_member', 'executive'].includes(user?.role)) && (
+                  <button
+                    onClick={async () => {
+                      if (!confirm('This will update all mappings with missing regions using AM data from the user database. Continue?')) return;
+                      setSyncingRegions(true);
+                      try {
+                        const response = await fetch('/api/sa-to-am-mapping/sync-regions', {
+                          method: 'POST'
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                          alert(result.message);
+                          fetchMappings(); // Refresh the mappings
+                        } else {
+                          alert('Failed to sync regions: ' + result.error);
+                        }
+                      } catch (error) {
+                        alert('Error syncing regions: ' + error.message);
+                      } finally {
+                        setSyncingRegions(false);
+                      }
+                    }}
+                    disabled={syncingRegions}
+                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {syncingRegions ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Sync AM Regions
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
               {!selectedGroup ? (

@@ -3,6 +3,7 @@ import { db } from '../../../lib/dynamodb';
 import { validateUserSession } from '../../../lib/auth-check';
 import { uploadFileToS3 } from '../../../lib/s3';
 import { processAmIsrUsers } from '../../../lib/user-manager';
+import { saEmailService } from '../../../lib/sa-email-service';
 
 export async function GET(request) {
   try {
@@ -86,6 +87,16 @@ export async function POST(request) {
 
     if (saAssignmentId) {
       const saAssignment = await db.getSaAssignmentById(saAssignmentId);
+      
+      // Send email notification if status is Pending
+      if (saAssignment.status === 'Pending') {
+        try {
+          await saEmailService.sendPendingSAAssignmentNotification(saAssignment);
+        } catch (emailError) {
+          console.error('Failed to send pending SA assignment email:', emailError);
+          // Don't fail the request if email fails
+        }
+      }
       
       return NextResponse.json({
         success: true,

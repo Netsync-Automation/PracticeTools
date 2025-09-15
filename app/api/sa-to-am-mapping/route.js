@@ -37,6 +37,7 @@ export async function GET(request) {
     const mappings = (result.Items || []).map(item => ({
       id: item.id?.S || '',
       saName: item.sa_name?.S || '',
+      saEmail: item.sa_email?.S || '',
       amName: item.am_name?.S || '',
       amEmail: item.am_email?.S || '',
       region: item.region?.S || '',
@@ -45,6 +46,8 @@ export async function GET(request) {
       isAllMapping: item.is_all_mapping?.BOOL || false,
       createdAt: item.created_at?.S || ''
     }));
+    
+    console.log('GET mappings response:', mappings.map(m => ({ id: m.id, saName: m.saName, saEmail: m.saEmail })));
     
     return NextResponse.json({
       success: true,
@@ -65,7 +68,9 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    console.log('=== SA-TO-AM MAPPING POST REQUEST STARTED ===');
     const data = await request.json();
+    console.log('Request data:', data);
     const environment = getEnvironment();
     const tableName = getTableName('SAToAMMappings');
     
@@ -73,6 +78,24 @@ export async function POST(request) {
     if (data.amName === 'All') {
       const accountManagers = await db.getAllUsers();
       const ams = accountManagers.filter(user => user.role === 'account_manager');
+      
+      // Get SA email from user database
+      const allUsers = await db.getAllUsers();
+      const saUser = allUsers.find(user => user.name === data.saName);
+      const saEmail = saUser?.email || '';
+      
+      console.log('SA email lookup debug (All mapping):', {
+        saName: data.saName,
+        foundUser: !!saUser,
+        saEmail: saEmail,
+        totalUsers: allUsers.length,
+        userNames: allUsers.map(u => u.name).slice(0, 10),
+        exactMatch: allUsers.find(u => u.name === data.saName),
+        caseInsensitiveMatch: allUsers.find(u => u.name?.toLowerCase() === data.saName?.toLowerCase()),
+        allSAUsers: allUsers.filter(u => u.role !== 'account_manager').map(u => ({ name: u.name, email: u.email, role: u.role })),
+        willCreateMappingsFor: ams.length,
+        amNames: ams.map(am => am.name)
+      });
       
       // Get existing mappings to check for duplicates
       const existingCommand = new (await import('@aws-sdk/client-dynamodb')).ScanCommand({
@@ -107,6 +130,7 @@ export async function POST(request) {
           Item: {
             id: { S: mappingId },
             sa_name: { S: data.saName },
+            sa_email: { S: saEmail },
             am_name: { S: am.name },
             am_email: { S: am.email },
             region: { S: am.region || '' },
@@ -149,9 +173,20 @@ export async function POST(request) {
     const id = uuidv4();
     const timestamp = new Date().toISOString();
     
-    // Get AM email from account managers list
-    const accountManagers = await db.getAllUsers();
-    const amUser = accountManagers.find(user => user.role === 'account_manager' && user.name === data.amName);
+    // Get AM and SA emails from user database
+    const allUsers = await db.getAllUsers();
+    const amUser = allUsers.find(user => user.role === 'account_manager' && user.name === data.amName);
+    const saUser = allUsers.find(user => user.name === data.saName);
+    const saEmail = saUser?.email || '';
+    
+    console.log('SA email lookup debug (single mapping):', {
+      saName: data.saName,
+      foundUser: !!saUser,
+      saEmail: saEmail,
+      exactMatch: allUsers.find(u => u.name === data.saName),
+      caseInsensitiveMatch: allUsers.find(u => u.name?.toLowerCase() === data.saName?.toLowerCase()),
+      allSAUsers: allUsers.filter(u => u.role !== 'account_manager').map(u => ({ name: u.name, email: u.email, role: u.role }))
+    });
     
     // Check for duplicate mapping
     const existingCommand = new (await import('@aws-sdk/client-dynamodb')).ScanCommand({
@@ -177,6 +212,7 @@ export async function POST(request) {
       Item: {
         id: { S: id },
         sa_name: { S: data.saName },
+        sa_email: { S: saEmail },
         am_name: { S: data.amName },
         am_email: { S: amUser?.email || '' },
         region: { S: data.region },
@@ -253,6 +289,11 @@ export async function PUT(request) {
       const createdMappings = [];
       const timestamp = new Date().toISOString();
       
+      // Get SA email from user database
+      const allUsers = await db.getAllUsers();
+      const saUser = allUsers.find(user => user.name === data.saName);
+      const saEmail = saUser?.email || '';
+      
       // Get existing mappings to check for duplicates
       const existingCommand = new (await import('@aws-sdk/client-dynamodb')).ScanCommand({
         TableName: tableName
@@ -283,6 +324,7 @@ export async function PUT(request) {
           Item: {
             id: { S: mappingId },
             sa_name: { S: data.saName },
+            sa_email: { S: saEmail },
             am_name: { S: am.name },
             am_email: { S: am.email },
             region: { S: am.region || '' },
@@ -314,9 +356,11 @@ export async function PUT(request) {
       });
     }
     
-    // Get AM email from account managers list
-    const accountManagers = await db.getAllUsers();
-    const amUser = accountManagers.find(user => user.role === 'account_manager' && user.name === data.amName);
+    // Get AM and SA emails from user database
+    const allUsers = await db.getAllUsers();
+    const amUser = allUsers.find(user => user.role === 'account_manager' && user.name === data.amName);
+    const saUser = allUsers.find(user => user.name === data.saName);
+    const saEmail = saUser?.email || '';
     
     // Regular single mapping update
     const command = new PutItemCommand({
@@ -324,6 +368,7 @@ export async function PUT(request) {
       Item: {
         id: { S: data.id },
         sa_name: { S: data.saName },
+        sa_email: { S: saEmail },
         am_name: { S: data.amName },
         am_email: { S: amUser?.email || '' },
         region: { S: data.region },
