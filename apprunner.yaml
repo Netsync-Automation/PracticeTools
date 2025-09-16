@@ -28,6 +28,10 @@ run:
       value: dev
     - name: NEXT_TELEMETRY_DISABLED
       value: 1
+    - name: DEBUG
+      value: "*"
+    - name: NODE_OPTIONS
+      value: "--trace-warnings --trace-uncaught"
   secrets:
 
     - name: NEXTAUTH_URL
