@@ -8,7 +8,13 @@ export function AppProvider({ children }) {
   const [appName, setAppName] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const loadAppName = async () => {
+  const loadAppName = async (force = false) => {
+    // Skip if already loaded and not forced
+    if (appName && !force) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const response = await fetch('/api/settings/general');
       const data = await response.json();
@@ -42,7 +48,7 @@ export function AppProvider({ children }) {
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'general-settings-update') {
-            loadAppName();
+            loadAppName(true); // Force reload on SSE update
           }
         } catch (error) {
           console.error('SSE parsing error:', error);

@@ -9,7 +9,31 @@ export default function AccessCheck({ user, children }) {
 
   useEffect(() => {
     const checkAccess = async () => {
-      // Always check session API first, regardless of user prop
+      // If user prop is provided, use it directly (avoid duplicate API calls)
+      if (user) {
+        // Local auth users already validated
+        if (user.auth_method !== 'sso') {
+          setHasAccess(true);
+          setLoading(false);
+          return;
+        }
+
+        // Check cache first for SSO users
+        const cacheKey = `access_${user.email}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          setHasAccess(cached === 'true');
+          setLoading(false);
+          return;
+        }
+
+        // SSO user prop available, grant access
+        setHasAccess(true);
+        setLoading(false);
+        return;
+      }
+      
+      // Only check session API if no user prop provided
       try {
         const response = await fetch('/api/auth/check-session');
         if (response.ok) {
@@ -24,38 +48,15 @@ export default function AccessCheck({ user, children }) {
         // Silent error handling
       }
       
-      // Fallback to user prop check
-      if (!user) {
-        // If no user and session check failed, retry once after short delay
-        if (retryCount === 0) {
-          setTimeout(() => {
-            setRetryCount(1);
-          }, 500);
-          return;
-        }
-        setHasAccess(false);
-        setLoading(false);
+      // If no user and session check failed, retry once after short delay
+      if (retryCount === 0) {
+        setTimeout(() => {
+          setRetryCount(1);
+        }, 500);
         return;
       }
-
-      // Local auth users already validated
-      if (user.auth_method !== 'sso') {
-        setHasAccess(true);
-        setLoading(false);
-        return;
-      }
-
-      // Check cache first
-      const cacheKey = `access_${user.email}`;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        setHasAccess(cached === 'true');
-        setLoading(false);
-        return;
-      }
-
-      // User prop available, grant access
-      setHasAccess(true);
+      
+      setHasAccess(false);
       setLoading(false);
     };
 
