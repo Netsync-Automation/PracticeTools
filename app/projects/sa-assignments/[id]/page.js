@@ -71,12 +71,29 @@ function PracticeDisplay({ practice, saAssigned, saAssignment, user, onStatusUpd
         if (window.cachedUsers) {
           data = { users: window.cachedUsers };
         } else {
-          const response = await fetch('/api/admin/users');
+          const response = await fetch('/api/users/practices', {
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
           data = await response.json();
-          window.cachedUsers = data.users; // Cache for reuse
+          
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          
+          if (data.users) {
+            window.cachedUsers = data.users; // Cache for reuse
+          }
         }
         
-        if (data.users) {
+        if (data.users && Array.isArray(data.users)) {
           const practiceList = practice.split(',').map(p => p.trim());
           const saList = saAssigned ? saAssigned.split(',').map(s => s.trim()) : [];
           const assignments = [];
@@ -89,7 +106,7 @@ function PracticeDisplay({ practice, saAssigned, saAssignment, user, onStatusUpd
             // Find SAs assigned to this practice
             const assignedSAs = saList.filter(saName => {
               const user = data.users.find(u => u.name === saName);
-              return user && user.practices && user.practices.includes(p);
+              return user && user.practices && Array.isArray(user.practices) && user.practices.includes(p);
             });
             
             // Check if all SAs in this practice are complete
@@ -118,9 +135,29 @@ function PracticeDisplay({ practice, saAssigned, saAssignment, user, onStatusUpd
           });
           
           setPracticeAssignments(assignments);
+        } else {
+          console.warn('No users data received from API');
+          // Fallback: show practices without SA mapping
+          const practiceList = practice.split(',').map(p => p.trim());
+          const assignments = practiceList.map((p, index) => ({
+            practice: p,
+            assignedSAs: [],
+            colors: COLOR_PALETTE[index % COLOR_PALETTE.length],
+            practiceComplete: false
+          }));
+          setPracticeAssignments(assignments);
         }
       } catch (error) {
         console.error('Error loading practice assignments:', error);
+        // Fallback: show practices without SA mapping
+        const practiceList = practice.split(',').map(p => p.trim());
+        const assignments = practiceList.map((p, index) => ({
+          practice: p,
+          assignedSAs: [],
+          colors: COLOR_PALETTE[index % COLOR_PALETTE.length],
+          practiceComplete: false
+        }));
+        setPracticeAssignments(assignments);
       } finally {
         setLoading(false);
       }
@@ -141,8 +178,13 @@ function PracticeDisplay({ practice, saAssigned, saAssignment, user, onStatusUpd
   if (loading) {
     return (
       <div>
-        <dt className="text-xs font-medium text-gray-500">Practices</dt>
-        <dd className="text-sm text-gray-900 font-medium">Loading...</dd>
+        <dt className="text-xs font-medium text-gray-500">Practices & SA Assignments</dt>
+        <dd className="text-sm text-gray-900 font-medium">
+          <div className="flex items-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span>Loading...</span>
+          </div>
+        </dd>
       </div>
     );
   }
@@ -217,7 +259,8 @@ const validatePracticeCoverage = async (practices, assignedSas) => {
   if (!practices || !assignedSas) return { valid: false, uncoveredPractices: [] };
   
   try {
-    const response = await fetch('/api/admin/users');
+    const response = await fetch('/api/users/practices');
+    
     const data = await response.json();
     
     if (!data.users) return { valid: false, uncoveredPractices: [] };
@@ -228,7 +271,7 @@ const validatePracticeCoverage = async (practices, assignedSas) => {
     
     saList.forEach(saName => {
       const user = data.users.find(u => u.name === saName);
-      if (user && user.practices) {
+      if (user && user.practices && Array.isArray(user.practices)) {
         user.practices.forEach(practice => {
           if (practiceList.includes(practice)) {
             coveredPractices.add(practice);
@@ -310,18 +353,35 @@ export default function SaAssignmentDetailPage({ params }) {
     
     checkAuth();
     fetchSaAssignment();
-    fetchUsers();
+    // Delay user fetching slightly to ensure auth is established
+    setTimeout(fetchUsers, 100);
   }, [params.id, router]);
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch('/api/users/practices', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
       if (response.ok) {
         const data = await response.json();
-        setAllUsers(data.users || []);
+        if (data.users && Array.isArray(data.users)) {
+          setAllUsers(data.users);
+          window.cachedUsers = data.users; // Cache for PracticeDisplay component
+        } else {
+          console.warn('Invalid users data received:', data);
+          setAllUsers([]);
+        }
+      } else {
+        console.error('Failed to fetch users:', response.status, response.statusText);
+        setAllUsers([]);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
+      setAllUsers([]);
     }
   };
 

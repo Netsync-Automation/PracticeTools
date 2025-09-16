@@ -201,11 +201,6 @@ function ConversationForm({ issueId, issue, user, onCommentAdded, attachments, s
       const formData = new FormData();
       formData.append('message', newComment);
       
-      // Add regular attachments
-      attachments.forEach(file => {
-        formData.append('attachments', file);
-      });
-      
       // Add pasted images
       pastedImages.forEach(img => {
         formData.append('attachments', img.file);
@@ -213,7 +208,11 @@ function ConversationForm({ issueId, issue, user, onCommentAdded, attachments, s
       
       // Add file attachments
       attachments.forEach(attachment => {
-        formData.append('attachments', attachment.file);
+        if (attachment.file) {
+          formData.append('attachments', attachment.file);
+        } else {
+          formData.append('attachments', attachment);
+        }
       });
 
       const response = await fetch(`/api/issues/${issueId}/comments`, {
@@ -375,7 +374,7 @@ function ConversationForm({ issueId, issue, user, onCommentAdded, attachments, s
         disabled={(!newComment.trim() && attachments.length === 0 && pastedImages.length === 0) || submitting || isFormDisabled}
         className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isFormDisabled ? 'Comments Locked' : submitting ? 'Adding...' : 'Add Comment/Add Attachment'}
+        {isFormDisabled ? 'Comments Locked' : submitting ? 'Adding...' : 'Add Comment'}
       </button>
     </form>
   );
@@ -450,34 +449,7 @@ function ConversationSection({ issueId, issue, user, onIssueUpdate }) {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!newComment.trim() && attachments.length === 0) return;
 
-    setSubmitting(true);
-    try {
-      const formData = new FormData();
-      formData.append('message', newComment);
-      attachments.forEach(file => {
-        formData.append('attachments', file);
-      });
-
-      const response = await fetch(`/api/issues/${issueId}/comments`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (response.ok) {
-        setNewComment('');
-        setAttachments([]);
-        fetchComments();
-      }
-    } catch (error) {
-      console.error('Error adding comment:', error);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   useEffect(() => {
     fetchComments();

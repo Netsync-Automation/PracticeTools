@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb.js';
+import { getCached, setCached, clearCache } from '../../../lib/cache.js';
 
 export async function GET(request) {
   try {
@@ -12,6 +13,13 @@ export async function GET(request) {
       const boardKey = topic === 'Main Topic' 
         ? `practice_board_${practiceId}` 
         : `practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      
+      // Check cache first
+      const cacheKey = `board_${boardKey}`;
+      const cached = getCached(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached);
+      }
       
       const boardData = await db.getSetting(boardKey);
       
@@ -26,10 +34,14 @@ export async function GET(request) {
           createdAt: new Date().toISOString()
         }));
         
-        return NextResponse.json({ columns });
+        const response = { columns };
+        setCached(cacheKey, response, 30000); // Cache for 30 seconds
+        return NextResponse.json(response);
       }
 
-      return NextResponse.json(JSON.parse(boardData));
+      const response = JSON.parse(boardData);
+      setCached(cacheKey, response, 30000); // Cache for 30 seconds
+      return NextResponse.json(response);
     } else {
       // Get all practice boards
       try {
@@ -71,6 +83,9 @@ export async function POST(request) {
     const success = await db.saveSetting(boardKey, JSON.stringify(boardData));
     
     if (success) {
+      // Clear cache for this board
+      clearCache(`board_practice_board_${practiceId}`);
+      
       // Send SSE notification for board updates
       try {
         const { notifyClients } = await import('../events/route.js');

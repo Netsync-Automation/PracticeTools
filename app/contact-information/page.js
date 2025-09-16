@@ -341,6 +341,7 @@ export default function ContactInformationPage() {
           isOpen={showSettingsModal}
           onClose={() => setShowSettingsModal(false)}
           practiceGroupId={selectedGroup}
+          contactType={selectedType}
           onSettingsChange={() => setRefreshTrigger(prev => prev + 1)}
         />
       </div>
