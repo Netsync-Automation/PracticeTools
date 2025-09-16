@@ -5,6 +5,8 @@ import { db } from '../../../lib/dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 import { validateUserSession } from '../../../lib/auth-check';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);

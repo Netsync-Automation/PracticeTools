@@ -5,6 +5,8 @@ import { etaTracker } from '../../../../lib/eta-tracker';
 import { saEmailService } from '../../../../lib/sa-email-service';
 import { saWebexService } from '../../../../lib/sa-webex-service';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request, { params }) {
   try {
     const userCookie = request.cookies.get('user-session');

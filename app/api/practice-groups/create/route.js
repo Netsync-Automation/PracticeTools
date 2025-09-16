@@ -3,6 +3,8 @@ import { validateUserSession } from '../../../../lib/auth-check.js';
 import { db } from '../../../../lib/dynamodb.js';
 import { validateCSRFToken } from '../../../../lib/csrf.js';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
     const userCookie = request.cookies.get('user-session');

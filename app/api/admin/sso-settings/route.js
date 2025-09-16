@@ -3,6 +3,8 @@ import { validateUserSession } from '../../../../lib/auth-check';
 import { SSMClient, GetParameterCommand, PutParameterCommand } from '@aws-sdk/client-ssm';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
+
+export const dynamic = 'force-dynamic';
 const ENV = process.env.ENVIRONMENT || 'prod';
 const ssmClient = new SSMClient({
   region: process.env.AWS_DEFAULT_REGION || 'us-east-1',

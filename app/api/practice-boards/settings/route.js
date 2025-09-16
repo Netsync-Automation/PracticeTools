@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../../lib/auth-check.js';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
     console.log('🔧 [API] Saving board settings request received');

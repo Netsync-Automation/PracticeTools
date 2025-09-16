@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { validateUserSession } from '../../../../lib/auth-check';
 import { getEmailProcessor } from '../../../../lib/email-processor.js';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
     const userCookie = request.cookies.get('user-session');

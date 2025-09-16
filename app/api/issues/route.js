@@ -4,6 +4,8 @@ import { uploadFileToS3 } from '../../../lib/s3';
 import { validateUserSession } from '../../../lib/auth-check';
 import { filterIssuesByAccess } from '../../../lib/access-control';
 
+
+export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request) {

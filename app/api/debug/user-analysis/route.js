@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { validateUserSession } from '../../../../lib/auth-check.js';
+
+export const dynamic = 'force-dynamic';
 import { db } from '../../../../lib/dynamodb.js';
 
 export async function GET(request) {

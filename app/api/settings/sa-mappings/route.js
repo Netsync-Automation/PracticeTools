@@ -4,6 +4,8 @@ import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
 import { db } from '../../../../lib/dynamodb';
 import { validateUserSession } from '../../../../lib/auth-check';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const tableName = getTableName('Settings');

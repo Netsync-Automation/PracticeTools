@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 // Global clients map for SSE connections
 const saToAmClients = new Map();
 

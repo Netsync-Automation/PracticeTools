@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { validateUserSession } from '../../../../lib/auth-check';
 import { db } from '../../../../lib/dynamodb.js';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request) {
   try {
     const userCookie = request.cookies.get('user-session');

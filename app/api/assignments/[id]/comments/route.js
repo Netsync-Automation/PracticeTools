@@ -3,6 +3,8 @@ import { db } from '../../../../../lib/dynamodb';
 import { uploadFileToS3 } from '../../../../../lib/s3';
 import { validateUserSession } from '../../../../../lib/auth-check';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request, { params }) {
   try {
     const userCookie = request.cookies.get('user-session');
