@@ -259,6 +259,28 @@ export default function PracticeInformationPage() {
     }
   }, [currentPracticeId]);
 
+  // Fallback polling when SSE is not connected
+  useEffect(() => {
+    if (!currentPracticeId || sseConnected) return;
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/practice-boards?practiceId=${currentPracticeId}&topic=${encodeURIComponent(currentTopic)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (JSON.stringify(data.columns) !== JSON.stringify(columns)) {
+            setColumns(data.columns || []);
+            setLastUpdate(Date.now());
+          }
+        }
+      } catch (error) {
+        // Silent polling error
+      }
+    }, 10000); // Poll every 10 seconds when SSE is disconnected
+    
+    return () => clearInterval(pollInterval);
+  }, [currentPracticeId, currentTopic, sseConnected, columns]);
+
   useEffect(() => {
     if (currentPracticeId) {
       loadBoardBackground();
@@ -346,56 +368,89 @@ export default function PracticeInformationPage() {
     let eventSource;
     let reconnectTimer;
     let isConnected = false;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
     
     const connectSSE = () => {
-      eventSource = new EventSource(`/api/events?issueId=practice-board-${currentPracticeId}`);
-      
-      eventSource.onopen = () => {
-        isConnected = true;
-        if (reconnectTimer) {
-          clearTimeout(reconnectTimer);
-          reconnectTimer = null;
-        }
-      };
-      
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          
-          if (data.type === 'board_updated') {
-            setColumns(data.columns);
-            setSelectedCard(prevCard => {
-              if (prevCard) {
-                const updatedCard = data.columns
-                  .find(col => col.id === prevCard.columnId)
-                  ?.cards.find(card => card.id === prevCard.id);
-                return updatedCard ? { ...updatedCard, columnId: prevCard.columnId } : prevCard;
+      try {
+        eventSource = new EventSource(`/api/events?issueId=practice-board-${currentPracticeId}`);
+        
+        eventSource.onopen = () => {
+          isConnected = true;
+          reconnectAttempts = 0;
+          if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+          }
+        };
+        
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'board_updated') {
+              setColumns(data.columns);
+              setSelectedCard(prevCard => {
+                if (prevCard) {
+                  const updatedCard = data.columns
+                    .find(col => col.id === prevCard.columnId)
+                    ?.cards.find(card => card.id === prevCard.id);
+                  return updatedCard ? { ...updatedCard, columnId: prevCard.columnId } : prevCard;
+                }
+                return prevCard;
+              });
+            } else if (data.type === 'topic_added') {
+              setAvailableTopics(data.topics);
+            } else if (data.type === 'topic_renamed') {
+              setAvailableTopics(data.topics);
+              if (currentTopic === data.oldTopic) {
+                setCurrentTopic(data.newTopic);
+                saveTopicPreference(currentPracticeId, data.newTopic);
               }
-              return prevCard;
-            });
+            } else if (data.type === 'topic_deleted') {
+              setAvailableTopics(data.topics);
+              if (currentTopic === data.deletedTopic) {
+                setCurrentTopic('Main Topic');
+                saveTopicPreference(currentPracticeId, 'Main Topic');
+              }
+            } else if (data.type === 'settings_updated') {
+              if (data.settings?.background) {
+                setBoardBackground(data.settings.background);
+              }
+            }
+          } catch (error) {
+            console.error('SSE parsing error:', error);
           }
-        } catch (error) {
-          console.error('SSE parsing error:', error);
-        }
-      };
-      
-      eventSource.onerror = () => {
-        isConnected = false;
-        if (eventSource.readyState === EventSource.CLOSED) {
-          if (!reconnectTimer) {
-            reconnectTimer = setTimeout(() => {
-              connectSSE();
-            }, 2000);
+        };
+        
+        eventSource.onerror = (error) => {
+          isConnected = false;
+          if (eventSource.readyState === EventSource.CLOSED && reconnectAttempts < maxReconnectAttempts) {
+            if (!reconnectTimer) {
+              reconnectAttempts++;
+              const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+              reconnectTimer = setTimeout(() => {
+                reconnectTimer = null;
+                connectSSE();
+              }, delay);
+            }
           }
-        }
-      };
+        };
+      } catch (error) {
+        console.error('SSE connection error:', error);
+      }
     };
     
     connectSSE();
     
     return () => {
-      if (eventSource) eventSource.close();
-      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (eventSource) {
+        eventSource.close();
+      }
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      setSseConnected(false);
     };
   }, [currentPracticeId]);
 
@@ -503,6 +558,14 @@ export default function PracticeInformationPage() {
       
       if (!response.ok) {
         throw new Error('Failed to save board data');
+      }
+      
+      // Clear cache to ensure fresh data on next load
+      try {
+        const { clearCache } = await import('../../lib/cache');
+        clearCache(`practice_board_${currentPracticeId}`);
+      } catch (cacheError) {
+        // Cache clearing is optional
       }
     } catch (error) {
       console.error('Error saving board data:', error);

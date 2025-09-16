@@ -52,7 +52,7 @@ export default function SaAssignmentsPage() {
   const [practiceETAs, setPracticeETAs] = useState([]);
   const [filters, setFilters] = useState(() => {
     return {
-      status: ['Pending', 'Unassigned'],
+      status: [],
       practice: [],
       region: '',
       dateFrom: '',

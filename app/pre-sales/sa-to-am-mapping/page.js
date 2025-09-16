@@ -497,6 +497,10 @@ export default function SAToAMMappingPage() {
                           setShowAddModal(true);
                           fetchPracticeUsers(selectedGroup);
                           fetchAccountManagers();
+                          // Auto-select current user as SA if they are a practice member
+                          if (user?.role === 'practice_member') {
+                            setNewMapping({...newMapping, saName: user.name || ''});
+                          }
                         }}
                         className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
@@ -710,8 +714,9 @@ export default function SAToAMMappingPage() {
                                   <button
                                     onClick={() => {
                                       setEditingMapping(mapping);
+                                      const defaultSaName = user?.role === 'practice_member' && !mapping.saName ? user.name || '' : mapping.saName;
                                       setNewMapping({
-                                        saName: mapping.saName,
+                                        saName: defaultSaName,
                                         amName: mapping.amName,
                                         region: mapping.region,
                                         practices: mapping.practices || []

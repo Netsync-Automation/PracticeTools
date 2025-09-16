@@ -54,6 +54,18 @@ export async function POST(request) {
     await db.saveSetting(boardKey, JSON.stringify(boardData));
     console.log('✅ [API] Board settings saved to key:', boardKey);
     
+    // Send SSE notification for settings updated
+    try {
+      const { notifyClients } = await import('../../events/route.js');
+      notifyClients(`practice-board-${practiceId}`, {
+        type: 'settings_updated',
+        settings: boardData.settings,
+        timestamp: Date.now()
+      });
+    } catch (sseError) {
+      console.error('SSE notification failed:', sseError);
+    }
+    
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('❌ [API] Error saving board settings:', error);

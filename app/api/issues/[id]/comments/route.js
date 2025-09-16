@@ -42,10 +42,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const user = validation.user;
-    
     // Validate user session
-    const { validateUserSession } = await import('../../../../../lib/auth-check');
     const validation = await validateUserSession(userCookie);
     
     if (!validation.valid) {
@@ -96,6 +93,8 @@ export async function POST(request, { params }) {
     }
     
 
+    
+    const user = validation.user;
     
     console.log('Adding comment for issue:', params.id, 'by user:', user.email);
     const commentMessage = message ? message.trim() : '';

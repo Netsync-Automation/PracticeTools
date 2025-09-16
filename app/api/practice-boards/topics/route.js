@@ -91,6 +91,19 @@ export async function POST(request) {
         createdAt: new Date().toISOString(),
         createdBy: user.email
       }));
+      
+      // Send SSE notification for topic added
+      try {
+        const { notifyClients } = await import('../../events/route.js');
+        notifyClients(`practice-board-${practiceId}`, {
+          type: 'topic_added',
+          topics: topics,
+          newTopic: topic,
+          timestamp: Date.now()
+        });
+      } catch (sseError) {
+        console.error('SSE notification failed:', sseError);
+      }
     }
     
     return NextResponse.json({ success: true, topics });
@@ -155,6 +168,20 @@ export async function PUT(request) {
         await db.saveSetting(newKey, JSON.stringify(boardContent));
         await db.deleteSetting(oldKey);
       }
+      
+      // Send SSE notification for topic renamed
+      try {
+        const { notifyClients } = await import('../../events/route.js');
+        notifyClients(`practice-board-${practiceId}`, {
+          type: 'topic_renamed',
+          topics: topics,
+          oldTopic: oldTopic,
+          newTopic: newTopic,
+          timestamp: Date.now()
+        });
+      } catch (sseError) {
+        console.error('SSE notification failed:', sseError);
+      }
     }
     
     return NextResponse.json({ success: true, topics });
@@ -208,6 +235,19 @@ export async function DELETE(request) {
     // Delete topic board data
     const topicBoardKey = `practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
     await db.deleteSetting(topicBoardKey);
+    
+    // Send SSE notification for topic deleted
+    try {
+      const { notifyClients } = await import('../../events/route.js');
+      notifyClients(`practice-board-${practiceId}`, {
+        type: 'topic_deleted',
+        topics: updatedTopics,
+        deletedTopic: topic,
+        timestamp: Date.now()
+      });
+    } catch (sseError) {
+      console.error('SSE notification failed:', sseError);
+    }
     
     return NextResponse.json({ success: true, topics: updatedTopics });
   } catch (error) {

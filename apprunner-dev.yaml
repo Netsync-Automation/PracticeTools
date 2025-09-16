@@ -23,7 +23,7 @@ run:
     - name: S3_BUCKET
       value: netsync-practicetools-bucket
     - name: NODE_ENV
-      value: development
+      value: production
     - name: ENVIRONMENT
       value: dev
     - name: NEXT_TELEMETRY_DISABLED

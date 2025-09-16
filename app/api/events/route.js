@@ -47,10 +47,9 @@ export async function GET(request) {
       
       // Send initial connection message
       const connectMsg = { type: 'connected', clientId };
-      controller.enqueue(`event: connected\ndata: ${JSON.stringify(connectMsg)}\n\n`);
       controller.enqueue(`data: ${JSON.stringify(connectMsg)}\n\n`);
       
-      // Send heartbeat every 20 seconds to keep connection alive
+      // Send heartbeat every 30 seconds to keep connection alive
       const heartbeat = setInterval(() => {
         try {
           if (!controller.desiredSize || controller.desiredSize <= 0) {
@@ -58,12 +57,13 @@ export async function GET(request) {
             clearInterval(heartbeat);
             return;
           }
-          controller.enqueue(`data: ${JSON.stringify({ type: 'heartbeat', timestamp: Date.now() })}\n\n`);
+          const heartbeatMsg = `: heartbeat ${Date.now()}\n\n`;
+          controller.enqueue(heartbeatMsg);
         } catch (error) {
           console.log(`Heartbeat error for client ${clientId}:`, error.message);
           clearInterval(heartbeat);
         }
-      }, 20000);
+      }, 30000);
       
       // Cleanup on close
       request.signal.addEventListener('abort', () => {
@@ -88,8 +88,9 @@ export async function GET(request) {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Connection': 'keep-alive',
       'Access-Control-Allow-Origin': '*',
-      'X-Accel-Buffering': 'no'
-      // Removed Transfer-Encoding header to let Next.js handle it
+      'X-Accel-Buffering': 'no',
+      'Content-Encoding': 'identity',
+      'Transfer-Encoding': 'identity'
     },
   });
 }
@@ -141,12 +142,9 @@ export function notifyClients(issueId, data) {
           return;
         }
         
-        // Send both as typed event and generic message
-        const eventMessage = `event: ${data.type}\ndata: ${JSON.stringify(data)}\n\n`;
-        const genericMessage = `data: ${JSON.stringify(data)}\n\n`;
-        
-        clientObj.controller.enqueue(eventMessage);
-        clientObj.controller.enqueue(genericMessage);
+        // Send as event-stream format
+        const message = `event: ${data.type}\ndata: ${JSON.stringify(data)}\n\n`;
+        clientObj.controller.enqueue(message);
         
         console.log(`✅ Message sent to client ${clientObj.clientId} on channel ${issueId}`);
         console.log(`📤 Event type: ${data.type}`);
