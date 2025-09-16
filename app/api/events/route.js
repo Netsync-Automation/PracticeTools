@@ -13,13 +13,12 @@ const clients = global.sseClients;
 console.log(`SSE clients Map status: ${clients.size} channels, keys: [${Array.from(clients.keys()).join(', ')}]`);
 
 export async function GET(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const issueId = searchParams.get('issueId') || 'all';
-    
-    const encoder = new TextEncoder();
-    
-    const stream = new ReadableStream({
+  const { searchParams } = new URL(request.url);
+  const issueId = searchParams.get('issueId') || 'all';
+  
+  const encoder = new TextEncoder();
+  
+  const stream = new ReadableStream({
       start(controller) {
       const clientId = Date.now().toString();
       console.log(`New SSE client connecting for channel: ${issueId}, clientId: ${clientId}`);
@@ -82,19 +81,15 @@ export async function GET(request) {
     }
   });
 
-    return new NextResponse(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Cache-Control'
-      },
-    });
-  } catch (error) {
-    console.error('SSE initialization failed:', error);
-    return new NextResponse('SSE unavailable', { status: 503 });
-  }
+  return new NextResponse(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Cache-Control'
+    },
+  });
 }
 
 // Debug function to check current clients

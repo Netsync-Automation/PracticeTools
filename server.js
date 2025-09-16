@@ -2,19 +2,33 @@ import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 
+console.log('🚀 [STARTUP] Server initialization starting...');
+console.log('🚀 [STARTUP] Environment variables:');
+console.log('  - NODE_ENV:', process.env.NODE_ENV);
+console.log('  - ENVIRONMENT:', process.env.ENVIRONMENT);
+console.log('  - PORT:', process.env.PORT);
+console.log('  - NEXTAUTH_URL:', process.env.NEXTAUTH_URL ? 'SET' : 'NOT SET');
+
 const dev = process.env.NODE_ENV !== 'production' && process.env.ENVIRONMENT !== 'prod';
 const hostname = 'localhost';
 const port = process.env.PORT || 3000;
 
+console.log('🚀 [STARTUP] Next.js dev mode:', dev);
+console.log('🚀 [STARTUP] Server will listen on:', `${hostname}:${port}`);
+
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
+console.log('🚀 [STARTUP] Next.js app created, preparing...');
+
 app.prepare().then(() => {
+  console.log('✅ [STARTUP] Next.js app prepared successfully');
+  
   // Initialize email processing after Next.js is ready
   import('./lib/startup-init.js').then(() => {
-    console.log('Email processing initialized on server startup');
+    console.log('✅ [STARTUP] Email processing initialized');
   }).catch(error => {
-    console.error('Failed to initialize email processing:', error);
+    console.error('❌ [STARTUP] Failed to initialize email processing:', error);
   });
 
   createServer(async (req, res) => {
@@ -28,10 +42,16 @@ app.prepare().then(() => {
     }
   })
   .once('error', (err) => {
-    console.error(err);
+    console.error('❌ [STARTUP] Server error:', err);
+    console.error('❌ [STARTUP] Stack trace:', err.stack);
     process.exit(1);
   })
   .listen(port, () => {
-    console.log(`> Ready on http://${hostname}:${port}`);
+    console.log(`✅ [STARTUP] Server ready on http://${hostname}:${port}`);
+    console.log('✅ [STARTUP] Application startup completed successfully');
   });
+}).catch(error => {
+  console.error('❌ [STARTUP] Next.js preparation failed:', error);
+  console.error('❌ [STARTUP] Stack trace:', error.stack);
+  process.exit(1);
 });
