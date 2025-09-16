@@ -23,8 +23,11 @@ run:
       value: production
     - name: ENVIRONMENT
       value: prod
-    - name: NEXT_TELEMETRY_DISABLED
-      value: 1
+    - name: DEBUG
+      value: "*"
+    - name: NODE_OPTIONS
+      value: "--trace-warnings --trace-uncaught"
+
   secrets:
     - name: NEXTAUTH_URL
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/NEXTAUTH_URL
