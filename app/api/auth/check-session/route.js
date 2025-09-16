@@ -1,44 +1,43 @@
 import { NextResponse } from 'next/server';
 import { validateUserSession } from '../../../../lib/auth-check';
 import { db } from '../../../../lib/dynamodb';
+import { getCached, setCached } from '../../../../lib/cache';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request) {
-  console.log('[CHECK-SESSION] API called');
   const userCookie = request.cookies.get('user-session');
-  console.log('[CHECK-SESSION] Cookie from request:', {
-    exists: !!userCookie,
-    name: userCookie?.name,
-    valueLength: userCookie?.value?.length || 0
-  });
+  
+  // Cache key based on cookie value
+  const cacheKey = `session_${userCookie?.value?.substring(0, 20) || 'none'}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return NextResponse.json(cached);
+  }
   
   const validation = await validateUserSession(userCookie);
-  console.log('[CHECK-SESSION] Validation result:', {
-    valid: validation.valid,
-    error: validation.error,
-    userEmail: validation.user?.email
-  });
+  let response;
   
   if (validation.valid) {
     // Check if user is staged
     if (validation.user.status === 'staged') {
-      console.log('[CHECK-SESSION] Staged user blocked:', validation.user.email);
-      return NextResponse.json({ authenticated: false, error: 'Account pending activation. Please contact an administrator.' }, { status: 403 });
+      response = { authenticated: false, error: 'Account pending activation. Please contact an administrator.' };
+      return NextResponse.json(response, { status: 403 });
     }
     
     const responseUser = {
       ...validation.user,
       isAdmin: validation.user.isAdmin || false
     };
-    console.log('[CHECK-SESSION] Returning success for:', responseUser.email);
-    return NextResponse.json({ 
+    response = { 
       authenticated: true, 
       user: responseUser
-    });
+    };
+    setCached(cacheKey, response, 30000); // Cache for 30 seconds
+    return NextResponse.json(response);
   }
   
-  console.log('[CHECK-SESSION] Returning 401 - validation failed:', validation.error);
-  return NextResponse.json({ authenticated: false, error: validation.error }, { status: 401 });
+  response = { authenticated: false, error: validation.error };
+  return NextResponse.json(response, { status: 401 });
 }

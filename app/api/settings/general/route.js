@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
 import { db } from '../../../../lib/dynamodb';
+import { getCached, setCached, clearCache } from '../../../../lib/cache';
 import fs from 'fs';
 import path from 'path';
 
@@ -34,6 +35,9 @@ export async function POST(request) {
       await saveEnvironmentSetting(tableName, 'allowed_file_types', allowedFileTypes, environment);
     }
     
+    // Clear cache when settings are updated
+    clearCache('settings_general');
+    
     // Send SSE notification for real-time updates
     await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sse/notify`, {
       method: 'POST',
@@ -51,8 +55,16 @@ export async function POST(request) {
 
 export async function GET() {
   try {
-    const tableName = getTableName('Settings');
     const environment = getEnvironment();
+    const cacheKey = `settings_general_${environment}`;
+    
+    // Check cache first
+    const cached = getCached(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+    
+    const tableName = getTableName('Settings');
     
     const appName = await getEnvironmentSetting(tableName, 'app_name', environment) || getDefaultAppName(environment);
     let loginLogo = await getEnvironmentSetting(tableName, 'login_logo', environment);
@@ -68,14 +80,19 @@ export async function GET() {
       navbarLogo = await initializeDefaultLogo(tableName, 'navbar_logo', 'company-logo.png', 'png', environment);
     }
     
-    return NextResponse.json({ 
+    const response = { 
       appName, 
       loginLogo, 
       navbarLogo, 
       allowedFileTypes,
       defaultAppName: getDefaultAppName(environment),
       defaultNavbarLogo: '/company-logo.png'
-    });
+    };
+    
+    // Cache the response for 60 seconds
+    setCached(cacheKey, response, 60000);
+    
+    return NextResponse.json(response);
   } catch (error) {
     const environment = getEnvironment();
     return NextResponse.json({ 
