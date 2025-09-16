@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/dynamodb';
 import { validateUserSession } from '../../../../lib/auth-check';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
     // Debug environment variable detection

@@ -4,6 +4,8 @@ import { getEnvironment, getTableName } from '../../../lib/dynamodb';
 import { db } from '../../../lib/dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);

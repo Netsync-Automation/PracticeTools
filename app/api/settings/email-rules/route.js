@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../../lib/dynamodb.js';
 
+
+export const dynamic = 'force-dynamic';
 // Helper functions for rule comparison
 function normalizeEmail(email) {
   if (!email || email === 'anyone' || email.trim() === '') {

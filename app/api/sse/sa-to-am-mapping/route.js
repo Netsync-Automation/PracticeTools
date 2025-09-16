@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { saToAmClients } from '../notify/route.js';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const practiceGroupId = searchParams.get('practiceGroupId');

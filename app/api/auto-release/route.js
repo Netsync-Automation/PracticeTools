@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { FeatureVersioning } from '../../../lib/auto-versioning.js';
 import { validateUserSession } from '../../../lib/auth-check';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
     console.log('\n🚀 === AUTO-RELEASE API CALLED ===');

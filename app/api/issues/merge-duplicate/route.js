@@ -6,6 +6,8 @@ import { validateComment, sanitizeInput } from '../../../../lib/input-validator'
 import { logger } from '../../../../lib/safe-logger';
 import { WebexNotifications } from '../../../../lib/webex-notifications';
 
+
+export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
     // Validate user session

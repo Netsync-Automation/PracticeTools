@@ -3,6 +3,8 @@ import { db } from '../../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../../lib/auth-check.js';
 import { sendSSENotification } from '../../../../lib/sse-notifier.js';
 
+
+export const dynamic = 'force-dynamic';
 export async function GET(request) {
   try {
     const userCookie = request.cookies.get('user-session');

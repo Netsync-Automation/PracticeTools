@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { validateUserSession } from '../../../../lib/auth-check';
+
+export const dynamic = 'force-dynamic';
 import { createSAMLConfig } from '../../../../lib/saml-config';
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
