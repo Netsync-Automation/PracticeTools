@@ -181,6 +181,7 @@ export default function PracticeInformationPage() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [currentTopic, setCurrentTopic] = useState('Main Topic');
   const [availableTopics, setAvailableTopics] = useState(['Main Topic']);
+  const [sseConnected, setSseConnected] = useState(false);
 
   // Topic preference management
   const getTopicPreferenceKey = (practiceId, userEmail) => {
@@ -377,6 +378,7 @@ export default function PracticeInformationPage() {
         
         eventSource.onopen = () => {
           isConnected = true;
+          setSseConnected(true);
           reconnectAttempts = 0;
           if (reconnectTimer) {
             clearTimeout(reconnectTimer);
@@ -425,6 +427,7 @@ export default function PracticeInformationPage() {
         
         eventSource.onerror = (error) => {
           isConnected = false;
+          setSseConnected(false);
           if (eventSource.readyState === EventSource.CLOSED && reconnectAttempts < maxReconnectAttempts) {
             if (!reconnectTimer) {
               reconnectAttempts++;
