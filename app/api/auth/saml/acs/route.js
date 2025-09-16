@@ -75,6 +75,7 @@ export async function POST(request) {
             role: dbUser.role,
             auth_method: 'sso',
             isAdmin: dbUser.isAdmin || dbUser.is_admin || false,
+            practices: dbUser.practices || [],
             created_at: dbUser.created_at,
             last_login: new Date().toISOString()
           };
