@@ -1,26 +1,26 @@
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-// Make clients Map more persistent and add debugging
-let clients;
-if (!global.sseClients) {
-  console.log('Initializing new SSE clients Map');
+// Initialize clients map safely
+if (typeof global.sseClients === 'undefined') {
   global.sseClients = new Map();
 }
-clients = global.sseClients;
+const clients = global.sseClients;
 
 // Debug logging
 console.log(`SSE clients Map status: ${clients.size} channels, keys: [${Array.from(clients.keys()).join(', ')}]`);
 
 export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const issueId = searchParams.get('issueId') || 'all';
-  
-  console.log(`SSE connection request for: ${issueId}`);
-
-  const stream = new ReadableStream({
-    start(controller) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const issueId = searchParams.get('issueId') || 'all';
+    
+    const encoder = new TextEncoder();
+    
+    const stream = new ReadableStream({
+      start(controller) {
       const clientId = Date.now().toString();
       console.log(`New SSE client connecting for channel: ${issueId}, clientId: ${clientId}`);
       
@@ -46,8 +46,8 @@ export async function GET(request) {
       }
       
       // Send initial connection message
-      const connectMsg = { type: 'connected', clientId };
-      controller.enqueue(`data: ${JSON.stringify(connectMsg)}\n\n`);
+      const connectMsg = `data: ${JSON.stringify({ type: 'connected', clientId })}\n\n`;
+      controller.enqueue(encoder.encode(connectMsg));
       
       // Send heartbeat every 30 seconds to keep connection alive
       const heartbeat = setInterval(() => {
@@ -58,7 +58,7 @@ export async function GET(request) {
             return;
           }
           const heartbeatMsg = `: heartbeat ${Date.now()}\n\n`;
-          controller.enqueue(heartbeatMsg);
+          controller.enqueue(encoder.encode(heartbeatMsg));
         } catch (error) {
           console.log(`Heartbeat error for client ${clientId}:`, error.message);
           clearInterval(heartbeat);
@@ -82,17 +82,19 @@ export async function GET(request) {
     }
   });
 
-  return new NextResponse(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'X-Accel-Buffering': 'no',
-      'Content-Encoding': 'identity',
-      'Transfer-Encoding': 'identity'
-    },
-  });
+    return new NextResponse(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      },
+    });
+  } catch (error) {
+    console.error('SSE initialization failed:', error);
+    return new NextResponse('SSE unavailable', { status: 503 });
+  }
 }
 
 // Debug function to check current clients
@@ -144,7 +146,8 @@ export function notifyClients(issueId, data) {
         
         // Send as event-stream format
         const message = `event: ${data.type}\ndata: ${JSON.stringify(data)}\n\n`;
-        clientObj.controller.enqueue(message);
+        const encoder = new TextEncoder();
+        clientObj.controller.enqueue(encoder.encode(message));
         
         console.log(`✅ Message sent to client ${clientObj.clientId} on channel ${issueId}`);
         console.log(`📤 Event type: ${data.type}`);

@@ -3,9 +3,10 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
-  const encoder = new TextEncoder();
-  
-  const stream = new ReadableStream({
+  try {
+    const encoder = new TextEncoder();
+    
+    const stream = new ReadableStream({
     start(controller) {
       // Initialize SSE clients map if it doesn't exist
       if (!global.sseClients) {
@@ -38,14 +39,18 @@ export async function GET(request) {
     }
   });
 
-  return new NextResponse(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET',
-      'Access-Control-Allow-Headers': 'Cache-Control'
-    }
-  });
+    return new NextResponse(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      }
+    });
+  } catch (error) {
+    console.error('SSE contact-management failed:', error);
+    return new NextResponse('SSE unavailable', { status: 503 });
+  }
 }

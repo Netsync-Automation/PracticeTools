@@ -12,7 +12,7 @@ export async function GET() {
     // Set CSRF token in httpOnly cookie for server-side validation
     response.cookies.set('csrf-token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NEXTAUTH_URL?.startsWith('https://') || false,
       sameSite: 'strict',
       maxAge: 60 * 60 * 24 // 24 hours
     });
