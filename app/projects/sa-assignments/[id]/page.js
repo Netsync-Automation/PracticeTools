@@ -31,19 +31,25 @@ function PracticeDisplay({ practice, saAssigned, saAssignment, user, onStatusUpd
   const [practiceAssignments, setPracticeAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  const handleSAClick = async (saName) => {
-    if (!user.isAdmin && user.name.toLowerCase() !== saName.toLowerCase()) {
-      alert('You can only change your own completion status.');
-      return;
+  const canEditSAStatus = (saName) => {
+    if (user.isAdmin) return true;
+    if (user.name.toLowerCase() === saName.toLowerCase()) return true;
+    if ((user.role === 'practice_manager' || user.role === 'practice_principal') && user.practices) {
+      const assignedPractices = practice ? practice.split(',').map(p => p.trim()) : [];
+      return assignedPractices.some(p => user.practices.includes(p));
     }
-    
+    return false;
+  };
+  
+  const handleSAStatusChange = async (saName, newStatus) => {
     try {
       const response = await fetch(`/api/sa-assignments/${saAssignment.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          toggleSAComplete: true,
-          targetSA: saName
+          updateSAStatus: true,
+          targetSA: saName,
+          saStatus: newStatus
         })
       });
       
@@ -66,87 +72,77 @@ function PracticeDisplay({ practice, saAssigned, saAssignment, user, onStatusUpd
       }
 
       try {
-        // Use cached users data if available from parent component
-        let data;
-        if (window.cachedUsers) {
-          data = { users: window.cachedUsers };
+        const practiceList = practice.split(',').map(p => p.trim());
+        const assignments = [];
+        const saCompletions = JSON.parse(saAssignment?.saCompletions || '{}');
+        
+        // Use new practiceAssignments structure if available
+        let practiceAssignmentsData = {};
+        if (saAssignment?.practiceAssignments) {
+          try {
+            practiceAssignmentsData = JSON.parse(saAssignment.practiceAssignments);
+            console.log('Parsed practiceAssignments:', practiceAssignmentsData);
+          } catch (e) {
+            console.error('Error parsing practiceAssignments:', e, 'Raw data:', saAssignment.practiceAssignments);
+          }
         } else {
-          const response = await fetch('/api/users/practices', {
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          
-          data = await response.json();
-          
-          if (data.error) {
-            throw new Error(data.error);
-          }
-          
-          if (data.users) {
-            window.cachedUsers = data.users; // Cache for reuse
-          }
+          console.log('No practiceAssignments data found, saAssignment:', saAssignment);
         }
         
-        if (data.users && Array.isArray(data.users)) {
-          const practiceList = practice.split(',').map(p => p.trim());
-          const saList = saAssigned ? saAssigned.split(',').map(s => s.trim()) : [];
-          const assignments = [];
+        let colorIndex = 0;
+        practiceList.forEach((p) => {
+          const colors = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
           
-          const saCompletions = JSON.parse(saAssignment?.saCompletions || '{}');
-          let colorIndex = 0;
-          practiceList.forEach((p) => {
-            const colors = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
-            
-            // Find SAs assigned to this practice
-            const assignedSAs = saList.filter(saName => {
-              const user = data.users.find(u => u.name === saName);
-              return user && user.practices && Array.isArray(user.practices) && user.practices.includes(p);
+          // Get SAs assigned to this specific practice
+          const assignedSAs = practiceAssignmentsData[p] || [];
+          
+          // Check practice status based on SA completion states
+          let practiceStatus = 'In Progress';
+          if (assignedSAs.length > 0) {
+            const allApprovedComplete = assignedSAs.every(saEntry => {
+              const completion = saCompletions[saEntry];
+              return completion && (completion.status === 'Approved' || completion.status === 'Complete' || completion.completedAt);
+            });
+            const allPendingApproval = assignedSAs.every(saEntry => {
+              const completion = saCompletions[saEntry];
+              return completion && completion.status === 'Pending Approval';
             });
             
-            // Check if all SAs in this practice are complete
-            const practiceComplete = assignedSAs.length > 0 && assignedSAs.every(sa => saCompletions[sa]);
-            
-            // Create separate entry for each SA or one entry if no SAs
-            if (assignedSAs.length === 0) {
+            if (allApprovedComplete) {
+              practiceStatus = 'Approved/Complete';
+            } else if (allPendingApproval) {
+              practiceStatus = 'Pending Approval';
+            }
+          }
+          const practiceComplete = practiceStatus === 'Approved/Complete';
+          
+          // Create separate entry for each SA or one entry if no SAs
+          if (assignedSAs.length === 0) {
+            assignments.push({
+              practice: p,
+              assignedSAs: [],
+              colors: colors,
+              practiceComplete: false,
+              practiceStatus: 'In Progress'
+            });
+          } else {
+            assignedSAs.forEach(saEntry => {
+              const saName = extractFriendlyName(saEntry);
               assignments.push({
                 practice: p,
-                assignedSAs: [],
+                assignedSAs: [saName],
+                saAssignedEntries: [saEntry], // Keep original for completion tracking
                 colors: colors,
-                practiceComplete: false
+                saComplete: !!saCompletions[saEntry],
+                practiceComplete: practiceComplete,
+                practiceStatus: practiceStatus
               });
-            } else {
-              assignedSAs.forEach(sa => {
-                assignments.push({
-                  practice: p,
-                  assignedSAs: [sa],
-                  colors: colors,
-                  saComplete: !!saCompletions[sa],
-                  practiceComplete: practiceComplete
-                });
-              });
-            }
-            colorIndex++;
-          });
-          
-          setPracticeAssignments(assignments);
-        } else {
-          console.warn('No users data received from API');
-          // Fallback: show practices without SA mapping
-          const practiceList = practice.split(',').map(p => p.trim());
-          const assignments = practiceList.map((p, index) => ({
-            practice: p,
-            assignedSAs: [],
-            colors: COLOR_PALETTE[index % COLOR_PALETTE.length],
-            practiceComplete: false
-          }));
-          setPracticeAssignments(assignments);
-        }
+            });
+          }
+          colorIndex++;
+        });
+        
+        setPracticeAssignments(assignments);
       } catch (error) {
         console.error('Error loading practice assignments:', error);
         // Fallback: show practices without SA mapping
@@ -164,7 +160,7 @@ function PracticeDisplay({ practice, saAssigned, saAssignment, user, onStatusUpd
     };
 
     loadPracticeAssignments();
-  }, [practice, saAssigned, saAssignment?.saCompletions]);
+  }, [practice, saAssignment?.practiceAssignments, saAssignment?.saCompletions]);
 
   if (!practice) {
     return (
@@ -191,55 +187,108 @@ function PracticeDisplay({ practice, saAssigned, saAssignment, user, onStatusUpd
 
   return (
     <div>
-      <dt className="text-xs font-medium text-gray-500">Practices & SA Assignments</dt>
+      <dt className="text-xs font-medium text-gray-500">Practice & SA Assignment Status</dt>
       <dd className="text-sm text-gray-900 font-medium">
-        <div className="space-y-4 mt-2">
+        <div className="space-y-6 mt-2">
           {practiceAssignments.map((assignment, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <div className="flex flex-col">
-                <span className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-full border ${assignment.colors.border} font-medium flex-shrink-0 shadow-sm`}>
-                  {assignment.practice}
-                </span>
-                <span className={`text-xs font-medium mt-1 text-left ${
-                  assignment.practiceComplete ? 'text-green-600' : 'text-orange-600'
-                }`}>
-                  {assignment.practiceComplete ? '✅ Complete' : '🔄 In Progress'}
-                </span>
-              </div>
-              <div className="flex-1 flex items-center">
-                <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-gray-200"></div>
-                <div className="mx-2">
-                  <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-gray-300"></div>
-              </div>
-              <div className="flex-shrink-0">
-                {assignment.assignedSAs.length > 0 ? (
-                  <div className="flex flex-wrap gap-1 justify-end">
-                    {assignment.assignedSAs.map((sa, saIndex) => (
-                      <div key={saIndex} className="flex flex-col items-end">
-                        <button
-                          onClick={() => handleSAClick(sa)}
-                          className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-lg border ${assignment.colors.border} shadow-sm font-medium hover:opacity-80 transition-opacity cursor-pointer`}
-                          title={user.isAdmin || user.name.toLowerCase() === sa.toLowerCase() ? 'Click to toggle completion status' : 'You can only change your own status'}
-                        >
-                          {sa}
-                        </button>
-                        <span className={`text-xs font-medium mt-1 text-right ${
-                          assignment.saComplete ? 'text-green-600' : 'text-orange-600'
-                        }`}>
-                          {assignment.saComplete ? '✅ Complete' : '🔄 In Progress'}
-                        </span>
-                      </div>
-                    ))}
+            <div key={index} className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-6">
+                <div className="flex flex-col items-center">
+                  <div className={`inline-flex items-center px-4 py-2.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-xl border-2 ${assignment.colors.border} font-semibold shadow-md hover:shadow-lg transition-all`}>
+                    {assignment.practice}
                   </div>
-                ) : (
-                  <span className="inline-flex items-center px-3 py-1.5 bg-gray-50 text-gray-600 text-xs rounded-lg border border-gray-200 shadow-sm font-medium">
-                    Unassigned
-                  </span>
-                )}
+                  <div className={`mt-3 px-3 py-1.5 rounded-full text-xs font-medium border ${
+                    assignment.practiceStatus === 'Approved/Complete' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                    assignment.practiceStatus === 'Pending Approval' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                    'bg-orange-100 text-orange-700 border-orange-200'
+                  }`}>
+                    {assignment.practiceStatus === 'Approved/Complete' ? '✅ Approved/Complete' :
+                     assignment.practiceStatus === 'Pending Approval' ? '⏳ Pending Approval' :
+                     '🔄 In Progress'}
+                  </div>
+                </div>
+                
+                <div className="flex-1 flex items-center justify-center min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-0.5 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full flex-shrink-0"></div>
+                    <div className="p-2 bg-blue-500 rounded-full shadow-lg flex-shrink-0">
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="w-6 h-0.5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full flex-shrink-0"></div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  {assignment.assignedSAs.length > 0 ? (
+                    <div className="flex flex-col items-center gap-3">
+                      {assignment.assignedSAs.map((sa, saIndex) => (
+                        <div key={saIndex} className="flex flex-col items-center">
+                          <div className={`inline-flex items-center px-4 py-2.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-xl border-2 ${assignment.colors.border} font-semibold shadow-md hover:shadow-lg transition-all`}>
+                            {sa}
+                          </div>
+                          {canEditSAStatus(sa) ? (
+                            <select
+                              value={(() => {
+                                const saCompletions = JSON.parse(saAssignment?.saCompletions || '{}');
+                                const saEntry = assignment.saAssignedEntries?.[saIndex] || sa;
+                                const completion = saCompletions[saEntry];
+                                if (completion?.status === 'Approved' || completion?.status === 'Complete') return 'Approved/Complete';
+                                if (completion?.status) return completion.status;
+                                if (completion?.completedAt) return 'Approved/Complete';
+                                return 'In Progress';
+                              })()} 
+                              onChange={(e) => {
+                                const saEntry = assignment.saAssignedEntries?.[saIndex] || sa;
+                                handleSAStatusChange(saEntry, e.target.value);
+                              }}
+                              className={`text-xs mt-3 px-3 py-1.5 rounded-full border-0 font-medium cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                                (() => {
+                                  const saCompletions = JSON.parse(saAssignment?.saCompletions || '{}');
+                                  const saEntry = assignment.saAssignedEntries?.[saIndex] || sa;
+                                  const completion = saCompletions[saEntry];
+                                  const status = completion?.status === 'Approved' || completion?.status === 'Complete' || completion?.completedAt ? 'Approved/Complete' : (completion?.status || 'In Progress');
+                                  return status === 'In Progress' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
+                                         status === 'Pending Approval' ? 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-300' :
+                                         'bg-emerald-500 text-white hover:bg-emerald-600 focus:ring-emerald-300';
+                                })()
+                              }`}
+                            >
+                              <option value="In Progress">🔄 In Progress</option>
+                              <option value="Pending Approval">⏳ Pending Approval</option>
+                              <option value="Approved/Complete">✅ Approved/Complete</option>
+                            </select>
+                          ) : (
+                            <div className={`mt-3 px-3 py-1.5 rounded-full text-xs font-medium border ${
+                              (() => {
+                                const saCompletions = JSON.parse(saAssignment?.saCompletions || '{}');
+                                const saEntry = assignment.saAssignedEntries?.[saIndex] || sa;
+                                const completion = saCompletions[saEntry];
+                                if (completion?.status === 'Pending Approval') return 'bg-amber-100 text-amber-700 border-amber-200';
+                                if (completion?.status === 'Approved' || completion?.status === 'Complete' || completion?.completedAt) return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                                return 'bg-orange-100 text-orange-700 border-orange-200';
+                              })()
+                            }`}>
+                              {(() => {
+                                const saCompletions = JSON.parse(saAssignment?.saCompletions || '{}');
+                                const saEntry = assignment.saAssignedEntries?.[saIndex] || sa;
+                                const completion = saCompletions[saEntry];
+                                if (completion?.status === 'Pending Approval') return '⏳ Pending Approval';
+                                if (completion?.status === 'Approved' || completion?.status === 'Complete' || completion?.completedAt) return '✅ Approved/Complete';
+                                return '🔄 In Progress';
+                              })()} 
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center px-4 py-2.5 bg-gray-100 text-gray-600 text-xs rounded-xl border-2 border-gray-200 font-semibold">
+                      Unassigned
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -325,6 +374,7 @@ export default function SaAssignmentDetailPage({ params }) {
   const [assignResourceTargetStatus, setAssignResourceTargetStatus] = useState('Assigned');
   const [allUsers, setAllUsers] = useState([]);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [saStatuses, setSaStatuses] = useState(['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Approved', 'Complete']);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -353,6 +403,7 @@ export default function SaAssignmentDetailPage({ params }) {
     
     checkAuth();
     fetchSaAssignment();
+    fetchSaStatuses();
     // Delay user fetching slightly to ensure auth is established
     setTimeout(fetchUsers, 100);
   }, [params.id, router]);
@@ -400,6 +451,18 @@ export default function SaAssignmentDetailPage({ params }) {
       console.error('Error fetching SA assignment:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSaStatuses = async () => {
+    try {
+      const response = await fetch('/api/sa-assignment-statuses');
+      const data = await response.json();
+      if (data.success) {
+        setSaStatuses(data.statuses || ['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Approved', 'Complete']);
+      }
+    } catch (error) {
+      console.error('Error fetching SA statuses:', error);
     }
   };
 
@@ -536,9 +599,9 @@ export default function SaAssignmentDetailPage({ params }) {
             ]} />
 
             <div className="max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{gridTemplateRows: '1fr'}}>
+              <div className="grid grid-cols-1 lg:grid-cols-10 gap-8" style={{gridTemplateRows: '1fr'}}>
                 {/* Main Content */}
-                <div className="lg:col-span-2">
+                <div className="lg:col-span-5">
                   {/* Project Information */}
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
                     <div className="flex items-center justify-between mb-4">
@@ -634,7 +697,7 @@ export default function SaAssignmentDetailPage({ params }) {
                 </div>
 
                 {/* Sidebar */}
-                <div>
+                <div className="lg:col-span-5">
                   {/* Assignment Information */}
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
                     <div className="flex items-center justify-between mb-4">
@@ -723,20 +786,23 @@ export default function SaAssignmentDetailPage({ params }) {
                                 saAssignment.status === 'Pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-300' :
                                 saAssignment.status === 'Unassigned' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
                                 saAssignment.status === 'Assigned' ? 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-300' :
+                                saAssignment.status === 'Pending Approval' ? 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-300' :
+                                saAssignment.status === 'Approved' ? 'bg-emerald-500 text-white hover:bg-emerald-600 focus:ring-emerald-300' :
                                 saAssignment.status === 'Complete' ? 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-300' :
                                 'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-300'
                               }`}
                             >
-                              <option value="Pending">Pending</option>
-                              <option value="Unassigned">Unassigned</option>
-                              <option value="Assigned">Assigned</option>
-                              <option value="Complete">Complete</option>
+                              {saStatuses.map(status => (
+                                <option key={status} value={status}>{status}</option>
+                              ))}
                             </select>
                           ) : (
                             <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-lg ${
                               saAssignment.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                               saAssignment.status === 'Unassigned' ? 'bg-orange-100 text-orange-800' :
                               saAssignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
+                              saAssignment.status === 'Pending Approval' ? 'bg-amber-100 text-amber-800' :
+                              saAssignment.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
                               saAssignment.status === 'Complete' ? 'bg-blue-100 text-blue-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
@@ -827,13 +893,15 @@ export default function SaAssignmentDetailPage({ params }) {
                         </dd>
                       </div>
                       
-                      <PracticeDisplay 
-                        practice={saAssignment.practice} 
-                        saAssigned={saAssignment.saAssigned} 
-                        saAssignment={saAssignment}
-                        user={user}
-                        onStatusUpdate={fetchSaAssignment}
-                      />
+                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                        <PracticeDisplay 
+                          practice={saAssignment.practice} 
+                          saAssigned={saAssignment.saAssigned} 
+                          saAssignment={saAssignment}
+                          user={user}
+                          onStatusUpdate={fetchSaAssignment}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -904,9 +972,24 @@ export default function SaAssignmentDetailPage({ params }) {
             
             setSaving(true);
             try {
+              // Convert SA names to "Name <email>" format for storage
+              if (updateData.saAssigned) {
+                const saNames = Array.isArray(updateData.saAssigned) ? updateData.saAssigned : updateData.saAssigned.split(',').map(s => s.trim());
+                const saWithEmails = saNames.map(name => {
+                  const user = allUsers.find(u => u.name === name);
+                  return user ? `${user.name} <${user.email}>` : name;
+                });
+                updateData.saAssigned = saWithEmails.join(', ');
+              }
+              
               // Save SA assignments even for Unassigned status if they exist
               if (assignResourceTargetStatus !== 'Assigned' && assignResourceData.saAssigned && (Array.isArray(assignResourceData.saAssigned) ? assignResourceData.saAssigned.length > 0 : assignResourceData.saAssigned)) {
-                updateData.saAssigned = Array.isArray(assignResourceData.saAssigned) ? assignResourceData.saAssigned.join(',') : assignResourceData.saAssigned;
+                const saNames = Array.isArray(assignResourceData.saAssigned) ? assignResourceData.saAssigned : [assignResourceData.saAssigned];
+                const saWithEmails = saNames.map(name => {
+                  const user = allUsers.find(u => u.name === name);
+                  return user ? `${user.name} <${user.email}>` : name;
+                });
+                updateData.saAssigned = saWithEmails.join(', ');
               }
               
               await updateSaAssignment(updateData);

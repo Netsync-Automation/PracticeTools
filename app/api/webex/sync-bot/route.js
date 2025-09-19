@@ -58,7 +58,20 @@ export async function POST(request) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ error: 'Failed to fetch room memberships' }, { status: 500 });
+      const errorText = await response.text();
+      console.error(`WebEx API error for bot ${bot.friendlyName || bot.name}:`, response.status, errorText);
+      
+      if (response.status === 404) {
+        return NextResponse.json({ 
+          error: `Room not found for bot "${bot.friendlyName || bot.name}". The room may have been deleted or the bot may not have access.`,
+          details: 'Please check the room ID configuration for this bot.'
+        }, { status: 404 });
+      }
+      
+      return NextResponse.json({ 
+        error: `Failed to fetch room memberships for bot "${bot.friendlyName || bot.name}"`,
+        details: errorText
+      }, { status: 500 });
     }
 
     const data = await response.json();

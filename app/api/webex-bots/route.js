@@ -68,9 +68,14 @@ export async function POST(request) {
     }
     
     // Update AppRunner YAML files with new environment variables
-    const { updateAppRunnerYaml } = await import('../../../lib/apprunner-updater.js');
-    await updateAppRunnerYaml(practiceKey, 'dev');
-    await updateAppRunnerYaml(practiceKey, 'prod');
+    try {
+      const { updateAppRunnerYaml } = await import('../../../lib/apprunner-updater.js');
+      await updateAppRunnerYaml(practiceKey, 'dev');
+      await updateAppRunnerYaml(practiceKey, 'prod');
+    } catch (error) {
+      console.error('Failed to update AppRunner YAML files:', error);
+      // Don't fail the entire operation if YAML update fails
+    }
     
     // Save bot configuration
     const botId = await db.saveWebexBot({
@@ -103,6 +108,19 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Bot ID required for update' }, { status: 400 });
     }
     
+    // Check if any practice already has a bot assigned (excluding current bot)
+    const existingBots = await db.getWebexBots();
+    for (const practice of botConfig.practices) {
+      const existingBot = existingBots.find(bot => 
+        bot.practices && bot.practices.includes(practice) && bot.id !== botConfig.id
+      );
+      if (existingBot) {
+        return NextResponse.json({ 
+          error: `Practice "${practice}" already has a WebEx bot assigned: ${existingBot.name}` 
+        }, { status: 400 });
+      }
+    }
+    
     // Update SSM parameters with new values
     const ssmClient = new SSMClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
     const practiceKey = botConfig.practices.sort()[0].toUpperCase().replace(/[^A-Z0-9]/g, '_');
@@ -113,7 +131,7 @@ export async function PUT(request) {
       { name: `WEBEX_${practiceKey}_ROOM_NAME`, value: botConfig.roomName }
     ];
     
-    // Update parameters for both environments
+    // Update parameters for both environments (only if values are provided)
     for (const env of ['prod', 'dev']) {
       for (const param of ssmParams) {
         if (param.value) {
@@ -148,6 +166,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Failed to update bot configuration' }, { status: 500 });
     }
   } catch (error) {
+    console.error('Error updating WebEx bot:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

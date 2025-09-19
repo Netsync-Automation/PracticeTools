@@ -158,6 +158,7 @@ export default function SaAssignmentsPage() {
     
     checkAuth();
     fetchSaAssignments();
+    fetchSaStatuses();
     
     let eventSource;
     let reconnectTimer;
@@ -248,6 +249,18 @@ export default function SaAssignmentsPage() {
     }
   };
 
+  const fetchSaStatuses = async () => {
+    try {
+      const response = await fetch('/api/sa-assignment-statuses');
+      const data = await response.json();
+      if (data.success) {
+        setSaStatuses(data.statuses || ['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Approved', 'Complete']);
+      }
+    } catch (error) {
+      console.error('Error fetching SA statuses:', error);
+    }
+  };
+
   const fetchPracticeETAs = async () => {
     try {
       const response = await fetch('/api/practice-etas');
@@ -292,9 +305,28 @@ export default function SaAssignmentsPage() {
       }
     }
     
+    // Extract SAs for search functionality
+    let searchableSAs = '';
+    if (saAssignment.practiceAssignments) {
+      try {
+        const practiceAssignments = JSON.parse(saAssignment.practiceAssignments);
+        const allSAs = new Set();
+        Object.values(practiceAssignments).forEach(saList => {
+          if (Array.isArray(saList)) {
+            saList.forEach(sa => allSAs.add(extractFriendlyName(sa)));
+          }
+        });
+        searchableSAs = Array.from(allSAs).join(' ');
+      } catch (e) {
+        searchableSAs = saAssignment.saAssigned || '';
+      }
+    } else {
+      searchableSAs = saAssignment.saAssigned || '';
+    }
+    
     const matchesSearch = !filters.search || 
       saAssignment.opportunityName.toLowerCase().includes(filters.search.toLowerCase()) ||
-      saAssignment.saAssigned.toLowerCase().includes(filters.search.toLowerCase()) ||
+      searchableSAs.toLowerCase().includes(filters.search.toLowerCase()) ||
       saAssignment.customerName.toLowerCase().includes(filters.search.toLowerCase()) ||
       saAssignment.opportunityId.toLowerCase().includes(filters.search.toLowerCase()) ||
       saAssignment.am.toLowerCase().includes(filters.search.toLowerCase());
@@ -302,7 +334,29 @@ export default function SaAssignmentsPage() {
     // Filter for 'My Assignments' - check if current user is assigned as SA
     let matchesMyAssignments = true;
     if (filters.sort === 'myAssignments') {
-      const isAssigned = saAssignment.saAssigned && saAssignment.saAssigned.toLowerCase().includes(user?.name?.toLowerCase() || '');
+      let isAssigned = false;
+      
+      // Check new practiceAssignments structure first
+      if (saAssignment.practiceAssignments) {
+        try {
+          const practiceAssignments = JSON.parse(saAssignment.practiceAssignments);
+          const allSAs = new Set();
+          Object.values(practiceAssignments).forEach(saList => {
+            if (Array.isArray(saList)) {
+              saList.forEach(sa => allSAs.add(sa));
+            }
+          });
+          const assignedSAs = Array.from(allSAs);
+          isAssigned = assignedSAs.some(sa => extractFriendlyName(sa).toLowerCase() === user?.name?.toLowerCase());
+        } catch (e) {
+          // Fallback to legacy saAssigned field
+          isAssigned = saAssignment.saAssigned && saAssignment.saAssigned.toLowerCase().includes(user?.name?.toLowerCase() || '');
+        }
+      } else {
+        // Fallback to legacy saAssigned field
+        isAssigned = saAssignment.saAssigned && saAssignment.saAssigned.toLowerCase().includes(user?.name?.toLowerCase() || '');
+      }
+      
       if (!isAssigned) {
         matchesMyAssignments = false;
       } else {
@@ -463,6 +517,18 @@ export default function SaAssignmentsPage() {
                 value={allFilteredSaAssignments.filter(a => a.status === 'Assigned').length}
                 icon="✅"
                 color="green"
+              />
+              <StatBox
+                title="Pending Approval"
+                value={allFilteredSaAssignments.filter(a => a.status === 'Pending Approval').length}
+                icon="⏳"
+                color="amber"
+              />
+              <StatBox
+                title="Approved"
+                value={allFilteredSaAssignments.filter(a => a.status === 'Approved').length}
+                icon="✅"
+                color="emerald"
               />
               <StatBox
                 title="Complete"
@@ -797,7 +863,7 @@ export default function SaAssignmentsPage() {
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Status Filters</h3>
                 <div className="space-y-2 mb-6">
-                  {['Pending', 'Unassigned', 'Assigned', 'Complete'].map(status => (
+                  {saStatuses.map(status => (
                     <label key={status} className="flex items-center">
                       <input
                         type="checkbox"
@@ -817,7 +883,7 @@ export default function SaAssignmentsPage() {
                 </div>
                 <div className="flex gap-2 mb-4">
                   <button
-                    onClick={() => setTempStatusSelection(['Pending', 'Unassigned', 'Assigned', 'Complete'])}
+                    onClick={() => setTempStatusSelection(saStatuses)}
                     className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                   >
                     Select All
@@ -934,8 +1000,22 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
   const [allUsers, setAllUsers] = useState([]);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [currentSaAssignment, setCurrentSaAssignment] = useState(null);
+  const [saStatuses, setSaStatuses] = useState(['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Approved', 'Complete']);
 
   useEffect(() => {
+    const fetchSaStatuses = async () => {
+      try {
+        const response = await fetch('/api/sa-assignment-statuses');
+        const data = await response.json();
+        if (data.success) {
+          setSaStatuses(data.statuses || ['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Approved', 'Complete']);
+        }
+      } catch (error) {
+        console.error('Error fetching SA statuses:', error);
+      }
+    };
+    fetchSaStatuses();
+    
     const fetchUsers = async () => {
       try {
         const response = await fetch('/api/admin/users');
@@ -949,10 +1029,6 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
     };
     fetchUsers();
   }, []);
-
-
-
-
 
   const canEditSaAssignment = (saAssignment) => {
     if (user.isAdmin || user.role === 'executive') return true;
@@ -1092,14 +1168,15 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                         saAssignment.status === 'Pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-300' :
                         saAssignment.status === 'Unassigned' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
                         saAssignment.status === 'Assigned' ? 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-300' :
+                        saAssignment.status === 'Pending Approval' ? 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-300' :
+                        saAssignment.status === 'Approved' ? 'bg-emerald-500 text-white hover:bg-emerald-600 focus:ring-emerald-300' :
                         saAssignment.status === 'Complete' ? 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-300' :
                         'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-300'
                       }`}
                     >
-                      <option value="Pending">Pending</option>
-                      <option value="Unassigned">Unassigned</option>
-                      <option value="Assigned">Assigned</option>
-                      <option value="Complete">Complete</option>
+                      {saStatuses.map(status => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
 
                     </select>
                   ) : (
@@ -1107,6 +1184,8 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                       saAssignment.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                       saAssignment.status === 'Unassigned' ? 'bg-orange-100 text-orange-800' :
                       saAssignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
+                      saAssignment.status === 'Pending Approval' ? 'bg-amber-100 text-amber-800' :
+                      saAssignment.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
                       saAssignment.status === 'Complete' ? 'bg-blue-100 text-blue-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
@@ -1154,22 +1233,55 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                 </td>
                 <td className="px-2 py-3">
                   <div className="text-sm text-gray-900">
-                    {saAssignment.saAssigned ? (
-                      saAssignment.saAssigned.includes(',') ? (
+                    {(() => {
+                      // Extract SAs from new practiceAssignments structure
+                      let assignedSAs = [];
+                      if (saAssignment.practiceAssignments) {
+                        try {
+                          const practiceAssignments = JSON.parse(saAssignment.practiceAssignments);
+                          const allSAs = new Set();
+                          Object.values(practiceAssignments).forEach(saList => {
+                            if (Array.isArray(saList)) {
+                              saList.forEach(sa => allSAs.add(sa));
+                            }
+                          });
+                          assignedSAs = Array.from(allSAs);
+                        } catch (e) {
+                          // Fallback to legacy saAssigned field
+                          assignedSAs = saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => s.trim()) : [];
+                        }
+                      } else if (saAssignment.saAssigned) {
+                        // Fallback to legacy saAssigned field
+                        assignedSAs = saAssignment.saAssigned.split(',').map(s => s.trim());
+                      }
+                      
+                      // Extract friendly names only (remove emails for DSR compliance)
+                      const friendlyNames = assignedSAs.map(sa => extractFriendlyName(sa));
+                      
+                      if (friendlyNames.length === 0) return '';
+                      
+                      if (friendlyNames.length === 1) {
+                        return friendlyNames[0];
+                      }
+                      
+                      return (
                         <div className="space-y-1">
-                          {saAssignment.saAssigned.split(',').slice(0, 2).map((sa, index) => (
-                            <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full mr-1">
-                              {sa.trim()}
+                          {friendlyNames.slice(0, 2).map((name, index) => (
+                            <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full mr-1" title={name}>
+                              {name}
                             </div>
                           ))}
-                          {saAssignment.saAssigned.split(',').length > 2 && (
-                            <div className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                              +{saAssignment.saAssigned.split(',').length - 2} more
+                          {friendlyNames.length > 2 && (
+                            <div 
+                              className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full cursor-help"
+                              title={friendlyNames.slice(2).join(', ')}
+                            >
+                              +{friendlyNames.length - 2} more
                             </div>
                           )}
                         </div>
-                      ) : saAssignment.saAssigned
-                    ) : ''}
+                      );
+                    })()}
                   </div>
                 </td>
                 <td className="px-2 py-3">

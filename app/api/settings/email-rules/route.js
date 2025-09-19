@@ -43,12 +43,13 @@ export async function POST(request) {
     const existingRules = await db.getEmailRules();
     const duplicate = existingRules.find(existing => 
       normalizeEmail(existing.senderEmail) === normalizeEmail(rule.senderEmail) &&
-      normalizePattern(existing.subjectPattern) === normalizePattern(rule.subjectPattern)
+      normalizePattern(existing.subjectPattern) === normalizePattern(rule.subjectPattern) &&
+      normalizePattern(existing.bodyPattern) === normalizePattern(rule.bodyPattern)
     );
     
     if (duplicate) {
       return NextResponse.json({ 
-        error: `A rule with the same sender email (${rule.senderEmail || 'anyone'}) and subject pattern (${rule.subjectPattern || 'any'}) already exists: "${duplicate.name}"` 
+        error: `A rule with the same sender email (${rule.senderEmail || 'anyone'}), subject pattern (${rule.subjectPattern || 'any'}), and body pattern (${rule.bodyPattern || 'any'}) already exists: "${duplicate.name}"` 
       }, { status: 400 });
     }
     
@@ -72,23 +73,25 @@ export async function PUT(request) {
     }
     
     // Check for duplicate rule (excluding the current rule being updated)
-    if (updates.senderEmail !== undefined || updates.subjectPattern !== undefined) {
+    if (updates.senderEmail !== undefined || updates.subjectPattern !== undefined || updates.bodyPattern !== undefined) {
       const existingRules = await db.getEmailRules();
       const currentRule = existingRules.find(rule => rule.id === id);
       
       if (currentRule) {
         const newSenderEmail = updates.senderEmail !== undefined ? updates.senderEmail : currentRule.senderEmail;
         const newSubjectPattern = updates.subjectPattern !== undefined ? updates.subjectPattern : currentRule.subjectPattern;
+        const newBodyPattern = updates.bodyPattern !== undefined ? updates.bodyPattern : currentRule.bodyPattern;
         
         const duplicate = existingRules.find(existing => 
           existing.id !== id &&
           normalizeEmail(existing.senderEmail) === normalizeEmail(newSenderEmail) &&
-          normalizePattern(existing.subjectPattern) === normalizePattern(newSubjectPattern)
+          normalizePattern(existing.subjectPattern) === normalizePattern(newSubjectPattern) &&
+          normalizePattern(existing.bodyPattern) === normalizePattern(newBodyPattern)
         );
         
         if (duplicate) {
           return NextResponse.json({ 
-            error: `A rule with the same sender email (${newSenderEmail || 'anyone'}) and subject pattern (${newSubjectPattern || 'any'}) already exists: "${duplicate.name}"` 
+            error: `A rule with the same sender email (${newSenderEmail || 'anyone'}), subject pattern (${newSubjectPattern || 'any'}), and body pattern (${newBodyPattern || 'any'}) already exists: "${duplicate.name}"` 
           }, { status: 400 });
         }
       }

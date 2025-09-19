@@ -63,7 +63,7 @@ export default function MultiResourceSelector({
   useEffect(() => {
     // Filter users: exclude already selected ones and filter by search term
     let filtered = users.filter(user => 
-      !selectedResources.includes(user.name) &&
+      !selectedResources.some(resource => resource.includes(user.email)) &&
       (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
        user.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
@@ -106,7 +106,8 @@ export default function MultiResourceSelector({
       if (user.practices && Array.isArray(user.practices)) {
         const matchingPractices = user.practices.filter(p => assignedPractices.includes(p));
         if (matchingPractices.length > 0) {
-          practices[user.name] = matchingPractices.map((practice, index) => ({
+          const userKey = `${user.name} <${user.email}>`;
+          practices[userKey] = matchingPractices.map((practice, index) => ({
             name: practice,
             colors: COLOR_PALETTE[assignedPractices.indexOf(practice) % COLOR_PALETTE.length]
           }));
@@ -119,7 +120,7 @@ export default function MultiResourceSelector({
 
   const handleUserSelect = (user) => {
     if (selectedResources.length < maxResources) {
-      onChange([...selectedResources, user.name]);
+      onChange([...selectedResources, `${user.name} <${user.email}>`]);
       setSearchTerm('');
       setIsOpen(false);
     }
@@ -171,11 +172,11 @@ export default function MultiResourceSelector({
                 <div className="flex items-center space-x-3 min-w-0 flex-1">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-blue-600 font-semibold text-sm">
-                      {resource.charAt(0).toUpperCase()}
+                      {resource.replace(/<[^>]+>/, '').trim().charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">{resource}</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{resource.replace(/<[^>]+>/, '').trim()}</p>
                     <p className="text-xs text-gray-500">Resource #{index + 1}</p>
                     {userPractices[resource] && userPractices[resource].length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
