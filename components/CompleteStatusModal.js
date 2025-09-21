@@ -14,6 +14,13 @@ const COLOR_PALETTE = [
   { bg: 'bg-red-50', text: 'text-red-800', border: 'border-red-200' }
 ];
 
+// Utility function to extract friendly name from "Name <email>" format
+const extractFriendlyName = (nameWithEmail) => {
+  if (!nameWithEmail) return '';
+  const match = nameWithEmail.match(/^(.+?)\s*<[^>]+>/);
+  return match ? match[1].trim() : nameWithEmail.trim();
+};
+
 export default function CompleteStatusModal({ 
   isOpen, 
   onClose, 
@@ -21,76 +28,90 @@ export default function CompleteStatusModal({
   user, 
   onComplete 
 }) {
-  const [practiceAssignments, setPracticeAssignments] = useState([]);
+  const [practiceGroups, setPracticeGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
-  const [selectedSA, setSelectedSA] = useState('');
-  const [showSASelector, setShowSASelector] = useState(false);
-  const [completionStatus, setCompletionStatus] = useState({});
 
   useEffect(() => {
     if (isOpen && saAssignment) {
-      loadPracticeAssignments();
+      loadPracticeGroups();
     }
   }, [isOpen, saAssignment]);
 
-  const loadPracticeAssignments = async () => {
+  const loadPracticeGroups = async () => {
     if (!saAssignment?.practice) {
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/admin/users');
-      const data = await response.json();
+      const practiceList = saAssignment.practice.split(',').map(p => p.trim());
+      const saCompletions = JSON.parse(saAssignment?.saCompletions || '{}');
       
-      if (data.users) {
-        const practiceList = saAssignment.practice.split(',').map(p => p.trim());
-        const saList = saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => s.trim()) : [];
-        const assignments = [];
-        
-        let colorIndex = 0;
-        practiceList.forEach((p) => {
-          const colors = COLOR_PALETTE[colorIndex % COLOR_PALETTE.length];
-          
-          // Find SAs assigned to this practice
-          const assignedSAs = saList.filter(saName => {
-            const saUser = data.users.find(u => u.name === saName);
-            return saUser && saUser.practices && saUser.practices.includes(p);
-          });
-          
-          // Create separate entry for each SA or one entry if no SAs
-          if (assignedSAs.length === 0) {
-            assignments.push({
-              practice: p,
-              assignedSAs: [],
-              colors: colors
-            });
-          } else {
-            assignedSAs.forEach(sa => {
-              assignments.push({
-                practice: p,
-                assignedSAs: [sa],
-                colors: colors
-              });
-            });
-          }
-          colorIndex++;
-        });
-        
-        setPracticeAssignments(assignments);
-        
-        // Initialize completion status (in a real implementation, this would come from the database)
-        const status = {};
-        assignments.forEach(assignment => {
-          assignment.assignedSAs.forEach(sa => {
-            status[sa] = saAssignment.status === 'Complete' && saAssignment.completedBy === sa;
-          });
-        });
-        setCompletionStatus(status);
+      let practiceAssignmentsData = {};
+      if (saAssignment?.practiceAssignments) {
+        try {
+          practiceAssignmentsData = JSON.parse(saAssignment.practiceAssignments);
+        } catch (e) {
+          console.error('Error parsing practiceAssignments:', e);
+        }
       }
+      
+      const groups = practiceList.map((practiceName, index) => {
+        const colors = COLOR_PALETTE[index % COLOR_PALETTE.length];
+        const assignedSAs = practiceAssignmentsData[practiceName] || [];
+        
+        // Calculate practice status
+        let practiceStatus = 'In Progress';
+        if (assignedSAs.length > 0) {
+          const allApprovedComplete = assignedSAs.every(saEntry => {
+            const practiceKey = `${saEntry}::${practiceName}`;
+            const completion = saCompletions[practiceKey] || saCompletions[saEntry];
+            return completion && (completion.status === 'Approved' || completion.status === 'Complete' || completion.status === 'Approved/Complete' || completion.completedAt);
+          });
+          const allPendingApproval = assignedSAs.every(saEntry => {
+            const practiceKey = `${saEntry}::${practiceName}`;
+            const completion = saCompletions[practiceKey] || saCompletions[saEntry];
+            return completion && completion.status === 'Pending Approval';
+          });
+          
+          if (allApprovedComplete) {
+            practiceStatus = 'Approved/Complete';
+          } else if (allPendingApproval) {
+            practiceStatus = 'Pending Approval';
+          }
+        }
+        
+        // Process SAs for this practice
+        const saDetails = assignedSAs.map(saEntry => {
+          const saName = extractFriendlyName(saEntry);
+          const practiceKey = `${saEntry}::${practiceName}`;
+          const completion = saCompletions[practiceKey] || saCompletions[saEntry];
+          
+          let currentStatus = 'In Progress';
+          if (completion?.status === 'Approved' || completion?.status === 'Complete' || completion?.status === 'Approved/Complete') currentStatus = 'Approved/Complete';
+          else if (completion?.status) currentStatus = completion.status;
+          else if (completion?.completedAt) currentStatus = 'Approved/Complete';
+          
+          return {
+            name: saName,
+            entry: saEntry,
+            status: currentStatus,
+            revisionNumber: completion?.revisionNumber
+          };
+        });
+        
+        return {
+          practice: practiceName,
+          colors,
+          status: practiceStatus,
+          sas: saDetails
+        };
+      });
+      
+      setPracticeGroups(groups);
     } catch (error) {
-      console.error('Error loading practice assignments:', error);
+      console.error('Error loading practice groups:', error);
     } finally {
       setLoading(false);
     }
@@ -98,105 +119,100 @@ export default function CompleteStatusModal({
 
   const canMarkComplete = () => {
     if (!user || !saAssignment) return false;
-    
-    // Admins can always mark complete
-    if (user.isAdmin) return true;
-    
-    // Assigned SAs can mark their own work complete
-    if (saAssignment.saAssigned) {
-      const assignedSAs = saAssignment.saAssigned.split(',').map(s => s.trim());
-      return assignedSAs.some(sa => sa.toLowerCase() === user.name.toLowerCase());
-    }
-    
-    return false;
+    return user.isAdmin;
   };
 
-  const isUserAssignedSA = () => {
-    if (!user || !saAssignment?.saAssigned) return false;
-    const assignedSAs = saAssignment.saAssigned.split(',').map(s => s.trim());
-    return assignedSAs.some(sa => sa.toLowerCase() === user.name.toLowerCase());
-  };
-
-  const getAvailableSAs = () => {
-    if (!saAssignment?.saAssigned) return [];
-    return saAssignment.saAssigned.split(',').map(s => s.trim());
-  };
-
-  const handleComplete = async () => {
+  const handleCompleteAll = async () => {
     if (!canMarkComplete()) return;
     
+    const confirmed = confirm('This will mark ALL individual SA statuses as "Approved/Complete" across all practices. Are you sure?');
+    if (!confirmed) return;
+    
     setCompleting(true);
     
     try {
-      let targetSA = user.name;
+      // Get all SA entries that need to be marked complete
+      const updates = [];
+      console.log('DEBUG: Practice groups:', practiceGroups);
       
-      // If user is admin and not an assigned SA, show SA selector
-      if (user.isAdmin && !isUserAssignedSA()) {
-        const availableSAs = getAvailableSAs();
-        if (availableSAs.length > 1) {
-          setShowSASelector(true);
-          setCompleting(false);
-          return;
-        } else if (availableSAs.length === 1) {
-          targetSA = availableSAs[0];
+      practiceGroups.forEach(group => {
+        console.log('DEBUG: Processing group:', group.practice, 'with SAs:', group.sas);
+        group.sas.forEach(sa => {
+          console.log('DEBUG: SA status check:', sa.name, 'current status:', sa.status, 'needs update:', sa.status !== 'Approved/Complete');
+          if (sa.status !== 'Approved/Complete') {
+            updates.push({
+              targetSA: sa.entry,
+              targetPractice: group.practice,
+              saStatus: 'Approved/Complete'
+            });
+          }
+        });
+      });
+      
+      console.log('DEBUG: Updates to be made:', updates);
+      
+      if (updates.length === 0) {
+        // All SAs are already complete, but overall status might not be - force update
+        console.log('DEBUG: All SAs already complete, updating overall status to Complete');
+        
+        const response = await fetch(`/api/sa-assignments/${saAssignment.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: 'Complete',
+            completedAt: new Date().toISOString(),
+            completedBy: 'All SAs'
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to update overall status: ${errorText}`);
         }
-      }
-      
-      // Mark the SA as complete
-      await onComplete(targetSA);
-      
-      // Update local completion status
-      setCompletionStatus(prev => ({ ...prev, [targetSA]: true }));
-      
-      // Check if all SAs are complete
-      const allSAs = getAvailableSAs();
-      const completedCount = Object.values(completionStatus).filter(Boolean).length + 1; // +1 for the one we just completed
-      const isFullyComplete = completedCount >= allSAs.length;
-      
-      if (isFullyComplete) {
+        
+        alert('SA Assignment marked as Complete!');
         onClose();
-      } else {
-        // Show success message but keep modal open
-        alert(`Successfully marked ${targetSA} as complete. The assignment will be fully complete when all SAs finish their portions.`);
+        return;
       }
+      
+      // Send batch update to mark all SAs complete
+      let successCount = 0;
+      for (const update of updates) {
+        console.log('DEBUG: Sending update:', update);
+        
+        const response = await fetch(`/api/sa-assignments/${saAssignment.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            updateSAStatus: true,
+            targetSA: update.targetSA,
+            saStatus: update.saStatus,
+            targetPractice: update.targetPractice
+          })
+        });
+        
+        console.log('DEBUG: Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('DEBUG: Response error:', errorText);
+          throw new Error(`Failed to update ${update.targetSA}: ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('DEBUG: Response result:', result);
+        successCount++;
+      }
+      
+      console.log('DEBUG: Successfully updated', successCount, 'SAs');
+      alert(`Successfully marked ${successCount} SAs as complete.`);
+      onClose();
       
     } catch (error) {
-      console.error('Error marking complete:', error);
-      alert('Failed to mark assignment as complete. Please try again.');
+      console.error('Error marking all SAs complete:', error);
+      alert(`Failed to mark all SAs as complete: ${error.message}`);
     } finally {
       setCompleting(false);
-    }
-  };
-
-  const handleSASelection = async () => {
-    if (!selectedSA) return;
-    
-    setCompleting(true);
-    setShowSASelector(false);
-    
-    try {
-      await onComplete(selectedSA);
-      
-      // Update local completion status
-      setCompletionStatus(prev => ({ ...prev, [selectedSA]: true }));
-      
-      // Check if all SAs are complete
-      const allSAs = getAvailableSAs();
-      const completedCount = Object.values(completionStatus).filter(Boolean).length + 1; // +1 for the one we just completed
-      const isFullyComplete = completedCount >= allSAs.length;
-      
-      if (isFullyComplete) {
-        onClose();
-      } else {
-        alert(`Successfully marked ${selectedSA} as complete. The assignment will be fully complete when all SAs finish their portions.`);
-      }
-      
-    } catch (error) {
-      console.error('Error marking SA complete:', error);
-      alert('Failed to mark SA as complete. Please try again.');
-    } finally {
-      setCompleting(false);
-      setSelectedSA('');
     }
   };
 
@@ -230,76 +246,93 @@ export default function CompleteStatusModal({
           ) : (
             <>
               <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Practices & SA Assignments</h4>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Practice & SA Assignment Status</h4>
                 <div className="space-y-4">
-                  {practiceAssignments.map((assignment, index) => {
-                    const practiceComplete = assignment.assignedSAs.length > 0 && assignment.assignedSAs.every(sa => completionStatus[sa]);
-                    
-                    return (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="flex flex-col">
-                        <span className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-full border ${assignment.colors.border} font-medium flex-shrink-0 shadow-sm`}>
-                          {assignment.practice}
-                        </span>
-                        <span className={`text-xs font-medium mt-1 text-left ${
-                          practiceComplete ? 'text-green-600' : 'text-orange-600'
-                        }`}>
-                          {practiceComplete ? '✅ Complete' : '🔄 In Progress'}
-                        </span>
-                      </div>
-                      <div className="flex-1 flex items-center">
-                        <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-gray-200"></div>
-                        <div className="mx-2">
-                          <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                          </svg>
+                  {practiceGroups.map((group, index) => (
+                    <div key={index} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      {/* Practice Header */}
+                      <div className={`${group.colors.bg} px-4 py-3 border-b border-white/20`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${group.colors.text.replace('text-', 'bg-')}`}></div>
+                            <h3 className={`font-semibold ${group.colors.text}`}>{group.practice}</h3>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            group.status === 'Approved/Complete' ? 'bg-emerald-500 text-white' :
+                            group.status === 'Pending Approval' ? 'bg-amber-500 text-white' :
+                            'bg-orange-500 text-white'
+                          }`}>
+                            {group.status === 'Approved/Complete' ? '✅ Complete' :
+                             group.status === 'Pending Approval' ? '⏳ Pending Approval' :
+                             '🔄 In Progress'}
+                          </div>
                         </div>
-                        <div className="flex-1 h-px bg-gradient-to-r from-gray-200 to-gray-300"></div>
                       </div>
-                      <div className="flex-shrink-0">
-                        {assignment.assignedSAs.length > 0 ? (
-                          <div className="flex flex-wrap gap-1 justify-end">
-                            {assignment.assignedSAs.map((sa, saIndex) => (
-                              <div key={saIndex} className="flex flex-col items-end">
-                                <span className={`inline-flex items-center px-3 py-1.5 ${assignment.colors.bg} ${assignment.colors.text} text-xs rounded-lg border ${assignment.colors.border} shadow-sm font-medium`}>
-                                  {sa}
-                                </span>
-                                {/* Show completion status */}
-                                <span className={`text-xs font-medium mt-1 text-right ${
-                                  completionStatus[sa] ? 'text-green-600' : 'text-orange-600'
-                                }`}>
-                                  {completionStatus[sa] ? '✅ Complete' : '🔄 In Progress'}
-                                </span>
+                      
+                      {/* SAs for this practice */}
+                      <div className="p-4">
+                        {group.sas.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {group.sas.map((sa, saIndex) => (
+                              <div key={saIndex} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <div className="bg-gray-200 rounded-full p-1">
+                                      <svg className="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                      </svg>
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-medium text-gray-900 text-sm truncate">{sa.name}</p>
+                                      {sa.status === 'Pending Approval' && sa.revisionNumber && (
+                                        <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded border border-amber-200 mt-1">
+                                          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                          </svg>
+                                          Rev: {sa.revisionNumber}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex-shrink-0">
+                                    <div className={`text-xs font-semibold px-2 py-1 rounded text-center min-w-[120px] ${
+                                      sa.status === 'Pending Approval' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                                      sa.status === 'Approved/Complete' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                                      'bg-orange-100 text-orange-800 border border-orange-200'
+                                    }`}>
+                                      {sa.status === 'Pending Approval' ? '⏳ Pending Approval' :
+                                       sa.status === 'Approved/Complete' ? '✅ Complete' :
+                                       '🔄 In Progress'}
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <span className="inline-flex items-center px-3 py-1.5 bg-gray-50 text-gray-600 text-xs rounded-lg border border-gray-200 shadow-sm font-medium">
-                            Unassigned
-                          </span>
+                          <div className="bg-gray-50 rounded-lg p-4 text-center border-2 border-dashed border-gray-200">
+                            <p className="text-gray-500 font-medium text-sm">No SAs assigned</p>
+                          </div>
                         )}
                       </div>
                     </div>
-                    );
-                  })}
+                  ))}
                 </div>
               </div>
 
               {canMarkComplete() && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
-                      <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <h5 className="text-sm font-medium text-blue-900 mb-1">Ready to Complete</h5>
-                      <p className="text-sm text-blue-700">
-                        {isUserAssignedSA() 
-                          ? "You can mark your portion of this assignment as complete."
-                          : "As an admin, you can mark any SA's portion as complete."
-                        }
+                      <h5 className="text-sm font-medium text-green-900 mb-1">Complete Entire SA Assignment</h5>
+                      <p className="text-sm text-green-700">
+                        This will mark ALL individual SA statuses as "Approved/Complete" across all practices and set the overall assignment status to "Complete".
                       </p>
                     </div>
                   </div>
@@ -316,21 +349,21 @@ export default function CompleteStatusModal({
                 </button>
                 {canMarkComplete() && (
                   <button
-                    onClick={handleComplete}
+                    onClick={handleCompleteAll}
                     disabled={completing}
                     className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
                     {completing ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Completing...
+                        Completing All...
                       </>
                     ) : (
                       <>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Complete
+                        Complete All SAs
                       </>
                     )}
                   </button>
@@ -341,54 +374,7 @@ export default function CompleteStatusModal({
         </div>
       </div>
 
-      {/* SA Selection Modal */}
-      {showSASelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Select SA to Mark Complete</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Choose which SA you want to mark as complete for this assignment.
-              </p>
-              
-              <div className="space-y-2 mb-6">
-                {getAvailableSAs().map(sa => (
-                  <label key={sa} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="selectedSA"
-                      value={sa}
-                      checked={selectedSA === sa}
-                      onChange={(e) => setSelectedSA(e.target.value)}
-                      className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                    />
-                    <span className="text-sm text-gray-700">{sa}</span>
-                  </label>
-                ))}
-              </div>
-              
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => {
-                    setShowSASelector(false);
-                    setSelectedSA('');
-                  }}
-                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSASelection}
-                  disabled={!selectedSA || completing}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  Mark Complete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

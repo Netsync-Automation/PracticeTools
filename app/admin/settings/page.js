@@ -2694,6 +2694,41 @@ export default function SettingsPage() {
                             </div>
                           )}
                         </div>
+                        
+                        <div className="bg-white rounded-md border border-blue-100 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedActions);
+                              if (newExpanded.has('sa_assignment_approved')) {
+                                newExpanded.delete('sa_assignment_approved');
+                              } else {
+                                newExpanded.add('sa_assignment_approved');
+                              }
+                              setExpandedActions(newExpanded);
+                            }}
+                            className="w-full p-3 text-left hover:bg-blue-50 transition-colors flex items-center justify-between"
+                          >
+                            <span className="text-sm font-semibold text-blue-900">SA Assignment Approved</span>
+                            <svg 
+                              className={`w-4 h-4 text-blue-600 transition-transform ${expandedActions.has('sa_assignment_approved') ? 'rotate-180' : ''}`} 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {expandedActions.has('sa_assignment_approved') && (
+                            <div className="px-3 pb-3 border-t border-blue-100">
+                              <p className="text-sm text-blue-700 pt-2">
+                                Configure email monitoring to automatically update existing SA assignment statuses from "Pending Approval" to "Complete" 
+                                for specific practice and SA combinations. The system will monitor the configured email account for approval confirmation messages 
+                                matching sender and subject patterns, then extract practice and SA information to update the corresponding assignment status. 
+                                Includes revision number validation to ensure approvals only process when revision numbers match.
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

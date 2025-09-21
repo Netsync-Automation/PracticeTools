@@ -20,6 +20,7 @@ export default function EmailRulesManager() {
       const resourceMappings = await fetchFieldMappings('resource_assignment');
       const saMappings = await fetchFieldMappings('sa_assignment');
       const saApprovalMappings = await fetchFieldMappings('sa_assignment_approval_request');
+      const saApprovedMappings = await fetchFieldMappings('sa_assignment_approved');
       
       // Set default to resource assignment mappings
       setFieldMappings(resourceMappings);
@@ -75,13 +76,15 @@ export default function EmailRulesManager() {
       setEmailActions(data.success && data.actions ? data.actions : [
         { value: 'resource_assignment', name: 'Resource Assignment' },
         { value: 'sa_assignment', name: 'SA Assignment' },
-        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' }
+        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' },
+        { value: 'sa_assignment_approved', name: 'SA Assignment Approved' }
       ]);
     } catch (error) {
       setEmailActions([
         { value: 'resource_assignment', name: 'Resource Assignment' },
         { value: 'sa_assignment', name: 'SA Assignment' },
-        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' }
+        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' },
+        { value: 'sa_assignment_approved', name: 'SA Assignment Approved' }
       ]);
     }
   };

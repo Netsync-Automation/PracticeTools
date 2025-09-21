@@ -23,7 +23,8 @@ export default function MultiResourceSelector({
   className = "",
   required = false,
   maxResources = 10,
-  amEmail = null
+  amEmail = null,
+  practiceAssignments = {}
 }) {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -46,7 +47,7 @@ export default function MultiResourceSelector({
     if (users.length > 0) {
       mapUserPractices();
     }
-  }, [users, assignedPractices]);
+  }, [users, assignedPractices, practiceAssignments]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -102,15 +103,46 @@ export default function MultiResourceSelector({
 
   const mapUserPractices = () => {
     const practices = {};
+    
+    // Helper function to extract friendly name
+    const extractFriendlyName = (nameWithEmail) => {
+      if (!nameWithEmail) return '';
+      const match = nameWithEmail.match(/^(.+?)\s*<[^>]+>/);
+      return match ? match[1].trim() : nameWithEmail.trim();
+    };
+    
+    // First, map from practiceAssignments data (existing associations)
+    Object.entries(practiceAssignments).forEach(([practice, saList]) => {
+      if (Array.isArray(saList)) {
+        saList.forEach(sa => {
+          const friendlyName = extractFriendlyName(sa);
+          // Map both full format and friendly name format
+          [sa, friendlyName].forEach(key => {
+            if (!practices[key]) practices[key] = [];
+            practices[key].push({
+              name: practice,
+              colors: COLOR_PALETTE[assignedPractices.indexOf(practice) % COLOR_PALETTE.length]
+            });
+          });
+        });
+      }
+    });
+    
+    // Then, map from user practices (for new selections)
     users.forEach(user => {
       if (user.practices && Array.isArray(user.practices)) {
         const matchingPractices = user.practices.filter(p => assignedPractices.includes(p));
         if (matchingPractices.length > 0) {
           const userKey = `${user.name} <${user.email}>`;
-          practices[userKey] = matchingPractices.map((practice, index) => ({
-            name: practice,
-            colors: COLOR_PALETTE[assignedPractices.indexOf(practice) % COLOR_PALETTE.length]
-          }));
+          const friendlyKey = user.name;
+          [userKey, friendlyKey].forEach(key => {
+            if (!practices[key]) {
+              practices[key] = matchingPractices.map((practice, index) => ({
+                name: practice,
+                colors: COLOR_PALETTE[assignedPractices.indexOf(practice) % COLOR_PALETTE.length]
+              }));
+            }
+          });
         }
       }
     });
@@ -177,15 +209,16 @@ export default function MultiResourceSelector({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900 truncate">{resource.replace(/<[^>]+>/, '').trim()}</p>
-                    <p className="text-xs text-gray-500">Resource #{index + 1}</p>
-                    {userPractices[resource] && userPractices[resource].length > 0 && (
+                    {userPractices[resource] && userPractices[resource].length > 0 ? (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {userPractices[resource].map((practice, pIndex) => (
-                          <span key={pIndex} className={`inline-flex items-center px-2 py-0.5 ${practice.colors.bg} ${practice.colors.text} text-xs rounded-full border ${practice.colors.border} font-medium`}>
+                          <span key={pIndex} className={`inline-flex items-center px-2 py-0.5 ${practice.colors?.bg || 'bg-gray-100'} ${practice.colors?.text || 'text-gray-700'} text-xs rounded-full border ${practice.colors?.border || 'border-gray-300'} font-medium`}>
                             {practice.name}
                           </span>
                         ))}
                       </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">Resource #{index + 1}</p>
                     )}
                   </div>
                 </div>

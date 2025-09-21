@@ -24,11 +24,26 @@ export async function GET() {
       actions = await db.getEmailActions();
     }
     
+    // Check if SA Assignment Approved exists, if not create it
+    const hasApproved = actions.some(action => action.value === 'sa_assignment_approved');
+    if (!hasApproved) {
+      await db.createEmailAction({
+        id: 'sa_assignment_approved',
+        value: 'sa_assignment_approved',
+        name: 'SA Assignment Approved',
+        description: 'Update SA assignment status from Pending Approval to Complete',
+        created_at: new Date().toISOString(),
+        environment: getEnvironment()
+      });
+      actions = await db.getEmailActions();
+    }
+    
     if (!actions || actions.length === 0) {
       actions = [
         { value: 'resource_assignment', name: 'Resource Assignment' },
         { value: 'sa_assignment', name: 'SA Assignment' },
-        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' }
+        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' },
+        { value: 'sa_assignment_approved', name: 'SA Assignment Approved' }
       ];
     }
     
@@ -42,7 +57,8 @@ export async function GET() {
       actions: [
         { value: 'resource_assignment', name: 'Resource Assignment' },
         { value: 'sa_assignment', name: 'SA Assignment' },
-        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' }
+        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' },
+        { value: 'sa_assignment_approved', name: 'SA Assignment Approved' }
       ]
     });
   }
@@ -73,6 +89,11 @@ async function createDefaultActions() {
       value: 'sa_assignment_approval_request', 
       name: 'SA Assignment Approval Request',
       description: 'Update SA assignment status from Assigned to Pending Approval'
+    },
+    { 
+      value: 'sa_assignment_approved', 
+      name: 'SA Assignment Approved',
+      description: 'Update SA assignment status from Pending Approval to Complete'
     }
   ];
   
