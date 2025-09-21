@@ -44,6 +44,87 @@ const extractFriendlyName = (nameWithEmail) => {
   return cleaned.trim();
 };
 
+// Get default sort order for role
+const getDefaultSortForRole = (role) => {
+  switch (role) {
+    case 'practice_member':
+    case 'practice_manager':
+    case 'practice_principal':
+      return 'myAssignmentsPractice';
+    case 'account_manager':
+    case 'isr':
+      return 'myAssignmentsOverall';
+    default:
+      return 'newest';
+  }
+};
+
+// Check if assignment matches "My Assignments" criteria for user
+const isMyAssignment = (saAssignment, user) => {
+  if (!user || !saAssignment) return false;
+  
+  switch (user.role) {
+    case 'practice_member':
+      // Check if user is assigned to any practice in the assignment
+      let isAssigned = false;
+      if (saAssignment.practiceAssignments) {
+        try {
+          const practiceAssignments = JSON.parse(saAssignment.practiceAssignments);
+          Object.values(practiceAssignments).forEach(saList => {
+            if (Array.isArray(saList)) {
+              saList.forEach(sa => {
+                if (extractFriendlyName(sa).toLowerCase() === user.name?.toLowerCase()) {
+                  isAssigned = true;
+                }
+              });
+            }
+          });
+        } catch (e) {
+          if (saAssignment.saAssigned) {
+            isAssigned = saAssignment.saAssigned.toLowerCase().includes(user.name?.toLowerCase() || '');
+          }
+        }
+      } else if (saAssignment.saAssigned) {
+        isAssigned = saAssignment.saAssigned.toLowerCase().includes(user.name?.toLowerCase() || '');
+      }
+      
+      // Also include unassigned assignments for user's practices
+      if (!isAssigned && saAssignment.status === 'Unassigned' && user.practices) {
+        isAssigned = user.practices.includes(saAssignment.practice);
+      }
+      
+      return isAssigned;
+      
+    case 'account_manager':
+      return extractFriendlyName(saAssignment.am).toLowerCase() === user.name?.toLowerCase();
+      
+    case 'isr':
+      // Check if user is listed anywhere in the assignment
+      const userName = user.name?.toLowerCase() || '';
+      return (
+        extractFriendlyName(saAssignment.isrSaRequested || '').toLowerCase().includes(userName) ||
+        extractFriendlyName(saAssignment.submittedBy || '').toLowerCase().includes(userName) ||
+        extractFriendlyName(saAssignment.am || '').toLowerCase().includes(userName) ||
+        (saAssignment.saAssigned && saAssignment.saAssigned.toLowerCase().includes(userName))
+      );
+      
+    case 'practice_manager':
+    case 'practice_principal':
+      // Check if assignment is for practices they manage
+      if (user.practices && user.practices.includes(saAssignment.practice)) {
+        return true;
+      }
+      // Also include pending/unassigned for their practices
+      if ((saAssignment.status === 'Pending' || saAssignment.status === 'Unassigned') && user.practices) {
+        return user.practices.includes(saAssignment.practice) || saAssignment.practice === 'Pending';
+      }
+      return false;
+      
+    default:
+      return false;
+  }
+};
+
 export default function SaAssignmentsPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -53,6 +134,7 @@ export default function SaAssignmentsPage() {
   const [filters, setFilters] = useState(() => {
     return {
       status: [],
+      individualSAStatus: [],
       practice: [],
       region: '',
       dateFrom: '',
@@ -60,14 +142,18 @@ export default function SaAssignmentsPage() {
       search: '',
       sort: 'newest',
       myWorkCompleted: false,
-      myWorkInProgress: true
+      myWorkInProgress: true,
+      myAssignments: false
     };
   });
   const [showPracticeModal, setShowPracticeModal] = useState(false);
   const [tempPracticeSelection, setTempPracticeSelection] = useState([]);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [tempStatusSelection, setTempStatusSelection] = useState([]);
+  const [showIndividualSAStatusModal, setShowIndividualSAStatusModal] = useState(false);
+  const [tempIndividualSAStatusSelection, setTempIndividualSAStatusSelection] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [saStatuses, setSaStatuses] = useState(['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Complete']);
   const saAssignmentsPerPage = 20;
 
   useEffect(() => {
@@ -77,26 +163,19 @@ export default function SaAssignmentsPage() {
   }, [filters]);
 
   useEffect(() => {
-    if (user && user.practices) {
+    if (user) {
       const saved = localStorage.getItem('saAssignmentsFilters');
       let shouldSetDefaults = false;
       
       if (saved) {
         try {
           const parsedFilters = JSON.parse(saved);
-          const needsStatusDefault = !parsedFilters.status || parsedFilters.status.length === 0;
-          const needsPracticeDefault = !parsedFilters.practice || parsedFilters.practice.length === 0;
           
-          if (needsStatusDefault) {
-            parsedFilters.status = ['practice_manager', 'practice_principal', 'executive'].includes(user.role) ? ['Pending', 'Unassigned'] : [];
-          }
-          if (needsPracticeDefault) {
-            parsedFilters.practice = [];
-          }
-          
-          // Set default sort for practice members
-          if (user.role === 'practice_member' && (!parsedFilters.sort || parsedFilters.sort === 'newest')) {
-            parsedFilters.sort = 'myAssignments';
+          // Apply role-based defaults if not already set
+          const rolesWithMyAssignments = ['practice_member', 'account_manager', 'isr', 'practice_manager', 'practice_principal'];
+          if (rolesWithMyAssignments.includes(user.role) && !parsedFilters.myAssignments) {
+            parsedFilters.myAssignments = true;
+            parsedFilters.sort = getDefaultSortForRole(user.role);
           }
           
           // Set defaults for my work filters if not present
@@ -116,16 +195,19 @@ export default function SaAssignmentsPage() {
       }
       
       if (shouldSetDefaults) {
+        const rolesWithMyAssignments = ['practice_member', 'account_manager', 'isr', 'practice_manager', 'practice_principal'];
         setFilters({
-          status: ['practice_manager', 'practice_principal', 'executive'].includes(user.role) ? ['Pending', 'Unassigned'] : [],
+          status: [],
+          individualSAStatus: [],
           practice: [],
           region: '',
           dateFrom: '',
           dateTo: '',
           search: '',
-          sort: user.role === 'practice_member' ? 'myAssignments' : 'newest',
+          sort: rolesWithMyAssignments.includes(user.role) ? getDefaultSortForRole(user.role) : 'newest',
           myWorkCompleted: false,
-          myWorkInProgress: true
+          myWorkInProgress: true,
+          myAssignments: rolesWithMyAssignments.includes(user.role)
         });
       }
     }
@@ -158,6 +240,7 @@ export default function SaAssignmentsPage() {
     
     checkAuth();
     fetchSaAssignments();
+    fetchSaStatuses();
     
     let eventSource;
     let reconnectTimer;
@@ -248,6 +331,18 @@ export default function SaAssignmentsPage() {
     }
   };
 
+  const fetchSaStatuses = async () => {
+    try {
+      const response = await fetch('/api/sa-assignment-statuses');
+      const data = await response.json();
+      if (data.success) {
+        setSaStatuses(data.statuses || ['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Approved', 'Complete']);
+      }
+    } catch (error) {
+      console.error('Error fetching SA statuses:', error);
+    }
+  };
+
   const fetchPracticeETAs = async () => {
     try {
       const response = await fetch('/api/practice-etas');
@@ -275,6 +370,31 @@ export default function SaAssignmentsPage() {
 
   const allFilteredSaAssignments = saAssignments.filter(saAssignment => {
     const matchesStatus = !filters.status || filters.status.length === 0 || filters.status.includes(saAssignment.status);
+    
+    // Individual SA Status filter
+    let matchesIndividualSAStatus = true;
+    if (filters.individualSAStatus && filters.individualSAStatus.length > 0) {
+      const saCompletions = JSON.parse(saAssignment.saCompletions || '{}');
+      const individualStatuses = new Set();
+      
+      Object.values(saCompletions).forEach(completion => {
+        if (completion && completion.status) {
+          individualStatuses.add(completion.status);
+        } else if (completion && completion.completedAt) {
+          individualStatuses.add('Approved/Complete');
+        }
+      });
+      
+      // If no individual statuses found, consider as "In Progress"
+      if (individualStatuses.size === 0) {
+        individualStatuses.add('In Progress');
+      }
+      
+      matchesIndividualSAStatus = filters.individualSAStatus.some(filterStatus => 
+        individualStatuses.has(filterStatus)
+      );
+    }
+    
     const matchesPractice = !filters.practice || filters.practice.length === 0 || filters.practice.includes(saAssignment.practice);
     const matchesRegion = !filters.region || saAssignment.region === filters.region;
     
@@ -292,21 +412,39 @@ export default function SaAssignmentsPage() {
       }
     }
     
+    // Extract SAs for search functionality
+    let searchableSAs = '';
+    if (saAssignment.practiceAssignments) {
+      try {
+        const practiceAssignments = JSON.parse(saAssignment.practiceAssignments);
+        const allSAs = new Set();
+        Object.values(practiceAssignments).forEach(saList => {
+          if (Array.isArray(saList)) {
+            saList.forEach(sa => allSAs.add(extractFriendlyName(sa)));
+          }
+        });
+        searchableSAs = Array.from(allSAs).join(' ');
+      } catch (e) {
+        searchableSAs = saAssignment.saAssigned || '';
+      }
+    } else {
+      searchableSAs = saAssignment.saAssigned || '';
+    }
+    
     const matchesSearch = !filters.search || 
       saAssignment.opportunityName.toLowerCase().includes(filters.search.toLowerCase()) ||
-      saAssignment.saAssigned.toLowerCase().includes(filters.search.toLowerCase()) ||
+      searchableSAs.toLowerCase().includes(filters.search.toLowerCase()) ||
       saAssignment.customerName.toLowerCase().includes(filters.search.toLowerCase()) ||
       saAssignment.opportunityId.toLowerCase().includes(filters.search.toLowerCase()) ||
       saAssignment.am.toLowerCase().includes(filters.search.toLowerCase());
     
-    // Filter for 'My Assignments' - check if current user is assigned as SA
+    // Filter for 'My Assignments'
     let matchesMyAssignments = true;
-    if (filters.sort === 'myAssignments') {
-      const isAssigned = saAssignment.saAssigned && saAssignment.saAssigned.toLowerCase().includes(user?.name?.toLowerCase() || '');
-      if (!isAssigned) {
-        matchesMyAssignments = false;
-      } else {
-        // Apply my work completion filters
+    if (filters.myAssignments) {
+      matchesMyAssignments = isMyAssignment(saAssignment, user);
+      
+      // For practice members, apply work completion filters
+      if (matchesMyAssignments && user.role === 'practice_member') {
         const saCompletions = JSON.parse(saAssignment.saCompletions || '{}');
         const userComplete = !!saCompletions[user.name];
         
@@ -322,14 +460,40 @@ export default function SaAssignmentsPage() {
       }
     }
     
-    return matchesStatus && matchesPractice && matchesRegion && matchesDateRange && matchesSearch && matchesMyAssignments;
+    return matchesStatus && matchesIndividualSAStatus && matchesPractice && matchesRegion && matchesDateRange && matchesSearch && matchesMyAssignments;
   }).sort((a, b) => {
     if (filters.sort === 'project') {
       return a.opportunityName.localeCompare(b.opportunityName);
-    } else if (filters.sort === 'myAssignments') {
-      return new Date(b.requestDate) - new Date(a.requestDate);
     } else if (filters.sort === 'customer') {
       return a.customerName.localeCompare(b.customerName);
+    } else if (filters.sort === 'myAssignmentsPractice') {
+      // Practice-based sorting: Unassigned → In Progress → Pending Approval → Complete
+      const getIndividualSAStatus = (assignment) => {
+        const saCompletions = JSON.parse(assignment.saCompletions || '{}');
+        const hasCompletions = Object.keys(saCompletions).length > 0;
+        const hasApprovals = Object.values(saCompletions).some(c => c && c.status === 'Pending Approval');
+        const hasCompleted = Object.values(saCompletions).some(c => c && (c.completedAt || c.status === 'Complete'));
+        
+        if (assignment.status === 'Unassigned') return 0;
+        if (!hasCompletions) return 1; // In Progress
+        if (hasApprovals) return 2; // Pending Approval
+        if (hasCompleted) return 3; // Complete
+        return 1; // Default to In Progress
+      };
+      
+      const statusA = getIndividualSAStatus(a);
+      const statusB = getIndividualSAStatus(b);
+      
+      if (statusA !== statusB) return statusA - statusB;
+      return new Date(b.requestDate) - new Date(a.requestDate);
+    } else if (filters.sort === 'myAssignmentsOverall') {
+      // Overall status sorting: Pending → Unassigned → Assigned → Pending Approval → Complete
+      const statusOrder = { 'Pending': 0, 'Unassigned': 1, 'Assigned': 2, 'Pending Approval': 3, 'Approved': 4, 'Complete': 5 };
+      const statusA = statusOrder[a.status] ?? 999;
+      const statusB = statusOrder[b.status] ?? 999;
+      
+      if (statusA !== statusB) return statusA - statusB;
+      return new Date(b.requestDate) - new Date(a.requestDate);
     }
     return new Date(b.requestDate) - new Date(a.requestDate);
   });
@@ -370,19 +534,48 @@ export default function SaAssignmentsPage() {
     if (!practiceETAs || !Array.isArray(practiceETAs) || practiceETAs.length === 0) return 0;
     
     try {
-      // Get assigned SAs from filtered assignments
-      const assignedSAs = allFilteredSaAssignments
-        .filter(a => a.status === 'Assigned' && a.saAssigned)
-        .map(a => a.saAssigned)
-        .filter(sa => sa);
+      // Get all individual SAs from filtered assignments using new practiceAssignments structure
+      const allIndividualSAs = [];
       
-      if (assignedSAs.length === 0) return 0;
+      allFilteredSaAssignments
+        .filter(a => a.status === 'Assigned')
+        .forEach(assignment => {
+          if (assignment.practiceAssignments) {
+            try {
+              const practiceAssignments = JSON.parse(assignment.practiceAssignments);
+              Object.values(practiceAssignments).forEach(saList => {
+                if (Array.isArray(saList)) {
+                  saList.forEach(sa => {
+                    const friendlyName = sa.replace(/<[^>]+>/g, '').trim();
+                    allIndividualSAs.push(friendlyName);
+                  });
+                }
+              });
+            } catch (e) {
+              // Fallback to legacy saAssigned field
+              if (assignment.saAssigned) {
+                assignment.saAssigned.split(',').forEach(sa => {
+                  const friendlyName = sa.replace(/<[^>]+>/g, '').trim();
+                  allIndividualSAs.push(friendlyName);
+                });
+              }
+            }
+          } else if (assignment.saAssigned) {
+            // Fallback to legacy saAssigned field
+            assignment.saAssigned.split(',').forEach(sa => {
+              const friendlyName = sa.replace(/<[^>]+>/g, '').trim();
+              allIndividualSAs.push(friendlyName);
+            });
+          }
+        });
+      
+      if (allIndividualSAs.length === 0) return 0;
       
       // Find ETAs for these specific SAs
       const saETAs = practiceETAs.filter(eta => 
         eta.statusTransition === 'assigned_to_completed' && 
         eta.saName && 
-        assignedSAs.some(assignedSA => assignedSA.includes(eta.saName))
+        allIndividualSAs.includes(eta.saName)
       );
       
       if (saETAs.length === 0) return 0;
@@ -439,77 +632,147 @@ export default function SaAssignmentsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4 mb-6">
-              <StatBox
-                title="Total Requests"
-                value={allFilteredSaAssignments.length}
-                icon="📊"
-                color="blue"
-              />
-              <StatBox
-                title="Pending"
-                value={allFilteredSaAssignments.filter(a => a.status === 'Pending').length}
-                icon="⏳"
-                color="purple"
-              />
-              <StatBox
-                title="Unassigned"
-                value={allFilteredSaAssignments.filter(a => a.status === 'Unassigned').length}
-                icon="📁"
-                color="orange"
-              />
-              <StatBox
-                title="Assigned"
-                value={allFilteredSaAssignments.filter(a => a.status === 'Assigned').length}
-                icon="✅"
-                color="green"
-              />
-              <StatBox
-                title="Complete"
-                value={allFilteredSaAssignments.filter(a => a.status === 'Complete').length}
-                icon="🏁"
-                color="blue"
-              />
-              <StatBox
-                title="Practice Assignment ETA"
-                value={pendingToUnassignedETA > 0 ? `${pendingToUnassignedETA} days` : 'N/A'}
-                icon="⏱️"
-                color="indigo"
-              />
-              <StatBox
-                title="Resource Assignment ETA"
-                value={toAssignedETA > 0 ? `${toAssignedETA} days` : 'N/A'}
-                icon="🎯"
-                color="teal"
-              />
-              <StatBox
-                title="SA Completion ETA"
-                value={saCompletionETA > 0 ? `${saCompletionETA} days` : 'N/A'}
-                icon="🚀"
-                color="emerald"
-              />
+            {/* Statistics Dashboard */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              {/* Assignment Status Overview */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-blue-100 rounded-lg p-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Assignment Status</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">📊</span>
+                      <span className="font-medium text-gray-700">Total</span>
+                    </div>
+                    <span className="text-xl font-bold text-blue-600">{allFilteredSaAssignments.length}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between p-2 bg-yellow-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">⏳</span>
+                        <span className="text-xs font-medium text-yellow-700">Pending</span>
+                      </div>
+                      <span className="text-sm font-bold text-yellow-600">{allFilteredSaAssignments.filter(a => a.status === 'Pending').length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">📁</span>
+                        <span className="text-xs font-medium text-orange-700">Unassigned</span>
+                      </div>
+                      <span className="text-sm font-bold text-orange-600">{allFilteredSaAssignments.filter(a => a.status === 'Unassigned').length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">✅</span>
+                        <span className="text-xs font-medium text-green-700">Assigned</span>
+                      </div>
+                      <span className="text-sm font-bold text-green-600">{allFilteredSaAssignments.filter(a => a.status === 'Assigned').length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">🏁</span>
+                        <span className="text-xs font-medium text-blue-700">Complete</span>
+                      </div>
+                      <span className="text-sm font-bold text-blue-600">{allFilteredSaAssignments.filter(a => a.status === 'Complete').length}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Approval Pipeline */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-amber-100 rounded-lg p-2">
+                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Approval Pipeline</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">⏳</span>
+                      <span className="font-medium text-amber-700">Pending Approval</span>
+                    </div>
+                    <span className="text-xl font-bold text-amber-600">{allFilteredSaAssignments.filter(a => a.status === 'Pending Approval').length}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">✅</span>
+                      <span className="font-medium text-emerald-700">Approved</span>
+                    </div>
+                    <span className="text-xl font-bold text-emerald-600">{allFilteredSaAssignments.filter(a => a.status === 'Approved').length}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Metrics */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-indigo-100 rounded-lg p-2">
+                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Average ETAs</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-2 bg-indigo-50 rounded-lg">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">⏱️</span>
+                      <span className="text-xs font-medium text-indigo-700">Practice Assignment</span>
+                    </div>
+                    <span className="text-sm font-bold text-indigo-600">{pendingToUnassignedETA > 0 ? `${pendingToUnassignedETA}d` : 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-teal-50 rounded-lg">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">🎯</span>
+                      <span className="text-xs font-medium text-teal-700">Resource Assignment</span>
+                    </div>
+                    <span className="text-sm font-bold text-teal-600">{toAssignedETA > 0 ? `${toAssignedETA}d` : 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-emerald-50 rounded-lg">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">🚀</span>
+                      <span className="text-xs font-medium text-emerald-700">SA Completion</span>
+                    </div>
+                    <span className="text-sm font-bold text-emerald-600">{saCompletionETA > 0 ? `${saCompletionETA}d` : 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center gap-2">
                   <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
                   </svg>
-                  Filter SA Assignments
-                </h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+                </div>
                 <button
                   onClick={() => {
+                    const rolesWithMyAssignments = ['practice_member', 'account_manager', 'isr', 'practice_manager', 'practice_principal'];
                     const defaultFilters = { 
-                      status: ['practice_manager', 'practice_principal', 'executive'].includes(user?.role) ? ['Pending', 'Unassigned'] : [], 
+                      status: [], 
+                      individualSAStatus: [],
                       practice: [], 
                       region: '', 
                       dateFrom: '', 
                       dateTo: '', 
                       search: '', 
-                      sort: user?.role === 'practice_member' ? 'myAssignments' : 'newest',
+                      sort: rolesWithMyAssignments.includes(user?.role) ? getDefaultSortForRole(user.role) : 'newest',
                       myWorkCompleted: false,
-                      myWorkInProgress: true
+                      myWorkInProgress: true,
+                      myAssignments: rolesWithMyAssignments.includes(user?.role)
                     };
                     localStorage.removeItem('saAssignmentsFilters');
                     setFilters(defaultFilters);
@@ -524,131 +787,193 @@ export default function SaAssignmentsPage() {
                 </button>
               </div>
               
-              <div className="relative mb-6">
-                <MagnifyingGlassIcon className="h-5 w-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by opportunity, customer, SA, AM, or opportunity ID..."
-                  value={filters.search}
-                  onChange={(e) => setFilters({...filters, search: e.target.value})}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors"
-                />
+              {/* Search Bar */}
+              <div className="px-6 py-4 bg-gray-50">
+                <div className="relative">
+                  <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search assignments..."
+                    value={filters.search}
+                    onChange={(e) => setFilters({...filters, search: e.target.value})}
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm transition-colors"
+                  />
+                </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <button
-                    onClick={() => {
-                      setTempStatusSelection(filters.status);
-                      setShowStatusModal(true);
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm text-left flex items-center justify-between"
-                  >
-                    <span>
-                      {filters.status.length === 0 ? 'All Statuses' : 
-                       filters.status.length === 1 ? filters.status[0] : 
-                       'Multiple Statuses'}
-                    </span>
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+              {/* Filter Controls */}
+              <div className="px-6 py-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Status Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Status:</span>
+                    <button
+                      onClick={() => {
+                        setTempStatusSelection(filters.status);
+                        setShowStatusModal(true);
+                      }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm transition-colors"
+                    >
+                      <span className="text-gray-900">
+                        {filters.status.length === 0 ? 'All' : 
+                         filters.status.length === 1 ? filters.status[0] : 
+                         `${filters.status.length} selected`}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Individual SA Status Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">SA Status:</span>
+                    <button
+                      onClick={() => {
+                        setTempIndividualSAStatusSelection(filters.individualSAStatus);
+                        setShowIndividualSAStatusModal(true);
+                      }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm transition-colors"
+                    >
+                      <span className="text-gray-900">
+                        {filters.individualSAStatus.length === 0 ? 'All' : 
+                         filters.individualSAStatus.length === 1 ? filters.individualSAStatus[0] : 
+                         `${filters.individualSAStatus.length} selected`}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Practice Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Practice:</span>
+                    <button
+                      onClick={() => {
+                        setTempPracticeSelection(filters.practice);
+                        setShowPracticeModal(true);
+                      }}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm transition-colors"
+                    >
+                      <span className="text-gray-900">
+                        {filters.practice.length === 0 ? 'All' : 
+                         filters.practice.length === 1 ? filters.practice[0] : 
+                         `${filters.practice.length} selected`}
+                      </span>
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Region Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Region:</span>
+                    <select
+                      value={filters.region}
+                      onChange={(e) => setFilters({...filters, region: e.target.value})}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                      <option value="">All</option>
+                      <option value="TX-DAL">TX-DAL</option>
+                      <option value="TX-HOU">TX-HOU</option>
+                      <option value="TX-AUS">TX-AUS</option>
+                      <option value="TX-SA">TX-SA</option>
+                      <option value="OK-OKC">OK-OKC</option>
+                      <option value="OK-TUL">OK-TUL</option>
+                      <option value="AR-LR">AR-LR</option>
+                      <option value="LA-NO">LA-NO</option>
+                      <option value="LA-BR">LA-BR</option>
+                      <option value="LA-SHV">LA-SHV</option>
+                    </select>
+                  </div>
+
+                  {/* Date Range */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Date:</span>
+                    <input
+                      type="date"
+                      value={filters.dateFrom}
+                      onChange={(e) => setFilters({...filters, dateFrom: e.target.value})}
+                      className="px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <span className="text-gray-400">to</span>
+                    <input
+                      type="date"
+                      value={filters.dateTo}
+                      onChange={(e) => setFilters({...filters, dateTo: e.target.value})}
+                      className="px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* My Assignments Toggle */}
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={filters.myAssignments}
+                        onChange={(e) => {
+                          const newMyAssignments = e.target.checked;
+                          setFilters({
+                            ...filters, 
+                            myAssignments: newMyAssignments,
+                            sort: newMyAssignments ? getDefaultSortForRole(user?.role) : 'newest'
+                          });
+                        }}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700 whitespace-nowrap">My Assignments</span>
+                    </label>
+                  </div>
+
+                  {/* Sort */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Sort:</span>
+                    <select
+                      value={filters.sort}
+                      onChange={(e) => setFilters({...filters, sort: e.target.value})}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    >
+                      <option value="newest">Newest</option>
+                      <option value="project">Opportunity</option>
+                      <option value="customer">Customer</option>
+                      <option value="myAssignmentsPractice">My Assignments (Practice)</option>
+                      <option value="myAssignmentsOverall">My Assignments (Overall)</option>
+                    </select>
+                  </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Practice</label>
-                  <button
-                    onClick={() => {
-                      setTempPracticeSelection(filters.practice);
-                      setShowPracticeModal(true);
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm text-left flex items-center justify-between"
-                  >
-                    <span>
-                      {filters.practice.length === 0 ? 'All Practices' : 
-                       filters.practice.length === 1 ? filters.practice[0] : 
-                       'Multiple Practices'}
-                    </span>
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Region</label>
-                  <RegionSelector
-                    value={filters.region}
-                    onChange={(region) => setFilters({...filters, region})}
-                    placeholder="All Regions"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Date From</label>
-                  <input
-                    type="date"
-                    value={filters.dateFrom}
-                    onChange={(e) => setFilters({...filters, dateFrom: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Date To</label>
-                  <input
-                    type="date"
-                    value={filters.dateTo}
-                    onChange={(e) => setFilters({...filters, dateTo: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Sort By</label>
-                  <select
-                    value={filters.sort}
-                    onChange={(e) => setFilters({...filters, sort: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
-                  >
-                    <option value="newest">📅 Newest First</option>
-                    <option value="project">📁 Opportunity Name</option>
-                    <option value="customer">🏢 Customer Name</option>
-                    <option value="myAssignments">👤 My Assignments</option>
-                  </select>
-                  
-                  {/* My Work Sub-filters */}
-                  {filters.sort === 'myAssignments' && (
-                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <label className="block text-xs font-medium text-blue-700 mb-2">My Work Status</label>
-                      <div className="space-y-2">
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={filters.myWorkInProgress}
-                            onChange={(e) => setFilters({...filters, myWorkInProgress: e.target.checked})}
-                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <span className="text-sm text-blue-700">In Progress</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={filters.myWorkCompleted}
-                            onChange={(e) => setFilters({...filters, myWorkCompleted: e.target.checked})}
-                            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <span className="text-sm text-blue-700">Completed</span>
-                        </label>
-                      </div>
+                {/* My Work Sub-filters */}
+                {filters.myAssignments && user?.role === 'practice_member' && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm font-medium text-blue-700">My Work:</span>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={filters.myWorkInProgress}
+                          onChange={(e) => setFilters({...filters, myWorkInProgress: e.target.checked})}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-blue-700">In Progress</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={filters.myWorkCompleted}
+                          onChange={(e) => setFilters({...filters, myWorkCompleted: e.target.checked})}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-blue-700">Completed</span>
+                      </label>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
               
               {/* Active Filters Display */}
-              {(filters.status.length > 0 || filters.practice.length > 0 || filters.region || filters.dateFrom || filters.dateTo || filters.search) && (
+              {(filters.status.length > 0 || filters.individualSAStatus.length > 0 || filters.practice.length > 0 || filters.region || filters.dateFrom || filters.dateTo || filters.search) && (
                 <div className="mt-6 pt-4 border-t border-gray-200">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-sm font-medium text-gray-700">Active Filters:</span>
@@ -661,6 +986,21 @@ export default function SaAssignmentsPage() {
                         <button
                           onClick={() => setFilters({...filters, status: []})}
                           className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
+                        >
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    
+                    {/* Individual SA Status Filters */}
+                    {filters.individualSAStatus.length > 0 && (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 text-sm rounded-full">
+                        SA Status: {filters.individualSAStatus.join(', ')}
+                        <button
+                          onClick={() => setFilters({...filters, individualSAStatus: []})}
+                          className="ml-1 hover:bg-indigo-200 rounded-full p-0.5"
                         >
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -797,7 +1137,7 @@ export default function SaAssignmentsPage() {
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Status Filters</h3>
                 <div className="space-y-2 mb-6">
-                  {['Pending', 'Unassigned', 'Assigned', 'Complete'].map(status => (
+                  {saStatuses.map(status => (
                     <label key={status} className="flex items-center">
                       <input
                         type="checkbox"
@@ -817,7 +1157,7 @@ export default function SaAssignmentsPage() {
                 </div>
                 <div className="flex gap-2 mb-4">
                   <button
-                    onClick={() => setTempStatusSelection(['Pending', 'Unassigned', 'Assigned', 'Complete'])}
+                    onClick={() => setTempStatusSelection([...saStatuses])}
                     className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                   >
                     Select All
@@ -840,6 +1180,67 @@ export default function SaAssignmentsPage() {
                     onClick={() => {
                       setFilters({...filters, status: tempStatusSelection});
                       setShowStatusModal(false);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Individual SA Status Filter Modal */}
+        {showIndividualSAStatusModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Individual SA Status Filters</h3>
+                <div className="space-y-2 mb-6">
+                  {['In Progress', 'Pending Approval', 'Approved/Complete'].map(status => (
+                    <label key={status} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={tempIndividualSAStatusSelection.includes(status)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTempIndividualSAStatusSelection([...tempIndividualSAStatusSelection, status]);
+                          } else {
+                            setTempIndividualSAStatusSelection(tempIndividualSAStatusSelection.filter(s => s !== status));
+                          }
+                        }}
+                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm text-gray-700">{status}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="flex gap-2 mb-4">
+                  <button
+                    onClick={() => setTempIndividualSAStatusSelection(['In Progress', 'Pending Approval', 'Approved/Complete'])}
+                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                  >
+                    Select All
+                  </button>
+                  <button
+                    onClick={() => setTempIndividualSAStatusSelection([])}
+                    className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                  >
+                    Unselect All
+                  </button>
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => setShowIndividualSAStatusModal(false)}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFilters({...filters, individualSAStatus: tempIndividualSAStatusSelection});
+                      setShowIndividualSAStatusModal(false);
                     }}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
@@ -934,8 +1335,22 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
   const [allUsers, setAllUsers] = useState([]);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [currentSaAssignment, setCurrentSaAssignment] = useState(null);
+  const [saStatuses, setSaStatuses] = useState(['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Approved', 'Complete']);
 
   useEffect(() => {
+    const fetchSaStatuses = async () => {
+      try {
+        const response = await fetch('/api/sa-assignment-statuses');
+        const data = await response.json();
+        if (data.success) {
+          setSaStatuses(data.statuses || ['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Approved', 'Complete']);
+        }
+      } catch (error) {
+        console.error('Error fetching SA statuses:', error);
+      }
+    };
+    fetchSaStatuses();
+    
     const fetchUsers = async () => {
       try {
         const response = await fetch('/api/admin/users');
@@ -949,10 +1364,6 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
     };
     fetchUsers();
   }, []);
-
-
-
-
 
   const canEditSaAssignment = (saAssignment) => {
     if (user.isAdmin || user.role === 'executive') return true;
@@ -1092,14 +1503,15 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                         saAssignment.status === 'Pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-300' :
                         saAssignment.status === 'Unassigned' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
                         saAssignment.status === 'Assigned' ? 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-300' :
+                        saAssignment.status === 'Pending Approval' ? 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-300' :
+                        saAssignment.status === 'Approved' ? 'bg-emerald-500 text-white hover:bg-emerald-600 focus:ring-emerald-300' :
                         saAssignment.status === 'Complete' ? 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-300' :
                         'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-300'
                       }`}
                     >
-                      <option value="Pending">Pending</option>
-                      <option value="Unassigned">Unassigned</option>
-                      <option value="Assigned">Assigned</option>
-                      <option value="Complete">Complete</option>
+                      {saStatuses.map(status => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
 
                     </select>
                   ) : (
@@ -1107,6 +1519,8 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                       saAssignment.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                       saAssignment.status === 'Unassigned' ? 'bg-orange-100 text-orange-800' :
                       saAssignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
+                      saAssignment.status === 'Pending Approval' ? 'bg-amber-100 text-amber-800' :
+                      saAssignment.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' :
                       saAssignment.status === 'Complete' ? 'bg-blue-100 text-blue-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
@@ -1154,38 +1568,80 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                 </td>
                 <td className="px-2 py-3">
                   <div className="text-sm text-gray-900">
-                    {saAssignment.saAssigned ? (
-                      saAssignment.saAssigned.includes(',') ? (
+                    {(() => {
+                      // Extract SAs from new practiceAssignments structure
+                      let assignedSAs = [];
+                      if (saAssignment.practiceAssignments) {
+                        try {
+                          const practiceAssignments = JSON.parse(saAssignment.practiceAssignments);
+                          const allSAs = new Set();
+                          Object.values(practiceAssignments).forEach(saList => {
+                            if (Array.isArray(saList)) {
+                              saList.forEach(sa => allSAs.add(sa));
+                            }
+                          });
+                          assignedSAs = Array.from(allSAs);
+                        } catch (e) {
+                          // Fallback to legacy saAssigned field
+                          assignedSAs = saAssignment.saAssigned ? saAssignment.saAssigned.split(',').map(s => s.trim()) : [];
+                        }
+                      } else if (saAssignment.saAssigned) {
+                        // Fallback to legacy saAssigned field
+                        assignedSAs = saAssignment.saAssigned.split(',').map(s => s.trim());
+                      }
+                      
+                      // Extract friendly names only (remove emails for DSR compliance)
+                      const friendlyNames = assignedSAs.map(sa => extractFriendlyName(sa));
+                      
+                      if (friendlyNames.length === 0) return '';
+                      
+                      if (friendlyNames.length === 1) {
+                        return friendlyNames[0];
+                      }
+                      
+                      return (
                         <div className="space-y-1">
-                          {saAssignment.saAssigned.split(',').slice(0, 2).map((sa, index) => (
-                            <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full mr-1">
-                              {sa.trim()}
+                          {friendlyNames.slice(0, 2).map((name, index) => (
+                            <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full mr-1" title={name}>
+                              {name}
                             </div>
                           ))}
-                          {saAssignment.saAssigned.split(',').length > 2 && (
-                            <div className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                              +{saAssignment.saAssigned.split(',').length - 2} more
+                          {friendlyNames.length > 2 && (
+                            <div 
+                              className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full cursor-help"
+                              title={friendlyNames.slice(2).join(', ')}
+                            >
+                              +{friendlyNames.length - 2} more
                             </div>
                           )}
                         </div>
-                      ) : saAssignment.saAssigned
-                    ) : ''}
+                      );
+                    })()}
                   </div>
                 </td>
                 <td className="px-2 py-3">
                   <div className="text-sm text-gray-900">
-                    {new Date(saAssignment.requestDate).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      timeZoneName: 'short'
-                    })}
+                    {(() => {
+                      const date = new Date(saAssignment.requestDate + 'T00:00:00');
+                      return date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      });
+                    })()}
                   </div>
                 </td>
                 <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900">{new Date(saAssignment.dateAssigned).toLocaleDateString()}</div>
+                  <div className="text-sm text-gray-900">
+                    {(() => {
+                      const date = new Date(saAssignment.dateAssigned + 'T00:00:00');
+                      return date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      });
+                    })()}
+                  </div>
                 </td>
               </tr>
             ))}

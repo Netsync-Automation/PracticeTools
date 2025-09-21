@@ -10,10 +10,40 @@ export async function GET() {
       actions = await db.getEmailActions();
     }
     
+    // Check if SA Assignment Approval Request exists, if not create it
+    const hasApprovalRequest = actions.some(action => action.value === 'sa_assignment_approval_request');
+    if (!hasApprovalRequest) {
+      await db.createEmailAction({
+        id: 'sa_assignment_approval_request',
+        value: 'sa_assignment_approval_request',
+        name: 'SA Assignment Approval Request',
+        description: 'Update SA assignment status from Assigned to Pending Approval',
+        created_at: new Date().toISOString(),
+        environment: getEnvironment()
+      });
+      actions = await db.getEmailActions();
+    }
+    
+    // Check if SA Assignment Approved exists, if not create it
+    const hasApproved = actions.some(action => action.value === 'sa_assignment_approved');
+    if (!hasApproved) {
+      await db.createEmailAction({
+        id: 'sa_assignment_approved',
+        value: 'sa_assignment_approved',
+        name: 'SA Assignment Approved',
+        description: 'Update SA assignment status from Pending Approval to Complete',
+        created_at: new Date().toISOString(),
+        environment: getEnvironment()
+      });
+      actions = await db.getEmailActions();
+    }
+    
     if (!actions || actions.length === 0) {
       actions = [
         { value: 'resource_assignment', name: 'Resource Assignment' },
-        { value: 'sa_assignment', name: 'SA Assignment' }
+        { value: 'sa_assignment', name: 'SA Assignment' },
+        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' },
+        { value: 'sa_assignment_approved', name: 'SA Assignment Approved' }
       ];
     }
     
@@ -26,9 +56,20 @@ export async function GET() {
       success: true, 
       actions: [
         { value: 'resource_assignment', name: 'Resource Assignment' },
-        { value: 'sa_assignment', name: 'SA Assignment' }
+        { value: 'sa_assignment', name: 'SA Assignment' },
+        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' },
+        { value: 'sa_assignment_approved', name: 'SA Assignment Approved' }
       ]
     });
+  }
+}
+
+export async function POST() {
+  try {
+    await createDefaultActions();
+    return NextResponse.json({ success: true, message: 'Default actions created' });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
@@ -43,6 +84,16 @@ async function createDefaultActions() {
       value: 'sa_assignment', 
       name: 'SA Assignment',
       description: 'Create a new SA assignment from email data'
+    },
+    { 
+      value: 'sa_assignment_approval_request', 
+      name: 'SA Assignment Approval Request',
+      description: 'Update SA assignment status from Assigned to Pending Approval'
+    },
+    { 
+      value: 'sa_assignment_approved', 
+      name: 'SA Assignment Approved',
+      description: 'Update SA assignment status from Pending Approval to Complete'
     }
   ];
   

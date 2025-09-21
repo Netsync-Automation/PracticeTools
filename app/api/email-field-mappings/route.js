@@ -13,6 +13,12 @@ export async function GET(request) {
     if (action === 'sa_assignment') {
       // Generate mappings directly from SA assignments table schema
       mappings = getSaAssignmentFieldMappings();
+    } else if (action === 'sa_assignment_approval_request') {
+      // SA Assignment Approval Request only needs practice and SA fields
+      mappings = getSaAssignmentApprovalRequestFieldMappings();
+    } else if (action === 'sa_assignment_approved') {
+      // SA Assignment Approved needs opportunity ID, revision number, and approver fields
+      mappings = getSaAssignmentApprovedFieldMappings();
     } else {
       // Default to resource assignment fields
       mappings = getResourceAssignmentFieldMappings();
@@ -46,6 +52,24 @@ function getSaAssignmentFieldMappings() {
     { value: 'submittedBy', label: 'Submitted By' },
     { value: 'sa_assignment_notification_users', label: 'SA Assignment Notification Users' },
     { value: 'scoopUrl', label: 'SCOOP URL' }
+  ];
+}
+
+function getSaAssignmentApprovalRequestFieldMappings() {
+  return [
+    { value: 'opportunityId', label: 'Opportunity ID' },
+    { value: 'revisionNumber', label: 'Revision Number' },
+    { value: 'saAssigned', label: 'SA' },
+    { value: 'sa_assignment_approval_request_notification_users', label: 'SA Assignment Approval Request Notification Users' }
+  ];
+}
+
+function getSaAssignmentApprovedFieldMappings() {
+  return [
+    { value: 'opportunityId', label: 'Opportunity ID' },
+    { value: 'revisionNumber', label: 'Revision Number' },
+    { value: 'taskTriggeredBy', label: 'Approver' },
+    { value: 'sa_assignment_approved_notification_users', label: 'SA Assignment Approved Notification Users' }
   ];
 }
 

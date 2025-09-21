@@ -39,7 +39,6 @@ export default function SettingsPage() {
   // WebEx bots state
   const [webexBots, setWebexBots] = useState([]);
   const [showAddBot, setShowAddBot] = useState(false);
-  const [editingBot, setEditingBot] = useState(null);
   const [newBot, setNewBot] = useState({
     friendlyName: '',
     name: '',
@@ -52,6 +51,7 @@ export default function SettingsPage() {
   const [completedSteps, setCompletedSteps] = useState([]);
   const [savingToken, setSavingToken] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
   const [saving, setSaving] = useState({
     general: false,
     webex: false,
@@ -443,68 +443,9 @@ export default function SettingsPage() {
     }
   };
   
-  const handleAddBot = async () => {
-    setSaving(prev => ({...prev, webex: true}));
-    try {
-      const response = await fetch('/api/webex-bots', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newBot)
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        alert(`WebEx bot created successfully! SSM parameters created with prefix: ${result.ssmPrefix}`);
-        setShowAddBot(false);
-        setNewBot({ name: '', practices: [], accessToken: '' });
-        setBotRooms([]);
-        setCurrentStep(1);
-        setCompletedSteps([]);
-        setSelectedSpace('');
-        // Reload bots
-        const botsResponse = await fetch('/api/webex-bots');
-        const botsData = await botsResponse.json();
-        setWebexBots(botsData.bots || []);
-      } else {
-        alert('Failed to create WebEx bot: ' + (result.error || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('Error creating WebEx bot:', error);
-      alert('Error creating WebEx bot');
-    } finally {
-      setSaving(prev => ({...prev, webex: false}));
-    }
-  };
+
   
-  const handleEditBot = async () => {
-    setSaving(prev => ({...prev, webex: true}));
-    try {
-      const response = await fetch('/api/webex-bots', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingBot)
-      });
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        alert('WebEx bot updated successfully!');
-        setEditingBot(null);
-        // Reload bots
-        const botsResponse = await fetch('/api/webex-bots');
-        const botsData = await botsResponse.json();
-        setWebexBots(botsData.bots || []);
-      } else {
-        alert('Failed to update WebEx bot: ' + (result.error || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('Error updating WebEx bot:', error);
-      alert('Error updating WebEx bot');
-    } finally {
-      setSaving(prev => ({...prev, webex: false}));
-    }
-  };
+
   
   const handleDeleteBot = async (botId) => {
     if (!confirm('Are you sure you want to delete this WebEx bot?')) return;
@@ -1067,7 +1008,20 @@ export default function SettingsPage() {
                   <h2 className="text-xl font-semibold text-gray-900">WebEx Bot Management</h2>
                   <div className="flex gap-3">
                     <button
-                      onClick={() => setShowAddBot(true)}
+                      onClick={() => {
+                        setIsEditMode(false);
+                        setNewBot({
+                          friendlyName: '',
+                          name: '',
+                          practices: [],
+                          accessToken: ''
+                        });
+                        setCurrentStep(1);
+                        setCompletedSteps([]);
+                        setSelectedSpace('');
+                        setBotRooms([]);
+                        setShowAddBot(true);
+                      }}
                       className="btn-primary flex items-center gap-2"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1210,7 +1164,22 @@ export default function SettingsPage() {
                               )}
                             </button>
                             <button
-                              onClick={() => setEditingBot({...bot})}
+                              onClick={() => {
+                                setIsEditMode(true);
+                                setNewBot({
+                                  id: bot.id,
+                                  friendlyName: bot.friendlyName || '',
+                                  name: bot.name,
+                                  practices: bot.practices || [],
+                                  accessToken: '',
+                                  roomId: bot.roomId || '',
+                                  roomName: bot.roomName || ''
+                                });
+                                setCurrentStep(1);
+                                setCompletedSteps([]);
+                                setSelectedSpace(bot.roomId || '');
+                                setShowAddBot(true);
+                              }}
                               className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded"
                               title="Edit Bot"
                             >
@@ -2691,6 +2660,75 @@ export default function SettingsPage() {
                             </div>
                           )}
                         </div>
+                        
+                        <div className="bg-white rounded-md border border-blue-100 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedActions);
+                              if (newExpanded.has('sa_assignment_approval_request')) {
+                                newExpanded.delete('sa_assignment_approval_request');
+                              } else {
+                                newExpanded.add('sa_assignment_approval_request');
+                              }
+                              setExpandedActions(newExpanded);
+                            }}
+                            className="w-full p-3 text-left hover:bg-blue-50 transition-colors flex items-center justify-between"
+                          >
+                            <span className="text-sm font-semibold text-blue-900">SA Assignment Approval Request</span>
+                            <svg 
+                              className={`w-4 h-4 text-blue-600 transition-transform ${expandedActions.has('sa_assignment_approval_request') ? 'rotate-180' : ''}`} 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {expandedActions.has('sa_assignment_approval_request') && (
+                            <div className="px-3 pb-3 border-t border-blue-100">
+                              <p className="text-sm text-blue-700 pt-2">
+                                Configure email monitoring to automatically update existing SA assignment statuses from "Assigned" to "Pending Approval" 
+                                for specific practice and SA combinations. The system will monitor the configured email account for approval request messages 
+                                matching sender and subject patterns, then extract practice and SA information to update the corresponding assignment status.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="bg-white rounded-md border border-blue-100 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedActions);
+                              if (newExpanded.has('sa_assignment_approved')) {
+                                newExpanded.delete('sa_assignment_approved');
+                              } else {
+                                newExpanded.add('sa_assignment_approved');
+                              }
+                              setExpandedActions(newExpanded);
+                            }}
+                            className="w-full p-3 text-left hover:bg-blue-50 transition-colors flex items-center justify-between"
+                          >
+                            <span className="text-sm font-semibold text-blue-900">SA Assignment Approved</span>
+                            <svg 
+                              className={`w-4 h-4 text-blue-600 transition-transform ${expandedActions.has('sa_assignment_approved') ? 'rotate-180' : ''}`} 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {expandedActions.has('sa_assignment_approved') && (
+                            <div className="px-3 pb-3 border-t border-blue-100">
+                              <p className="text-sm text-blue-700 pt-2">
+                                Configure email monitoring to automatically update existing SA assignment statuses from "Pending Approval" to "Complete" 
+                                for specific practice and SA combinations. The system will monitor the configured email account for approval confirmation messages 
+                                matching sender and subject patterns, then extract practice and SA information to update the corresponding assignment status. 
+                                Includes revision number validation to ensure approvals only process when revision numbers match.
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2805,7 +2843,7 @@ export default function SettingsPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
-                <h3 className="text-xl font-semibold mb-6 text-center">Add WebEx Bot</h3>
+                <h3 className="text-xl font-semibold mb-6 text-center">{isEditMode ? 'Edit WebEx Bot' : 'Add WebEx Bot'}</h3>
                 
                 {/* Step Progress Indicator */}
                 <div className="flex items-center justify-center mb-8">
@@ -2858,7 +2896,7 @@ export default function SettingsPage() {
                   <div className="space-y-6">
                     <div className="text-center mb-4">
                       <h4 className="text-lg font-medium text-gray-900">Step 1: Setup Bot Details</h4>
-                      <p className="text-sm text-gray-600">Enter bot information and save access token</p>
+                      <p className="text-sm text-gray-600">{isEditMode ? 'Update bot information and access token' : 'Enter bot information and save access token'}</p>
                     </div>
                     
                     <div>
@@ -2910,13 +2948,13 @@ export default function SettingsPage() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium mb-2">Access Token *</label>
+                      <label className="block text-sm font-medium mb-2">Access Token {isEditMode ? '(leave blank to keep current)' : '*'}</label>
                       <input
                         type="password"
                         value={newBot.accessToken}
                         onChange={(e) => setNewBot({...newBot, accessToken: e.target.value})}
                         className="input-field"
-                        placeholder="WebEx bot access token"
+                        placeholder={isEditMode ? "Leave blank to keep current token" : "WebEx bot access token"}
                       />
                     </div>
                     
@@ -2925,38 +2963,60 @@ export default function SettingsPage() {
                         onClick={async () => {
                           setSavingToken(true);
                           try {
-                            const response = await fetch('/api/webex-bots/save-token', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                practices: newBot.practices,
-                                accessToken: newBot.accessToken
-                              })
-                            });
-                            
-                            const result = await response.json();
-                            
-                            if (result.success) {
+                            if (isEditMode) {
+                              // For edit mode, just proceed to next step
                               setCompletedSteps([1]);
                               setCurrentStep(2);
-                              alert(`Access token saved! SSM parameters created with prefix: ${result.ssmPrefix}`);
+                              // Only load existing rooms if no new token was entered
+                              if (newBot.roomId && !newBot.accessToken) {
+                                const practiceKey = newBot.practices.sort()[0].toUpperCase().replace(/[^A-Z0-9]/g, '_');
+                                const response = await fetch('/api/webex-bots/fetch-spaces', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ ssmPrefix: practiceKey })
+                                });
+                                const data = await response.json();
+                                if (response.ok) {
+                                  setBotRooms(data.rooms || []);
+                                }
+                              } else if (newBot.accessToken) {
+                                // Clear rooms if new token entered - user must fetch manually
+                                setBotRooms([]);
+                              }
                             } else {
-                              alert('Failed to save access token: ' + (result.error || 'Unknown error'));
+                              const response = await fetch('/api/webex-bots/save-token', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  practices: newBot.practices,
+                                  accessToken: newBot.accessToken
+                                })
+                              });
+                              
+                              const result = await response.json();
+                              
+                              if (result.success) {
+                                setCompletedSteps([1]);
+                                setCurrentStep(2);
+                                alert(`Access token saved! SSM parameters created with prefix: ${result.ssmPrefix}`);
+                              } else {
+                                alert('Failed to save access token: ' + (result.error || 'Unknown error'));
+                              }
                             }
                           } catch (error) {
-                            alert('Error saving access token');
+                            alert(isEditMode ? 'Error updating bot details' : 'Error saving access token');
                           } finally {
                             setSavingToken(false);
                           }
                         }}
-                        disabled={!newBot.friendlyName || !newBot.name || newBot.practices.length === 0 || !newBot.accessToken || savingToken}
+                        disabled={!newBot.friendlyName || !newBot.name || newBot.practices.length === 0 || (!newBot.accessToken && !isEditMode) || savingToken}
                         className={`px-8 py-3 rounded-lg font-medium ${
-                          !newBot.friendlyName || !newBot.name || newBot.practices.length === 0 || !newBot.accessToken || savingToken
+                          !newBot.friendlyName || !newBot.name || newBot.practices.length === 0 || (!newBot.accessToken && !isEditMode) || savingToken
                             ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             : 'bg-blue-600 text-white hover:bg-blue-700'
                         }`}
                       >
-                        {savingToken ? 'Saving Access Token...' : 'Save Access Token & Continue'}
+                        {savingToken ? (isEditMode ? 'Updating...' : 'Saving Access Token...') : (isEditMode ? 'Update & Continue' : 'Save Access Token & Continue')}
                       </button>
                     </div>
                   </div>
@@ -2967,7 +3027,7 @@ export default function SettingsPage() {
                   <div className="space-y-6">
                     <div className="text-center mb-4">
                       <h4 className="text-lg font-medium text-gray-900">Step 2: Select WebEx Space</h4>
-                      <p className="text-sm text-gray-600">Choose which space the bot will send notifications to</p>
+                      <p className="text-sm text-gray-600">{isEditMode ? 'Update which space the bot will send notifications to' : 'Choose which space the bot will send notifications to'}</p>
                     </div>
                     
                     <div className="flex justify-center mb-6">
@@ -2979,7 +3039,10 @@ export default function SettingsPage() {
                             const response = await fetch('/api/webex-bots/fetch-spaces', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ ssmPrefix: practiceKey })
+                              body: JSON.stringify({ 
+                                ssmPrefix: practiceKey,
+                                accessToken: newBot.accessToken || null
+                              })
                             });
                             
                             const data = await response.json();
@@ -3080,7 +3143,7 @@ export default function SettingsPage() {
                 {currentStep === 3 && (
                   <div className="space-y-6">
                     <div className="text-center mb-6">
-                      <h4 className="text-lg font-medium text-gray-900">Step 3: Confirm Setup</h4>
+                      <h4 className="text-lg font-medium text-gray-900">Step 3: Confirm {isEditMode ? 'Changes' : 'Setup'}</h4>
                       <p className="text-sm text-gray-600">Review your WebEx bot configuration</p>
                     </div>
                     
@@ -3118,8 +3181,9 @@ export default function SettingsPage() {
                           setSaving(prev => ({...prev, webex: true}));
                           try {
                             const practiceKey = newBot.practices.sort()[0].toUpperCase().replace(/[^A-Z0-9]/g, '_');
+                            const method = isEditMode ? 'PUT' : 'POST';
                             const botResponse = await fetch('/api/webex-bots', {
-                              method: 'POST',
+                              method,
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({
                                 ...newBot,
@@ -3131,21 +3195,22 @@ export default function SettingsPage() {
                             
                             if (botResult.success) {
                               setCompletedSteps([1, 2, 3]);
-                              alert('WebEx bot created successfully!');
+                              alert(isEditMode ? 'WebEx bot updated successfully!' : 'WebEx bot created successfully!');
                               setShowAddBot(false);
                               setNewBot({ name: '', practices: [], accessToken: '' });
                               setBotRooms([]);
                               setCurrentStep(1);
                               setCompletedSteps([]);
                               setSelectedSpace('');
+                              setIsEditMode(false);
                               const botsResponse = await fetch('/api/webex-bots');
                               const botsData = await botsResponse.json();
                               setWebexBots(botsData.bots || []);
                             } else {
-                              alert('Failed to create bot configuration');
+                              alert(isEditMode ? 'Failed to update bot configuration' : 'Failed to create bot configuration');
                             }
                           } catch (error) {
-                            alert('Error creating bot');
+                            alert(isEditMode ? 'Error updating bot' : 'Error creating bot');
                           } finally {
                             setSaving(prev => ({...prev, webex: false}));
                           }
@@ -3157,7 +3222,7 @@ export default function SettingsPage() {
                             : 'bg-green-600 text-white hover:bg-green-700'
                         }`}
                       >
-                        {saving.webex ? 'Creating Bot...' : 'Complete Bot Setup'}
+                        {saving.webex ? (isEditMode ? 'Updating Bot...' : 'Creating Bot...') : (isEditMode ? 'Update Bot' : 'Complete Bot Setup')}
                       </button>
                     </div>
                   </div>
@@ -3173,6 +3238,7 @@ export default function SettingsPage() {
                       setCurrentStep(1);
                       setCompletedSteps([]);
                       setSelectedSpace('');
+                      setIsEditMode(false);
                     }}
                     className="px-6 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                   >
@@ -3184,109 +3250,7 @@ export default function SettingsPage() {
           </div>
         )}
         
-        {/* Edit WebEx Bot Modal */}
-        {editingBot && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-md w-full">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Edit WebEx Bot</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Friendly Name</label>
-                    <input
-                      type="text"
-                      value={editingBot.friendlyName || ''}
-                      onChange={(e) => setEditingBot({...editingBot, friendlyName: e.target.value})}
-                      className="input-field"
-                      placeholder="My WebEx Bot"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Bot Email</label>
-                    <input
-                      type="email"
-                      value={editingBot.name}
-                      onChange={(e) => setEditingBot({...editingBot, name: e.target.value})}
-                      className="input-field"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Practices</label>
-                    <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border border-gray-300 rounded p-2">
-                      {practicesList.map(practice => (
-                        <label key={practice} className="flex items-center text-sm">
-                          <input
-                            type="checkbox"
-                            checked={editingBot.practices.includes(practice)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setEditingBot({...editingBot, practices: [...editingBot.practices, practice]});
-                              } else {
-                                setEditingBot({...editingBot, practices: editingBot.practices.filter(p => p !== practice)});
-                              }
-                            }}
-                            className="mr-2 h-3 w-3"
-                          />
-                          {practice}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Access Token</label>
-                    <input
-                      type="password"
-                      value={editingBot.accessToken || ''}
-                      onChange={(e) => setEditingBot({...editingBot, accessToken: e.target.value})}
-                      className="input-field"
-                      placeholder="Leave blank to keep current token"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Room ID</label>
-                    <input
-                      type="text"
-                      value={editingBot.roomId || ''}
-                      onChange={(e) => setEditingBot({...editingBot, roomId: e.target.value})}
-                      className="input-field"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Room Name</label>
-                    <input
-                      type="text"
-                      value={editingBot.roomName || ''}
-                      onChange={(e) => setEditingBot({...editingBot, roomName: e.target.value})}
-                      className="input-field"
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex gap-3 mt-6">
-                  <button
-                    onClick={() => setEditingBot(null)}
-                    className="btn-secondary flex-1"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleEditBot}
-                    disabled={saving.webex}
-                    className={`flex-1 ${saving.webex ? 'btn-disabled' : 'btn-primary'}`}
-                  >
-                    {saving.webex ? 'Updating...' : 'Update Bot'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+
         
         {/* Test Email Modal */}
         {showTestEmail && (

@@ -13,7 +13,8 @@ export default function AssignResourceModal({
   initialData = {}, 
   targetStatus = 'Assigned',
   saving = false,
-  allUsers = []
+  allUsers = [],
+  saAssignment = null
 }) {
   const [formData, setFormData] = useState({
     practice: [],
@@ -23,23 +24,49 @@ export default function AssignResourceModal({
     dateAssigned: new Date().toISOString().split('T')[0],
     ...initialData
   });
-
+  const [practiceAssignments, setPracticeAssignments] = useState({});
   const [practiceError, setPracticeError] = useState('');
 
   // Reset form when modal opens/closes or initialData changes
   useEffect(() => {
     if (isOpen) {
+      // Load existing practice assignments from saAssignment
+      let existingPracticeAssignments = {};
+      let allAssignedSAs = [];
+      
+      if (saAssignment?.practiceAssignments) {
+        try {
+          existingPracticeAssignments = JSON.parse(saAssignment.practiceAssignments);
+          // Extract all unique SAs from all practices
+          const saSet = new Set();
+          Object.values(existingPracticeAssignments).forEach(saList => {
+            if (Array.isArray(saList)) {
+              saList.forEach(sa => {
+                // Extract friendly name from "Name <email>" format
+                const match = sa.match(/^(.+?)\s*<[^>]+>/);
+                const friendlyName = match ? match[1].trim() : sa;
+                saSet.add(friendlyName);
+              });
+            }
+          });
+          allAssignedSAs = Array.from(saSet);
+        } catch (e) {
+          console.error('Error parsing practiceAssignments:', e);
+        }
+      }
+      
+      setPracticeAssignments(existingPracticeAssignments);
       setFormData({
         practice: [],
         am: [],
         region: '',
-        saAssigned: [],
+        saAssigned: allAssignedSAs,
         dateAssigned: new Date().toISOString().split('T')[0],
         ...initialData
       });
       setPracticeError('');
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, saAssignment]);
 
   // Auto-populate region when account managers are selected
   useEffect(() => {
@@ -74,11 +101,29 @@ export default function AssignResourceModal({
       return;
     }
     
+    // DSR: Update practiceAssignments to reflect selected practices
+    const updatedPracticeAssignments = { ...practiceAssignments };
+    
+    // Remove practices that are no longer selected
+    Object.keys(updatedPracticeAssignments).forEach(practice => {
+      if (!practices.includes(practice)) {
+        delete updatedPracticeAssignments[practice];
+      }
+    });
+    
+    // Add new practices with empty SA arrays
+    practices.forEach(practice => {
+      if (!updatedPracticeAssignments[practice]) {
+        updatedPracticeAssignments[practice] = [];
+      }
+    });
+    
     const updateData = {
       status: targetStatus,
       practice: practices.join(','),
       am: Array.isArray(formData.am) ? formData.am.join(',') : formData.am,
-      region: formData.region
+      region: formData.region,
+      practiceAssignments: JSON.stringify(updatedPracticeAssignments)
     };
     
     if (targetStatus === 'Assigned') {
@@ -125,54 +170,55 @@ export default function AssignResourceModal({
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column */}
-            <div className="space-y-6">
-              {/* Practice Selection */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Practice Selection *
-                </label>
-                <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 max-h-64 overflow-y-auto">
-                  <div className="grid grid-cols-1 gap-2">
-                    {PRACTICE_OPTIONS.filter(practice => practice !== 'Pending').map(practice => (
-                      <label key={practice} className="flex items-center p-2 hover:bg-white rounded-lg transition-colors cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={Array.isArray(formData.practice) ? formData.practice.includes(practice) : formData.practice === practice}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              const currentPractices = Array.isArray(formData.practice) ? formData.practice : (formData.practice ? [formData.practice] : []);
-                              setFormData(prev => ({...prev, practice: [...currentPractices, practice]}));
-                            } else {
-                              const currentPractices = Array.isArray(formData.practice) ? formData.practice : (formData.practice ? [formData.practice] : []);
-                              setFormData(prev => ({...prev, practice: currentPractices.filter(p => p !== practice)}));
-                            }
-                            setPracticeError('');
-                          }}
-                          className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-700 font-medium">{practice}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                {practiceError && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {practiceError}
-                  </p>
-                )}
+        <div className="p-8 space-y-8">
+          {/* Practice Selection - Compact */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              Practice Selection *
+            </label>
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 p-4">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                {PRACTICE_OPTIONS.filter(practice => practice !== 'Pending').map(practice => (
+                  <label key={practice} className="flex items-center p-2 bg-white hover:bg-blue-50 rounded-md border border-gray-200 hover:border-blue-300 transition-all cursor-pointer group text-xs">
+                    <input
+                      type="checkbox"
+                      checked={Array.isArray(formData.practice) ? formData.practice.includes(practice) : formData.practice === practice}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          const currentPractices = Array.isArray(formData.practice) ? formData.practice : (formData.practice ? [formData.practice] : []);
+                          setFormData(prev => ({...prev, practice: [...currentPractices, practice]}));
+                        } else {
+                          const currentPractices = Array.isArray(formData.practice) ? formData.practice : (formData.practice ? [formData.practice] : []);
+                          setFormData(prev => ({...prev, practice: currentPractices.filter(p => p !== practice)}));
+                        }
+                        setPracticeError('');
+                      }}
+                      className="mr-2 h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-gray-700 font-medium group-hover:text-blue-700 transition-colors truncate">{practice}</span>
+                  </label>
+                ))}
               </div>
+            </div>
+            {practiceError && (
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-2 bg-red-50 p-2 rounded-md border border-red-200">
+                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {practiceError}
+              </p>
+            )}
+          </div>
 
-              {/* Account Manager Selection */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Account Manager *
-                </label>
+          {/* Account Manager & Region Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                Account Manager *
+              </label>
+              <div className="bg-white rounded-xl border border-gray-200 p-1">
                 <MultiAccountManagerSelector
                   value={formData.am || []}
                   onChange={(managers) => setFormData(prev => ({...prev, am: managers}))}
@@ -182,71 +228,73 @@ export default function AssignResourceModal({
               </div>
             </div>
 
-            {/* Right Column */}
-            <div className="space-y-6">
-              {/* Region Selection */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Region *
-                </label>
-                <select
-                  value={formData.region}
-                  onChange={(e) => setFormData(prev => ({...prev, region: e.target.value}))}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm font-medium"
-                  required
-                >
-                  <option value="">Select Region</option>
-                  <option value="CA-LAX">CA-LAX</option>
-                  <option value="CA-SAN">CA-SAN</option>
-                  <option value="CA-SFO">CA-SFO</option>
-                  <option value="FL-MIA">FL-MIA</option>
-                  <option value="FL-NORT">FL-NORT</option>
-                  <option value="KY-KENT">KY-KENT</option>
-                  <option value="LA-STATE">LA-STATE</option>
-                  <option value="OK-OKC">OK-OKC</option>
-                  <option value="OTHERS">OTHERS</option>
-                  <option value="TN-TEN">TN-TEN</option>
-                  <option value="TX-CEN">TX-CEN</option>
-                  <option value="TX-DAL">TX-DAL</option>
-                  <option value="TX-HOU">TX-HOU</option>
-                  <option value="TX-SOUT">TX-SOUT</option>
-                  <option value="US-FED">US-FED</option>
-                  <option value="US-SP">US-SP</option>
-                </select>
-              </div>
-
-              {/* SA Assignment (only for Assigned status) */}
-              {targetStatus === 'Assigned' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      SA Resources *
-                    </label>
-                    <MultiResourceSelector
-                      value={formData.saAssigned || []}
-                      onChange={(resources) => setFormData(prev => ({...prev, saAssigned: resources}))}
-                      assignedPractices={Array.isArray(formData.practice) ? formData.practice : (formData.practice ? [formData.practice] : [])}
-                      placeholder="Select or type SA names..."
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Date Assigned *
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.dateAssigned}
-                      onChange={(e) => setFormData(prev => ({...prev, dateAssigned: e.target.value}))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium"
-                      required
-                    />
-                  </div>
-                </>
-              )}
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                Region *
+              </label>
+              <select
+                value={formData.region}
+                onChange={(e) => setFormData(prev => ({...prev, region: e.target.value}))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm font-medium shadow-sm hover:border-gray-400 transition-colors"
+                required
+              >
+                <option value="">Select Region</option>
+                <option value="CA-LAX">CA-LAX</option>
+                <option value="CA-SAN">CA-SAN</option>
+                <option value="CA-SFO">CA-SFO</option>
+                <option value="FL-MIA">FL-MIA</option>
+                <option value="FL-NORT">FL-NORT</option>
+                <option value="KY-KENT">KY-KENT</option>
+                <option value="LA-STATE">LA-STATE</option>
+                <option value="OK-OKC">OK-OKC</option>
+                <option value="OTHERS">OTHERS</option>
+                <option value="TN-TEN">TN-TEN</option>
+                <option value="TX-CEN">TX-CEN</option>
+                <option value="TX-DAL">TX-DAL</option>
+                <option value="TX-HOU">TX-HOU</option>
+                <option value="TX-SOUT">TX-SOUT</option>
+                <option value="US-FED">US-FED</option>
+                <option value="US-SP">US-SP</option>
+              </select>
             </div>
           </div>
+
+          {/* SA Assignment Section (only for Assigned status) */}
+          {targetStatus === 'Assigned' && (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  SA Resources *
+                </label>
+                <div className="bg-white rounded-xl border border-gray-200 p-1">
+                  <MultiResourceSelector
+                    value={formData.saAssigned || []}
+                    onChange={(resources) => setFormData(prev => ({...prev, saAssigned: resources}))}
+                    assignedPractices={Array.isArray(formData.practice) ? formData.practice : (formData.practice ? [formData.practice] : [])}
+                    placeholder="Select or type SA names..."
+                    required
+                    practiceAssignments={practiceAssignments}
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                  Date Assigned *
+                </label>
+                <input
+                  type="date"
+                  value={formData.dateAssigned}
+                  onChange={(e) => setFormData(prev => ({...prev, dateAssigned: e.target.value}))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium shadow-sm hover:border-gray-400 transition-colors"
+                  required
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -274,7 +322,7 @@ export default function AssignResourceModal({
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                 )}
-                {saving ? 'Assigning...' : (targetStatus === 'Assigned' ? 'Assign Resource' : 'Assign to Practice')}
+                {saving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

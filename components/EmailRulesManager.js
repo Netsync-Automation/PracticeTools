@@ -16,9 +16,11 @@ export default function EmailRulesManager() {
       await fetchRules();
       await fetchEmailActions();
       
-      // Fetch field mappings for both action types
+      // Fetch field mappings for all action types
       const resourceMappings = await fetchFieldMappings('resource_assignment');
       const saMappings = await fetchFieldMappings('sa_assignment');
+      const saApprovalMappings = await fetchFieldMappings('sa_assignment_approval_request');
+      const saApprovedMappings = await fetchFieldMappings('sa_assignment_approved');
       
       // Set default to resource assignment mappings
       setFieldMappings(resourceMappings);
@@ -73,12 +75,16 @@ export default function EmailRulesManager() {
       const data = await response.json();
       setEmailActions(data.success && data.actions ? data.actions : [
         { value: 'resource_assignment', name: 'Resource Assignment' },
-        { value: 'sa_assignment', name: 'SA Assignment' }
+        { value: 'sa_assignment', name: 'SA Assignment' },
+        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' },
+        { value: 'sa_assignment_approved', name: 'SA Assignment Approved' }
       ]);
     } catch (error) {
       setEmailActions([
         { value: 'resource_assignment', name: 'Resource Assignment' },
-        { value: 'sa_assignment', name: 'SA Assignment' }
+        { value: 'sa_assignment', name: 'SA Assignment' },
+        { value: 'sa_assignment_approval_request', name: 'SA Assignment Approval Request' },
+        { value: 'sa_assignment_approved', name: 'SA Assignment Approved' }
       ]);
     }
   };
@@ -168,6 +174,7 @@ export default function EmailRulesManager() {
       friendlyName: 'Resource Assignment',
       senderEmail: '',
       subjectPattern: '',
+      bodyPattern: '',
       keywordMappings: [],
       action: 'resource_assignment',
       enabled: true
@@ -197,6 +204,7 @@ export default function EmailRulesManager() {
         <p className="text-sm text-gray-600 mb-4">
           Create persistent rules that match specific email senders and subjects, then map keywords to database fields for automated data extraction, then execute an action based on the extraction.
         </p>
+
         
         {rules.map((rule, index) => {
           const isExpanded = expandedRules.has(index);
@@ -316,7 +324,7 @@ export default function EmailRulesManager() {
                         <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">2</div>
                         <h4 className="font-medium text-gray-900">Email Matching Criteria</h4>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-3">
                             Sender Email Address
@@ -365,6 +373,19 @@ export default function EmailRulesManager() {
                             placeholder="PMO - New Resource Request"
                           />
                           <p className="text-xs text-gray-500 mt-1">Leave blank to match any subject</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Body Pattern
+                          </label>
+                          <input
+                            type="text"
+                            value={rule.bodyPattern || ''}
+                            onChange={(e) => updateRule(index, { bodyPattern: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Job Number"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Leave blank to match any body content</p>
                         </div>
                       </div>
                     </div>

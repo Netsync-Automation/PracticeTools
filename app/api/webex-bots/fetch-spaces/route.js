@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
   try {
-    const { ssmPrefix } = await request.json();
+    const { ssmPrefix, accessToken } = await request.json();
     
     if (!ssmPrefix) {
       return NextResponse.json({ error: 'SSM prefix is required' }, { status: 400 });
@@ -17,22 +17,30 @@ export async function POST(request) {
     console.log('🔍 Fetching spaces with SSM prefix:', ssmPrefix);
     console.log('Environment:', ENV);
     
-    // Get access token from SSM
-    const tokenParam = ENV === 'prod' 
-      ? `/PracticeTools/WEBEX_${ssmPrefix}_ACCESS_TOKEN`
-      : `/PracticeTools/${ENV}/WEBEX_${ssmPrefix}_ACCESS_TOKEN`;
-      
-    console.log('SSM Parameter path:', tokenParam);
-      
-    let token;
-    try {
-      const tokenCommand = new GetParameterCommand({ Name: tokenParam });
-      const tokenResult = await ssmClient.send(tokenCommand);
-      token = tokenResult.Parameter?.Value;
-      console.log('Token retrieved from SSM:', token ? `${token.substring(0, 10)}...` : 'EMPTY');
-    } catch (error) {
-      console.error('SSM Parameter not found:', error.message);
-      return NextResponse.json({ error: `Access token not found in SSM: ${tokenParam}` }, { status: 404 });
+    let token = accessToken;
+    
+    console.log('🔍 Received accessToken:', accessToken ? `${accessToken.substring(0, 10)}...` : 'NONE');
+    
+    // If no token provided, get from SSM
+    if (!token) {
+      // Get access token from SSM
+      const tokenParam = ENV === 'prod' 
+        ? `/PracticeTools/WEBEX_${ssmPrefix}_ACCESS_TOKEN`
+        : `/PracticeTools/${ENV}/WEBEX_${ssmPrefix}_ACCESS_TOKEN`;
+        
+      console.log('SSM Parameter path:', tokenParam);
+        
+      try {
+        const tokenCommand = new GetParameterCommand({ Name: tokenParam });
+        const tokenResult = await ssmClient.send(tokenCommand);
+        token = tokenResult.Parameter?.Value;
+        console.log('Token retrieved from SSM:', token ? `${token.substring(0, 10)}...` : 'EMPTY');
+      } catch (error) {
+        console.error('SSM Parameter not found:', error.message);
+        return NextResponse.json({ error: `Access token not found in SSM: ${tokenParam}` }, { status: 404 });
+      }
+    } else {
+      console.log('✅ Using provided access token:', token ? `${token.substring(0, 10)}...` : 'EMPTY');
     }
     
     if (!token || token === 'PLACEHOLDER_TOKEN') {

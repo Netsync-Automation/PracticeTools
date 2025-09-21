@@ -17436,6 +17436,1827 @@
         "pending-changes.json",
         "server.js"
       ]
+    },
+    {
+      "id": 1758312718971,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-19T20:11:58.971Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js"
+      ]
+    },
+    {
+      "id": 1758312719305,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/[id]/route.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.305Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312719408,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email-rules/route.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.408Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312719498,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/fetch-spaces/route.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.498Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312719590,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/route.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.590Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312719680,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex/sync-bot/route.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.680Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312719778,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.778Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312719865,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.865Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312720040,
+      "description": "Enhanced MultiResourceSelector with specific functionality improvements",
+      "details": {
+        "file": "components/MultiResourceSelector.js"
+      },
+      "timestamp": "2025-09-19T20:12:00.040Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312720228,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-19T20:12:00.228Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312720312,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-19T20:12:00.312Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312720419,
+      "description": "Enhanced sa auto-assignment with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-auto-assignment.js"
+      },
+      "timestamp": "2025-09-19T20:12:00.419Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312720506,
+      "description": "Enhanced sa email-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-email-service.js"
+      },
+      "timestamp": "2025-09-19T20:12:00.506Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312720592,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-09-19T20:12:00.592Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312723869,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-19T20:12:03.869Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724127,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/[id]/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.127Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724213,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email-rules/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.213Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724298,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/fetch-spaces/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.298Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724386,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.386Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724472,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex/sync-bot/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.472Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724559,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.559Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724647,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.647Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724907,
+      "description": "Enhanced MultiResourceSelector with specific functionality improvements",
+      "details": {
+        "file": "components/MultiResourceSelector.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.907Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312725082,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-19T20:12:05.082Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312725168,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-19T20:12:05.168Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312725254,
+      "description": "Enhanced sa auto-assignment with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-auto-assignment.js"
+      },
+      "timestamp": "2025-09-19T20:12:05.254Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312725340,
+      "description": "Enhanced sa email-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-email-service.js"
+      },
+      "timestamp": "2025-09-19T20:12:05.340Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312725428,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-09-19T20:12:05.428Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312727978,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-19T20:12:07.978Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728251,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/[id]/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.251Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728337,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/email-rules/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.337Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728423,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/fetch-spaces/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.423Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728508,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.508Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728593,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex/sync-bot/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.593Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728682,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.682Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728768,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.768Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312729026,
+      "description": "Enhanced MultiResourceSelector with specific functionality improvements",
+      "details": {
+        "file": "components/MultiResourceSelector.js"
+      },
+      "timestamp": "2025-09-19T20:12:09.026Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312729198,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-19T20:12:09.198Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312729297,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-19T20:12:09.297Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312729383,
+      "description": "Enhanced sa auto-assignment with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-auto-assignment.js"
+      },
+      "timestamp": "2025-09-19T20:12:09.383Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312729467,
+      "description": "Enhanced sa email-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-email-service.js"
+      },
+      "timestamp": "2025-09-19T20:12:09.467Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312729555,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-09-19T20:12:09.555Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477374876,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/[id]/route.js"
+      },
+      "timestamp": "2025-09-21T17:56:14.876Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477374974,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-21T17:56:14.974Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477375059,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-09-21T17:56:15.059Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477375194,
+      "description": "Enhanced AssignResourceModal with specific functionality improvements",
+      "details": {
+        "file": "components/AssignResourceModal.js"
+      },
+      "timestamp": "2025-09-21T17:56:15.194Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477375293,
+      "description": "Enhanced CompleteStatusModal with specific functionality improvements",
+      "details": {
+        "file": "components/CompleteStatusModal.js"
+      },
+      "timestamp": "2025-09-21T17:56:15.293Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477375465,
+      "description": "Enhanced MultiResourceSelector with specific functionality improvements",
+      "details": {
+        "file": "components/MultiResourceSelector.js"
+      },
+      "timestamp": "2025-09-21T17:56:15.465Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477375635,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-21T17:56:15.635Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477375721,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-09-21T17:56:15.721Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378216,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/[id]/route.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.216Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378301,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.301Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378385,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.385Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378474,
+      "description": "Enhanced AssignResourceModal with specific functionality improvements",
+      "details": {
+        "file": "components/AssignResourceModal.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.474Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378558,
+      "description": "Enhanced CompleteStatusModal with specific functionality improvements",
+      "details": {
+        "file": "components/CompleteStatusModal.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.559Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378726,
+      "description": "Enhanced MultiResourceSelector with specific functionality improvements",
+      "details": {
+        "file": "components/MultiResourceSelector.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.726Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378893,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.893Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378977,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.977Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381001,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/sa-assignments/[id]/route.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.001Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381098,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.098Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381182,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.182Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381265,
+      "description": "Enhanced AssignResourceModal with specific functionality improvements",
+      "details": {
+        "file": "components/AssignResourceModal.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.265Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381356,
+      "description": "Enhanced CompleteStatusModal with specific functionality improvements",
+      "details": {
+        "file": "components/CompleteStatusModal.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.356Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381523,
+      "description": "Enhanced MultiResourceSelector with specific functionality improvements",
+      "details": {
+        "file": "components/MultiResourceSelector.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.523Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381691,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.691Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381785,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.785Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -64744,6 +66565,781 @@
       "files": [
         "commit-and-push.js",
         "lib/webex-sync.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312719077,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-actions/route.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.077Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312719205,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-field-mappings/route.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.205Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312719952,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-19T20:11:59.952Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312720137,
+      "description": "Enhanced assignmentStatus with specific functionality improvements",
+      "details": {
+        "file": "constants/assignmentStatus.js"
+      },
+      "timestamp": "2025-09-19T20:12:00.137Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312723955,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-actions/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:03.955Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724041,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-field-mappings/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.041Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724735,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.735Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724821,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.821Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312724994,
+      "description": "Enhanced assignmentStatus with specific functionality improvements",
+      "details": {
+        "file": "constants/assignmentStatus.js"
+      },
+      "timestamp": "2025-09-19T20:12:04.994Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728063,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-actions/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.063Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728151,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-field-mappings/route.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.151Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728855,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.855Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312728942,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-19T20:12:08.942Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758312729111,
+      "description": "Enhanced assignmentStatus with specific functionality improvements",
+      "details": {
+        "file": "constants/assignmentStatus.js"
+      },
+      "timestamp": "2025-09-19T20:12:09.111Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/api/settings/email-rules/route.js",
+        "app/api/webex-bots/fetch-spaces/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex/sync-bot/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "commit-and-push.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "constants/assignmentStatus.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-auto-assignment.js",
+        "lib/sa-email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477374561,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-21T17:56:14.561Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js"
+      ]
+    },
+    {
+      "id": 1758477374636,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-actions/route.js"
+      },
+      "timestamp": "2025-09-21T17:56:14.636Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477374775,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-field-mappings/route.js"
+      },
+      "timestamp": "2025-09-21T17:56:14.775Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477375378,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-21T17:56:15.378Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477375546,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-21T17:56:15.546Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477377960,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-21T17:56:17.960Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378048,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-actions/route.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.048Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378132,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-field-mappings/route.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.132Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378642,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.642Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477378810,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-21T17:56:18.810Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477380744,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-09-21T17:56:20.744Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477380826,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-actions/route.js"
+      },
+      "timestamp": "2025-09-21T17:56:20.826Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477380910,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/email-field-mappings/route.js"
+      },
+      "timestamp": "2025-09-21T17:56:20.910Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381438,
+      "description": "Enhanced EmailRulesManager with specific functionality improvements",
+      "details": {
+        "file": "components/EmailRulesManager.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.438Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758477381605,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-21T17:56:21.605Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/email-actions/route.js",
+        "app/api/email-field-mappings/route.js",
+        "app/api/sa-assignments/[id]/route.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "components/AssignResourceModal.js",
+        "components/CompleteStatusModal.js",
+        "components/EmailRulesManager.js",
+        "components/MultiResourceSelector.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/sa-webex-service.js",
         "pending-changes.json"
       ]
     }
