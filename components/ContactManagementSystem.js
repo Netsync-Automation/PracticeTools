@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useCsrf } from '../hooks/useCsrf';
 import { sanitizeText } from '../lib/sanitize';
+import { formatPhoneNumber, createPhoneLink } from '../lib/phone-utils.js';
+import PhoneInput from './PhoneInput.js';
 
 export default function ContactManagementSystem({ practiceGroupId, contactType, user, refreshTrigger, canAddCompaniesContacts }) {
   const { getHeaders } = useCsrf();
@@ -46,6 +48,13 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
     name: '',
     email: '',
     role: '',
+    cellPhone: '',
+    officePhone: '',
+    fax: '',
+    notes: ''
+  });
+  
+  const [phoneErrors, setPhoneErrors] = useState({
     cellPhone: '',
     officePhone: '',
     fax: ''
@@ -211,7 +220,7 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
     const allContacts = await getAllContacts();
     allContacts.forEach(contact => {
       if (Object.values(contact).some(value => 
-        value.toString().toLowerCase().includes(searchLower)
+        value && value.toString().toLowerCase().includes(searchLower)
       )) {
         results.push({
           ...contact,
@@ -362,15 +371,24 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
 
   const handleAddContact = async (e, skipSimilarCheck = false) => {
     e.preventDefault();
+    
+    // Check for phone validation errors
+    const hasPhoneErrors = Object.values(phoneErrors).some(error => error);
+    if (hasPhoneErrors) {
+      alert('Please fix phone number validation errors before submitting.');
+      return;
+    }
+    
     try {
       const sanitizedForm = {
         ...contactForm,
         name: sanitizeText(contactForm.name),
         email: contactForm.email.trim(),
         role: sanitizeText(contactForm.role),
-        cellPhone: sanitizeText(contactForm.cellPhone),
-        officePhone: sanitizeText(contactForm.officePhone),
-        fax: sanitizeText(contactForm.fax)
+        cellPhone: contactForm.cellPhone,
+        officePhone: contactForm.officePhone,
+        fax: contactForm.fax,
+        notes: sanitizeText(contactForm.notes)
       };
       
       // Check for similar deleted contacts before creating new one
@@ -421,6 +439,12 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
         name: '',
         email: '',
         role: '',
+        cellPhone: '',
+        officePhone: '',
+        fax: '',
+        notes: ''
+      });
+      setPhoneErrors({
         cellPhone: '',
         officePhone: '',
         fax: ''
@@ -474,7 +498,8 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       role: contact.role,
       cellPhone: contact.cellPhone,
       officePhone: contact.officePhone || '',
-      fax: contact.fax || ''
+      fax: contact.fax || '',
+      notes: contact.notes || ''
     });
     setShowAddContact(true);
   };
@@ -639,6 +664,17 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
           name: '',
           email: '',
           role: '',
+          cellPhone: '',
+          officePhone: '',
+          fax: '',
+          notes: ''
+        });
+        setPhoneErrors({
+          cellPhone: '',
+          officePhone: '',
+          fax: ''
+        });
+        setPhoneErrors({
           cellPhone: '',
           officePhone: '',
           fax: ''
@@ -913,9 +949,10 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
                       <p className="text-sm text-gray-600">{contact.role}</p>
                       <div className="mt-2 space-y-1 text-sm text-gray-600">
                         <p>📧 {contact.email}</p>
-                        <p>📱 {contact.cellPhone}</p>
-                        {contact.officePhone && <p>📞 {contact.officePhone}</p>}
-                        {contact.fax && <p>📠 {contact.fax}</p>}
+                        <p>📱 <a href={createPhoneLink(contact.cellPhone)} className="text-blue-600 hover:text-blue-800 hover:underline">{formatPhoneNumber(contact.cellPhone)}</a></p>
+                        {contact.officePhone && <p>📞 <a href={createPhoneLink(contact.officePhone)} className="text-blue-600 hover:text-blue-800 hover:underline">{formatPhoneNumber(contact.officePhone)}</a></p>}
+                        {contact.fax && <p>📠 <a href={createPhoneLink(contact.fax)} className="text-blue-600 hover:text-blue-800 hover:underline">{formatPhoneNumber(contact.fax)}</a></p>}
+                        {contact.notes && <p>📝 {contact.notes}</p>}
                         {(contact.lastEditedBy || contact.addedBy) && (
                           <p className="text-xs text-gray-500 mt-2">
                             {contact.lastEditedBy 
@@ -1179,30 +1216,53 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
                 required
               />
               
-              <input
-                type="tel"
-                placeholder="Cell Phone *"
-                value={contactForm.cellPhone}
-                onChange={(e) => setContactForm({...contactForm, cellPhone: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cell Phone *</label>
+                <PhoneInput
+                  value={contactForm.cellPhone}
+                  onChange={(value) => setContactForm({...contactForm, cellPhone: value})}
+                  placeholder="Cell Phone"
+                  required
+                />
+              </div>
               
-              <input
-                type="tel"
-                placeholder="Office Phone"
-                value={contactForm.officePhone}
-                onChange={(e) => setContactForm({...contactForm, officePhone: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Office Phone</label>
+                <PhoneInput
+                  value={contactForm.officePhone}
+                  onChange={(value) => setContactForm({...contactForm, officePhone: value})}
+                  placeholder="Office Phone"
+                />
+              </div>
               
-              <input
-                type="tel"
-                placeholder="Fax"
-                value={contactForm.fax}
-                onChange={(e) => setContactForm({...contactForm, fax: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fax</label>
+                <PhoneInput
+                  value={contactForm.fax}
+                  onChange={(value) => setContactForm({...contactForm, fax: value})}
+                  placeholder="Fax"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  placeholder="Additional notes (max 500 characters)"
+                  value={contactForm.notes}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value.length <= 500) {
+                      setContactForm({...contactForm, notes: value});
+                    }
+                  }}
+                  maxLength={500}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+                <div className="text-xs text-gray-500 mt-1">
+                  {contactForm.notes.length}/500 characters
+                </div>
+              </div>
               
               <div className="flex gap-3">
                 <button
@@ -1214,6 +1274,12 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
                       name: '',
                       email: '',
                       role: '',
+                      cellPhone: '',
+                      officePhone: '',
+                      fax: '',
+                      notes: ''
+                    });
+                    setPhoneErrors({
                       cellPhone: '',
                       officePhone: '',
                       fax: ''
