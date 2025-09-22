@@ -360,44 +360,107 @@ export default function ResourceAssignmentsPage() {
               </div>
             </div>
 
-            {/* Stats Containers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-              <StatBox
-                title="Total Requests"
-                value={allFilteredAssignments.length}
-                icon="📊"
-                color="blue"
-              />
-              <StatBox
-                title="Pending"
-                value={allFilteredAssignments.filter(a => a.status === 'Pending').length}
-                icon="⏳"
-                color="purple"
-              />
-              <StatBox
-                title="Unassigned"
-                value={allFilteredAssignments.filter(a => a.status === 'Unassigned').length}
-                icon="📁"
-                color="orange"
-              />
-              <StatBox
-                title="Assigned"
-                value={allFilteredAssignments.filter(a => a.status === 'Assigned').length}
-                icon="✅"
-                color="green"
-              />
-              <StatBox
-                title="Practice Assignment ETA"
-                value={practiceAssignmentETA > 0 ? `${practiceAssignmentETA.toFixed(2)} days` : 'N/A'}
-                icon="🏢"
-                color="indigo"
-              />
-              <StatBox
-                title="Resource Assignment ETA"
-                value={resourceAssignmentETA > 0 ? `${resourceAssignmentETA.toFixed(2)} days` : 'N/A'}
-                icon="👤"
-                color="teal"
-              />
+            {/* Statistics Dashboard */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              {/* Assignment Status Overview */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-blue-100 rounded-lg p-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Assignment Status</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">📊</span>
+                      <span className="font-medium text-gray-700">Total</span>
+                    </div>
+                    <span className="text-xl font-bold text-blue-600">{allFilteredAssignments.length}</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="flex items-center justify-between p-2 bg-yellow-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">⏳</span>
+                        <span className="text-xs font-medium text-yellow-700">Pending</span>
+                      </div>
+                      <span className="text-sm font-bold text-yellow-600">{allFilteredAssignments.filter(a => a.status === 'Pending').length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">📁</span>
+                        <span className="text-xs font-medium text-orange-700">Unassigned</span>
+                      </div>
+                      <span className="text-sm font-bold text-orange-600">{allFilteredAssignments.filter(a => a.status === 'Unassigned').length}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">✅</span>
+                        <span className="text-xs font-medium text-green-700">Assigned</span>
+                      </div>
+                      <span className="text-sm font-bold text-green-600">{allFilteredAssignments.filter(a => a.status === 'Assigned').length}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Practice Assignment Pipeline */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-indigo-100 rounded-lg p-2">
+                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Assignment Pipeline</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">🏢</span>
+                      <span className="font-medium text-amber-700">Practice Assignment</span>
+                    </div>
+                    <span className="text-xl font-bold text-amber-600">{allFilteredAssignments.filter(a => a.status === 'Pending').length}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">👤</span>
+                      <span className="font-medium text-emerald-700">Resource Assignment</span>
+                    </div>
+                    <span className="text-xl font-bold text-emerald-600">{allFilteredAssignments.filter(a => a.status === 'Unassigned').length}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Metrics */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-teal-100 rounded-lg p-2">
+                    <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Average ETAs</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-2 bg-indigo-50 rounded-lg">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">⏱️</span>
+                      <span className="text-xs font-medium text-indigo-700">Practice Assignment</span>
+                    </div>
+                    <span className="text-sm font-bold text-indigo-600">{practiceAssignmentETA > 0 ? `${practiceAssignmentETA}d` : 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-teal-50 rounded-lg">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">🎯</span>
+                      <span className="text-xs font-medium text-teal-700">Resource Assignment</span>
+                    </div>
+                    <span className="text-sm font-bold text-teal-600">{resourceAssignmentETA > 0 ? `${resourceAssignmentETA}d` : 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Modern Filters */}

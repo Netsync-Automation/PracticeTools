@@ -492,80 +492,80 @@ export default function AssignmentDetailPage() {
               { label: `Assignment #${assignment.assignment_number}` }
             ]} />
 
-            <div className="max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{gridTemplateRows: '1fr'}}>
-                {/* Main Content */}
-                <div className="lg:col-span-2">
-                  {/* Project Information */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        {(() => {
-                          const attachments = JSON.parse(assignment.attachments || '[]');
-                          if (attachments.length === 0) return null;
-                          
-                          return (
-                            <MultiAttachmentPreview attachments={attachments} position="right">
-                              <div className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-150 hover:scale-105 active:scale-95">
-                                <PaperClipIcon className="h-5 w-5" />
-                                {attachments.length > 1 && <span className="ml-1 text-xs">{attachments.length}</span>}
-                              </div>
-                            </MultiAttachmentPreview>
-                          );
-                        })()}
-                        <h2 className="text-lg font-semibold text-gray-900">Project Information</h2>
-                        <span className="text-sm font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">ID: #{assignment.assignment_number}</span>
+            <div className="max-w-7xl mx-auto space-y-8">
+              {/* Header Section */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-white/20 rounded-lg p-3">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
                       </div>
-                      {canEditAssignment() && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setShowDeleteModal(true)}
-                            className="flex items-center gap-1 px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Delete
-                          </button>
-                          <button
-                            onClick={openProjectEditModal}
-                            className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Edit
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
                       <div>
-                        <label className="block text-sm font-medium text-gray-500 mb-1">Customer Name</label>
-                        <p className="text-sm text-gray-900">{assignment.customerName}</p>
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-500 mb-1">Project Description</label>
-                        <p className="text-sm text-gray-900">{assignment.projectDescription}</p>
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-500 mb-1">Notes</label>
-                        <p className="text-sm text-gray-900">{assignment.notes || 'No notes'}</p>
+                        <h1 className="text-2xl font-bold text-white">Resource Assignment #{assignment.assignment_number}</h1>
+                        <p className="text-blue-100 mt-1">{assignment.customerName} • {assignment.projectDescription}</p>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Sidebar */}
-                <div>
-                  {/* Assignment Information */}
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Assignment Information</h3>
-                      {canEditAssignment() && (
+                    
+                    {/* Action Buttons */}
+                    {canEditAssignment() && (
+                      <div className="flex items-center gap-3">
                         <button
                           onClick={openEditModal}
-                          className="flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteModal(true)}
+                          className="bg-red-500/20 hover:bg-red-500/30 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column - Project Information */}
+                <div className="lg:col-span-2 space-y-8">
+                  {/* Project Information */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="bg-blue-100 rounded-lg p-2">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+                        </svg>
+                      </div>
+                      <h2 className="text-xl font-semibold text-gray-900">Project Details</h2>
+                      {(() => {
+                        const attachments = JSON.parse(assignment.attachments || '[]');
+                        if (attachments.length === 0) return null;
+                        
+                        return (
+                          <MultiAttachmentPreview attachments={attachments} position="right">
+                            <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer">
+                              <PaperClipIcon className="h-4 w-4" />
+                              <span className="text-sm font-medium">{attachments.length} file{attachments.length > 1 ? 's' : ''}</span>
+                            </div>
+                          </MultiAttachmentPreview>
+                        );
+                      })()}
+                      {canEditAssignment() && (
+                        <button
+                          onClick={openProjectEditModal}
+                          className="ml-auto flex items-center gap-1 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -574,196 +574,222 @@ export default function AssignmentDetailPage() {
                         </button>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-6 flex-1">
-                      {/* Left Column - Project & Status */}
-                      <dl className="space-y-3">
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
                         <div>
-                          <dt className="text-xs font-medium text-gray-500">Project #</dt>
-                          <dd className="text-sm text-gray-900 font-medium">{assignment.projectNumber}</dd>
+                          <label className="block text-sm font-medium text-gray-500 mb-2">Project Number</label>
+                          <div className="bg-gray-50 rounded-lg px-4 py-3">
+                            <p className="text-sm font-mono text-gray-900">{assignment.projectNumber}</p>
+                          </div>
                         </div>
                         <div>
-                          <dt className="text-xs font-medium text-gray-500">Status</dt>
-                          <dd className="text-sm text-gray-900 font-medium">
-                            {canEditAssignment() ? (
-                              <select
-                                value={assignment.status}
-                                onChange={async (e) => {
-                                  const newStatus = e.target.value;
-                                  
-                                  if (newStatus === 'Assigned') {
-                                    // If changing from Pending, show practice modal with assignment fields
-                                    if (assignment.status === 'Pending') {
-                                      setPracticeData({
-                                        practice: assignment.practice !== 'Pending' ? assignment.practice : '',
-                                        am: assignment.am || '',
-                                        targetStatus: newStatus,
-                                        resourceAssigned: assignment.resourceAssigned || '',
-                                        dateAssigned: assignment.dateAssigned || new Date().toISOString().split('T')[0]
-                                      });
-                                      setPracticeError('');
-                                      setShowPracticeModal(true);
-                                    } else {
-                                      // Show regular assignment modal for non-pending assignments
-                                      setAssignmentData({
-                                        resourceAssigned: assignment.resourceAssigned || '',
-                                        dateAssigned: assignment.dateAssigned || new Date().toISOString().split('T')[0]
-                                      });
-                                      setShowAssignmentModal(true);
-                                    }
-                                    // Reset dropdown to current status
-                                    e.target.value = assignment.status;
-                                    return;
-                                  }
-                                  
-                                  // If changing from Pending to Unassigned, show practice modal
-                                  if (assignment.status === 'Pending' && newStatus === 'Unassigned') {
-                                    setPracticeData({
-                                      practice: assignment.practice !== 'Pending' ? assignment.practice : '',
-                                      am: assignment.am || '',
-                                      targetStatus: newStatus
-                                    });
-                                    setPracticeError('');
-                                    setShowPracticeModal(true);
-                                    // Reset dropdown to current status
-                                    e.target.value = assignment.status;
-                                    return;
-                                  }
-                                  
-                                  // For other statuses, update immediately
-                                  try {
-                                    const response = await fetch(`/api/assignments/${params.id}`, {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ status: newStatus })
-                                    });
-                                    if (response.ok) {
-                                      const data = await response.json();
-                                      setAssignment(data.assignment);
-                                    }
-                                  } catch (error) {
-                                    console.error('Error updating status:', error);
-                                  }
-                                }}
-                                className={`text-sm font-semibold px-3 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-3 focus:ring-opacity-50 ${
-                                  assignment.status === 'Pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-300' :
-                                  assignment.status === 'Unassigned' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
-                                  assignment.status === 'Assigned' ? 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-300' :
-                                  'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-300'
-                                }`}
-                              >
-                                {ASSIGNMENT_STATUS_OPTIONS.map(status => (
-                                  <option key={status} value={status}>{status}</option>
-                                ))}
-                              </select>
-                            ) : (
-                              <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-lg ${
-                                assignment.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                                assignment.status === 'Unassigned' ? 'bg-orange-100 text-orange-800' :
-                                assignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {assignment.status}
-                              </span>
-                            )}
-                          </dd>
+                          <label className="block text-sm font-medium text-gray-500 mb-2">Customer Name</label>
+                          <div className="bg-gray-50 rounded-lg px-4 py-3">
+                            <p className="text-sm font-semibold text-gray-900">{assignment.customerName}</p>
+                          </div>
                         </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">Practice</dt>
-                          <dd className="text-sm text-gray-900 font-medium">{assignment.practice}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">Region</dt>
-                          <dd className="text-sm text-gray-900 font-medium">{assignment.region}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">Requested</dt>
-                          <dd className="text-sm text-gray-900">
-                            {assignment.requestDate ? 
-                              new Date(assignment.requestDate).toLocaleString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                timeZoneName: 'short'
-                              }) : 'Not set'
-                            }
-                          </dd>
-                        </div>
-                      </dl>
+                      </div>
                       
-                      {/* Right Column - Team & Dates */}
-                      <dl className="space-y-3">
+                      <div className="space-y-4">
                         <div>
-                          <dt className="text-xs font-medium text-gray-500">Account Manager</dt>
-                          <dd className="text-sm text-gray-900">{assignment.am}</dd>
+                          <label className="block text-sm font-medium text-gray-500 mb-2">Region</label>
+                          <div className="bg-gray-50 rounded-lg px-4 py-3">
+                            <p className="text-sm font-semibold text-gray-900">{assignment.region || 'Not specified'}</p>
+                          </div>
                         </div>
                         <div>
-                          <dt className="text-xs font-medium text-gray-500">Project Manager</dt>
-                          <dd className="text-sm text-gray-900">{assignment.pm}</dd>
+                          <label className="block text-sm font-medium text-gray-500 mb-2">Requested Date</label>
+                          <div className="bg-gray-50 rounded-lg px-4 py-3">
+                            <p className="text-sm text-gray-900">
+                              {assignment.requestDate ? 
+                                new Date(assignment.requestDate).toLocaleDateString('en-US', {
+                                  weekday: 'short',
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                }) : 'Not set'
+                              }
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">Resource Assigned</dt>
-                          <dd className="text-sm text-gray-900">
-                            {assignment.resourceAssigned ? (
-                              assignment.resourceAssigned.includes(',') ? (
-                                <div className="space-y-1">
-                                  {assignment.resourceAssigned.split(',').map((resource, index) => (
-                                    <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-800 text-xs rounded-full mr-1 mb-1">
-                                      {resource.trim()}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : assignment.resourceAssigned
-                            ) : 'Not assigned'}
-                          </dd>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6">
+                      <label className="block text-sm font-medium text-gray-500 mb-2">Project Description</label>
+                      <div className="bg-gray-50 rounded-lg px-4 py-3">
+                        <p className="text-sm text-gray-900 leading-relaxed">{assignment.projectDescription}</p>
+                      </div>
+                    </div>
+                    
+                    {assignment.notes && (
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-500 mb-2">Notes</label>
+                        <div className="bg-gray-50 rounded-lg px-4 py-3">
+                          <p className="text-sm text-gray-900 leading-relaxed">{assignment.notes}</p>
                         </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">Date Assigned</dt>
-                          <dd className="text-sm text-gray-900">{assignment.dateAssigned ? new Date(assignment.dateAssigned).toLocaleDateString() : 'Not set'}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-xs font-medium text-gray-500">ETA</dt>
-                          <dd className="text-sm text-gray-900">{assignment.eta ? new Date(assignment.eta).toLocaleDateString() : 'Not set'}</dd>
-                        </div>
-                        {assignment.documentationLink && (
-                          <div>
-                            <dt className="text-xs font-medium text-gray-500">Documentation</dt>
-                            <dd className="text-sm">
-                              <a 
-                                href={assignment.documentationLink} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 underline"
-                              >
-                                View Documentation
-                              </a>
-                            </dd>
+                      </div>
+                    )}
+                    
+                    {assignment.documentationLink && (
+                      <div className="mt-6">
+                        <a
+                          href={assignment.documentationLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          View Documentation
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Conversation Section */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="bg-green-100 rounded-lg p-2">
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                      </div>
+                      <h2 className="text-xl font-semibold text-gray-900">Conversation</h2>
+                    </div>
+                    <AssignmentConversation assignmentId={params.id} user={user} />
+                  </div>
+                </div>
+
+                {/* Right Column - Assignment Status & Team */}
+                <div className="space-y-8">
+                  {/* Assignment Status */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="bg-purple-100 rounded-lg p-2">
+                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">Assignment Status</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-2">Current Status</label>
+                        {canEditAssignment() ? (
+                          <select
+                            value={assignment.status}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              
+                              if (newStatus === 'Assigned') {
+                                if (assignment.status === 'Pending') {
+                                  setPracticeData({
+                                    practice: assignment.practice !== 'Pending' ? assignment.practice : '',
+                                    am: assignment.am || '',
+                                    targetStatus: newStatus,
+                                    resourceAssigned: assignment.resourceAssigned || '',
+                                    dateAssigned: assignment.dateAssigned || new Date().toISOString().split('T')[0]
+                                  });
+                                  setPracticeError('');
+                                  setShowPracticeModal(true);
+                                } else {
+                                  setAssignmentData({
+                                    resourceAssigned: assignment.resourceAssigned || '',
+                                    dateAssigned: assignment.dateAssigned || new Date().toISOString().split('T')[0]
+                                  });
+                                  setShowAssignmentModal(true);
+                                }
+                                e.target.value = assignment.status;
+                                return;
+                              }
+                              
+                              if (assignment.status === 'Pending' && newStatus === 'Unassigned') {
+                                setPracticeData({
+                                  practice: assignment.practice !== 'Pending' ? assignment.practice : '',
+                                  am: assignment.am || '',
+                                  targetStatus: newStatus
+                                });
+                                setPracticeError('');
+                                setShowPracticeModal(true);
+                                e.target.value = assignment.status;
+                                return;
+                              }
+                              
+                              try {
+                                const response = await fetch(`/api/assignments/${params.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ status: newStatus })
+                                });
+                                if (response.ok) {
+                                  const data = await response.json();
+                                  setAssignment(data.assignment);
+                                }
+                              } catch (error) {
+                                console.error('Error updating status:', error);
+                              }
+                            }}
+                            className={`w-full text-sm font-semibold px-4 py-3 rounded-lg border-0 cursor-pointer transition-all duration-200 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                              assignment.status === 'Pending' ? 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-300' :
+                              assignment.status === 'Unassigned' ? 'bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-300' :
+                              assignment.status === 'Assigned' ? 'bg-green-500 text-white hover:bg-green-600 focus:ring-green-300' :
+                              'bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-300'
+                            }`}
+                          >
+                            {ASSIGNMENT_STATUS_OPTIONS.map(status => (
+                              <option key={status} value={status}>{status}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className={`w-full px-4 py-3 text-sm font-semibold rounded-lg text-center ${
+                            assignment.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                            assignment.status === 'Unassigned' ? 'bg-orange-100 text-orange-800' :
+                            assignment.status === 'Assigned' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {assignment.status}
                           </div>
                         )}
-                        {(() => {
-                          const notificationUsers = JSON.parse(assignment.resource_assignment_notification_users || '[]');
-                          if (notificationUsers.length === 0) return null;
-                          
-                          const displayNames = notificationUsers.slice(0, 2).map(user => user.name).join(', ');
-                          const hasMore = notificationUsers.length > 2;
-                          const allNames = notificationUsers.map(user => `${user.name} (${user.email})`).join('\n');
-                          
-                          return (
-                            <div>
-                              <dt className="text-xs font-medium text-gray-500">Notification Users</dt>
-                              <dd className="text-sm text-gray-900">
-                                <span 
-                                  title={allNames}
-                                  className="cursor-help"
-                                >
-                                  {displayNames}{hasMore && ` +${notificationUsers.length - 2} more`}
-                                </span>
-                              </dd>
-                            </div>
-                          );
-                        })()}
-                      </dl>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-2">Practice</label>
+                        <div className="bg-gray-50 rounded-lg px-4 py-3">
+                          <p className="text-sm font-medium text-gray-900">{assignment.practice}</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-2">Date Assigned</label>
+                        <div className="bg-gray-50 rounded-lg px-4 py-3">
+                          <p className="text-sm text-gray-900">
+                            {assignment.dateAssigned ? new Date(assignment.dateAssigned).toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            }) : 'Not set'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-2">ETA</label>
+                        <div className="bg-gray-50 rounded-lg px-4 py-3">
+                          <p className="text-sm text-gray-900">
+                            {assignment.eta ? new Date(assignment.eta).toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            }) : 'Not set'}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                     
                     {/* Status History Button */}
@@ -790,15 +816,86 @@ export default function AssignmentDetailPage() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Team Information */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="bg-indigo-100 rounded-lg p-2">
+                        <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">Team</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-2">Account Manager</label>
+                        <div className="bg-gray-50 rounded-lg px-4 py-3">
+                          <p className="text-sm font-medium text-gray-900">{assignment.am || 'Not assigned'}</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-2">Project Manager</label>
+                        <div className="bg-gray-50 rounded-lg px-4 py-3">
+                          <p className="text-sm font-medium text-gray-900">{assignment.pm || 'Not assigned'}</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-2">Resource Assigned</label>
+                        <div className="bg-gray-50 rounded-lg px-4 py-3">
+                          {assignment.resourceAssigned ? (
+                            assignment.resourceAssigned.includes(',') ? (
+                              <div className="flex flex-wrap gap-1">
+                                {assignment.resourceAssigned.split(',').map((resource, index) => (
+                                  <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                    {resource.trim()}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm font-medium text-gray-900">{assignment.resourceAssigned}</p>
+                            )
+                          ) : (
+                            <p className="text-sm text-gray-500 italic">Not assigned</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-2">Notification Recipients</label>
+                        <div className="bg-gray-50 rounded-lg px-4 py-3">
+                          {(() => {
+                            const notificationUsers = JSON.parse(assignment.resource_assignment_notification_users || '[]');
+                            if (notificationUsers.length === 0) {
+                              return (
+                                <p className="text-sm text-gray-500 italic">No notification recipients specified</p>
+                              );
+                            }
+                            return (
+                              <div className="space-y-2">
+                                {notificationUsers.map((user, index) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <div className="bg-indigo-100 rounded-full p-1">
+                                      <svg className="w-3 h-3 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              {/* Conversation Section - Full Width */}
-              <div className="mt-8">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <AssignmentConversation assignmentId={params.id} user={user} />
-                </div>
-              </div>
+
             </div>
             
             {/* Edit Assignment Modal */}
