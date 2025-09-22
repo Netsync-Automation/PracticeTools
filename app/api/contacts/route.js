@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../lib/auth-check.js';
+import { validatePhoneNumber } from '../../../lib/phone-utils.js';
 
 
 export const dynamic = 'force-dynamic';
@@ -45,14 +46,26 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
+    // Phone number validation
+    const phoneFields = ['cellPhone', 'officePhone', 'fax'];
+    for (const field of phoneFields) {
+      if (contact[field] && contact[field].trim()) {
+        const validation = validatePhoneNumber(contact[field]);
+        if (!validation.isValid) {
+          return NextResponse.json({ error: `Invalid ${field}: ${validation.error}` }, { status: 400 });
+        }
+      }
+    }
+
     const savedContact = await db.saveContact({
       ...contact,
       name: contact.name.trim(),
       email: contact.email.trim(),
       role: contact.role.trim(),
-      cellPhone: contact.cellPhone.trim(),
-      officePhone: contact.officePhone?.trim() || '',
-      fax: contact.fax?.trim() || '',
+      cellPhone: contact.cellPhone,
+      officePhone: contact.officePhone || '',
+      fax: contact.fax || '',
+      notes: contact.notes?.trim() || '',
       dateAdded: new Date().toISOString(),
       addedBy: contact.addedBy.trim()
     }, validation.user);
@@ -84,9 +97,18 @@ export async function PUT(request) {
 
     // Check permissions
     const user = validation.user;
-    const canEdit = user.isAdmin || user.role === 'executive' || 
-      (['practice_manager', 'practice_principal', 'practice_member'].includes(user.role) && 
-       user.practices?.some(practice => practiceGroupId?.includes(practice)));
+    let canEdit = user.isAdmin || user.role === 'executive';
+    
+    if (!canEdit && ['practice_manager', 'practice_principal', 'practice_member'].includes(user.role)) {
+      // Get practice group data to check permissions
+      const allUsers = await db.getAllUsers();
+      const practiceManager = allUsers.find(u => u.email === practiceGroupId && u.role === 'practice_manager');
+      
+      if (practiceManager && practiceManager.practices && user.practices) {
+        // Check if user has any overlapping practices with the practice group
+        canEdit = practiceManager.practices.some(practice => user.practices.includes(practice));
+      }
+    }
     
     if (!canEdit) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
@@ -123,9 +145,18 @@ export async function DELETE(request) {
 
     // Check permissions
     const user = validation.user;
-    const canDelete = user.isAdmin || user.role === 'executive' || 
-      (['practice_manager', 'practice_principal', 'practice_member'].includes(user.role) && 
-       user.practices?.some(practice => practiceGroupId?.includes(practice)));
+    let canDelete = user.isAdmin || user.role === 'executive';
+    
+    if (!canDelete && ['practice_manager', 'practice_principal', 'practice_member'].includes(user.role)) {
+      // Get practice group data to check permissions
+      const allUsers = await db.getAllUsers();
+      const practiceManager = allUsers.find(u => u.email === practiceGroupId && u.role === 'practice_manager');
+      
+      if (practiceManager && practiceManager.practices && user.practices) {
+        // Check if user has any overlapping practices with the practice group
+        canDelete = practiceManager.practices.some(practice => user.practices.includes(practice));
+      }
+    }
     
     if (!canDelete) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });

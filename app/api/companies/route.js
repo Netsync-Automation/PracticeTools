@@ -97,9 +97,18 @@ export async function PUT(request) {
 
     // Check permissions
     const user = validation.user;
-    const canEdit = user.isAdmin || user.role === 'executive' || 
-      (['practice_manager', 'practice_principal', 'practice_member'].includes(user.role) && 
-       user.practices?.some(practice => practiceGroupId?.includes(practice)));
+    let canEdit = user.isAdmin || user.role === 'executive';
+    
+    if (!canEdit && ['practice_manager', 'practice_principal', 'practice_member'].includes(user.role)) {
+      // Get practice group data to check permissions
+      const allUsers = await db.getAllUsers();
+      const practiceManager = allUsers.find(u => u.email === practiceGroupId && u.role === 'practice_manager');
+      
+      if (practiceManager && practiceManager.practices && user.practices) {
+        // Check if user has any overlapping practices with the practice group
+        canEdit = practiceManager.practices.some(practice => user.practices.includes(practice));
+      }
+    }
     
     if (!canEdit) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
@@ -136,9 +145,18 @@ export async function DELETE(request) {
 
     // Check permissions
     const user = validation.user;
-    const canDelete = user.isAdmin || user.role === 'executive' || 
-      (['practice_manager', 'practice_principal', 'practice_member'].includes(user.role) && 
-       user.practices?.some(practice => practiceGroupId?.includes(practice)));
+    let canDelete = user.isAdmin || user.role === 'executive';
+    
+    if (!canDelete && ['practice_manager', 'practice_principal', 'practice_member'].includes(user.role)) {
+      // Get practice group data to check permissions
+      const allUsers = await db.getAllUsers();
+      const practiceManager = allUsers.find(u => u.email === practiceGroupId && u.role === 'practice_manager');
+      
+      if (practiceManager && practiceManager.practices && user.practices) {
+        // Check if user has any overlapping practices with the practice group
+        canDelete = practiceManager.practices.some(practice => user.practices.includes(practice));
+      }
+    }
     
     if (!canDelete) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });

@@ -19301,6 +19301,159 @@
         "lib/sa-webex-service.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1758507678927,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/contacts/route.js"
+      },
+      "timestamp": "2025-09-22T02:21:18.927Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507679017,
+      "description": "Enhanced ContactManagementSystem with specific functionality improvements",
+      "details": {
+        "file": "components/ContactManagementSystem.js"
+      },
+      "timestamp": "2025-09-22T02:21:19.017Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507679103,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-22T02:21:19.103Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507680528,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/contacts/route.js"
+      },
+      "timestamp": "2025-09-22T02:21:20.528Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507680614,
+      "description": "Enhanced ContactManagementSystem with specific functionality improvements",
+      "details": {
+        "file": "components/ContactManagementSystem.js"
+      },
+      "timestamp": "2025-09-22T02:21:20.614Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507680708,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-22T02:21:20.708Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507681892,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/contacts/route.js"
+      },
+      "timestamp": "2025-09-22T02:21:21.892Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507681976,
+      "description": "Enhanced ContactManagementSystem with specific functionality improvements",
+      "details": {
+        "file": "components/ContactManagementSystem.js"
+      },
+      "timestamp": "2025-09-22T02:21:21.976Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507682061,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-22T02:21:22.061Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -67519,6 +67672,158 @@
         "app/projects/resource-assignments/page.js",
         "lib/sa-email-service.js",
         "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507678849,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/companies/route.js"
+      },
+      "timestamp": "2025-09-22T02:21:18.849Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json"
+      ]
+    },
+    {
+      "id": 1758507679188,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-09-22T02:21:19.188Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507679273,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-09-22T02:21:19.273Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507680443,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/companies/route.js"
+      },
+      "timestamp": "2025-09-22T02:21:20.443Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507680792,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-09-22T02:21:20.792Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507680879,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-09-22T02:21:20.879Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507681809,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/companies/route.js"
+      },
+      "timestamp": "2025-09-22T02:21:21.809Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507682148,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-09-22T02:21:22.148Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758507682246,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-09-22T02:21:22.246Z",
+      "files": [
+        "app/api/companies/route.js",
+        "app/api/contacts/route.js",
+        "components/ContactManagementSystem.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "package.json",
         "pending-changes.json"
       ]
     }

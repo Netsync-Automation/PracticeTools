@@ -42,6 +42,7 @@
     "googleapis": "^159.0.0",
     "httpntlm": "^1.8.13",
     "js-yaml": "^4.1.0",
+    "libphonenumber-js": "^1.10.51",
     "microsoft-graph": "^3.11.20",
     "next": "^14.2.32",
     "next-auth": "^4.24.0",
