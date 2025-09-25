@@ -21377,6 +21377,84 @@
         "app/practice-information/page.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1758826646824,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-25T18:57:26.824Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826647362,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-25T18:57:27.362Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826647857,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-25T18:57:27.857Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826650968,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-25T18:57:30.968Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826651615,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-25T18:57:31.615Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826652083,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-09-25T18:57:32.083Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -72447,6 +72525,83 @@
       "files": [
         "app/api/users/lookup/route.js",
         "app/practice-information/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826646768,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/auth/saml/acs/route.js"
+      },
+      "timestamp": "2025-09-25T18:57:26.768Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js"
+      ]
+    },
+    {
+      "id": 1758826647292,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/auth/saml/acs/route.js"
+      },
+      "timestamp": "2025-09-25T18:57:27.292Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826647780,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/auth/saml/acs/route.js"
+      },
+      "timestamp": "2025-09-25T18:57:27.780Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826650880,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/auth/saml/acs/route.js"
+      },
+      "timestamp": "2025-09-25T18:57:30.880Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826651534,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/auth/saml/acs/route.js"
+      },
+      "timestamp": "2025-09-25T18:57:31.534Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758826651997,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/auth/saml/acs/route.js"
+      },
+      "timestamp": "2025-09-25T18:57:31.997Z",
+      "files": [
+        "app/api/auth/saml/acs/route.js",
+        "app/projects/resource-assignments/page.js",
         "pending-changes.json"
       ]
     }
