@@ -38,7 +38,11 @@ export async function POST(request) {
         console.log('User attributes:', JSON.stringify(response.user, null, 2));
         
         try {
-          const email = response.user.name_id || response.user.attributes?.email?.[0];
+          let email = response.user.name_id || response.user.attributes?.email?.[0];
+          // Clean up email format - remove mailto: prefix if present
+          if (email && email.startsWith('mailto:')) {
+            email = email.substring(7);
+          }
           const name = response.user.attributes?.displayName?.[0] || 
                       response.user.attributes?.name?.[0] || 
                       email;

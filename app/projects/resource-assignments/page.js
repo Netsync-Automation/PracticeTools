@@ -26,7 +26,7 @@ export default function ResourceAssignmentsPage() {
   const [practiceETAs, setPracticeETAs] = useState({});
   const [filters, setFilters] = useState(() => {
     return {
-      status: ['Pending', 'Unassigned'],
+      status: [],
       practice: [],
       region: '',
       dateFrom: '',
@@ -58,23 +58,28 @@ export default function ResourceAssignmentsPage() {
       if (saved) {
         try {
           const parsedFilters = JSON.parse(saved);
-          // Check if we need to apply defaults
-          const needsStatusDefault = !parsedFilters.status || parsedFilters.status.length === 0;
-          const needsPracticeDefault = !parsedFilters.practice || parsedFilters.practice.length === 0;
           
-          if (needsStatusDefault) {
-            parsedFilters.status = ['practice_manager', 'practice_principal'].includes(user.role) ? ['Pending', 'Unassigned'] : [];
+          // For practice members: no default filters, but ensure My Assignments sort
+          if (user.role === 'practice_member') {
+            // Keep saved filters but ensure sort is My Assignments if not explicitly set
+            if (!parsedFilters.sort || parsedFilters.sort === 'newest') {
+              parsedFilters.sort = 'myAssignments';
+            }
+            setFilters(parsedFilters);
+          } else {
+            // For managers/principals: apply defaults if needed
+            const needsStatusDefault = !parsedFilters.status || parsedFilters.status.length === 0;
+            const needsPracticeDefault = !parsedFilters.practice || parsedFilters.practice.length === 0;
+            
+            if (needsStatusDefault) {
+              parsedFilters.status = ['practice_manager', 'practice_principal'].includes(user.role) ? ['Pending', 'Unassigned'] : [];
+            }
+            if (needsPracticeDefault) {
+              parsedFilters.practice = ['practice_manager', 'practice_principal'].includes(user.role) ? [...(user.practices || []), 'Pending'] : [];
+            }
+            
+            setFilters(parsedFilters);
           }
-          if (needsPracticeDefault) {
-            parsedFilters.practice = ['practice_manager', 'practice_principal'].includes(user.role) ? [...(user.practices || []), 'Pending'] : [];
-          }
-          
-          // Set default sort for practice members
-          if (user.role === 'practice_member' && (!parsedFilters.sort || parsedFilters.sort === 'newest')) {
-            parsedFilters.sort = 'myAssignments';
-          }
-          
-          setFilters(parsedFilters);
         } catch (error) {
           shouldSetDefaults = true;
         }
@@ -84,15 +89,29 @@ export default function ResourceAssignmentsPage() {
       
       if (shouldSetDefaults) {
         // No saved filters or parsing error, use defaults
-        setFilters({
-          status: ['practice_manager', 'practice_principal'].includes(user.role) ? ['Pending', 'Unassigned'] : [],
-          practice: ['practice_manager', 'practice_principal'].includes(user.role) ? [...(user.practices || []), 'Pending'] : [],
-          region: '',
-          dateFrom: '',
-          dateTo: '',
-          search: '',
-          sort: user.role === 'practice_member' ? 'myAssignments' : 'newest'
-        });
+        if (user.role === 'practice_member') {
+          // Practice members: no default filters, sort by My Assignments
+          setFilters({
+            status: [],
+            practice: [],
+            region: '',
+            dateFrom: '',
+            dateTo: '',
+            search: '',
+            sort: 'myAssignments'
+          });
+        } else {
+          // Managers/principals: default filters
+          setFilters({
+            status: ['practice_manager', 'practice_principal'].includes(user.role) ? ['Pending', 'Unassigned'] : [],
+            practice: ['practice_manager', 'practice_principal'].includes(user.role) ? [...(user.practices || []), 'Pending'] : [],
+            region: '',
+            dateFrom: '',
+            dateTo: '',
+            search: '',
+            sort: 'newest'
+          });
+        }
       }
     }
   }, [user]);
@@ -474,15 +493,30 @@ export default function ResourceAssignmentsPage() {
                 </h3>
                 <button
                   onClick={() => {
-                    const defaultFilters = { 
-                      status: ['practice_manager', 'practice_principal'].includes(user?.role) ? ['Pending', 'Unassigned'] : [], 
-                      practice: ['practice_manager', 'practice_principal'].includes(user?.role) ? [...(user?.practices || []), 'Pending'] : [], 
-                      region: '', 
-                      dateFrom: '', 
-                      dateTo: '', 
-                      search: '', 
-                      sort: user?.role === 'practice_member' ? 'myAssignments' : 'newest' 
-                    };
+                    let defaultFilters;
+                    if (user?.role === 'practice_member') {
+                      // Practice members: no default filters, sort by My Assignments
+                      defaultFilters = {
+                        status: [],
+                        practice: [],
+                        region: '',
+                        dateFrom: '',
+                        dateTo: '',
+                        search: '',
+                        sort: 'myAssignments'
+                      };
+                    } else {
+                      // Managers/principals: default filters
+                      defaultFilters = {
+                        status: ['practice_manager', 'practice_principal'].includes(user?.role) ? ['Pending', 'Unassigned'] : [],
+                        practice: ['practice_manager', 'practice_principal'].includes(user?.role) ? [...(user?.practices || []), 'Pending'] : [],
+                        region: '',
+                        dateFrom: '',
+                        dateTo: '',
+                        search: '',
+                        sort: 'newest'
+                      };
+                    }
                     localStorage.removeItem('resourceAssignmentsFilters');
                     setFilters(defaultFilters);
                     setCurrentPage(1);
