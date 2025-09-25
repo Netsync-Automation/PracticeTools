@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../../lib/dynamodb.js';
+import { db, getEnvironment } from '../../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../../lib/auth-check.js';
 import { validateCSRFToken } from '../../../../lib/csrf.js';
 
@@ -35,7 +35,7 @@ export async function POST(request) {
         const practiceId = manager.practices.sort().join('-').toLowerCase().replace(/[^a-z0-9-]/g, '');
         
         // Check if board already exists using DSR-compliant naming
-        const boardKey = `${db.getEnvironment()}_practice_board_${practiceId}`;
+        const boardKey = `${getEnvironment()}_practice_board_${practiceId}`;
         const existingBoard = await db.getSetting(boardKey);
         
         if (!existingBoard) {
