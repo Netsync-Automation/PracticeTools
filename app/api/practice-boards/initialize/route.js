@@ -8,24 +8,37 @@ import { validateCSRFToken } from '../../../../lib/csrf.js';
 export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
+    console.log('[PRACTICE-BOARDS-INIT] API called');
+    
     const userCookie = request.cookies.get('user-session');
     const validation = await validateUserSession(userCookie);
     
     if (!validation.valid || !validation.user.isAdmin) {
+      console.log('[PRACTICE-BOARDS-INIT] Unauthorized access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    console.log('[PRACTICE-BOARDS-INIT] User authorized:', validation.user.email);
 
     // DSR: Industry-standard CSRF protection with double-submit cookie pattern
     const csrfToken = request.headers.get('x-csrf-token');
     const csrfCookie = request.cookies.get('csrf-token');
     
     if (!validateCSRFToken(csrfToken, process.env.CSRF_SECRET, csrfCookie?.value)) {
+      console.log('[PRACTICE-BOARDS-INIT] CSRF token validation failed');
       return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
 
+    console.log('[PRACTICE-BOARDS-INIT] CSRF validation passed');
+
     // Get all users with practice_manager role
+    console.log('[PRACTICE-BOARDS-INIT] Fetching all users...');
     const allUsers = await db.getAllUsers();
+    console.log('[PRACTICE-BOARDS-INIT] Total users found:', allUsers.length);
+    
     const practiceManagers = allUsers.filter(user => user.role === 'practice_manager' && user.practices && user.practices.length > 0);
+    console.log('[PRACTICE-BOARDS-INIT] Practice managers found:', practiceManagers.length);
+    console.log('[PRACTICE-BOARDS-INIT] Practice managers:', practiceManagers.map(pm => ({ name: pm.name, email: pm.email, practices: pm.practices })));
     
     const results = [];
     
@@ -33,10 +46,15 @@ export async function POST(request) {
       try {
         // Create practice board ID from sorted practices
         const practiceId = manager.practices.sort().join('-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+        console.log('[PRACTICE-BOARDS-INIT] Processing manager:', manager.name, 'practiceId:', practiceId);
         
         // Check if board already exists using DSR-compliant naming
-        const boardKey = `${getEnvironment()}_practice_board_${practiceId}`;
+        const environment = getEnvironment();
+        const boardKey = `${environment}_practice_board_${practiceId}`;
+        console.log('[PRACTICE-BOARDS-INIT] Board key:', boardKey);
+        
         const existingBoard = await db.getSetting(boardKey);
+        console.log('[PRACTICE-BOARDS-INIT] Existing board found:', !!existingBoard);
         
         if (!existingBoard) {
           // Create new board with default columns
@@ -51,7 +69,8 @@ export async function POST(request) {
             createdAt: new Date().toISOString()
           };
           
-          await db.saveSetting(boardKey, JSON.stringify(defaultBoard));
+          const saveResult = await db.saveSetting(boardKey, JSON.stringify(defaultBoard));
+          console.log('[PRACTICE-BOARDS-INIT] Board save result:', saveResult);
           
           results.push({
             manager: manager.name,
@@ -60,6 +79,7 @@ export async function POST(request) {
             practiceId,
             status: 'created'
           });
+          console.log('[PRACTICE-BOARDS-INIT] Board created for:', manager.name);
         } else {
           results.push({
             manager: manager.name,
@@ -79,6 +99,9 @@ export async function POST(request) {
         });
       }
     }
+    
+    console.log('[PRACTICE-BOARDS-INIT] Final results:', results);
+    console.log('[PRACTICE-BOARDS-INIT] Boards created:', results.filter(r => r.status === 'created').length);
     
     return NextResponse.json({ 
       success: true,

@@ -647,7 +647,7 @@ export default function AssignmentDetailPage() {
                     )}
                     
                     {assignment.documentationLink && (
-                      <div className="mt-6">
+                      <div className="mt-6 flex items-center gap-3">
                         <a
                           href={assignment.documentationLink}
                           target="_blank"
@@ -658,6 +658,17 @@ export default function AssignmentDetailPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                           </svg>
                           View Documentation
+                        </a>
+                        <a
+                          href="https://savant.netsync.com/v2/engineering/eng-resources/all"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                          Assign Resource
                         </a>
                       </div>
                     )}
