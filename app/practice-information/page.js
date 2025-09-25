@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useBoardDragDrop } from '../../hooks/useBoardDragDrop';
 import { useCsrf } from '../../hooks/useCsrf';
 import { sanitizeText } from '../../lib/sanitize';
+import { linkifyText } from '../../lib/url-utils';
 import SidebarLayout from '../../components/SidebarLayout';
 import Navbar from '../../components/Navbar';
 import Breadcrumb from '../../components/Breadcrumb';
@@ -173,6 +174,11 @@ export default function PracticeInformationPage() {
   const [newCardTitle, setNewCardTitle] = useState('');
   const [newCardDescription, setNewCardDescription] = useState('');
   const [editingCard, setEditingCard] = useState(null);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showProjectNumberModal, setShowProjectNumberModal] = useState(false);
+  const [projectNumber, setProjectNumber] = useState('');
+  const [showProjectMenu, setShowProjectMenu] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -1288,6 +1294,11 @@ export default function PracticeInformationPage() {
     setSaveAsTemplate(false);
     setShowChecklistDropdown(false);
     setSelectedChecklistItem(null);
+    setEditingDescription(false);
+    setShowAddMenu(false);
+    setShowProjectNumberModal(false);
+    setProjectNumber('');
+    setShowProjectMenu(false);
   };
 
   // Handle search result navigation
@@ -1323,10 +1334,16 @@ export default function PracticeInformationPage() {
       if (showChecklistDropdown && !event.target.closest('.checklist-dropdown')) {
         setShowChecklistDropdown(false);
       }
+      if (showAddMenu && !event.target.closest('.relative')) {
+        setShowAddMenu(false);
+      }
+      if (showProjectMenu && !event.target.closest('.relative')) {
+        setShowProjectMenu(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showLabelDropdown, showUserDropdown, showChecklistDropdown]);
+  }, [showLabelDropdown, showUserDropdown, showChecklistDropdown, showAddMenu, showProjectMenu]);
 
   // Drag and drop setup
   const sensors = useSensors(
@@ -2068,16 +2085,158 @@ export default function PracticeInformationPage() {
                   <div className="col-span-3 space-y-6">
                     {/* Description */}
                     <div>
-                      <label className="block text-lg font-semibold text-gray-800 mb-4">Description</label>
+                      <div className="flex items-center justify-between mb-4">
+                        <label className="block text-lg font-semibold text-gray-800">Description</label>
+                      </div>
                       <div className="space-y-4">
-                        <textarea
-                          value={selectedCard.description || ''}
-                          onChange={(e) => setSelectedCard({ ...selectedCard, description: e.target.value })}
-                          onBlur={() => updateCard(selectedCard.columnId, selectedCard.id, { description: selectedCard.description })}
-                          className="w-full p-4 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed shadow-sm transition-all duration-200"
-                          rows={8}
-                          placeholder="Add a detailed description..."
-                        />
+                        {editingDescription ? (
+                          <div className="space-y-3">
+                            <textarea
+                              value={selectedCard.description || ''}
+                              onChange={(e) => setSelectedCard({ ...selectedCard, description: e.target.value })}
+                              className="w-full p-4 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed shadow-sm transition-all duration-200"
+                              rows={8}
+                              placeholder="Add a detailed description..."
+                              autoFocus
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  updateCard(selectedCard.columnId, selectedCard.id, { description: selectedCard.description });
+                                  setEditingDescription(false);
+                                }}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditingDescription(false)}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {selectedCard.projectUrl && (
+                              <div className="mb-4 relative group">
+                                <div className="flex items-center gap-2">
+                                  <a
+                                    href={selectedCard.projectUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M7 7l10 10M17 7v4" />
+                                    </svg>
+                                    View Project
+                                  </a>
+                                  {canComment && (
+                                    <div className="relative">
+                                      <button
+                                        onClick={() => setShowProjectMenu(!showProjectMenu)}
+                                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                                        title="Project options"
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                        </svg>
+                                      </button>
+                                      {showProjectMenu && (
+                                        <div className="absolute left-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-10 overflow-hidden">
+                                          <div className="p-1">
+                                            <button
+                                              onClick={() => {
+                                                setProjectNumber(selectedCard.projectUrl.match(/jobNo=([^&]+)/)?.[1] || '');
+                                                setShowProjectNumberModal(true);
+                                                setShowProjectMenu(false);
+                                              }}
+                                              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors"
+                                            >
+                                              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                              </svg>
+                                              Edit Project
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                if (window.confirm('Remove project link from this card?')) {
+                                                  updateCard(selectedCard.columnId, selectedCard.id, { projectUrl: null });
+                                                  setSelectedCard(prev => ({ ...prev, projectUrl: null }));
+                                                }
+                                                setShowProjectMenu(false);
+                                              }}
+                                              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors"
+                                            >
+                                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                              </svg>
+                                              Remove Project
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            <div className="w-full p-4 border border-gray-200 rounded-xl bg-gray-50 text-base leading-relaxed min-h-32">
+                              {selectedCard.description ? (
+                                <div 
+                                  className="text-gray-900 whitespace-pre-wrap"
+                                  dangerouslySetInnerHTML={{ __html: linkifyText(selectedCard.description) }}
+                                />
+                              ) : (
+                                <span className="text-gray-500 italic">No description provided</span>
+                              )}
+                            </div>
+                            {canComment && (
+                              <div className="flex justify-between items-center">
+                                <button
+                                  onClick={() => setEditingDescription(true)}
+                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                >
+                                  Edit
+                                </button>
+                                <div className="relative">
+                                  <button
+                                    onClick={() => setShowAddMenu(!showAddMenu)}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                                  >
+                                    <PlusIcon className="h-4 w-4" />
+                                    Add
+                                  </button>
+                                  {showAddMenu && (
+                                    <div className="absolute right-0 bottom-full mb-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-10 overflow-hidden">
+                                      <div className="p-2">
+                                        <button
+                                          onClick={() => {
+                                            setShowProjectNumberModal(true);
+                                            setShowAddMenu(false);
+                                          }}
+                                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 group"
+                                        >
+                                          <div className="w-8 h-8 bg-blue-100 group-hover:bg-blue-200 rounded-lg flex items-center justify-center transition-colors">
+                                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                          </div>
+                                          <div className="text-left">
+                                            <div className="font-semibold">Project Number</div>
+                                            <div className="text-xs text-gray-500">Link to Savant project</div>
+                                          </div>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         
                         {/* Interactive Checklists */}
                         {selectedCard.checklists && selectedCard.checklists.length > 0 && (
@@ -2670,6 +2829,94 @@ export default function PracticeInformationPage() {
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Project Number Modal */}
+      {showProjectNumberModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100">
+            <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Add Project Link</h3>
+                    <p className="text-sm text-gray-600">Connect to Savant project details</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowProjectNumberModal(false);
+                    setProjectNumber('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-white hover:shadow-md transition-all duration-200"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+            <div className="p-8">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-3">Project Number</label>
+                  <input
+                    type="text"
+                    value={projectNumber}
+                    onChange={(e) => setProjectNumber(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg font-medium"
+                    placeholder="e.g., 12345"
+                    autoFocus
+                  />
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">{selectedCard?.projectUrl ? 'This will update the existing project link:' : 'This will create a link to:'}</p>
+                      <p className="font-mono text-xs bg-white px-2 py-1 rounded border">savant.netsync.com/v2/pmo/projects/details</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="px-8 py-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setShowProjectNumberModal(false);
+                    setProjectNumber('');
+                  }}
+                  className="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (projectNumber.trim()) {
+                      const projectUrl = `https://savant.netsync.com/v2/pmo/projects/details?jobNo=${projectNumber.trim()}&isPmo=true`;
+                      
+                      updateCard(selectedCard.columnId, selectedCard.id, { projectUrl });
+                      setSelectedCard(prev => ({ ...prev, projectUrl }));
+                      
+                      setShowProjectNumberModal(false);
+                      setProjectNumber('');
+                    }
+                  }}
+                  disabled={!projectNumber.trim()}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 disabled:transform-none"
+                >
+                  Add Project Link
+                </button>
               </div>
             </div>
           </div>

@@ -20891,6 +20891,185 @@
         "lib/webex-service.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1758813351818,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/admin/users/route.js"
+      },
+      "timestamp": "2025-09-25T15:15:51.818Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1758813351906,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-25T15:15:51.906Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813352012,
+      "description": "Enhanced UserSelector with specific functionality improvements",
+      "details": {
+        "file": "components/UserSelector.js"
+      },
+      "timestamp": "2025-09-25T15:15:52.012Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813352076,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-25T15:15:52.076Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813352901,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/admin/users/route.js"
+      },
+      "timestamp": "2025-09-25T15:15:52.901Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813352987,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-25T15:15:52.987Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813353092,
+      "description": "Enhanced UserSelector with specific functionality improvements",
+      "details": {
+        "file": "components/UserSelector.js"
+      },
+      "timestamp": "2025-09-25T15:15:53.092Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813353232,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-25T15:15:53.232Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813353876,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/admin/users/route.js"
+      },
+      "timestamp": "2025-09-25T15:15:53.876Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813353970,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-25T15:15:53.970Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813354054,
+      "description": "Enhanced UserSelector with specific functionality improvements",
+      "details": {
+        "file": "components/UserSelector.js"
+      },
+      "timestamp": "2025-09-25T15:15:54.054Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758813354136,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-25T15:15:54.136Z",
+      "files": [
+        "app/api/admin/users/route.js",
+        "app/practice-information/page.js",
+        "components/UserSelector.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
