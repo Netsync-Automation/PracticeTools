@@ -986,7 +986,7 @@ export default function PracticeInformationPage() {
 
   const loadUsers = async () => {
     try {
-      const response = await fetch('/api/users/lookup');
+      const response = await fetch('/api/admin/users');
       if (response.ok) {
         const data = await response.json();
         const users = data.users || [];
