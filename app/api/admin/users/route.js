@@ -7,29 +7,37 @@ export const runtime = 'nodejs';
 
 export async function GET(request) {
   try {
+    console.log('[API] /api/admin/users - Starting user fetch request');
     const userCookie = request.cookies.get('user-session');
     const validation = await validateUserSession(userCookie);
     
     if (!validation.valid) {
+      console.log('[API] /api/admin/users - Unauthorized request');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     const user = validation.user;
+    console.log('[API] /api/admin/users - User validated:', user.email, 'Role:', user.role, 'IsAdmin:', user.isAdmin);
     
     // Allow admins full access, practice managers/principals filtered access
     if (user.isAdmin) {
+      console.log('[API] /api/admin/users - Admin user, fetching all users');
       const users = await db.getAllUsers();
+      console.log('[API] /api/admin/users - Retrieved', users?.length || 0, 'users from database');
       return NextResponse.json({ users });
     } else if (user.role === 'practice_manager' || user.role === 'practice_principal') {
+      console.log('[API] /api/admin/users - Practice manager/principal, fetching all users');
       const allUsers = await db.getAllUsers();
+      console.log('[API] /api/admin/users - Retrieved', allUsers?.length || 0, 'users from database');
       // For practice managers/principals, they can see all users but filtering will be applied on frontend
       // This allows them to manage users within their practice teams
       return NextResponse.json({ users: allUsers });
     } else {
+      console.log('[API] /api/admin/users - Insufficient permissions for role:', user.role);
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error('[API] /api/admin/users - Error fetching users:', error);
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
 }

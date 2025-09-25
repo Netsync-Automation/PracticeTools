@@ -62,13 +62,19 @@ export default function UserSelector({
 
   const fetchUsers = async () => {
     try {
+      console.log('[UserSelector] Fetching users from /api/admin/users');
       const response = await fetch('/api/admin/users');
+      console.log('[UserSelector] Response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('[UserSelector] Users received:', data.users?.length || 0, 'users');
+        console.log('[UserSelector] Sample users:', data.users?.slice(0, 3));
         setUsers(data.users || []);
+      } else {
+        console.error('[UserSelector] Failed to fetch users:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('[UserSelector] Error fetching users:', error);
     } finally {
       setLoading(false);
     }
