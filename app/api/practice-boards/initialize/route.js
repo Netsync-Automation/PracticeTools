@@ -4,6 +4,7 @@ import { validateUserSession } from '../../../../lib/auth-check.js';
 import { validateCSRFToken } from '../../../../lib/csrf.js';
 
 
+
 export const dynamic = 'force-dynamic';
 export async function POST(request) {
   try {
@@ -14,9 +15,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // CSRF Protection
+    // DSR: Industry-standard CSRF protection with double-submit cookie pattern
     const csrfToken = request.headers.get('x-csrf-token');
-    if (!validateCSRFToken(csrfToken, process.env.CSRF_SECRET)) {
+    const csrfCookie = request.cookies.get('csrf-token');
+    
+    if (!validateCSRFToken(csrfToken, process.env.CSRF_SECRET, csrfCookie?.value)) {
       return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
 
