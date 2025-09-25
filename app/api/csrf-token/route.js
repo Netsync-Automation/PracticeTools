@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { generateCSRFToken } from '../../../lib/csrf.js';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const token = crypto.randomBytes(32).toString('hex');
+    // DSR: Use industry-standard CSRF token generation
+    const token = generateCSRFToken(process.env.CSRF_SECRET);
     
     const response = NextResponse.json({ token });
     
-    // Set CSRF token in httpOnly cookie for server-side validation
+    // DSR: Double-submit cookie pattern for enhanced security
     response.cookies.set('csrf-token', token, {
       httpOnly: true,
       secure: process.env.NEXTAUTH_URL?.startsWith('https://') || false,
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 // 24 hours
+      maxAge: 30 * 60 // 30 minutes (matches token expiration)
     });
     
     return response;
