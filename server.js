@@ -10,7 +10,7 @@ console.log('  - PORT:', process.env.PORT);
 console.log('  - NEXTAUTH_URL:', process.env.NEXTAUTH_URL ? 'SET' : 'NOT SET');
 
 const dev = process.env.NODE_ENV !== 'production' && process.env.ENVIRONMENT !== 'prod';
-const hostname = 'localhost';
+const hostname = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 const port = process.env.PORT || 3000;
 
 console.log('🚀 [STARTUP] Next.js dev mode:', dev);
@@ -49,6 +49,17 @@ app.prepare().then(() => {
   .listen(port, () => {
     console.log(`✅ [STARTUP] Server ready on http://${hostname}:${port}`);
     console.log('✅ [STARTUP] Application startup completed successfully');
+    console.log('🔍 [DEBUG] Server listening details:');
+    console.log('  - Hostname:', hostname);
+    console.log('  - Port:', port);
+    console.log('  - Dev mode:', dev);
+    console.log('  - Process PID:', process.pid);
+    console.log('  - Memory usage:', process.memoryUsage());
+    
+    // Test server responsiveness
+    setTimeout(() => {
+      console.log('🔍 [DEBUG] Server health check - still running after 5 seconds');
+    }, 5000);
   });
 }).catch(error => {
   console.error('❌ [STARTUP] Next.js preparation failed:', error);
