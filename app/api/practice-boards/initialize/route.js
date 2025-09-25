@@ -34,8 +34,9 @@ export async function POST(request) {
         // Create practice board ID from sorted practices
         const practiceId = manager.practices.sort().join('-').toLowerCase().replace(/[^a-z0-9-]/g, '');
         
-        // Check if board already exists
-        const existingBoard = await db.getSetting(`practice_board_${practiceId}`);
+        // Check if board already exists using DSR-compliant naming
+        const boardKey = `${db.getEnvironment()}_practice_board_${practiceId}`;
+        const existingBoard = await db.getSetting(boardKey);
         
         if (!existingBoard) {
           // Create new board with default columns
@@ -50,7 +51,7 @@ export async function POST(request) {
             createdAt: new Date().toISOString()
           };
           
-          await db.saveSetting(`practice_board_${practiceId}`, JSON.stringify(defaultBoard));
+          await db.saveSetting(boardKey, JSON.stringify(defaultBoard));
           
           results.push({
             manager: manager.name,
