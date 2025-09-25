@@ -297,13 +297,32 @@ const validatePracticeCoverage = async (practices, assignedSas) => {
     const saList = assignedSas.split(',').map(s => s.trim());
     const coveredPractices = new Set();
     
-    saList.forEach(saName => {
-      const user = data.users.find(u => u.name === saName);
+    saList.forEach(saEntry => {
+      // Extract email from "Name <email>" format or use as-is if it's just email
+      let userEmail = null;
+      const emailMatch = saEntry.match(/<([^>]+)>/);
+      if (emailMatch) {
+        userEmail = emailMatch[1].trim();
+      } else if (saEntry.includes('@')) {
+        userEmail = saEntry.trim();
+      }
+      
+      // Find user by email (primary identifier) or fallback to name matching
+      const user = data.users.find(u => {
+        if (userEmail && u.email === userEmail) return true;
+        // Fallback: try name matching for cases without email
+        const cleanName = saEntry.replace(/<[^>]+>/g, '').trim();
+        return u.name === cleanName || u.name === saEntry;
+      });
+      
       if (user && user.practices && Array.isArray(user.practices)) {
-        user.practices.forEach(practice => {
-          if (practiceList.includes(practice)) {
-            coveredPractices.add(practice);
-          }
+        // Check if user has ANY of the requested practices (not exact match)
+        user.practices.forEach(userPractice => {
+          practiceList.forEach(requestedPractice => {
+            if (userPractice === requestedPractice) {
+              coveredPractices.add(requestedPractice);
+            }
+          });
         });
       }
     });
@@ -412,6 +431,14 @@ export default function SaAssignmentDetailPage({ params }) {
     } catch (error) {
       console.error('Error fetching users:', error);
       setAllUsers([]);
+    }
+  };
+
+  // Global refresh function for user list updates
+  window.refreshUsers = (newUsers) => {
+    if (newUsers && Array.isArray(newUsers)) {
+      setAllUsers(newUsers);
+      window.cachedUsers = newUsers;
     }
   };
 
@@ -1045,40 +1072,10 @@ export default function SaAssignmentDetailPage({ params }) {
             setAssignResourceData({});
           }}
           onSave={async (updateData) => {
-            // Validate practice coverage for Assigned status
-            if (assignResourceTargetStatus === 'Assigned' && updateData.saAssigned) {
-              const validation = await validatePracticeCoverage(updateData.practice, updateData.saAssigned);
-              
-              if (!validation.valid) {
-                const confirmed = confirm(`The assignment will be saved but will remain in "Unassigned" status.\n\nThe following practices still need SA assignments:\n${validation.uncoveredPractices.join(', ')}\n\nClick OK to save with current assignments, or Cancel to continue editing.`);
-                if (!confirmed) return;
-                
-                // Override target status to Unassigned since not all practices are covered
-                updateData.status = 'Unassigned';
-              }
-            }
-            
             setSaving(true);
             try {
-              // Convert SA names to "Name <email>" format for storage
-              if (updateData.saAssigned) {
-                const saNames = Array.isArray(updateData.saAssigned) ? updateData.saAssigned : updateData.saAssigned.split(',').map(s => s.trim());
-                const saWithEmails = saNames.map(name => {
-                  const user = allUsers.find(u => u.name === name);
-                  return user ? `${user.name} <${user.email}>` : name;
-                });
-                updateData.saAssigned = saWithEmails.join(', ');
-              }
-              
-              // Save SA assignments even for Unassigned status if they exist
-              if (assignResourceTargetStatus !== 'Assigned' && assignResourceData.saAssigned && (Array.isArray(assignResourceData.saAssigned) ? assignResourceData.saAssigned.length > 0 : assignResourceData.saAssigned)) {
-                const saNames = Array.isArray(assignResourceData.saAssigned) ? assignResourceData.saAssigned : [assignResourceData.saAssigned];
-                const saWithEmails = saNames.map(name => {
-                  const user = allUsers.find(u => u.name === name);
-                  return user ? `${user.name} <${user.email}>` : name;
-                });
-                updateData.saAssigned = saWithEmails.join(', ');
-              }
+              // DSR: Practice assignments are already in the correct format from the modal
+              // No need for additional validation since the modal handles it
               
               await updateSaAssignment(updateData);
               await fetchSaAssignment(); // Refresh data to show updated practiceAssignments

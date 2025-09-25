@@ -43,11 +43,60 @@ export default function MultiResourceSelector({
     fetchUsers();
   }, []);
 
+  const calculatedUserPractices = useMemo(() => {
+    if (users.length === 0) return {};
+    
+    const practices = {};
+    
+    // Helper function to extract friendly name
+    const extractFriendlyName = (nameWithEmail) => {
+      if (!nameWithEmail) return '';
+      const match = nameWithEmail.match(/^(.+?)\s*<[^>]+>/);
+      return match ? match[1].trim() : nameWithEmail.trim();
+    };
+    
+    // First, map from practiceAssignments data (existing associations)
+    Object.entries(practiceAssignments).forEach(([practice, saList]) => {
+      if (Array.isArray(saList)) {
+        saList.forEach(sa => {
+          const friendlyName = extractFriendlyName(sa);
+          // Map both full format and friendly name format
+          [sa, friendlyName].forEach(key => {
+            if (!practices[key]) practices[key] = [];
+            practices[key].push({
+              name: practice,
+              colors: COLOR_PALETTE[assignedPractices.indexOf(practice) % COLOR_PALETTE.length]
+            });
+          });
+        });
+      }
+    });
+    
+    // Then, map from user practices (for new selections)
+    users.forEach(user => {
+      if (user.practices && Array.isArray(user.practices)) {
+        const matchingPractices = user.practices.filter(p => assignedPractices.includes(p));
+        if (matchingPractices.length > 0) {
+          const userKey = `${user.name} <${user.email}>`;
+          const friendlyKey = user.name;
+          [userKey, friendlyKey].forEach(key => {
+            if (!practices[key]) {
+              practices[key] = matchingPractices.map((practice, index) => ({
+                name: practice,
+                colors: COLOR_PALETTE[assignedPractices.indexOf(practice) % COLOR_PALETTE.length]
+              }));
+            }
+          });
+        }
+      }
+    });
+    
+    return practices;
+  }, [users, assignedPractices, JSON.stringify(practiceAssignments)]);
+
   useEffect(() => {
-    if (users.length > 0) {
-      mapUserPractices();
-    }
-  }, [users, assignedPractices, practiceAssignments]);
+    setUserPractices(calculatedUserPractices);
+  }, [calculatedUserPractices]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -101,54 +150,7 @@ export default function MultiResourceSelector({
     }
   };
 
-  const mapUserPractices = () => {
-    const practices = {};
-    
-    // Helper function to extract friendly name
-    const extractFriendlyName = (nameWithEmail) => {
-      if (!nameWithEmail) return '';
-      const match = nameWithEmail.match(/^(.+?)\s*<[^>]+>/);
-      return match ? match[1].trim() : nameWithEmail.trim();
-    };
-    
-    // First, map from practiceAssignments data (existing associations)
-    Object.entries(practiceAssignments).forEach(([practice, saList]) => {
-      if (Array.isArray(saList)) {
-        saList.forEach(sa => {
-          const friendlyName = extractFriendlyName(sa);
-          // Map both full format and friendly name format
-          [sa, friendlyName].forEach(key => {
-            if (!practices[key]) practices[key] = [];
-            practices[key].push({
-              name: practice,
-              colors: COLOR_PALETTE[assignedPractices.indexOf(practice) % COLOR_PALETTE.length]
-            });
-          });
-        });
-      }
-    });
-    
-    // Then, map from user practices (for new selections)
-    users.forEach(user => {
-      if (user.practices && Array.isArray(user.practices)) {
-        const matchingPractices = user.practices.filter(p => assignedPractices.includes(p));
-        if (matchingPractices.length > 0) {
-          const userKey = `${user.name} <${user.email}>`;
-          const friendlyKey = user.name;
-          [userKey, friendlyKey].forEach(key => {
-            if (!practices[key]) {
-              practices[key] = matchingPractices.map((practice, index) => ({
-                name: practice,
-                colors: COLOR_PALETTE[assignedPractices.indexOf(practice) % COLOR_PALETTE.length]
-              }));
-            }
-          });
-        }
-      }
-    });
-    
-    setUserPractices(practices);
-  };
+
 
   const handleUserSelect = (user) => {
     if (selectedResources.length < maxResources) {

@@ -38,7 +38,7 @@ export default function AdminPage() {
   const issuesPerPage = 20;
 
   useEffect(() => {
-    if (user && !user.isAdmin) {
+    if (user && !user.isAdmin && user.role !== 'practice_manager' && user.role !== 'practice_principal') {
       router.push('/');
       return;
     }

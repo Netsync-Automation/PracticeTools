@@ -14,6 +14,8 @@ export function useBoardDragDrop(columns, setColumns, saveBoardData, canEdit) {
     const { active } = event;
     const activeType = active.data.current?.type;
     
+
+    
     setDragState({
       activeId: active.id,
       activeType,
@@ -28,11 +30,14 @@ export function useBoardDragDrop(columns, setColumns, saveBoardData, canEdit) {
     const activeType = active.data.current?.type;
     const overType = over.data.current?.type;
 
-    // Handle card movement between columns
+
+
+    // Handle card movement between columns during drag over
     if (activeType === 'card' && overType === 'column') {
       const activeColumnId = active.data.current.columnId;
       const overColumnId = over.id;
 
+      // Skip if same column
       if (activeColumnId === overColumnId) return;
 
       setColumns(prevColumns => {
@@ -43,6 +48,10 @@ export function useBoardDragDrop(columns, setColumns, saveBoardData, canEdit) {
 
         const activeCard = activeColumn.cards.find(card => card.id === active.id);
         if (!activeCard) return prevColumns;
+
+        // Check if card is already in the target column to prevent duplicates
+        const cardAlreadyInTarget = overColumn.cards.some(card => card.id === active.id);
+        if (cardAlreadyInTarget) return prevColumns;
 
         return prevColumns.map(col => {
           if (col.id === activeColumnId) {
@@ -78,22 +87,69 @@ export function useBoardDragDrop(columns, setColumns, saveBoardData, canEdit) {
       let newColumns = [...columns];
 
       // Handle column reordering
-      if (activeType === 'column' && overType === 'column') {
+      if (activeType === 'column') {
         const oldIndex = columns.findIndex(col => col.id === active.id);
-        const newIndex = columns.findIndex(col => col.id === over.id);
+        let newIndex;
         
-        if (oldIndex !== newIndex) {
+        if (overType === 'column') {
+          newIndex = columns.findIndex(col => col.id === over.id);
+        } else {
+          newIndex = oldIndex;
+        }
+        
+        if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
           newColumns = arrayMove(columns, oldIndex, newIndex);
           setColumns(newColumns);
         }
       }
       
-      // Handle card reordering within same column
+      // Handle card movement between columns
+      else if (activeType === 'card' && overType === 'column') {
+        const activeColumnId = active.data.current.columnId;
+        const overColumnId = over.id;
+        
+
+        
+        // Only process if moving to a different column
+        if (activeColumnId !== overColumnId) {
+          const activeColumn = newColumns.find(col => col.id === activeColumnId);
+          const overColumn = newColumns.find(col => col.id === overColumnId);
+          
+          if (activeColumn && overColumn) {
+            const activeCard = activeColumn.cards.find(card => card.id === active.id);
+            // Ensure card exists and isn't already in target column
+            if (activeCard && !overColumn.cards.find(card => card.id === active.id)) {
+              newColumns = newColumns.map(col => {
+                if (col.id === activeColumnId) {
+                  return {
+                    ...col,
+                    cards: col.cards.filter(card => card.id !== active.id)
+                  };
+                }
+                if (col.id === overColumnId) {
+                  return {
+                    ...col,
+                    cards: [...col.cards, activeCard]
+                  };
+                }
+                return col;
+              });
+              setColumns(newColumns);
+
+            }
+          }
+        }
+      }
+      
+      // Handle card reordering within same column or moving between columns via card collision
       else if (activeType === 'card' && overType === 'card') {
         const activeColumnId = active.data.current.columnId;
         const overColumnId = over.data.current.columnId;
         
+
+        
         if (activeColumnId === overColumnId) {
+          // Reordering within same column
           const columnIndex = newColumns.findIndex(col => col.id === activeColumnId);
           const column = newColumns[columnIndex];
           
@@ -105,12 +161,52 @@ export function useBoardDragDrop(columns, setColumns, saveBoardData, canEdit) {
             newColumns[columnIndex] = { ...column, cards: reorderedCards };
             setColumns(newColumns);
           }
+        } else {
+          // Moving between columns via card collision
+          const activeColumn = newColumns.find(col => col.id === activeColumnId);
+          const overColumn = newColumns.find(col => col.id === overColumnId);
+          
+          if (activeColumn && overColumn) {
+            const activeCard = activeColumn.cards.find(card => card.id === active.id);
+            const overCardIndex = overColumn.cards.findIndex(card => card.id === over.id);
+            
+            if (activeCard && overCardIndex !== -1) {
+              newColumns = newColumns.map(col => {
+                if (col.id === activeColumnId) {
+                  return {
+                    ...col,
+                    cards: col.cards.filter(card => card.id !== active.id)
+                  };
+                }
+                if (col.id === overColumnId) {
+                  const newCards = [...col.cards];
+                  newCards.splice(overCardIndex, 0, activeCard);
+                  return {
+                    ...col,
+                    cards: newCards
+                  };
+                }
+                return col;
+              });
+              setColumns(newColumns);
+
+            }
+          }
         }
       }
 
       // Save to server with error handling
       if (JSON.stringify(newColumns) !== JSON.stringify(dragState.originalData)) {
-        await saveBoardData(newColumns);
+        try {
+          await saveBoardData(newColumns);
+        } catch (saveError) {
+          console.error('Failed to save drag operation:', saveError);
+          // Rollback to original state
+          if (dragState.originalData) {
+            setColumns(dragState.originalData);
+          }
+          throw saveError;
+        }
       }
     } catch (error) {
       console.error('Failed to save drag operation:', error);

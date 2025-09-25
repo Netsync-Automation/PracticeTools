@@ -60,6 +60,17 @@ export async function POST(request) {
       }
     }
     
+    // Parse notification users if provided
+    let notificationUsers = [];
+    try {
+      const notificationUsersData = formData.get('notificationUsers');
+      if (notificationUsersData) {
+        notificationUsers = JSON.parse(notificationUsersData);
+      }
+    } catch (error) {
+      console.error('Error parsing notification users:', error);
+    }
+    
     const assignmentId = await db.addAssignment(
       formData.get('practice'),
       formData.get('status') || 'Active',
@@ -74,7 +85,10 @@ export async function POST(request) {
       formData.get('resourceAssigned'),
       formData.get('dateAssigned'),
       formData.get('notes') || '',
-      attachments
+      formData.get('documentationLink') || '',
+      formData.get('pmEmail') || '',
+      attachments,
+      notificationUsers
     );
 
     if (assignmentId) {

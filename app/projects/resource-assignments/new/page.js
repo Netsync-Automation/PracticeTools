@@ -10,6 +10,7 @@ import Breadcrumb from '../../../../components/Breadcrumb';
 import UserSelector from '../../../../components/UserSelector';
 import PracticeSelector from '../../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../../components/MultiResourceSelector';
+import AccountManagerSelector from '../../../../components/AccountManagerSelector';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../../../constants/assignmentStatus';
 import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
@@ -21,6 +22,8 @@ function FileUploadZone({ attachments, setAttachments }) {
     'image/jpeg', 'image/png', 'image/gif', 'image/webp',
     'application/pdf', 'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain', 'application/zip'
   ];
 
@@ -90,7 +93,7 @@ function FileUploadZone({ attachments, setAttachments }) {
           type="file"
           multiple
           onChange={handleChange}
-          accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.txt,.zip"
+          accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
           className="hidden"
         />
         <div>
@@ -104,7 +107,7 @@ function FileUploadZone({ attachments, setAttachments }) {
           <span className="text-gray-500"> or drag and drop</span>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Max 5 files, 5MB each. Images, PDF, DOC, TXT, ZIP
+          Max 5 files, 5MB each. Images, PDF, DOC, XLS, TXT, ZIP
         </p>
       </div>
       
@@ -401,14 +404,11 @@ export default function NewAssignmentPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Account Manager *</label>
-                      <input
-                        type="text"
-                        name="am"
+                      <AccountManagerSelector
                         value={formData.am}
-                        onChange={handleInputChange}
+                        onChange={(value) => setFormData(prev => ({ ...prev, am: value }))}
+                        placeholder="Select account manager..."
                         required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Sarah Johnson"
                       />
                     </div>
                     <div>

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../../lib/dynamodb.js';
+import { db, getEnvironment } from '../../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../../lib/auth-check.js';
 
 
@@ -17,18 +17,20 @@ export async function GET(request) {
     
     const user = validation.user;
     
-    // Get all practice board settings
+    // Get all practice board settings - DSR compliant with environment prefix
+    const environment = getEnvironment();
     const allSettings = await db.getAllSettings();
     console.log('🔍 [API] Total settings found:', Object.keys(allSettings).length);
     
     const practiceBoards = [];
-    const boardKeys = Object.keys(allSettings).filter(key => key.startsWith('practice_board_'));
-    console.log('🔍 [API] Practice board keys found:', boardKeys);
+    const boardPrefix = `${environment}_practice_board_`;
+    const boardKeys = Object.keys(allSettings).filter(key => key.startsWith(boardPrefix));
+    console.log('🔍 [API] DSR compliant practice board keys found:', boardKeys);
     
     for (const [key, value] of Object.entries(allSettings)) {
-      if (key.startsWith('practice_board_') && key !== 'practice_board_data') {
-        const practiceId = key.replace('practice_board_', '');
-        console.log('🔍 [API] Processing board key:', key, 'practiceId:', practiceId);
+      if (key.startsWith(boardPrefix) && key !== `${environment}_practice_board_data`) {
+        const practiceId = key.replace(boardPrefix, '');
+        console.log('🔍 [API] Processing DSR compliant board key:', key, 'practiceId:', practiceId);
         
         // Skip topic-specific boards (they contain underscores after the practice ID)
         if (practiceId.includes('_')) {

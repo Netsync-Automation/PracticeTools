@@ -9,13 +9,17 @@ export default function MultiAccountManagerSelector({
   placeholder = "Select or type account manager names...",
   className = "",
   required = false,
-  maxManagers = 5
+  maxManagers = 5,
+  allUsers = [],
+  onCreateUser = null
 }) {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -24,8 +28,13 @@ export default function MultiAccountManagerSelector({
   }, [value]);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (allUsers && allUsers.length > 0) {
+      setUsers(allUsers);
+      setLoading(false);
+    } else {
+      fetchUsers();
+    }
+  }, [allUsers]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -94,6 +103,13 @@ export default function MultiAccountManagerSelector({
       setSearchTerm('');
       setIsOpen(false);
     }
+  };
+
+  const handleCreateUser = async (userData) => {
+    if (onCreateUser) {
+      return await onCreateUser(userData);
+    }
+    return false;
   };
 
   const handleKeyDown = (e) => {
@@ -174,12 +190,25 @@ export default function MultiAccountManagerSelector({
                       <div>
                         <p className="text-sm">No account managers found</p>
                         {searchTerm.trim() && (
-                          <button
-                            onClick={handleAddFromInput}
-                            className="mt-2 text-xs text-blue-600 hover:text-blue-800"
-                          >
-                            Add "{searchTerm.trim()}" as custom account manager
-                          </button>
+                          <div className="space-y-1">
+                            <button
+                              onClick={handleAddFromInput}
+                              className="block w-full text-xs text-blue-600 hover:text-blue-800 p-1"
+                            >
+                              Add "{searchTerm.trim()}" as custom account manager
+                            </button>
+                            {onCreateUser && (
+                              <button
+                                onClick={() => {
+                                  setShowCreateModal(true);
+                                  setIsOpen(false);
+                                }}
+                                className="block w-full text-xs text-green-600 hover:text-green-800 p-1 border-t border-gray-200"
+                              >
+                                Create new account manager
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     ) : 'No account managers available'}
@@ -208,6 +237,107 @@ export default function MultiAccountManagerSelector({
               Maximum of {maxManagers} account managers reached
             </p>
           )}
+        </div>
+      )}
+      
+      {/* Create User Modal */}
+      {showCreateModal && onCreateUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Account Manager</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setCreating(true);
+              const formData = new FormData(e.target);
+              const userData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                region: formData.get('region')
+              };
+              
+              try {
+                const success = await onCreateUser(userData);
+                if (success) {
+                  onChange([...selectedManagers, userData.name]);
+                  setShowCreateModal(false);
+                  // Refresh users list
+                  fetchUsers();
+                } else {
+                  alert('Failed to create user. Please try again.');
+                }
+              } catch (error) {
+                console.error('Error creating user:', error);
+                alert('Failed to create user. Please try again.');
+              } finally {
+                setCreating(false);
+              }
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter email address"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                  <select
+                    name="region"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Region</option>
+                    <option value="CA-LAX">CA-LAX</option>
+                    <option value="CA-SAN">CA-SAN</option>
+                    <option value="CA-SFO">CA-SFO</option>
+                    <option value="FL-MIA">FL-MIA</option>
+                    <option value="FL-NORT">FL-NORT</option>
+                    <option value="KY-KENT">KY-KENT</option>
+                    <option value="LA-STATE">LA-STATE</option>
+                    <option value="OK-OKC">OK-OKC</option>
+                    <option value="OTHERS">OTHERS</option>
+                    <option value="TN-TEN">TN-TEN</option>
+                    <option value="TX-CEN">TX-CEN</option>
+                    <option value="TX-DAL">TX-DAL</option>
+                    <option value="TX-HOU">TX-HOU</option>
+                    <option value="TX-SOUT">TX-SOUT</option>
+                    <option value="US-FED">US-FED</option>
+                    <option value="US-SP">US-SP</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  disabled={creating}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {creating ? 'Creating...' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

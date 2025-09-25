@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../../lib/dynamodb.js';
+import { db, getEnvironment } from '../../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../../lib/auth-check.js';
 
 
@@ -23,8 +23,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Practice ID required' }, { status: 400 });
     }
 
-    // Get existing board data using the exact practiceId as key
-    const boardKey = `practice_board_${practiceId}`;
+    // Get existing board data using DSR compliant environment-aware key
+    const environment = getEnvironment();
+    const boardKey = `${environment}_practice_board_${practiceId}`;
     const existingBoard = await db.getSetting(boardKey);
     console.log('📋 [API] Board lookup for key:', boardKey, 'found:', !!existingBoard);
     
@@ -54,7 +55,7 @@ export async function POST(request) {
     console.log('⚙️ [API] Updated board data:', boardData);
     
     await db.saveSetting(boardKey, JSON.stringify(boardData));
-    console.log('✅ [API] Board settings saved to key:', boardKey);
+    console.log('✅ [API] Board settings saved to DSR compliant key:', boardKey);
     
     // Send SSE notification for settings updated
     try {
@@ -95,9 +96,11 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Practice ID required' }, { status: 400 });
     }
 
-    const boardKey = `practice_board_${practiceId}`;
+    // DSR compliant environment-aware key
+    const environment = getEnvironment();
+    const boardKey = `${environment}_practice_board_${practiceId}`;
     const existingBoard = await db.getSetting(boardKey);
-    console.log('📋 [API] Board lookup for key:', boardKey, 'found:', !!existingBoard);
+    console.log('📋 [API] DSR compliant board lookup for key:', boardKey, 'found:', !!existingBoard);
     
     if (!existingBoard) {
       console.log('📋 [API] No board found for key:', boardKey, 'returning empty settings');
