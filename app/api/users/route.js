@@ -9,7 +9,11 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 export async function GET() {
   try {
+    console.log('🔍 [USERS-API] Starting user fetch...');
+    console.log('🔍 [USERS-API] Environment:', process.env.NODE_ENV, process.env.ENVIRONMENT);
+    
     const tableName = getTableName('Users');
+    console.log('🔍 [USERS-API] Table name:', tableName);
     
     const command = new ScanCommand({
       TableName: tableName,
@@ -20,16 +24,26 @@ export async function GET() {
       }
     });
 
+    console.log('🔍 [USERS-API] Sending DynamoDB command...');
     const result = await docClient.send(command);
+    console.log('🔍 [USERS-API] DynamoDB result:', { itemCount: result.Items?.length || 0 });
+    
     const users = (result.Items || []).map(user => ({
       ...user,
       region: user.region || null
     }));
 
+    console.log('🔍 [USERS-API] Returning users:', users.length);
     return NextResponse.json({ users });
   } catch (error) {
-    console.error('Error loading users:', error);
-    return NextResponse.json({ error: 'Failed to load users' }, { status: 500 });
+    console.error('❌ [USERS-API] Error loading users:', error);
+    console.error('❌ [USERS-API] Error stack:', error.stack);
+    console.error('❌ [USERS-API] Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code
+    });
+    return NextResponse.json({ error: 'Failed to load users', details: error.message }, { status: 500 });
   }
 }
 
