@@ -23,11 +23,15 @@ export async function GET(request) {
       });
       
       const result = await db.client.send(command);
-      const regions = (result.Items || []).map(item => ({
-        code: item.code?.S || '',
-        name: item.name?.S || '',
-        active: item.active?.BOOL !== false
-      })).filter(region => region.active);
+      const regions = (result.Items || []).map(item => {
+        const regionCode = item.code?.S || item.name?.S || '';
+        const regionName = item.name?.S || item.code?.S || '';
+        return {
+          code: regionCode,
+          name: regionName,
+          active: item.active?.BOOL !== false
+        };
+      }).filter(region => region.active);
       
       return NextResponse.json({
         success: true,
@@ -44,11 +48,15 @@ export async function GET(request) {
         });
         
         const result = await db.client.send(command);
-        const regions = (result.Items || []).map(item => ({
-          code: item.code?.S || '',
-          name: item.name?.S || '',
-          active: item.active?.BOOL !== false
-        })).filter(region => region.active);
+        const regions = (result.Items || []).map(item => {
+          const regionCode = item.code?.S || item.name?.S || '';
+          const regionName = item.name?.S || item.code?.S || '';
+          return {
+            code: regionCode,
+            name: regionName,
+            active: item.active?.BOOL !== false
+          };
+        }).filter(region => region.active);
         
         return NextResponse.json({
           success: true,

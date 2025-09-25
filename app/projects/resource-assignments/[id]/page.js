@@ -15,6 +15,7 @@ import UserSelector from '../../../../components/UserSelector';
 import PracticeSelector from '../../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../../components/MultiResourceSelector';
 import RegionSelector from '../../../../components/RegionSelector';
+import AccountManagerSelector from '../../../../components/AccountManagerSelector';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../../../constants/assignmentStatus';
 import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
@@ -331,6 +332,11 @@ export default function AssignmentDetailPage() {
   };
 
   const handleEditFormChange = (field, value) => {
+    console.log('handleEditFormChange DEBUG:', {
+      field,
+      value,
+      currentFormData: editFormData
+    });
     setEditFormData(prev => ({
       ...prev,
       [field]: value
@@ -346,6 +352,12 @@ export default function AssignmentDetailPage() {
         resourceAssigned: Array.isArray(editFormData.resourceAssigned) ? editFormData.resourceAssigned.join(',') : editFormData.resourceAssigned
       };
       
+      console.log('saveAssignment DEBUG:', {
+        editFormData,
+        dataToSend,
+        regionValue: dataToSend.region
+      });
+      
       const response = await fetch(`/api/assignments/${params.id}`, {
         method: 'PUT',
         headers: {
@@ -355,6 +367,8 @@ export default function AssignmentDetailPage() {
       });
 
       const data = await response.json();
+      console.log('saveAssignment response:', data);
+      
       if (data.success) {
         setAssignment(data.assignment);
         setShowEditModal(false);
@@ -968,11 +982,10 @@ export default function AssignmentDetailPage() {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Account Manager</label>
-                          <input
-                            type="text"
+                          <AccountManagerSelector
                             value={editFormData.am}
-                            onChange={(e) => handleEditFormChange('am', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            onChange={(value) => handleEditFormChange('am', value)}
+                            placeholder="Select account manager..."
                           />
                         </div>
                         <div>
@@ -1164,12 +1177,10 @@ export default function AssignmentDetailPage() {
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Account Manager</label>
-                        <input
-                          type="text"
+                        <AccountManagerSelector
                           value={practiceData.am}
-                          onChange={(e) => setPracticeData(prev => ({...prev, am: e.target.value}))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Enter account manager name (optional)"
+                          onChange={(value) => setPracticeData(prev => ({...prev, am: value}))}
+                          placeholder="Select account manager (optional)..."
                         />
                       </div>
                       

@@ -1,133 +1,74 @@
 import { NextResponse } from 'next/server';
+import { getTableName } from '../../../lib/dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { db } from '../../../lib/dynamodb';
-import { validateUserSession } from '../../../lib/auth-check';
-import { saMappingAutoCreator } from '../../../lib/sa-mapping-auto-creator.js';
 
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+const client = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(client);
 
-export async function GET(request) {
+export async function GET() {
   try {
-    const userCookie = request.cookies.get('user-session');
-    const validation = await validateUserSession(userCookie);
+    const tableName = getTableName('Users');
     
-    if (!validation.valid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    const user = validation.user;
-    
-    if (!user.isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
-    
-    const users = await db.getAllUsers();
+    const command = new ScanCommand({
+      TableName: tableName,
+      ProjectionExpression: 'email, #name, practices, #role, region',
+      ExpressionAttributeNames: {
+        '#name': 'name',
+        '#role': 'role'
+      }
+    });
+
+    const result = await docClient.send(command);
+    const users = (result.Items || []).map(user => ({
+      ...user,
+      region: user.region || null
+    }));
+
     return NextResponse.json({ users });
   } catch (error) {
-    console.error('Error fetching users:', error);
-    return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
+    console.error('Error loading users:', error);
+    return NextResponse.json({ error: 'Failed to load users' }, { status: 500 });
   }
-}
-
-function generatePassword() {
-  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
-  let password = '';
-  for (let i = 0; i < 12; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
 }
 
 export async function POST(request) {
   try {
-    const userCookie = request.cookies.get('user-session');
-    const validation = await validateUserSession(userCookie);
+    const { name, email, role, region } = await request.json();
     
-    if (!validation.valid) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Validate required fields
+    if (!name || !email || !role) {
+      return NextResponse.json({ error: 'Name, email, and role are required' }, { status: 400 });
     }
     
-    const user = validation.user;
-    
-    if (!user.isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    // Check if user already exists
+    const existingUser = await db.getUser(email);
+    if (existingUser) {
+      return NextResponse.json({ error: 'User with this email already exists' }, { status: 409 });
     }
     
-    const { email, name, password, role, auth_method, specifyPassword, isAdmin, practices, region } = await request.json();
-    
-    if (!email || !name) {
-      return NextResponse.json({ error: 'Email and name are required' }, { status: 400 });
-    }
-    
-    if (role === 'account_manager' && !region) {
-      return NextResponse.json({ error: 'Region is required for account managers' }, { status: 400 });
-    }
-    
-    let finalPassword = password;
-    let requirePasswordChange = false;
-    
-    // Generate password if not specified
-    if (auth_method === 'local' && !specifyPassword) {
-      finalPassword = generatePassword();
-      requirePasswordChange = true;
-    }
-    
-    if (auth_method === 'local' && !finalPassword) {
-      return NextResponse.json({ error: 'Password is required for local users' }, { status: 400 });
-    }
+    // Create new user with DSR-compliant settings for account managers
+    const authMethod = role === 'account_manager' ? 'sso' : 'saml';
+    const source = role === 'account_manager' ? 'Local' : 'manual';
     
     const success = await db.createOrUpdateUser(
-      email, 
-      name, 
-      auth_method || 'local', 
-      role || 'practice_member', 
-      finalPassword,
-      'manual',
-      requirePasswordChange,
-      isAdmin || false,
-      practices || [],
+      email,
+      name,
+      authMethod,
+      role,
+      null,
+      source,
+      false,
+      false,
+      [],
       'active',
       null,
       region
     );
     
-    if (success && auth_method === 'local') {
-      // Send welcome email for all local users
-      try {
-        const emailResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/email/welcome-user`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email,
-            name,
-            password: finalPassword,
-            role,
-            isTemporary: !specifyPassword
-          })
-        });
-        
-        if (!emailResponse.ok) {
-          console.error('Failed to send welcome email');
-        }
-      } catch (emailError) {
-        console.error('Error sending welcome email:', emailError);
-      }
-    }
-    
     if (success) {
-      // Auto-create SA mappings if new user is an account manager
-      if (role === 'account_manager') {
-        try {
-          const mappingResult = await saMappingAutoCreator.createMappingsForNewAM(name, email);
-          if (mappingResult.success && mappingResult.created > 0) {
-            console.log(`Auto-created ${mappingResult.created} SA mappings for new AM: ${name}`);
-          }
-        } catch (mappingError) {
-          console.error('Error auto-creating SA mappings for new AM:', mappingError);
-        }
-      }
-      
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, message: 'User created successfully' });
     } else {
       return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
     }

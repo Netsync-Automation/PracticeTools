@@ -10,6 +10,9 @@ export function DraggableColumn({
   setEditingColumn, 
   updateColumnTitle, 
   deleteColumn, 
+  extraHeaderButton,
+  isHighlighted,
+  isExpanded,
   children 
 }) {
   const {
@@ -37,13 +40,21 @@ export function DraggableColumn({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-gray-100 rounded-lg p-4 min-w-80 max-w-80 flex-shrink-0 ${
+      data-column-id={column.id}
+      className={`rounded-lg p-4 w-80 flex-shrink-0 transition-all duration-500 ${
         isDragging ? 'z-50' : ''
+      } ${
+        isHighlighted 
+          ? 'bg-gradient-to-br from-blue-100 to-blue-50 border-4 border-blue-400 shadow-2xl transform scale-105 ring-4 ring-blue-200 ring-opacity-50' 
+          : 'bg-gray-100'
       }`}
       role="region"
       aria-label={`Column: ${column.title}`}
     >
-      <div className="flex items-center justify-between mb-4">
+      <div 
+        className="flex items-center justify-between mb-4"
+        {...(canEdit ? { ...attributes, ...listeners } : {})}
+      >
         {editingColumn === column.id ? (
           <input
             type="text"
@@ -74,7 +85,6 @@ export function DraggableColumn({
                 setEditingColumn(column.id);
               }
             }}
-            {...(canEdit ? { ...attributes, ...listeners } : {})}
             role="button"
             aria-label={`Column ${column.title}. ${canEdit ? 'Press Enter to edit or drag to reorder' : ''}`}
           >
@@ -88,6 +98,7 @@ export function DraggableColumn({
           >
             {column.cards.length}
           </span>
+          {extraHeaderButton}
           {canEdit && editingColumn !== column.id && (
             <button
               onClick={() => setEditingColumn(column.id)}

@@ -11,18 +11,24 @@ import Breadcrumb from '../../components/Breadcrumb';
 import { DraggableColumn } from '../../components/DraggableColumn';
 import { DraggableCard } from '../../components/DraggableCard';
 import { DroppableArea } from '../../components/DroppableArea';
+import BoardSearch from '../../components/BoardSearch';
 import { PlusIcon, XMarkIcon, EllipsisVerticalIcon, PencilIcon, TrashIcon, PaperClipIcon, ChatBubbleLeftIcon, DocumentIcon, PhotoIcon, CogIcon } from '@heroicons/react/24/outline';
 import AttachmentPreview from '../../components/AttachmentPreview';
 import MultiAttachmentPreview from '../../components/MultiAttachmentPreview';
+import BoardSettingsModal from '../../components/BoardSettingsModal';
 import {
   DndContext,
   DragOverlay,
   closestCenter,
+  closestCorners,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   announcements,
+  getFirstCollision,
+  pointerWithin,
+  rectIntersection,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -38,6 +44,8 @@ function FileDropZone({ onFilesSelected, files }) {
     'image/jpeg', 'image/png', 'image/gif', 'image/webp',
     'application/pdf', 'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain', 'application/zip'
   ];
 
@@ -109,7 +117,7 @@ function FileDropZone({ onFilesSelected, files }) {
           type="file"
           multiple
           onChange={handleChange}
-          accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.txt,.zip"
+          accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
           className="hidden"
         />
         <div>
@@ -123,7 +131,7 @@ function FileDropZone({ onFilesSelected, files }) {
           <span className="text-gray-500"> or drag and drop</span>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Max 5 files, 5MB each. Images, PDF, DOC, TXT, ZIP
+          Max 5 files, 5MB each. Images, PDF, DOC, XLS, TXT, ZIP
         </p>
       </div>
       
@@ -182,6 +190,34 @@ export default function PracticeInformationPage() {
   const [currentTopic, setCurrentTopic] = useState('Main Topic');
   const [availableTopics, setAvailableTopics] = useState(['Main Topic']);
   const [sseConnected, setSseConnected] = useState(false);
+  const [availableLabels, setAvailableLabels] = useState([]);
+  const [showLabelDropdown, setShowLabelDropdown] = useState(false);
+  const [showNewLabel, setShowNewLabel] = useState(false);
+  const [newLabelName, setNewLabelName] = useState('');
+  const [newLabelColor, setNewLabelColor] = useState('#3B82F6');
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showDatesModal, setShowDatesModal] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState('');
+  const [tempDueDate, setTempDueDate] = useState('');
+  const [tempDueTime, setTempDueTime] = useState('');
+  const [reminderOption, setReminderOption] = useState('');
+  const [customReminderDate, setCustomReminderDate] = useState('');
+  const [customReminderTime, setCustomReminderTime] = useState('');
+  const [showChecklistModal, setShowChecklistModal] = useState(false);
+  const [checklistItems, setChecklistItems] = useState([]);
+  const [newChecklistItem, setNewChecklistItem] = useState('');
+  const [editingChecklistIndex, setEditingChecklistIndex] = useState(null);
+  const [checklistName, setChecklistName] = useState('');
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+  const [checklistTemplates, setChecklistTemplates] = useState([]);
+  const [showChecklistDropdown, setShowChecklistDropdown] = useState(false);
+  const [selectedChecklistItem, setSelectedChecklistItem] = useState(null);
+  const [columnsExpanded, setColumnsExpanded] = useState(true);
+  const [individualColumnStates, setIndividualColumnStates] = useState({});
+  const [highlightedItem, setHighlightedItem] = useState(null);
 
   // Topic preference management
   const getTopicPreferenceKey = (practiceId, userEmail) => {
@@ -248,6 +284,9 @@ export default function PracticeInformationPage() {
   useEffect(() => {
     if (currentPracticeId) {
       loadBoardData();
+      loadLabels();
+      loadUsers();
+      loadChecklistTemplates();
     } else if (availableBoards.length === 0) {
       setIsLoading(false);
     }
@@ -846,13 +885,13 @@ export default function PracticeInformationPage() {
     saveBoardData(newColumns);
   };
 
-  const updateCard = (columnId, cardId, updates) => {
+  const updateCard = async (columnId, cardId, updates) => {
     const newColumns = columns.map(col => 
       col.id === columnId 
         ? { 
             ...col, 
             cards: col.cards.map(card => 
-              card.id === cardId ? { ...card, ...updates } : card
+              card.id === cardId ? { ...card, ...updates, lastEditedBy: user?.email, lastEditedAt: new Date().toISOString() } : card
             )
           }
         : col
@@ -860,9 +899,30 @@ export default function PracticeInformationPage() {
     setColumns(newColumns);
     saveBoardData(newColumns);
     setEditingCard(null);
+    
+    // Send follow notifications
+    const updatedCard = newColumns.find(col => col.id === columnId)?.cards.find(card => card.id === cardId);
+    if (updatedCard?.followers?.length > 0) {
+      try {
+        await fetch('/api/notifications/card-follow', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({
+            cardId,
+            columnId,
+            practiceId: currentPracticeId,
+            action: 'updated',
+            user,
+            cardData: updatedCard
+          })
+        });
+      } catch (error) {
+        console.error('Failed to send follow notifications:', error);
+      }
+    }
   };
 
-  const addComment = (columnId, cardId) => {
+  const addComment = async (columnId, cardId) => {
     const sanitizedComment = sanitizeText(cardComment);
     if (sanitizedComment) {
       const comment = {
@@ -893,7 +953,232 @@ export default function PracticeInformationPage() {
         comments: [...(prev.comments || []), comment]
       }));
       
+      // Send follow notifications
+      const updatedCard = newColumns.find(col => col.id === columnId)?.cards.find(card => card.id === cardId);
+      if (updatedCard?.followers?.length > 0) {
+        try {
+          await fetch('/api/notifications/card-follow', {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({
+              cardId,
+              columnId,
+              practiceId: currentPracticeId,
+              action: 'commented',
+              user,
+              cardData: updatedCard
+            })
+          });
+        } catch (error) {
+          console.error('Failed to send follow notifications:', error);
+        }
+      }
+      
       setCardComment('');
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (response.ok) {
+        const data = await response.json();
+        const users = data.users || [];
+        
+        // Sort users: current practice users first, then others
+        const sortedUsers = users.sort((a, b) => {
+          const aPractices = typeof a.practices === 'string' ? JSON.parse(a.practices || '[]') : (Array.isArray(a.practices) ? a.practices : []);
+          const bPractices = typeof b.practices === 'string' ? JSON.parse(b.practices || '[]') : (Array.isArray(b.practices) ? b.practices : []);
+          const aPracticeMatch = aPractices.some(practice => currentBoardPractices.includes(practice));
+          const bPracticeMatch = bPractices.some(practice => currentBoardPractices.includes(practice));
+          
+          if (aPracticeMatch && !bPracticeMatch) return -1;
+          if (!aPracticeMatch && bPracticeMatch) return 1;
+          return (a.name || a.email).localeCompare(b.name || b.email);
+        });
+        
+        setAvailableUsers(sortedUsers);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
+
+  const toggleUserAssignment = (userEmail) => {
+    if (selectedChecklistItem) {
+      // Handle checklist item assignment
+      const { checklistIndex, itemIndex } = selectedChecklistItem;
+      const currentItem = selectedCard.checklists[checklistIndex].items[itemIndex];
+      const currentAssigned = currentItem.assignedTo || [];
+      const isAssigned = currentAssigned.includes(userEmail);
+      
+      const newAssigned = isAssigned
+        ? currentAssigned.filter(email => email !== userEmail)
+        : [...currentAssigned, userEmail];
+      
+      const newChecklists = [...selectedCard.checklists];
+      newChecklists[checklistIndex].items[itemIndex] = {
+        ...currentItem,
+        assignedTo: newAssigned
+      };
+      
+      updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+      setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
+    } else {
+      // Handle card-level assignment
+      const currentAssigned = selectedCard.assignedTo || [];
+      const isAssigned = currentAssigned.includes(userEmail);
+      
+      const newAssigned = isAssigned
+        ? currentAssigned.filter(email => email !== userEmail)
+        : [...currentAssigned, userEmail];
+      
+      const newColumns = columns.map(col => 
+        col.id === selectedCard.columnId 
+          ? { 
+              ...col, 
+              cards: col.cards.map(card => 
+                card.id === selectedCard.id 
+                  ? { ...card, assignedTo: newAssigned, lastEditedBy: user?.email, lastEditedAt: new Date().toISOString() }
+                  : card
+              )
+            }
+          : col
+      );
+      
+      setColumns(newColumns);
+      saveBoardData(newColumns);
+      setSelectedCard(prev => ({ ...prev, assignedTo: newAssigned }));
+    }
+  };
+
+  const loadLabels = async () => {
+    if (!currentPracticeId) return;
+    try {
+      const response = await fetch(`/api/practice-boards/labels?practiceId=${currentPracticeId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableLabels(data.labels || []);
+      }
+    } catch (error) {
+      console.error('Error loading labels:', error);
+    }
+  };
+
+  const loadChecklistTemplates = useCallback(async () => {
+    if (!currentPracticeId) return;
+    try {
+      const response = await fetch(`/api/practice-boards/checklist-templates?practiceId=${currentPracticeId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setChecklistTemplates(data.templates || []);
+      }
+    } catch (error) {
+      console.error('Error loading checklist templates:', error);
+    }
+  }, [currentPracticeId]);
+
+  const addLabel = async () => {
+    if (!newLabelName.trim()) return;
+    try {
+      const response = await fetch('/api/practice-boards/labels', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ 
+          practiceId: currentPracticeId, 
+          name: newLabelName.trim(), 
+          color: newLabelColor 
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const newLabel = data.labels[data.labels.length - 1];
+        setAvailableLabels(data.labels);
+        
+        // Auto-apply the new label to the current card
+        if (selectedCard && newLabel) {
+          toggleCardLabel(selectedCard.columnId, selectedCard.id, newLabel.id);
+        }
+        
+        setNewLabelName('');
+        setNewLabelColor('#3B82F6');
+        setShowNewLabel(false);
+      }
+    } catch (error) {
+      console.error('Error adding label:', error);
+    }
+  };
+
+  const toggleCardFollowing = (columnId, cardId) => {
+    const isCurrentlyFollowing = selectedCard.followers?.includes(user?.email);
+    const newColumns = columns.map(col => 
+      col.id === columnId 
+        ? { 
+            ...col, 
+            cards: col.cards.map(card => 
+              card.id === cardId 
+                ? { 
+                    ...card, 
+                    followers: isCurrentlyFollowing
+                      ? (card.followers || []).filter(email => email !== user?.email)
+                      : [...(card.followers || []), user?.email],
+                    lastEditedBy: user?.email,
+                    lastEditedAt: new Date().toISOString()
+                  }
+                : card
+            )
+          }
+        : col
+    );
+    setColumns(newColumns);
+    saveBoardData(newColumns);
+    
+    if (selectedCard && selectedCard.id === cardId) {
+      const updatedFollowers = isCurrentlyFollowing
+        ? (selectedCard.followers || []).filter(email => email !== user?.email)
+        : [...(selectedCard.followers || []), user?.email];
+      setSelectedCard(prev => ({
+        ...prev,
+        followers: updatedFollowers,
+        lastEditedBy: user?.email,
+        lastEditedAt: new Date().toISOString()
+      }));
+    }
+  };
+
+  const toggleCardLabel = (columnId, cardId, labelId) => {
+    const newColumns = columns.map(col => 
+      col.id === columnId 
+        ? { 
+            ...col, 
+            cards: col.cards.map(card => 
+              card.id === cardId 
+                ? { 
+                    ...card, 
+                    labels: card.labels?.includes(labelId) 
+                      ? [] // Remove label if already selected
+                      : [labelId], // Replace with single label
+                    lastEditedBy: user?.email,
+                    lastEditedAt: new Date().toISOString()
+                  }
+                : card
+            )
+          }
+        : col
+    );
+    setColumns(newColumns);
+    saveBoardData(newColumns);
+    
+    if (selectedCard && selectedCard.id === cardId) {
+      const updatedLabels = selectedCard.labels?.includes(labelId) 
+        ? []
+        : [labelId];
+      setSelectedCard(prev => ({
+        ...prev,
+        labels: updatedLabels,
+        lastEditedBy: user?.email,
+        lastEditedAt: new Date().toISOString()
+      }));
     }
   };
 
@@ -983,13 +1268,71 @@ export default function PracticeInformationPage() {
     setSelectedCard(null);
     setCardComment('');
     setCardFiles([]);
+    setShowLabelDropdown(false);
+    setShowNewLabel(false);
+    setShowAssignModal(false);
+    setUserSearchTerm('');
+    setShowUserDropdown(false);
+    setShowDatesModal(false);
+    setTempStartDate('');
+    setTempDueDate('');
+    setTempDueTime('');
+    setReminderOption('');
+    setCustomReminderDate('');
+    setCustomReminderTime('');
+    setShowChecklistModal(false);
+    setChecklistItems([]);
+    setNewChecklistItem('');
+    setEditingChecklistIndex(null);
+    setChecklistName('');
+    setSaveAsTemplate(false);
+    setShowChecklistDropdown(false);
+    setSelectedChecklistItem(null);
   };
+
+  // Handle search result navigation
+  const handleSearchResultClick = (result) => {
+    if (result.type === 'column') {
+      // Highlight column and scroll to it
+      setHighlightedItem({ type: 'column', id: result.id });
+      setTimeout(() => setHighlightedItem(null), 5000);
+      
+      const columnElement = document.querySelector(`[data-column-id="${result.id}"]`);
+      if (columnElement) {
+        columnElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } else if (result.type === 'card') {
+      // Open card modal
+      const column = columns.find(col => col.id === result.columnId);
+      const card = column?.cards.find(c => c.id === result.id);
+      if (card) {
+        openCardModal(card, result.columnId);
+      }
+    }
+  };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showLabelDropdown && !event.target.closest('.label-dropdown')) {
+        setShowLabelDropdown(false);
+      }
+      if (showUserDropdown && !event.target.closest('.user-search-dropdown')) {
+        setShowUserDropdown(false);
+      }
+      if (showChecklistDropdown && !event.target.closest('.checklist-dropdown')) {
+        setShowChecklistDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showLabelDropdown, showUserDropdown, showChecklistDropdown]);
 
   // Drag and drop setup
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 3,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -1003,6 +1346,26 @@ export default function PracticeInformationPage() {
     saveBoardData,
     canEdit
   );
+
+  // Custom collision detection that filters based on drag type
+  const customCollisionDetection = useCallback((args) => {
+    const { active, droppableContainers } = args;
+    const activeType = active.data.current?.type;
+    
+    // For column dragging, only allow collision with other columns
+    if (activeType === 'column') {
+      const columnCollisions = droppableContainers.filter(container => 
+        container.data.current?.type === 'column'
+      );
+      return closestCenter({
+        ...args,
+        droppableContainers: columnCollisions
+      });
+    }
+    
+    // For card dragging, allow collision with both cards and columns
+    return closestCenter(args);
+  }, []);
 
   // Accessibility announcements
   const dragAnnouncements = {
@@ -1065,20 +1428,24 @@ export default function PracticeInformationPage() {
           <Breadcrumb items={[{ label: 'Practice Information' }]} />
           
           <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Practice Information Board</h1>
-                  <p className="text-gray-600 mt-2">Organize and track practice information using cards and columns</p>
+            {/* Main Header */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 shadow-sm">
+              <div className="flex items-center justify-between">
+                {/* Left: Title & Description */}
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-gray-900">Practice Information Board</h1>
+                  <p className="text-sm text-gray-600 mt-1">Organize and track practice information using cards and columns</p>
                 </div>
-                <div className="flex items-center gap-2">
+                
+                {/* Right: Actions */}
+                <div className="flex items-center gap-3">
                   {canEdit && availableBoards.length > 0 && (isAdminLevel || user.role !== 'practice_member') && (
                     <button
                       onClick={() => setShowBoardSettings(true)}
-                      className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      className="p-3 text-gray-500 hover:text-blue-600 hover:bg-white rounded-xl border border-transparent hover:border-blue-200 transition-all duration-200 shadow-sm hover:shadow-md"
                       title="Board Settings"
                     >
-                      <CogIcon className="h-6 w-6" />
+                      <CogIcon className="h-5 w-5" />
                     </button>
                   )}
                   <button
@@ -1147,7 +1514,7 @@ export default function PracticeInformationPage() {
                         alert('Debug analysis failed. Check console for details.');
                       }
                     }}
-                    className="text-gray-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="p-3 text-gray-500 hover:text-blue-600 hover:bg-white rounded-xl border border-transparent hover:border-blue-200 transition-all duration-200 shadow-sm hover:shadow-md"
                     title="Debug User Analysis"
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1156,103 +1523,150 @@ export default function PracticeInformationPage() {
                   </button>
                 </div>
               </div>
-              {availableBoards.length > 0 && (
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-3">
-                    <label className="text-sm font-medium text-gray-700">Practice Board:</label>
-                    <select
-                      value={currentPracticeId}
-                      onChange={(e) => {
-                        if (e.target.value !== currentPracticeId) {
-                          const selectedBoard = availableBoards.find(b => b.practiceId === e.target.value);
-                          if (selectedBoard) {
-                            setCurrentPracticeId(e.target.value);
-                            setCurrentBoardName(selectedBoard.practices?.join(', ') || '');
-                            setCurrentBoardPractices(selectedBoard.practices || []);
-                            
-                            // Load saved topic preference for the new practice board
-                            const savedTopic = getTopicPreference(e.target.value);
-                            setCurrentTopic(savedTopic || 'Main Topic');
-                          }
-                        }
-                      }}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm min-w-64"
-                    >
-                      {availableBoards.map(board => (
-                        <option key={board.practiceId} value={board.practiceId}>
-                          {formatBoardDisplayName(board)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <label className="text-sm font-medium text-gray-700">Topic:</label>
-                    {editingTopic ? (
-                      <input
-                        type="text"
-                        defaultValue={editingTopic}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm min-w-48"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            updateTopicName(editingTopic, e.target.value);
-                          } else if (e.key === 'Escape') {
-                            setEditingTopic(null);
+            </div>
+            
+            {/* Controls Bar */}
+            {availableBoards.length > 0 && (
+              <div className="mt-6 bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                <div className="flex items-center justify-between gap-6">
+                  {/* Left: Board & Topic Selectors */}
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3">
+                      <label className="text-sm font-semibold text-gray-700 min-w-fit">Practice Board</label>
+                      <select
+                        value={currentPracticeId}
+                        onChange={(e) => {
+                          if (e.target.value !== currentPracticeId) {
+                            const selectedBoard = availableBoards.find(b => b.practiceId === e.target.value);
+                            if (selectedBoard) {
+                              setCurrentPracticeId(e.target.value);
+                              setCurrentBoardName(selectedBoard.practices?.join(', ') || '');
+                              setCurrentBoardPractices(selectedBoard.practices || []);
+                              
+                              // Load saved topic preference for the new practice board
+                              const savedTopic = getTopicPreference(e.target.value);
+                              setCurrentTopic(savedTopic || 'Main Topic');
+                            }
                           }
                         }}
-                        onBlur={(e) => updateTopicName(editingTopic, e.target.value)}
-                        autoFocus
-                      />
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={currentTopic}
-                          onChange={(e) => {
-                            if (e.target.value !== currentTopic) {
-                              const newTopic = e.target.value;
-                              setCurrentTopic(newTopic);
-                              saveTopicPreference(currentPracticeId, newTopic);
+                        className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm font-medium min-w-64 shadow-sm"
+                      >
+                        {availableBoards.map(board => (
+                          <option key={board.practiceId} value={board.practiceId}>
+                            {formatBoardDisplayName(board)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <label className="text-sm font-semibold text-gray-700 min-w-fit">Topic</label>
+                      {editingTopic ? (
+                        <input
+                          type="text"
+                          defaultValue={editingTopic}
+                          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm font-medium min-w-48 shadow-sm"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              updateTopicName(editingTopic, e.target.value);
+                            } else if (e.key === 'Escape') {
+                              setEditingTopic(null);
                             }
                           }}
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm min-w-48"
-                        >
-                          {availableTopics.map(topic => (
-                            <option key={topic} value={topic}>{topic}</option>
-                          ))}
-                        </select>
-                        {canEdit && currentTopic !== 'Main Topic' && (isAdminLevel || user.role !== 'practice_member') && (
-                          <button
-                            onClick={() => setEditingTopic(currentTopic)}
-                            className="text-gray-400 hover:text-blue-500 p-1 rounded"
-                            title="Edit topic name"
+                          onBlur={(e) => updateTopicName(editingTopic, e.target.value)}
+                          autoFocus
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={currentTopic}
+                            onChange={(e) => {
+                              if (e.target.value !== currentTopic) {
+                                const newTopic = e.target.value;
+                                setCurrentTopic(newTopic);
+                                saveTopicPreference(currentPracticeId, newTopic);
+                              }
+                            }}
+                            className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm font-medium min-w-48 shadow-sm"
                           >
-                            <PencilIcon className="h-4 w-4" />
-                          </button>
-                        )}
-                        {canEdit && (isAdminLevel || user.role !== 'practice_member') && (
-                          <button
-                            onClick={() => setShowNewTopic(true)}
-                            className="text-gray-400 hover:text-green-500 p-1 rounded"
-                            title="Add new topic"
-                          >
-                            <PlusIcon className="h-4 w-4" />
-                          </button>
-                        )}
-                        {canEdit && currentTopic !== 'Main Topic' && (isAdminLevel || user.role !== 'practice_member') && (
-                          <button
-                            onClick={() => deleteTopic(currentTopic)}
-                            className="text-gray-400 hover:text-red-500 p-1 rounded"
-                            title="Delete topic"
-                          >
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    )}
+                            {availableTopics.map(topic => (
+                              <option key={topic} value={topic}>{topic}</option>
+                            ))}
+                          </select>
+                          {canEdit && currentTopic !== 'Main Topic' && (isAdminLevel || user.role !== 'practice_member') && (
+                            <button
+                              onClick={() => setEditingTopic(currentTopic)}
+                              className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                              title="Edit topic name"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </button>
+                          )}
+                          {canEdit && (isAdminLevel || user.role !== 'practice_member') && (
+                            <button
+                              onClick={() => setShowNewTopic(true)}
+                              className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-all duration-200"
+                              title="Add new topic"
+                            >
+                              <PlusIcon className="h-4 w-4" />
+                            </button>
+                          )}
+                          {canEdit && currentTopic !== 'Main Topic' && (isAdminLevel || user.role !== 'practice_member') && (
+                            <button
+                              onClick={() => deleteTopic(currentTopic)}
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+                              title="Delete topic"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
+                  
+                  {/* Right: Collapse/Expand Button */}
+                  {columns.length > 0 && (
+                    <button
+                      onClick={() => {
+                        const newState = !columnsExpanded;
+                        setColumnsExpanded(newState);
+                        // Reset individual states when using global control
+                        setIndividualColumnStates({});
+                      }}
+                      className="flex items-center gap-3 px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow-md min-w-fit"
+                      title={columnsExpanded ? 'Collapse all columns' : 'Expand all columns'}
+                    >
+                      {columnsExpanded ? (
+                        <>
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                          </svg>
+                          Collapse All
+                        </>
+                      ) : (
+                        <>
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                          </svg>
+                          Expand All
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+            
+            {/* Search Bar */}
+            {availableBoards.length > 0 && columns.length > 0 && (
+              <div className="mt-4">
+                <BoardSearch 
+                  columns={columns} 
+                  onResultClick={handleSearchResultClick}
+                />
+              </div>
+            )}
           </div>
 
           {showNewTopic && (isAdminLevel || user.role !== 'practice_member') && (
@@ -1309,99 +1723,146 @@ export default function PracticeInformationPage() {
             {availableBoards.length > 0 && (
               <DndContext
                 sensors={sensors}
-                collisionDetection={closestCenter}
+                collisionDetection={customCollisionDetection}
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
                 announcements={dragAnnouncements}
               >
                 <div 
-                  className="flex gap-6 overflow-x-auto pb-6"
+                  className="flex flex-wrap gap-6 pb-6"
                   role="application"
                   aria-label="Practice board with draggable columns and cards"
                 >
                   <SortableContext items={columns.map(col => col.id)} strategy={horizontalListSortingStrategy}>
-                    {columns.map((column) => (
-                      <DraggableColumn
-                        key={column.id}
-                        column={column}
-                        canEdit={canEdit}
-                        canDeleteColumn={canDeleteColumn}
-                        editingColumn={editingColumn}
-                        setEditingColumn={setEditingColumn}
-                        updateColumnTitle={updateColumnTitle}
-                        deleteColumn={deleteColumn}
-                      >
-                        <DroppableArea 
-                          id={column.id} 
-                          items={column.cards.map(card => card.id)}
-                          className="mb-4"
-                        >
-                          {column.cards.map((card) => (
-                            <DraggableCard
-                              key={card.id}
-                              card={card}
-                              columnId={column.id}
-                              canEdit={canEdit}
-                              canDeleteCard={canDeleteCard}
-                              setEditingCard={setEditingCard}
-                              deleteCard={deleteCard}
-                              openCardModal={openCardModal}
-                            />
-                          ))}
-                        </DroppableArea>
+                    {columns.map((column) => {
+                      const isColumnExpanded = individualColumnStates[column.id] !== undefined 
+                        ? individualColumnStates[column.id] 
+                        : columnsExpanded;
+                      
 
-                        {canAddCards && (
-                          <div>
-                            {showNewCard[column.id] ? (
-                              <div className="bg-white rounded-lg p-4 border border-gray-200 space-y-3">
-                                <input
-                                  type="text"
-                                  placeholder="Card title"
-                                  value={newCardTitle}
-                                  onChange={(e) => setNewCardTitle(e.target.value)}
-                                  className="w-full p-2 border border-gray-300 rounded text-sm"
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') addCard(column.id);
-                                    if (e.key === 'Escape') setShowNewCard({});
-                                  }}
-                                  autoFocus
-                                />
-                                <textarea
-                                  placeholder="Card description (optional)"
-                                  value={newCardDescription}
-                                  onChange={(e) => setNewCardDescription(e.target.value)}
-                                  className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
-                                  rows={3}
-                                />
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => addCard(column.id)}
-                                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                                  >
-                                    Add Card
-                                  </button>
-                                  <button
-                                    onClick={() => setShowNewCard({})}
-                                    className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => setShowNewCard({ [column.id]: true })}
-                                className="w-full p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center gap-2"
+                      
+                      return (
+                        <DraggableColumn
+                          key={column.id}
+                          column={column}
+                          canEdit={canEdit}
+                          canDeleteColumn={canDeleteColumn}
+                          editingColumn={editingColumn}
+                          setEditingColumn={setEditingColumn}
+                          updateColumnTitle={updateColumnTitle}
+                          deleteColumn={deleteColumn}
+                          isHighlighted={highlightedItem?.type === 'column' && highlightedItem?.id === column.id}
+                          isExpanded={isColumnExpanded}
+                          extraHeaderButton={
+                            <button
+                              onClick={() => {
+                                setIndividualColumnStates(prev => ({
+                                  ...prev,
+                                  [column.id]: !isColumnExpanded
+                                }));
+                              }}
+                              className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-200 transition-colors"
+                              title={isColumnExpanded ? 'Collapse column' : 'Expand column'}
+                            >
+                              {isColumnExpanded ? (
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                                </svg>
+                              ) : (
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                </svg>
+                              )}
+                            </button>
+                          }
+                        >
+                          {isColumnExpanded && (
+                            <>
+                              <DroppableArea 
+                                id={column.id} 
+                                items={column.cards.map(card => card.id)}
+                                className="mb-4"
                               >
-                                <PlusIcon className="h-4 w-4" />
-                                Add a card
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </DraggableColumn>
-                    ))}
+                                <div 
+                                  className="space-y-3"
+                                  style={{
+                                    maxHeight: column.cards.length > 3 ? '400px' : 'auto',
+                                    overflowY: column.cards.length > 3 ? 'auto' : 'visible'
+                                  }}
+                                >
+                                  {column.cards.map((card) => (
+                                    <DraggableCard
+                                      key={card.id}
+                                      card={card}
+                                      columnId={column.id}
+                                      canEdit={canEdit}
+                                      canDeleteCard={canDeleteCard}
+                                      setEditingCard={setEditingCard}
+                                      deleteCard={deleteCard}
+                                      openCardModal={openCardModal}
+                                      availableLabels={availableLabels}
+                                      toggleCardFollowing={toggleCardFollowing}
+                                      user={user}
+                                    />
+                                  ))}
+                                </div>
+                              </DroppableArea>
+
+                              {canAddCards && (
+                                <div>
+                                  {showNewCard[column.id] ? (
+                                    <div className="bg-white rounded-lg p-4 border border-gray-200 space-y-3">
+                                      <input
+                                        type="text"
+                                        placeholder="Card title"
+                                        value={newCardTitle}
+                                        onChange={(e) => setNewCardTitle(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded text-sm"
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') addCard(column.id);
+                                          if (e.key === 'Escape') setShowNewCard({});
+                                        }}
+                                        autoFocus
+                                      />
+                                      <textarea
+                                        placeholder="Card description (optional)"
+                                        value={newCardDescription}
+                                        onChange={(e) => setNewCardDescription(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                                        rows={3}
+                                      />
+                                      <div className="flex gap-2">
+                                        <button
+                                          onClick={() => addCard(column.id)}
+                                          className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                                        >
+                                          Add Card
+                                        </button>
+                                        <button
+                                          onClick={() => setShowNewCard({})}
+                                          className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => setShowNewCard({ [column.id]: true })}
+                                      className="w-full p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                      <PlusIcon className="h-4 w-4" />
+                                      Add a card
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </DraggableColumn>
+                      );
+                    })}
                   </SortableContext>
 
                 {canEdit && (
@@ -1451,13 +1912,13 @@ export default function PracticeInformationPage() {
                 <DragOverlay>
                   {dragState.activeId ? (
                     dragState.activeType === 'column' ? (
-                      <div className="bg-gray-100 rounded-lg p-4 min-w-80 max-w-80 opacity-90 shadow-lg">
+                      <div className="bg-gray-100 rounded-lg p-4 w-80 opacity-90 shadow-lg">
                         <h3 className="font-semibold text-gray-900 text-lg">
                           {columns.find(col => col.id === dragState.activeId)?.title}
                         </h3>
                       </div>
                     ) : (
-                      <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200 opacity-90 min-w-64">
+                      <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200 opacity-90 w-64">
                         <h4 className="font-medium text-gray-900 text-sm">
                           {columns.flatMap(col => col.cards).find(card => card.id === dragState.activeId)?.title}
                         </h4>
@@ -1497,92 +1958,978 @@ export default function PracticeInformationPage() {
       </SidebarLayout>
       
       {showBoardSettings && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Board Settings</h2>
+        <BoardSettingsModal 
+          onClose={() => setShowBoardSettings(false)}
+          currentPracticeId={currentPracticeId}
+          boardBackground={boardBackground}
+          setBoardBackground={setBoardBackground}
+          predefinedBackgrounds={predefinedBackgrounds}
+          uploadCustomBackground={uploadCustomBackground}
+          uploadingBackground={uploadingBackground}
+          uploadSuccess={uploadSuccess}
+          backgroundInputRef={backgroundInputRef}
+          saveBoardSettings={saveBoardSettings}
+          checklistTemplates={checklistTemplates}
+          loadChecklistTemplates={loadChecklistTemplates}
+          getHeaders={getHeaders}
+        />
+      )}
+
+      {selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-[85vw] max-w-7xl max-h-[95vh] overflow-hidden">
+            {/* Header */}
+            <div 
+              className="px-8 py-6 border-b border-gray-200"
+              style={(() => {
+                const primaryLabel = selectedCard.labels && selectedCard.labels.length > 0 
+                  ? availableLabels.find(label => label.id === selectedCard.labels[0])
+                  : null;
+                return {
+                  background: primaryLabel 
+                    ? `linear-gradient(135deg, ${primaryLabel.color}15 0%, ${primaryLabel.color}08 100%)`
+                    : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                  borderTop: primaryLabel ? `4px solid ${primaryLabel.color}` : '4px solid #e2e8f0'
+                };
+              })()}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 mr-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium text-blue-600">
+                      {columns.find(col => col.id === selectedCard.columnId)?.title || 'Unknown Column'}
+                    </span>
+                    {(() => {
+                      const primaryLabel = selectedCard.labels && selectedCard.labels.length > 0 
+                        ? availableLabels.find(label => label.id === selectedCard.labels[0])
+                        : null;
+                      const labelNames = selectedCard.labels 
+                        ? selectedCard.labels.map(labelId => availableLabels.find(l => l.id === labelId)?.name).filter(Boolean).join(', ')
+                        : '';
+                      return primaryLabel ? (
+                        <div className="flex items-center gap-1">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: primaryLabel.color }}
+                          />
+                          <span className="text-xs text-gray-600" title={labelNames}>
+                            {labelNames}
+                          </span>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                  <input
+                    type="text"
+                    value={selectedCard.title}
+                    onChange={(e) => setSelectedCard({ ...selectedCard, title: e.target.value })}
+                    className="text-2xl font-bold text-gray-900 bg-transparent border-none outline-none w-full placeholder-gray-400 focus:ring-0"
+                    onBlur={() => updateCard(selectedCard.columnId, selectedCard.id, { title: selectedCard.title })}
+                    placeholder="Card title..."
+                  />
+                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <span>Created {new Date(selectedCard.createdAt).toLocaleDateString()} at {new Date(selectedCard.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    <span>•</span>
+                    <span>By {selectedCard.createdBy}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => canComment && toggleCardFollowing(selectedCard.columnId, selectedCard.id)}
+                    disabled={!canComment}
+                    className={`p-2 rounded-full transition-all duration-200 ${
+                      selectedCard.followers?.includes(user?.email)
+                        ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                        : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                    } ${!canComment ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                    title={selectedCard.followers?.includes(user?.email) ? 'Unfollow card' : 'Follow card'}
+                  >
+                    <svg className="h-5 w-5" fill={selectedCard.followers?.includes(user?.email) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={closeCardModal}
+                    className="text-gray-400 hover:text-gray-600 hover:bg-white hover:shadow-md p-2 rounded-full transition-all duration-200"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="overflow-y-auto max-h-[calc(95vh-140px)]">
+              <div className="p-8">
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-5 gap-8 h-full">
+                  {/* Left Column - 60% (3/5) */}
+                  <div className="col-span-3 space-y-6">
+                    {/* Description */}
+                    <div>
+                      <label className="block text-lg font-semibold text-gray-800 mb-4">Description</label>
+                      <div className="space-y-4">
+                        <textarea
+                          value={selectedCard.description || ''}
+                          onChange={(e) => setSelectedCard({ ...selectedCard, description: e.target.value })}
+                          onBlur={() => updateCard(selectedCard.columnId, selectedCard.id, { description: selectedCard.description })}
+                          className="w-full p-4 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed shadow-sm transition-all duration-200"
+                          rows={8}
+                          placeholder="Add a detailed description..."
+                        />
+                        
+                        {/* Interactive Checklists */}
+                        {selectedCard.checklists && selectedCard.checklists.length > 0 && (
+                          <div className="space-y-4">
+                            {selectedCard.checklists.map((checklist, checklistIndex) => (
+                              <div key={checklistIndex} className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="text-md font-semibold text-gray-800">{checklist.name || 'Checklist'}</h4>
+                                  {canComment && (
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        onClick={() => {
+                                          setEditingChecklistIndex(checklistIndex);
+                                          setChecklistItems(checklist.items.map(item => item.text));
+                                          setChecklistName(checklist.name || 'Checklist');
+                                          setNewChecklistItem('');
+                                          setShowChecklistModal(true);
+                                        }}
+                                        className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-100 transition-colors"
+                                        title="Edit checklist"
+                                      >
+                                        <PencilIcon className="h-4 w-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          const newChecklists = selectedCard.checklists.filter((_, i) => i !== checklistIndex);
+                                          updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+                                          setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
+                                        }}
+                                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100 transition-colors"
+                                        title="Remove checklist"
+                                      >
+                                        <XMarkIcon className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="space-y-2">
+                                  {checklist.items.map((item, itemIndex) => (
+                                    <div key={itemIndex} className="group bg-white rounded-lg border hover:shadow-sm transition-all">
+                                      <div className="flex items-center gap-3 p-3">
+                                        <input
+                                          type="checkbox"
+                                          checked={item.completed || false}
+                                          onChange={(e) => {
+                                            if (canComment) {
+                                              const newChecklists = [...selectedCard.checklists];
+                                              newChecklists[checklistIndex].items[itemIndex].completed = e.target.checked;
+                                              updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+                                              setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
+                                            }
+                                          }}
+                                          disabled={!canComment}
+                                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer disabled:cursor-not-allowed"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                          <span className={`block text-sm transition-all ${
+                                            item.completed ? 'text-gray-500 line-through' : 'text-gray-900'
+                                          }`}>
+                                            {item.text}
+                                          </span>
+                                          {(item.assignedTo?.length > 0 || item.dueDate) && (
+                                            <div className="flex items-center gap-3 mt-1 text-xs">
+                                              {item.assignedTo?.length > 0 && (
+                                                <div className="flex items-center gap-1">
+                                                  <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                  </svg>
+                                                  <span className="text-blue-600">{item.assignedTo.length} assigned</span>
+                                                </div>
+                                              )}
+                                              {item.dueDate && (
+                                                <div className="flex items-center gap-1">
+                                                  <svg className="w-3 h-3 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                  </svg>
+                                                  <span className={`${
+                                                    new Date(item.dueDate) < new Date() ? 'text-red-600' : 'text-orange-600'
+                                                  }`}>
+                                                    Due {new Date(item.dueDate).toLocaleDateString()}
+                                                    {item.dueTime && ` at ${item.dueTime}`}
+                                                  </span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                        {canComment && (
+                                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                              onClick={() => {
+                                                // Open assign users modal for this checklist item
+                                                setShowAssignModal(true);
+                                                setSelectedChecklistItem({ checklistIndex, itemIndex });
+                                              }}
+                                              className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50 transition-colors"
+                                              title="Assign users"
+                                            >
+                                              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                              </svg>
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                // Open dates modal for this checklist item
+                                                setShowDatesModal(true);
+                                                setSelectedChecklistItem({ checklistIndex, itemIndex });
+                                                setTempDueDate(item.dueDate || '');
+                                                setTempDueTime(item.dueTime || '');
+                                                setReminderOption(item.reminderOption || '');
+                                              }}
+                                              className="text-orange-500 hover:text-orange-700 p-1 rounded hover:bg-orange-50 transition-colors"
+                                              title="Set due date"
+                                            >
+                                              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                              </svg>
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                const newChecklists = [...selectedCard.checklists];
+                                                newChecklists[checklistIndex].items = newChecklists[checklistIndex].items.filter((_, i) => i !== itemIndex);
+                                                updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+                                                setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
+                                              }}
+                                              className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
+                                              title="Remove item"
+                                            >
+                                              <XMarkIcon className="h-3 w-3" />
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
+                                  {checklist.items.filter(item => item.completed).length} of {checklist.items.length} completed
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Control Row */}
+                    <div className="grid grid-cols-4 gap-4">
+                      {/* Labels Control */}
+                      <div className="relative label-dropdown">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Label</label>
+                      <div className="relative">
+                        <button
+                          onClick={() => canComment && setShowLabelDropdown(!showLabelDropdown)}
+                          disabled={!canComment}
+                          className={`w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                            !canComment ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-400'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const currentLabel = selectedCard.labels?.[0] 
+                                ? availableLabels.find(l => l.id === selectedCard.labels[0])
+                                : null;
+                              return currentLabel ? (
+                                <>
+                                  <div 
+                                    className="w-3 h-3 rounded-full"
+                                    style={{ backgroundColor: currentLabel.color }}
+                                  />
+                                  <span className="text-gray-900">{currentLabel.name}</span>
+                                </>
+                              ) : (
+                                <span className="text-gray-500">Select a label...</span>
+                              );
+                            })()}
+                          </div>
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        
+                        {showLabelDropdown && canComment && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            <div className="p-1">
+                              {selectedCard.labels?.[0] && (
+                                <button
+                                  onClick={() => {
+                                    toggleCardLabel(selectedCard.columnId, selectedCard.id, selectedCard.labels[0]);
+                                    setShowLabelDropdown(false);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                                >
+                                  <div className="w-3 h-3 rounded-full bg-gray-300" />
+                                  <span>Remove label</span>
+                                </button>
+                              )}
+                              {availableLabels.map(label => {
+                                const isSelected = selectedCard.labels?.includes(label.id);
+                                return (
+                                  <button
+                                    key={label.id}
+                                    onClick={() => {
+                                      toggleCardLabel(selectedCard.columnId, selectedCard.id, label.id);
+                                      setShowLabelDropdown(false);
+                                    }}
+                                    className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
+                                      isSelected 
+                                        ? 'bg-blue-50 text-blue-700' 
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                  >
+                                    <div 
+                                      className="w-3 h-3 rounded-full"
+                                      style={{ backgroundColor: label.color }}
+                                    />
+                                    <span>{label.name}</span>
+                                    {isSelected && <span className="ml-auto text-blue-600">✓</span>}
+                                  </button>
+                                );
+                              })}
+                              <hr className="my-1" />
+                              <button
+                                onClick={() => {
+                                  setShowNewLabel(true);
+                                  setShowLabelDropdown(false);
+                                }}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span>Create new label</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {showNewLabel && (
+                        <div className="mt-3 p-4 bg-gray-50 rounded-lg border">
+                          <div className="flex gap-3 items-end">
+                            <div className="flex-1">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Label Name</label>
+                              <input
+                                type="text"
+                                value={newLabelName}
+                                onChange={(e) => setNewLabelName(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Enter label name..."
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') addLabel();
+                                  if (e.key === 'Escape') { setShowNewLabel(false); setNewLabelName(''); }
+                                }}
+                                autoFocus
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Color</label>
+                              <input
+                                type="color"
+                                value={newLabelColor}
+                                onChange={(e) => setNewLabelColor(e.target.value)}
+                                className="w-12 h-9 border border-gray-300 rounded cursor-pointer"
+                              />
+                            </div>
+                            <button
+                              onClick={addLabel}
+                              disabled={!newLabelName.trim()}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
+                            >
+                              Add
+                            </button>
+                            <button
+                              onClick={() => { setShowNewLabel(false); setNewLabelName(''); }}
+                              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      </div>
+                      
+                      {/* Assigned To Control */}
+                      <div className="relative">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To</label>
+                        <button
+                          onClick={() => {
+                            if (canComment) {
+                              setShowAssignModal(true);
+                              // Always reload users to get fresh data
+                              loadUsers();
+                            }
+                          }}
+                          disabled={!canComment}
+                          className={`w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                            !canComment ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-400'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            {selectedCard.assignedTo && selectedCard.assignedTo.length > 0 ? (
+                              <>
+                                <div className="flex -space-x-1">
+                                  {selectedCard.assignedTo.slice(0, 2).map((email, index) => (
+                                    <div key={email} className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white font-medium border border-white">
+                                      {email.charAt(0).toUpperCase()}
+                                    </div>
+                                  ))}
+                                  {selectedCard.assignedTo.length > 2 && (
+                                    <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center text-xs text-white font-medium border border-white">
+                                      +{selectedCard.assignedTo.length - 2}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-gray-700 truncate">{selectedCard.assignedTo.length} assigned</span>
+                              </>
+                            ) : (
+                              <span className="text-gray-500">Assign users...</span>
+                            )}
+                          </div>
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {/* Dates Control */}
+                      <div className="relative">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Dates</label>
+                        <button
+                          onClick={() => {
+                            if (canComment) {
+                              setTempStartDate(selectedCard.startDate || '');
+                              setTempDueDate(selectedCard.dueDate || '');
+                              setTempDueTime(selectedCard.dueTime || '');
+                              setReminderOption(selectedCard.reminderOption || '');
+                              setCustomReminderDate(selectedCard.customReminderDate || '');
+                              setCustomReminderTime(selectedCard.customReminderTime || '');
+                              setShowDatesModal(true);
+                            }
+                          }}
+                          disabled={!canComment}
+                          className={`w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                            !canComment ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-400'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            {selectedCard.startDate || selectedCard.dueDate ? (
+                              <>
+                                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span className="text-gray-700 truncate">
+                                  {selectedCard.startDate && `Start: ${new Date(selectedCard.startDate).toLocaleDateString()}`}
+                                  {selectedCard.startDate && selectedCard.dueDate && ' | '}
+                                  {selectedCard.dueDate && `Due: ${new Date(selectedCard.dueDate).toLocaleDateString()}`}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-gray-500">Set dates...</span>
+                            )}
+                          </div>
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {/* Checklist Control */}
+                      <div className="relative checklist-dropdown">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Checklist</label>
+                        <div className="relative">
+                          <button
+                            onClick={() => canComment && setShowChecklistDropdown(!showChecklistDropdown)}
+                            disabled={!canComment}
+                            className={`w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                              !canComment ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-400'
+                            }`}
+                          >
+                            <span className="text-gray-500">Add checklist...</span>
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          
+                          {showChecklistDropdown && canComment && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                              <div className="p-1">
+                                <button
+                                  onClick={() => {
+                                    setChecklistItems([]);
+                                    setNewChecklistItem('');
+                                    setChecklistName('');
+                                    setSaveAsTemplate(false);
+                                    setShowChecklistModal(true);
+                                    setShowChecklistDropdown(false);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                                >
+                                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  <span>Add new</span>
+                                </button>
+                                {checklistTemplates.length > 0 && (
+                                  <>
+                                    <hr className="my-1" />
+                                    {checklistTemplates.map(template => (
+                                      <button
+                                        key={template.id}
+                                        onClick={() => {
+                                          const newChecklist = {
+                                            id: Date.now().toString(),
+                                            name: template.name,
+                                            items: template.items.map(item => ({ text: item, completed: false }))
+                                          };
+                                          
+                                          const currentChecklists = selectedCard.checklists || [];
+                                          const newChecklists = [...currentChecklists, newChecklist];
+                                          
+                                          updateCard(selectedCard.columnId, selectedCard.id, {
+                                            checklists: newChecklists
+                                          });
+                                          setSelectedCard(prev => ({
+                                            ...prev,
+                                            checklists: newChecklists
+                                          }));
+                                          
+                                          setShowChecklistDropdown(false);
+                                        }}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-left"
+                                      >
+                                        <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                        <div>
+                                          <div className="font-medium">{template.name}</div>
+                                          <div className="text-xs text-gray-500">{template.items.length} items</div>
+                                        </div>
+                                      </button>
+                                    ))}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Attachments */}
+                    <div>
+                      <label className="block text-lg font-semibold text-gray-800 mb-4">Attachments</label>
+                      
+                      {canComment && (
+                        <div className="mb-4">
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                            <PaperClipIcon className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                            <input
+                              type="file"
+                              multiple
+                              onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                if (files.length > 0) {
+                                  addAttachments(selectedCard.columnId, selectedCard.id, files);
+                                }
+                              }}
+                              accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                              className="hidden"
+                              id="attachment-upload"
+                            />
+                            <label
+                              htmlFor="attachment-upload"
+                              className="text-blue-600 hover:text-blue-500 font-medium cursor-pointer"
+                            >
+                              Click to upload files
+                            </label>
+                            <p className="text-xs text-gray-500 mt-1">Max 5MB each</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {!canComment && (
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                          <p className="text-sm text-amber-700">
+                            View-only access - cannot add attachments
+                          </p>
+                        </div>
+                      )}
+                      
+                      {selectedCard.attachments && selectedCard.attachments.length > 0 ? (
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                          {selectedCard.attachments.map(attachment => (
+                            <div key={attachment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center space-x-2 min-w-0">
+                                {attachment.filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                  <PhotoIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                                ) : (
+                                  <DocumentIcon className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                                )}
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">{attachment.filename}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {Math.round((attachment.size || 0) / 1024)}KB
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <a
+                                  href={`/api/files/${attachment.path}`}
+                                  download={attachment.filename}
+                                  className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50"
+                                >
+                                  Download
+                                </a>
+                                {canComment && (
+                                  <button
+                                    onClick={() => removeAttachment(selectedCard.columnId, selectedCard.id, attachment.id)}
+                                    className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                                  >
+                                    <XMarkIcon className="h-3 w-3" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-6 text-gray-400">
+                          <DocumentIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No attachments</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right Column - 40% (2/5) */}
+                  <div className="col-span-2">
+                    <label className="block text-lg font-semibold text-gray-800 mb-4">Comments</label>
+                    
+                    {canComment && (
+                      <div className="mb-4">
+                        <div className="space-y-3">
+                          <textarea
+                            value={cardComment}
+                            onChange={(e) => setCardComment(e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            rows={3}
+                            placeholder="Add a comment..."
+                          />
+                          <button
+                            onClick={() => addComment(selectedCard.columnId, selectedCard.id)}
+                            disabled={!cardComment.trim()}
+                            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Post Comment
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!canComment && (
+                      <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-amber-700">
+                          View-only access - cannot add comments
+                        </p>
+                      </div>
+                    )}
+
+                    {selectedCard.comments && selectedCard.comments.length > 0 ? (
+                      <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                        {selectedCard.comments.map(comment => (
+                          <div key={comment.id} className="bg-gray-50 rounded-lg p-4 border hover:bg-gray-100 transition-colors">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-semibold text-gray-900">{comment.author}</span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{comment.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 text-gray-400">
+                        <ChatBubbleLeftIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No comments yet</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Assignment Modal */}
+      {showAssignModal && selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Assign Users</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {selectedChecklistItem ? 'Assign users to this checklist item' : 'Search and assign users to this card'}
+                  </p>
+                </div>
                 <button
-                  onClick={() => setShowBoardSettings(false)}
-                  className="text-gray-400 hover:text-gray-600 p-1"
+                  onClick={() => {
+                    setShowAssignModal(false);
+                    setUserSearchTerm('');
+                    setShowUserDropdown(false);
+                    setSelectedChecklistItem(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
                 >
-                  <XMarkIcon className="h-6 w-6" />
+                  <XMarkIcon className="h-5 w-5" />
                 </button>
               </div>
-
-              <div className="mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Background</h3>
-                
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Choose a preset background:</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {predefinedBackgrounds.map(bg => (
-                      <button
-                        key={bg.id}
-                        onClick={async () => {
-                          try {
-                            await saveBoardSettings({ background: bg.id });
-                            setBoardBackground(bg.id);
-                          } catch (error) {
-                            console.error('Failed to save background:', error);
-                          }
-                        }}
-                        className={`p-4 rounded-lg border-2 transition-all ${
-                          boardBackground === bg.id 
-                            ? 'border-blue-500 ring-2 ring-blue-200' 
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="h-16 w-full rounded mb-2" style={bg.style}></div>
-                        <p className="text-sm font-medium text-gray-900">{bg.name}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Upload custom background:</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <input
-                      ref={backgroundInputRef}
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.webp"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          if (file.size > 5 * 1024 * 1024) {
-                            alert('File size must be less than 5MB');
-                            return;
-                          }
-                          uploadCustomBackground(file);
+            </div>
+            
+            <div className="p-6">
+              {/* Search Dropdown */}
+              <div className="mb-6 relative user-search-dropdown">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Add Users</label>
+                <div className="relative">
+                  <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search by name or email..."
+                    value={userSearchTerm}
+                    onChange={(e) => setUserSearchTerm(e.target.value)}
+                    onFocus={() => setShowUserDropdown(true)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors"
+                  />
+                  
+                  {/* Dropdown */}
+                  {showUserDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                      {(() => {
+                        const currentAssigned = selectedChecklistItem 
+                          ? selectedCard.checklists[selectedChecklistItem.checklistIndex].items[selectedChecklistItem.itemIndex].assignedTo || []
+                          : selectedCard.assignedTo || [];
+                        
+                        const filteredUsers = availableUsers.filter(user => {
+                          const matchesSearch = !userSearchTerm || 
+                            (user.name || user.email).toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                            user.email.toLowerCase().includes(userSearchTerm.toLowerCase());
+                          const notAssigned = !currentAssigned.includes(user.email);
+                          return matchesSearch && notAssigned;
+                        });
+                        
+                        // Sort users: current user first, then current practice board users, then others
+                        const sortedUsers = filteredUsers.sort((a, b) => {
+                          const aIsCurrentUser = a.email === user?.email;
+                          const bIsCurrentUser = b.email === user?.email;
+                          const aPractices = typeof a.practices === 'string' ? JSON.parse(a.practices || '[]') : (Array.isArray(a.practices) ? a.practices : []);
+                          const bPractices = typeof b.practices === 'string' ? JSON.parse(b.practices || '[]') : (Array.isArray(b.practices) ? b.practices : []);
+                          const aIsCurrentBoardUser = aPractices.some(practice => currentBoardPractices.includes(practice));
+                          const bIsCurrentBoardUser = bPractices.some(practice => currentBoardPractices.includes(practice));
+                          
+                          // Current user always first
+                          if (aIsCurrentUser && !bIsCurrentUser) return -1;
+                          if (!aIsCurrentUser && bIsCurrentUser) return 1;
+                          
+                          // Then users from current practice board
+                          if (aIsCurrentBoardUser && !bIsCurrentBoardUser) return -1;
+                          if (!aIsCurrentBoardUser && bIsCurrentBoardUser) return 1;
+                          
+                          // Finally alphabetical by name
+                          return (a.name || a.email).localeCompare(b.name || b.email);
+                        });
+                        
+                        if (sortedUsers.length === 0) {
+                          return (
+                            <div className="p-4 text-center text-gray-500">
+                              <p className="text-sm">{userSearchTerm ? 'No users found' : 'Start typing to search users...'}</p>
+                            </div>
+                          );
                         }
-                      }}
-                      className="hidden"
-                    />
-                    <PhotoIcon className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                    <button
-                      onClick={() => backgroundInputRef.current?.click()}
-                      disabled={uploadingBackground}
-                      className="text-blue-600 hover:text-blue-500 font-medium disabled:opacity-50"
-                    >
-                      {uploadingBackground ? 'Uploading...' : 'Choose Image'}
-                    </button>
-                    {uploadSuccess && (
-                      <p className="text-sm text-green-600 mt-2 font-medium">
-                        ✅ Background uploaded successfully!
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-500 mt-2">
-                      Supported: JPG, PNG, WebP • Max 5MB • Recommended: 1920x1080 or higher
-                    </p>
-                  </div>
+                        
+                        return sortedUsers.map(availableUser => {
+                          const isCurrentUser = availableUser.email === user?.email;
+                          const userPractices = typeof availableUser.practices === 'string' ? JSON.parse(availableUser.practices || '[]') : (Array.isArray(availableUser.practices) ? availableUser.practices : []);
+                          const isCurrentBoardUser = userPractices.some(practice => currentBoardPractices.includes(practice));
+                          
+                          return (
+                            <button
+                              key={availableUser.email}
+                              onClick={() => {
+                                toggleUserAssignment(availableUser.email);
+                                setShowUserDropdown(false);
+                                setUserSearchTerm('');
+                              }}
+                              className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm text-white font-medium ${
+                                isCurrentUser ? 'bg-green-500' : isCurrentBoardUser ? 'bg-blue-500' : 'bg-gray-400'
+                              }`}>
+                                {(availableUser.name || availableUser.email).charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-900 truncate">
+                                  {availableUser.name || availableUser.email}
+                                  {isCurrentUser && <span className="text-green-600 ml-1">(You)</span>}
+                                </div>
+                                {availableUser.name && <div className="text-xs text-gray-500 truncate">{availableUser.email}</div>}
+                                <div className="flex items-center gap-2 mt-1">
+                                  {isCurrentUser && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Current User</span>}
+                                  {isCurrentBoardUser && !isCurrentUser && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Practice Member</span>}
+                                  {!isCurrentBoardUser && !isCurrentUser && <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Other User</span>}
+                                </div>
+                              </div>
+                              <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                            </button>
+                          );
+                        });
+                      })()
+                    }
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <div className="flex justify-end">
+              
+              {/* Assigned Users */}
+              <div>
+                {(() => {
+                  const currentAssigned = selectedChecklistItem 
+                    ? selectedCard.checklists[selectedChecklistItem.checklistIndex].items[selectedChecklistItem.itemIndex].assignedTo || []
+                    : selectedCard.assignedTo || [];
+                  
+                  return (
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="text-sm font-semibold text-gray-800">
+                        Assigned Users ({currentAssigned.length})
+                      </label>
+                      {currentAssigned.length > 0 && (
+                        <button
+                          onClick={() => {
+                            if (selectedChecklistItem) {
+                              const { checklistIndex, itemIndex } = selectedChecklistItem;
+                              const newChecklists = [...selectedCard.checklists];
+                              newChecklists[checklistIndex].items[itemIndex] = {
+                                ...newChecklists[checklistIndex].items[itemIndex],
+                                assignedTo: []
+                              };
+                              updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+                              setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
+                            } else {
+                              const newColumns = columns.map(col => 
+                                col.id === selectedCard.columnId 
+                                  ? { 
+                                      ...col, 
+                                      cards: col.cards.map(card => 
+                                        card.id === selectedCard.id 
+                                          ? { ...card, assignedTo: [], lastEditedBy: user?.email, lastEditedAt: new Date().toISOString() }
+                                          : card
+                                      )
+                                    }
+                                  : col
+                              );
+                              setColumns(newColumns);
+                              saveBoardData(newColumns);
+                              setSelectedCard(prev => ({ ...prev, assignedTo: [] }));
+                            }
+                          }}
+                          className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
+                
+                {(() => {
+                  const currentAssigned = selectedChecklistItem 
+                    ? selectedCard.checklists[selectedChecklistItem.checklistIndex].items[selectedChecklistItem.itemIndex].assignedTo || []
+                    : selectedCard.assignedTo || [];
+                  
+                  return currentAssigned.length > 0 ? (
+                    <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2 bg-gray-50">
+                      {currentAssigned.map(email => {
+                      const assignedUser = availableUsers.find(u => u.email === email);
+                      const isCurrentUser = email === user?.email;
+                      return (
+                        <div key={email} className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 bg-white hover:shadow-sm ${
+                          isCurrentUser ? 'border-green-200' : 'border-gray-200'
+                        }`}>
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm text-white font-medium ${
+                              isCurrentUser ? 'bg-green-500' : 'bg-blue-500'
+                            }`}>
+                              {(assignedUser?.name || email).charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {assignedUser?.name || email}
+                                {isCurrentUser && <span className="text-green-600 ml-1">(You)</span>}
+                              </div>
+                              {assignedUser?.name && <div className="text-xs text-gray-500">{email}</div>}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => toggleUserAssignment(email)}
+                            className="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-100 transition-all duration-200 hover:scale-110"
+                            title="Remove assignment"
+                          >
+                            <XMarkIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-400 border border-gray-200 rounded-lg bg-gray-50">
+                    <svg className="h-8 w-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <p className="text-sm">No users assigned</p>
+                    <p className="text-xs text-gray-500 mt-1">Use the search box above to add users</p>
+                  </div>
+                );
+                })()}
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {(() => {
+                    const currentAssigned = selectedChecklistItem 
+                      ? selectedCard.checklists[selectedChecklistItem.checklistIndex].items[selectedChecklistItem.itemIndex].assignedTo || []
+                      : selectedCard.assignedTo || [];
+                    return `${currentAssigned.length} user${currentAssigned.length !== 1 ? 's' : ''} assigned`;
+                  })()}
+                </div>
                 <button
-                  onClick={() => setShowBoardSettings(false)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  onClick={() => {
+                    setShowAssignModal(false);
+                    setUserSearchTerm('');
+                    setShowUserDropdown(false);
+                    setSelectedChecklistItem(null);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
                   Done
                 </button>
@@ -1591,173 +2938,484 @@ export default function PracticeInformationPage() {
           </div>
         </div>
       )}
-
-      {selectedCard && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={selectedCard.title}
-                    onChange={(e) => setSelectedCard({ ...selectedCard, title: e.target.value })}
-                    className="text-xl font-semibold text-gray-900 bg-transparent border-none outline-none w-full"
-                    onBlur={() => updateCard(selectedCard.columnId, selectedCard.id, { title: selectedCard.title })}
-                  />
+      
+      {/* Dates Modal */}
+      {showDatesModal && selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Set Dates & Reminders</h3>
+                  <p className="text-sm text-gray-600 mt-1">Configure start date, due date, and reminders</p>
                 </div>
                 <button
-                  onClick={closeCardModal}
-                  className="text-gray-400 hover:text-gray-600 p-1"
+                  onClick={() => {
+                    setShowDatesModal(false);
+                    setSelectedChecklistItem(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
                 >
-                  <XMarkIcon className="h-6 w-6" />
+                  <XMarkIcon className="h-5 w-5" />
                 </button>
               </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea
-                  value={selectedCard.description}
-                  onChange={(e) => setSelectedCard({ ...selectedCard, description: e.target.value })}
-                  onBlur={() => updateCard(selectedCard.columnId, selectedCard.id, { description: selectedCard.description })}
-                  className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows={4}
-                  placeholder="Add a description..."
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">Attachments</label>
-                
-                {canComment && (
-                  <div className="mb-4">
-                    <FileDropZone onFilesSelected={setCardFiles} files={cardFiles} />
-                    {cardFiles.length > 0 && (
-                      <button
-                        onClick={() => addAttachments(selectedCard.columnId, selectedCard.id, cardFiles)}
-                        className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                      >
-                        Upload {cardFiles.length} file{cardFiles.length > 1 ? 's' : ''}
-                      </button>
-                    )}
-                  </div>
-                )}
-                
-                {!canComment && (
-                  <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                    <p className="text-sm text-gray-600">
-                      {user.role === 'practice_manager' 
-                        ? 'Practice Managers can view all boards but can only add attachments to their assigned practice boards.'
-                        : user.role === 'practice_principal'
-                        ? 'Practice Principals can view all boards but can only add attachments to their assigned practice boards.'
-                        : user.role === 'practice_member'
-                        ? 'Practice Members can view all boards but can only add attachments to their assigned practice boards.'
-                        : ['account_manager', 'isr', 'netsync_employee'].includes(user.role)
-                        ? 'You have view-only access to practice boards and cannot add attachments.'
-                        : 'You can only add attachments to boards for practices you are assigned to.'}
-                    </p>
-                  </div>
-                )}
-                
-                {selectedCard.attachments && selectedCard.attachments.length > 0 ? (
-                  <div className="space-y-2">
-                    {selectedCard.attachments.map(attachment => (
-                      <div key={attachment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                        <div className="flex items-center space-x-3">
-                          {attachment.filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                            <PhotoIcon className="h-5 w-5 text-blue-500" />
-                          ) : (
-                            <DocumentIcon className="h-5 w-5 text-gray-500" />
-                          )}
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{attachment.filename}</p>
-                            <p className="text-xs text-gray-500">
-                              {Math.round((attachment.size || 0) / 1024)}KB • {new Date(attachment.uploadedAt || attachment.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <a
-                            href={`/api/files/${attachment.path}`}
-                            download={attachment.filename}
-                            className="text-blue-600 hover:text-blue-800 text-sm"
-                          >
-                            Download
-                          </a>
-                          {canComment && (
-                            <button
-                              onClick={() => removeAttachment(selectedCard.columnId, selectedCard.id, attachment.id)}
-                              className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
-                            >
-                              <XMarkIcon className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-sm italic">No attachments</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Comments</label>
-                
-                {canComment && (
-                  <div className="mb-4">
-                    <div className="flex gap-3">
-                      <textarea
-                        value={cardComment}
-                        onChange={(e) => setCardComment(e.target.value)}
-                        className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        rows={2}
-                        placeholder="Add a comment..."
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Calendar View */}
+                <div>
+                  <h4 className="text-md font-semibold text-gray-800 mb-4">Calendar Selection</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                      <input
+                        type="date"
+                        value={tempStartDate}
+                        onChange={(e) => setTempStartDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
-                      <button
-                        onClick={() => addComment(selectedCard.columnId, selectedCard.id)}
-                        disabled={!cardComment.trim()}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                      >
-                        Post
-                      </button>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                      <input
+                        type="date"
+                        value={tempDueDate}
+                        onChange={(e) => setTempDueDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Time</label>
+                      <input
+                        type="time"
+                        value={tempDueTime}
+                        onChange={(e) => setTempDueTime(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
                     </div>
                   </div>
-                )}
+                </div>
                 
-                {!canComment && (
-                  <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                    <p className="text-sm text-gray-600">
-                      {user.role === 'practice_manager' 
-                        ? 'Practice Managers can view all boards but can only comment on their assigned practice boards.'
-                        : user.role === 'practice_principal'
-                        ? 'Practice Principals can view all boards but can only comment on their assigned practice boards.'
-                        : user.role === 'practice_member'
-                        ? 'Practice Members can view all boards but can only comment on their assigned practice boards.'
-                        : ['account_manager', 'isr', 'netsync_employee'].includes(user.role)
-                        ? 'You have view-only access to practice boards and cannot add comments.'
-                        : 'You can only comment on boards for practices you are assigned to.'}
-                    </p>
+                {/* Manual Entry */}
+                <div>
+                  <h4 className="text-md font-semibold text-gray-800 mb-4">Manual Entry</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Start Date (MM/DD/YYYY)</label>
+                      <input
+                        type="text"
+                        placeholder="MM/DD/YYYY"
+                        value={tempStartDate ? new Date(tempStartDate).toLocaleDateString() : ''}
+                        onChange={(e) => {
+                          const date = new Date(e.target.value);
+                          if (!isNaN(date.getTime())) {
+                            setTempStartDate(date.toISOString().split('T')[0]);
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date (MM/DD/YYYY)</label>
+                      <input
+                        type="text"
+                        placeholder="MM/DD/YYYY"
+                        value={tempDueDate ? new Date(tempDueDate).toLocaleDateString() : ''}
+                        onChange={(e) => {
+                          const date = new Date(e.target.value);
+                          if (!isNaN(date.getTime())) {
+                            setTempDueDate(date.toISOString().split('T')[0]);
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Time (HH:MM)</label>
+                      <input
+                        type="text"
+                        placeholder="HH:MM (24-hour format)"
+                        value={tempDueTime}
+                        onChange={(e) => setTempDueTime(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
                   </div>
-                )}
-
-                {selectedCard.comments && selectedCard.comments.length > 0 ? (
-                  <div className="space-y-3 max-h-60 overflow-y-auto">
-                    {selectedCard.comments.map(comment => (
-                      <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-900">{comment.author}</span>
-                          <span className="text-xs text-gray-500">
-                            {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                          </span>
+                </div>
+              </div>
+              
+              {/* Reminder Options */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h4 className="text-md font-semibold text-gray-800 mb-4">Due Date Reminder</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Reminder Time</label>
+                    <select
+                      value={reminderOption}
+                      onChange={(e) => setReminderOption(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">No reminder</option>
+                      <option value="1day">1 day before</option>
+                      <option value="1hour">1 hour before</option>
+                      <option value="15min">15 minutes before</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                  
+                  {reminderOption === 'custom' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Custom Reminder Date</label>
+                        <input
+                          type="date"
+                          value={customReminderDate}
+                          onChange={(e) => setCustomReminderDate(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Custom Reminder Time</label>
+                        <input
+                          type="time"
+                          value={customReminderTime}
+                          onChange={(e) => setCustomReminderTime(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                    <p><strong>Note:</strong> Reminders will be sent via Webex to all assigned users and followers of this card.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    setTempStartDate('');
+                    setTempDueDate('');
+                    setTempDueTime('');
+                    setReminderOption('');
+                    setCustomReminderDate('');
+                    setCustomReminderTime('');
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Clear All
+                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDatesModal(false);
+                      setSelectedChecklistItem(null);
+                    }}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (selectedChecklistItem) {
+                        // Handle checklist item dates
+                        const { checklistIndex, itemIndex } = selectedChecklistItem;
+                        const newChecklists = [...selectedCard.checklists];
+                        newChecklists[checklistIndex].items[itemIndex] = {
+                          ...newChecklists[checklistIndex].items[itemIndex],
+                          dueDate: tempDueDate,
+                          dueTime: tempDueTime,
+                          reminderOption: reminderOption,
+                          customReminderDate: customReminderDate,
+                          customReminderTime: customReminderTime
+                        };
+                        
+                        updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+                        setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
+                        
+                        // Send Webex reminder if due date and reminder are set
+                        if (tempDueDate && reminderOption && newChecklists[checklistIndex].items[itemIndex].assignedTo?.length > 0) {
+                          try {
+                            await fetch('/api/notifications/checklist-reminder', {
+                              method: 'POST',
+                              headers: getHeaders(),
+                              body: JSON.stringify({
+                                cardId: selectedCard.id,
+                                columnId: selectedCard.columnId,
+                                practiceId: currentPracticeId,
+                                checklistIndex,
+                                itemIndex,
+                                checklistItem: newChecklists[checklistIndex].items[itemIndex],
+                                cardData: selectedCard
+                              })
+                            });
+                          } catch (error) {
+                            console.error('Failed to schedule checklist reminder:', error);
+                          }
+                        }
+                      } else {
+                        // Handle card-level dates
+                        updateCard(selectedCard.columnId, selectedCard.id, {
+                          startDate: tempStartDate,
+                          dueDate: tempDueDate,
+                          dueTime: tempDueTime,
+                          reminderOption: reminderOption,
+                          customReminderDate: customReminderDate,
+                          customReminderTime: customReminderTime
+                        });
+                        setSelectedCard(prev => ({
+                          ...prev,
+                          startDate: tempStartDate,
+                          dueDate: tempDueDate,
+                          dueTime: tempDueTime,
+                          reminderOption: reminderOption,
+                          customReminderDate: customReminderDate,
+                          customReminderTime: customReminderTime
+                        }));
+                      }
+                      
+                      setShowDatesModal(false);
+                      setSelectedChecklistItem(null);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Save Dates
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Checklist Modal */}
+      {showChecklistModal && selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{editingChecklistIndex !== null ? 'Edit Checklist' : 'Create Checklist'}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{editingChecklistIndex !== null ? 'Modify checklist items' : 'Add checklist items to insert into the description'}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowChecklistModal(false);
+                    setChecklistItems([]);
+                    setNewChecklistItem('');
+                    setEditingChecklistIndex(null);
+                    setChecklistName('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {/* Checklist Name */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Checklist Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter checklist name..."
+                  value={checklistName}
+                  onChange={(e) => setChecklistName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoFocus
+                />
+              </div>
+              
+              {/* Add New Item */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Add Checklist Item</label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    placeholder="Enter checklist item..."
+                    value={newChecklistItem}
+                    onChange={(e) => setNewChecklistItem(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newChecklistItem.trim()) {
+                        setChecklistItems([...checklistItems, newChecklistItem.trim()]);
+                        setNewChecklistItem('');
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button
+                    onClick={() => {
+                      if (newChecklistItem.trim()) {
+                        setChecklistItems([...checklistItems, newChecklistItem.trim()]);
+                        setNewChecklistItem('');
+                      }
+                    }}
+                    disabled={!newChecklistItem.trim()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              
+              {/* Save as Template Option */}
+              {editingChecklistIndex === null && (
+                <div className="mb-6">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={saveAsTemplate}
+                      onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Save as template for future use</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1 ml-6">Templates can be reused on any card in this practice board</p>
+                </div>
+              )}
+              
+              {/* Checklist Items */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Checklist Items ({checklistItems.length})
+                  </label>
+                  {checklistItems.length > 0 && (
+                    <button
+                      onClick={() => setChecklistItems([])}
+                      className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+                
+                {checklistItems.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    {checklistItems.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-white rounded border hover:shadow-sm transition-all duration-200">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-4 h-4 border-2 border-gray-300 rounded flex-shrink-0"></div>
+                          <span className="text-sm text-gray-900">{item}</span>
                         </div>
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.text}</p>
+                        <button
+                          onClick={() => {
+                            setChecklistItems(checklistItems.filter((_, i) => i !== index));
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition-all duration-200"
+                          title="Remove item"
+                        >
+                          <XMarkIcon className="h-3 w-3" />
+                        </button>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm italic">No comments yet</p>
+                  <div className="text-center py-8 text-gray-400 border border-gray-200 rounded-lg bg-gray-50">
+                    <svg className="h-8 w-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <p className="text-sm">No checklist items</p>
+                    <p className="text-xs text-gray-500 mt-1">Add items using the input above</p>
+                  </div>
                 )}
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {checklistItems.length} item{checklistItems.length !== 1 ? 's' : ''} ready to insert
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowChecklistModal(false);
+                      setChecklistItems([]);
+                      setNewChecklistItem('');
+                    }}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (checklistItems.length > 0) {
+                        const currentChecklists = selectedCard.checklists || [];
+                        let newChecklists;
+                        
+                        if (editingChecklistIndex !== null) {
+                          // Edit existing checklist
+                          newChecklists = [...currentChecklists];
+                          const existingItems = newChecklists[editingChecklistIndex].items;
+                          newChecklists[editingChecklistIndex] = {
+                            ...newChecklists[editingChecklistIndex],
+                            name: checklistName || 'Checklist',
+                            items: checklistItems.map((text, index) => {
+                              const existingItem = existingItems.find(item => item.text === text);
+                              return existingItem || { text, completed: false };
+                            })
+                          };
+                        } else {
+                          // Create new checklist
+                          const newChecklist = {
+                            id: Date.now().toString(),
+                            name: checklistName || 'Checklist',
+                            items: checklistItems.map(text => ({ text, completed: false }))
+                          };
+                          newChecklists = [...currentChecklists, newChecklist];
+                          
+                          // Save as template if requested
+                          if (saveAsTemplate && checklistName && checklistItems.length > 0) {
+                            try {
+                              const saveResponse = await fetch('/api/practice-boards/checklist-templates', {
+                                method: 'POST',
+                                headers: {
+                                  ...getHeaders(),
+                                  'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                  practiceId: currentPracticeId,
+                                  name: checklistName,
+                                  items: checklistItems
+                                })
+                              });
+                              if (saveResponse.ok) {
+                                await loadChecklistTemplates();
+                              }
+                            } catch (error) {
+                              console.error('Error saving template:', error);
+                            }
+                          }
+                        }
+                        
+                        updateCard(selectedCard.columnId, selectedCard.id, {
+                          checklists: newChecklists
+                        });
+                        setSelectedCard(prev => ({
+                          ...prev,
+                          checklists: newChecklists
+                        }));
+                        
+                        setShowChecklistModal(false);
+                        setChecklistItems([]);
+                        setNewChecklistItem('');
+                        setEditingChecklistIndex(null);
+                        setChecklistName('');
+                        setSaveAsTemplate(false);
+                      }
+                    }}
+                    disabled={checklistItems.length === 0}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+                  >
+                    {editingChecklistIndex !== null ? 'Update Checklist' : 'Insert Checklist'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

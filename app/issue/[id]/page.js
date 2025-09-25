@@ -23,6 +23,8 @@ function FileDropZone({ onFilesSelected, files }) {
     'image/jpeg', 'image/png', 'image/gif', 'image/webp',
     'application/pdf', 'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain', 'application/zip'
   ];
 
@@ -93,7 +95,7 @@ function FileDropZone({ onFilesSelected, files }) {
           type="file"
           multiple
           onChange={handleChange}
-          accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.txt,.zip"
+          accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
           className="hidden"
         />
         <div>
@@ -107,7 +109,7 @@ function FileDropZone({ onFilesSelected, files }) {
           <span className="text-gray-500"> or drag and drop</span>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Max 5 files, 5MB each. Images, PDF, DOC, TXT, ZIP
+          Max 5 files, 5MB each. Images, PDF, DOC, XLS, TXT, ZIP
         </p>
       </div>
       
@@ -707,7 +709,7 @@ function ConversationSection({ issueId, issue, user, onIssueUpdate }) {
                 <input
                   type="file"
                   multiple
-                  accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.txt,.zip"
+                  accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
                   className="hidden"
                   id="attachment-input"
                   onChange={(e) => {

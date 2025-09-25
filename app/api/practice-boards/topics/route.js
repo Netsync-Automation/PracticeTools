@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../../lib/dynamodb.js';
+import { db, getEnvironment } from '../../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../../lib/auth-check.js';
 
 
@@ -20,8 +20,9 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Practice ID required' }, { status: 400 });
     }
 
-    // Get topics for this practice
-    const topicsKey = `practice_topics_${practiceId}`;
+    // Get topics for this practice - DSR compliant with environment prefix
+    const environment = getEnvironment();
+    const topicsKey = `${environment}_practice_topics_${practiceId}`;
     const topicsData = await db.getSetting(topicsKey);
     
     let topics = ['Main Topic'];
@@ -60,8 +61,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    // Get existing topics
-    const topicsKey = `practice_topics_${practiceId}`;
+    // Get existing topics - DSR compliant with environment prefix
+    const environment = getEnvironment();
+    const topicsKey = `${environment}_practice_topics_${practiceId}`;
     const topicsData = await db.getSetting(topicsKey);
     
     let topics = ['Main Topic'];
@@ -75,8 +77,8 @@ export async function POST(request) {
       topics.push(topic);
       await db.saveSetting(topicsKey, JSON.stringify({ topics }));
       
-      // Create initial board data for the new topic
-      const topicBoardKey = `practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      // Create initial board data for the new topic - DSR compliant with environment prefix
+      const topicBoardKey = `${environment}_practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
       const boardColumns = await db.getBoardColumns(practiceId);
       const defaultColumns = boardColumns.map(col => ({
         id: col.id,
@@ -144,8 +146,9 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Cannot rename Main Topic' }, { status: 400 });
     }
     
-    // Update topics list
-    const topicsKey = `practice_topics_${practiceId}`;
+    // Update topics list - DSR compliant with environment prefix
+    const environment = getEnvironment();
+    const topicsKey = `${environment}_practice_topics_${practiceId}`;
     const topicsData = await db.getSetting(topicsKey);
     
     let topics = ['Main Topic'];
@@ -159,9 +162,9 @@ export async function PUT(request) {
       topics[topicIndex] = newTopic;
       await db.saveSetting(topicsKey, JSON.stringify({ topics }));
       
-      // Handle board data key rename for non-main topics only
-      const oldKey = `practice_board_${practiceId}_${oldTopic.replace(/[^a-zA-Z0-9]/g, '_')}`;
-      const newKey = `practice_board_${practiceId}_${newTopic.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      // Handle board data key rename for non-main topics only - DSR compliant with environment prefix
+      const oldKey = `${environment}_practice_board_${practiceId}_${oldTopic.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      const newKey = `${environment}_practice_board_${practiceId}_${newTopic.replace(/[^a-zA-Z0-9]/g, '_')}`;
       
       const oldBoardData = await db.getSetting(oldKey);
       if (oldBoardData) {
@@ -221,8 +224,9 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    // Remove topic from topics list
-    const topicsKey = `practice_topics_${practiceId}`;
+    // Remove topic from topics list - DSR compliant with environment prefix
+    const environment = getEnvironment();
+    const topicsKey = `${environment}_practice_topics_${practiceId}`;
     const topicsData = await db.getSetting(topicsKey);
     
     let topics = ['Main Topic'];
@@ -234,8 +238,8 @@ export async function DELETE(request) {
     const updatedTopics = topics.filter(t => t !== topic);
     await db.saveSetting(topicsKey, JSON.stringify({ topics: updatedTopics }));
     
-    // Delete topic board data
-    const topicBoardKey = `practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    // Delete topic board data - DSR compliant with environment prefix
+    const topicBoardKey = `${environment}_practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
     await db.deleteSetting(topicBoardKey);
     
     // Send SSE notification for topic deleted

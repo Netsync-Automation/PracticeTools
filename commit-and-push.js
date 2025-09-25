@@ -445,6 +445,9 @@ class CommitBuilder {
           'sawebex-service': 'Enhanced sa-webex-service Service with improved functionality and error handling',
           'webexsync': 'Enhanced webex-sync Service with improved functionality and error handling',
           'saauto-assignment': 'Enhanced sa-auto-assignment Service with improved functionality and error handling',
+          'practiceextractor': 'Enhanced practice-extractor Service with improved functionality and error handling',
+          'practicematcher': 'Enhanced practice-matcher Service with improved functionality and error handling',
+          'sanitize': 'Enhanced sanitize Service with improved functionality and error handling',
     };
     
     // Check for pattern matches

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../lib/dynamodb.js';
+import { db, getEnvironment } from '../../../lib/dynamodb.js';
 import { getCached, setCached, clearCache } from '../../../lib/cache.js';
 
 
@@ -11,10 +11,11 @@ export async function GET(request) {
     const topic = searchParams.get('topic') || 'Main Topic';
     
     if (practiceId) {
-      // Get specific practice board for topic
+      // Get specific practice board for topic - DSR compliant with environment prefix
+      const environment = getEnvironment();
       const boardKey = topic === 'Main Topic' 
-        ? `practice_board_${practiceId}` 
-        : `practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        ? `${environment}_practice_board_${practiceId}` 
+        : `${environment}_practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
       
       // Check cache first
       const cacheKey = `board_${boardKey}`;
@@ -63,9 +64,11 @@ export async function POST(request) {
   try {
     const { practiceId, topic = 'Main Topic', columns } = await request.json();
     
+    // DSR compliant board key with environment prefix
+    const environment = getEnvironment();
     const boardKey = topic === 'Main Topic' 
-      ? `practice_board_${practiceId}` 
-      : `practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      ? `${environment}_practice_board_${practiceId}` 
+      : `${environment}_practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
     
     // Get existing board data to preserve settings
     const existingData = await db.getSetting(boardKey);
@@ -85,8 +88,8 @@ export async function POST(request) {
     const success = await db.saveSetting(boardKey, JSON.stringify(boardData));
     
     if (success) {
-      // Clear cache for this board
-      clearCache(`board_practice_board_${practiceId}`);
+      // Clear cache for this board - use DSR compliant key
+      clearCache(`board_${environment}_practice_board_${practiceId}`);
       
       // Send SSE notification for board updates
       try {
