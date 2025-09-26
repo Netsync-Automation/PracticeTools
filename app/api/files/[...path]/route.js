@@ -15,10 +15,11 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'S3 bucket not configured' }, { status: 500 });
     }
 
-    // Generate presigned URL for the file
+    // Generate presigned URL for the file with download disposition
     const command = new GetObjectCommand({
       Bucket: bucketName,
-      Key: path
+      Key: path,
+      ResponseContentDisposition: 'attachment'
     });
 
     const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });

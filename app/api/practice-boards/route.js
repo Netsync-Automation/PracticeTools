@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db, getEnvironment } from '../../../lib/dynamodb.js';
 import { getCached, setCached, clearCache } from '../../../lib/cache.js';
+import { validateUserSession } from '../../../lib/auth-check.js';
 
 
 export const dynamic = 'force-dynamic';
@@ -43,6 +44,20 @@ export async function GET(request) {
       }
 
       const response = JSON.parse(boardData);
+      
+      // Normalize card data to ensure all required fields exist
+      if (response.columns) {
+        response.columns = response.columns.map(column => ({
+          ...column,
+          cards: (column.cards || []).map(card => ({
+            ...card,
+            followers: card.followers || [],
+            comments: card.comments || [],
+            attachments: card.attachments || []
+          }))
+        }));
+      }
+      
       setCached(cacheKey, response, 30000); // Cache for 30 seconds
       return NextResponse.json(response);
     } else {
@@ -62,7 +77,35 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const userCookie = request.cookies.get('user-session');
+    const validation = await validateUserSession(userCookie);
+    
+    if (!validation.valid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { practiceId, topic = 'Main Topic', columns } = await request.json();
+    
+    // DSR: Check if user can edit this board
+    const user = validation.user;
+    if (!user.isAdmin) {
+      // Get board data to check practices
+      const environment = getEnvironment();
+      const boardKey = topic === 'Main Topic' 
+        ? `${environment}_practice_board_${practiceId}` 
+        : `${environment}_practice_board_${practiceId}_${topic.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      
+      const existingData = await db.getSetting(boardKey);
+      if (existingData) {
+        const boardData = JSON.parse(existingData);
+        const canEdit = boardData.practices && user.practices && 
+          boardData.practices.some(practice => user.practices.includes(practice));
+        
+        if (!canEdit) {
+          return NextResponse.json({ error: 'You can only edit boards for your assigned practices' }, { status: 403 });
+        }
+      }
+    }
     
     // DSR compliant board key with environment prefix
     const environment = getEnvironment();
@@ -94,9 +137,21 @@ export async function POST(request) {
       // Send SSE notification for board updates
       try {
         const { notifyClients } = await import('../events/route.js');
+        
+        // Normalize columns data for SSE notification
+        const normalizedColumns = columns.map(column => ({
+          ...column,
+          cards: (column.cards || []).map(card => ({
+            ...card,
+            followers: card.followers || [],
+            comments: card.comments || [],
+            attachments: card.attachments || []
+          }))
+        }));
+        
         notifyClients(`practice-board-${practiceId}`, {
           type: 'board_updated',
-          columns: columns,
+          columns: normalizedColumns,
           topic: topic,
           timestamp: Date.now()
         });

@@ -1,4 +1,4 @@
-import { getEnvironment, getTableName } from '../../../../lib/dynamodb.js';
+import { getEnvironment, getTableName, getCardFollowers } from '../../../../lib/dynamodb.js';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
@@ -8,24 +8,18 @@ export async function POST(request) {
       cardId, 
       columnId, 
       practiceId, 
-      checklistIndex, 
-      itemIndex, 
-      checklistItem, 
       cardData 
     } = await request.json();
 
-    // Get assigned users for the checklist item
-    const assignedUsers = checklistItem.assignedTo || [];
-    
-    if (assignedUsers.length === 0 || !checklistItem.dueDate || !checklistItem.reminderOption) {
+    if (!cardData.dueDate || !cardData.reminderOption) {
       return Response.json({ success: true, message: 'No reminder needed' });
     }
 
     // Calculate reminder time
     let reminderTime;
-    const dueDateTime = new Date(`${checklistItem.dueDate}T${checklistItem.dueTime || '23:59'}`);
+    const dueDateTime = new Date(`${cardData.dueDate}T${cardData.dueTime || '23:59'}`);
     
-    switch (checklistItem.reminderOption) {
+    switch (cardData.reminderOption) {
       case '15min':
         reminderTime = new Date(dueDateTime.getTime() - 15 * 60 * 1000);
         break;
@@ -36,14 +30,26 @@ export async function POST(request) {
         reminderTime = new Date(dueDateTime.getTime() - 24 * 60 * 60 * 1000);
         break;
       case 'custom':
-        if (checklistItem.customReminderDate && checklistItem.customReminderTime) {
-          reminderTime = new Date(`${checklistItem.customReminderDate}T${checklistItem.customReminderTime}`);
+        if (cardData.customReminderDate && cardData.customReminderTime) {
+          reminderTime = new Date(`${cardData.customReminderDate}T${cardData.customReminderTime}`);
         }
         break;
     }
 
     if (!reminderTime || reminderTime <= new Date()) {
       return Response.json({ success: true, message: 'Reminder time has passed' });
+    }
+
+    // Get followers and assigned users
+    const cardKey = `${practiceId}_${columnId}_${cardId}`;
+    const followers = await getCardFollowers(cardKey);
+    const assignedUsers = cardData.assignedTo || [];
+    
+    // Combine and deduplicate users
+    const allUsers = [...new Set([...followers, ...assignedUsers])];
+    
+    if (allUsers.length === 0) {
+      return Response.json({ success: true, message: 'No users to notify' });
     }
 
     // Get practice-specific Webex bot
@@ -94,14 +100,19 @@ export async function POST(request) {
       return Response.json({ success: false, message: 'No Webex bot configured for board practices' });
     }
 
-    // Send direct messages to assigned users
-    const notificationPromises = assignedUsers.map(async (userEmail) => {
+    // Send direct messages to all users
+    const notificationPromises = allUsers.map(async (userEmail) => {
       try {
-        const message = `🔔 **Checklist Item Reminder**\n\n` +
+        const message = `🔔 **Card Due Date Reminder**\n\n` +
           `**Card:** ${cardData.title}\n` +
-          `**Checklist Item:** ${checklistItem.text}\n` +
-          `**Due:** ${dueDateTime.toLocaleDateString()} at ${checklistItem.dueTime || 'End of day'}\n\n` +
-          `This is a reminder for your assigned checklist item.`;
+          `**Due:** ${dueDateTime.toLocaleDateString()} at ${cardData.dueTime || 'End of day'}\n\n` +
+          `This card is due soon. You are receiving this reminder because you are ${
+            followers.includes(userEmail) && assignedUsers.includes(userEmail) 
+              ? 'following and assigned to' 
+              : followers.includes(userEmail) 
+                ? 'following' 
+                : 'assigned to'
+          } this card.`;
 
         const webexResponse = await fetch('https://webexapis.com/v1/messages', {
           method: 'POST',
@@ -127,16 +138,16 @@ export async function POST(request) {
 
     return Response.json({ 
       success: true, 
-      message: 'Checklist reminder sent',
+      message: 'Card reminder sent',
       reminderTime: reminderTime.toISOString(),
       notificationsSent: successCount,
-      totalAssigned: assignedUsers.length
+      totalUsers: allUsers.length
     });
 
   } catch (error) {
-    console.error('Error processing checklist reminder:', error);
+    console.error('Error processing card reminder:', error);
     return Response.json(
-      { error: 'Failed to process checklist reminder' },
+      { error: 'Failed to process card reminder' },
       { status: 500 }
     );
   }

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
@@ -360,8 +360,8 @@ export default function PracticeInformationPage() {
 
   const loadAvailableBoards = async () => {
     try {
-      console.log('ðŸ” [FRONTEND] Starting loadAvailableBoards');
-      console.log('ðŸ” [FRONTEND] Current user:', {
+      console.log('🔍 [FRONTEND] Starting loadAvailableBoards');
+      console.log('🔍 [FRONTEND] Current user:', {
         email: user?.email,
         name: user?.name,
         role: user?.role,
@@ -372,42 +372,42 @@ export default function PracticeInformationPage() {
       });
       
       const response = await fetch('/api/practice-boards/list');
-      console.log('ðŸ” [FRONTEND] API response status:', response.status, response.statusText);
+      console.log('🔍 [FRONTEND] API response status:', response.status, response.statusText);
       const data = await response.json();
-      console.log('ðŸ” [FRONTEND] API response data:', data);
+      console.log('🔍 [FRONTEND] API response data:', data);
       const boards = data.boards || [];
-      console.log('ðŸ” [FRONTEND] Parsed boards:', boards);
+      console.log('🔍 [FRONTEND] Parsed boards:', boards);
       
       setAvailableBoards(boards);
       
       if (boards.length === 0) {
-        console.log('ðŸ” [FRONTEND] No boards available, setting loading to false');
+        console.log('🔍 [FRONTEND] No boards available, setting loading to false');
         setIsLoading(false);
       } else if (boards.length > 0 && !currentPracticeId) {
-        console.log('ðŸ” [FRONTEND] Finding default board for user');
+        console.log('🔍 [FRONTEND] Finding default board for user');
         let defaultBoard;
         
         if (user?.practices && user.practices.length > 0) {
-          console.log('ðŸ” [FRONTEND] User has practices, looking for matching board:', user.practices);
+          console.log('🔍 [FRONTEND] User has practices, looking for matching board:', user.practices);
           defaultBoard = boards.find(board => {
             const hasMatch = board.practices?.some(practice => user.practices.includes(practice));
-            console.log('ðŸ” [FRONTEND] Checking board:', board.practiceId, 'practices:', board.practices, 'hasMatch:', hasMatch);
+            console.log('🔍 [FRONTEND] Checking board:', board.practiceId, 'practices:', board.practices, 'hasMatch:', hasMatch);
             return hasMatch;
           });
-          console.log('ðŸ” [FRONTEND] Found matching board:', defaultBoard);
+          console.log('🔍 [FRONTEND] Found matching board:', defaultBoard);
         }
         
         if (!defaultBoard) {
-          console.log('ðŸ” [FRONTEND] No matching board found, using first board alphabetically');
+          console.log('🔍 [FRONTEND] No matching board found, using first board alphabetically');
           const sortedBoards = boards.sort((a, b) => 
             (a.practices?.[0] || '').localeCompare(b.practices?.[0] || '')
           );
           defaultBoard = sortedBoards[0];
-          console.log('ðŸ” [FRONTEND] Selected first board:', defaultBoard);
+          console.log('🔍 [FRONTEND] Selected first board:', defaultBoard);
         }
         
         if (defaultBoard) {
-          console.log('ðŸ” [FRONTEND] Setting default board:', {
+          console.log('🔍 [FRONTEND] Setting default board:', {
             practiceId: defaultBoard.practiceId,
             practices: defaultBoard.practices,
             boardName: defaultBoard.practices?.join(', ') || ''
@@ -418,7 +418,7 @@ export default function PracticeInformationPage() {
           
           // Load saved topic preference for the default board, or find most active topic
           const savedTopic = getTopicPreference(defaultBoard.practiceId);
-          console.log('ðŸ” [FRONTEND] Saved topic preference:', savedTopic);
+          console.log('🔍 [FRONTEND] Saved topic preference:', savedTopic);
           if (savedTopic) {
             setCurrentTopic(savedTopic);
           } else {
@@ -461,7 +461,7 @@ export default function PracticeInformationPage() {
                   }
                 }
                 
-                console.log('ðŸ” [FRONTEND] Most active topic:', mostActiveTopic, 'with activity at:', new Date(latestActivity));
+                console.log('🔍 [FRONTEND] Most active topic:', mostActiveTopic, 'with activity at:', new Date(latestActivity));
                 setCurrentTopic(mostActiveTopic);
                 saveTopicPreference(defaultBoard.practiceId, mostActiveTopic);
               }
@@ -473,7 +473,7 @@ export default function PracticeInformationPage() {
         }
       }
     } catch (error) {
-      console.error('ðŸ” [FRONTEND] Error loading available boards:', error);
+      console.error('🔍 [FRONTEND] Error loading available boards:', error);
     }
   };
 
@@ -821,7 +821,7 @@ export default function PracticeInformationPage() {
 
   const saveBoardSettings = async (settings) => {
     try {
-      console.log('ðŸ”§ [FRONTEND] Saving settings for practiceId:', currentPracticeId, 'settings:', settings);
+      console.log('🔧 [FRONTEND] Saving settings for practiceId:', currentPracticeId, 'settings:', settings);
       // Always save background settings at practice level (shared across all topics)
       const response = await fetch('/api/practice-boards/settings', {
         method: 'POST',
@@ -829,7 +829,7 @@ export default function PracticeInformationPage() {
         body: JSON.stringify({ practiceId: currentPracticeId, settings })
       });
       const result = await response.json();
-      console.log('ðŸ”§ [FRONTEND] Settings save result:', result);
+      console.log('🔧 [FRONTEND] Settings save result:', result);
       return result;
     } catch (error) {
       console.error('Error saving board settings:', error);
@@ -1043,14 +1043,14 @@ export default function PracticeInformationPage() {
         });
         
         const result = await response.json();
-        console.log('ðŸ”” [NOTIFICATION DEBUG] API response:', {
+        console.log('🔔 [NOTIFICATION DEBUG] API response:', {
           status: response.status,
           ok: response.ok,
           result,
           changes
         });
       } catch (error) {
-        console.error('ðŸ”” [NOTIFICATION DEBUG] Failed to send follow notifications:', error);
+        console.error('🔔 [NOTIFICATION DEBUG] Failed to send follow notifications:', error);
       }
     }
   };
@@ -1328,7 +1328,7 @@ export default function PracticeInformationPage() {
   };
 
   const toggleCardFollowing = async (columnId, cardId) => {
-    console.log('ðŸ”„ [FOLLOW DEBUG] toggleCardFollowing called', {
+    console.log('🔄 [FOLLOW DEBUG] toggleCardFollowing called', {
       columnId,
       cardId,
       userEmail: user?.email,
@@ -1336,7 +1336,7 @@ export default function PracticeInformationPage() {
     });
     
     if (!user?.email) {
-      console.error('ðŸ”„ [FOLLOW DEBUG] No user email available');
+      console.error('🔄 [FOLLOW DEBUG] No user email available');
       return;
     }
     
@@ -1354,11 +1354,11 @@ export default function PracticeInformationPage() {
         })
       });
       
-      console.log('ðŸ”„ [FOLLOW DEBUG] API response status:', response.status);
+      console.log('🔄 [FOLLOW DEBUG] API response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('ðŸ”„ [FOLLOW DEBUG] API response data:', data);
+        console.log('🔄 [FOLLOW DEBUG] API response data:', data);
         
         // Update local state to reflect the new follow status
         const newColumns = columns.map(col => 
@@ -1389,7 +1389,7 @@ export default function PracticeInformationPage() {
             ? [...(selectedCard.followers || []).filter(email => email !== user?.email), user?.email]
             : (selectedCard.followers || []).filter(email => email !== user?.email);
           
-          console.log('ðŸ”„ [FOLLOW DEBUG] Updating selected card', {
+          console.log('🔄 [FOLLOW DEBUG] Updating selected card', {
             updatedFollowers,
             following: data.following
           });
@@ -1402,12 +1402,12 @@ export default function PracticeInformationPage() {
           }));
         }
         
-        console.log('ðŸ”„ [FOLLOW DEBUG] toggleCardFollowing completed successfully');
+        console.log('🔄 [FOLLOW DEBUG] toggleCardFollowing completed successfully');
       } else {
-        console.error('ðŸ”„ [FOLLOW DEBUG] API request failed:', response.status, response.statusText);
+        console.error('🔄 [FOLLOW DEBUG] API request failed:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('ðŸ”„ [FOLLOW DEBUG] Error in toggleCardFollowing:', error);
+      console.error('🔄 [FOLLOW DEBUG] Error in toggleCardFollowing:', error);
     }
   };
 
@@ -1768,7 +1768,7 @@ export default function PracticeInformationPage() {
                       try {
                         const response = await fetch('/api/debug/user-analysis');
                         const analysis = await response.json();
-                        console.log('ðŸ” [DEBUG] User Analysis:', analysis);
+                        console.log('🔍 [DEBUG] User Analysis:', analysis);
                         
                         // Calculate current board permissions (matching actual UI logic)
                         const currentBoardPermissions = {
@@ -1820,7 +1820,7 @@ export default function PracticeInformationPage() {
                         message += `All Available Boards:\n`;
                         analysis.practiceBoards.all.forEach(board => {
                           const isCurrent = board.id === currentPracticeId;
-                          message += `${isCurrent ? 'â†’ ' : '  '}${board.id}: [${board.practices.join(', ')}]${isCurrent ? ' (CURRENT)' : ''}\n`;
+                          message += `${isCurrent ? '→ ' : '  '}${board.id}: [${board.practices.join(', ')}]${isCurrent ? ' (CURRENT)' : ''}\n`;
                         });
                         
                         alert(message);
@@ -2351,7 +2351,7 @@ export default function PracticeInformationPage() {
                   />
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                     <span>Created {new Date(selectedCard.createdAt).toLocaleDateString()} at {new Date(selectedCard.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    <span>â€¢</span>
+                    <span>•</span>
                     <span>By {selectedCard.createdBy}</span>
                   </div>
                 </div>
@@ -2763,7 +2763,7 @@ export default function PracticeInformationPage() {
                                       style={{ backgroundColor: label.color }}
                                     />
                                     <span>{label.name}</span>
-                                    {isSelected && <span className="ml-auto text-blue-600">âœ“</span>}
+                                    {isSelected && <span className="ml-auto text-blue-600">✓</span>}
                                   </button>
                                 );
                               })}
@@ -3043,7 +3043,7 @@ export default function PracticeInformationPage() {
                             >
                               Click to upload files
                             </label>
-                            <p className="text-xs text-gray-500 mt-1">or drag and drop â€¢ Max 5MB each</p>
+                            <p className="text-xs text-gray-500 mt-1">or drag and drop • Max 5MB each</p>
                           </div>
                         </div>
                       )}
@@ -3180,7 +3180,7 @@ export default function PracticeInformationPage() {
                                 </button>
                                 {showEmojiPicker && (
                                   <div className="absolute bottom-full right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 grid grid-cols-6 gap-1 z-10">
-                                    {['ðŸ˜€', 'ðŸ˜ƒ', 'ðŸ˜„', 'ðŸ˜', 'ðŸ˜Š', 'ðŸ˜', 'ðŸ¤”', 'ðŸ˜¢', 'ðŸ˜‚', 'ðŸ‘', 'ðŸ‘Ž', 'â¤ï¸', 'ðŸŽ‰', 'ðŸ”¥', 'ðŸ’¯', 'âœ…', 'âŒ', 'âš ï¸'].map(emoji => (
+                                    {['😀', '😃', '😄', '😁', '😊', '😍', '🤔', '😢', '😂', '👍', '👎', '❤️', '🎉', '🔥', '💯', '✅', '❌', '⚠️'].map(emoji => (
                                       <button
                                         key={emoji}
                                         onClick={() => {
@@ -3296,10 +3296,10 @@ export default function PracticeInformationPage() {
                                     )}
                                     <button
                                       onClick={(e) => {
-                                        console.log('ðŸ”¥ File click triggered:', attachment.filename);
+                                        console.log('🔥 File click triggered:', attachment.filename);
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        console.log('ðŸ”¥ Opening download URL:', `/api/files/${attachment.path}`);
+                                        console.log('🔥 Opening download URL:', `/api/files/${attachment.path}`);
                                         
                                         // Create hidden iframe to force download
                                         const iframe = document.createElement('iframe');
@@ -3312,13 +3312,13 @@ export default function PracticeInformationPage() {
                                           document.body.removeChild(iframe);
                                         }, 1000);
                                         
-                                        console.log('ðŸ”¥ Download initiated via iframe');
+                                        console.log('🔥 Download initiated via iframe');
                                       }}
                                       onMouseEnter={(e) => {
                                         setPreviewType('comment');
-                                        console.log('ðŸ”¥ Mouse enter on file:', attachment.filename);
+                                        console.log('🔥 Mouse enter on file:', attachment.filename);
                                         const rect = e.currentTarget.getBoundingClientRect();
-                                        console.log('ðŸ”¥ Button rect:', rect);
+                                        console.log('🔥 Button rect:', rect);
                                         setPreviewPosition({
                                           x: rect.left,
                                           y: rect.top + rect.height / 2
@@ -3330,7 +3330,7 @@ export default function PracticeInformationPage() {
                                         });
                                       }}
                                       onMouseLeave={() => {
-                                        console.log('ðŸ”¥ Mouse leave');
+                                        console.log('🔥 Mouse leave');
                                         setPreviewFile(null);
                                       }}
                                       className="text-xs text-blue-600 hover:text-blue-800 truncate flex-1 text-left cursor-pointer hover:underline"
@@ -4177,6 +4177,986 @@ export default function PracticeInformationPage() {
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+                  <button
+                    onClick={async () => {
+                      if (selectedChecklistItem) {
+                        // Handle checklist item dates
+                        const { checklistIndex, itemIndex } = selectedChecklistItem;
+                        const newChecklists = [...selectedCard.checklists];
+                        newChecklists[checklistIndex].items[itemIndex] = {
+                          ...newChecklists[checklistIndex].items[itemIndex],
+                          dueDate: tempDueDate,
+                          dueTime: tempDueTime,
+                          reminderOption: reminderOption,
+                          customReminderDate: customReminderDate,
+                          customReminderTime: customReminderTime
+                        };
+                        
+                        updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+                        setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
+                        
+                        // Send checklist item reminder if due date and reminder are set
+                        if (tempDueDate && reminderOption && newChecklists[checklistIndex].items[itemIndex].assignedTo?.length > 0) {
+                          try {
+                            await fetch('/api/notifications/checklist-reminder', {
+                              method: 'POST',
+                              headers: getHeaders(),
+                              body: JSON.stringify({
+                                cardId: selectedCard.id,
+                                columnId: selectedCard.columnId,
+                                practiceId: currentPracticeId,
+                                checklistIndex,
+                                itemIndex,
+                                checklistItem: newChecklists[checklistIndex].items[itemIndex],
+                                cardData: selectedCard
+                              })
+                            });
+                          } catch (error) {
+                            console.error('Failed to send checklist reminder:', error);
+                          }
+                        }
+                      } else {
+                        // Handle card-level dates
+                        updateCard(selectedCard.columnId, selectedCard.id, {
+                          startDate: tempStartDate,
+                          dueDate: tempDueDate,
+                          dueTime: tempDueTime,
+                          reminderOption: reminderOption,
+                          customReminderDate: customReminderDate,
+                          customReminderTime: customReminderTime
+                        });
+                        
+                        setSelectedCard(prev => ({
+                          ...prev,
+                          startDate: tempStartDate,
+                          dueDate: tempDueDate,
+                          dueTime: tempDueTime,
+                          reminderOption: reminderOption,
+                          customReminderDate: customReminderDate,
+                          customReminderTime: customReminderTime
+                        }));
+                        
+                        // Send card reminder if due date and reminder are set
+                        if (tempDueDate && reminderOption) {
+                          try {
+                            await fetch('/api/notifications/card-reminder', {
+                              method: 'POST',
+                              headers: getHeaders(),
+                              body: JSON.stringify({
+                                cardId: selectedCard.id,
+                                columnId: selectedCard.columnId,
+                                practiceId: currentPracticeId,
+                                cardData: {
+                                  ...selectedCard,
+                                  startDate: tempStartDate,
+                                  dueDate: tempDueDate,
+                                  dueTime: tempDueTime,
+                                  reminderOption: reminderOption,
+                                  customReminderDate: customReminderDate,
+                                  customReminderTime: customReminderTime
+                                }
+                              })
+                            });
+                          } catch (error) {
+                            console.error('Failed to send card reminder:', error);
+                          }
+                        }
+                      }
+                      
+                      setShowDatesModal(false);
+                      setSelectedChecklistItem(null);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Checklist Modal */}
+      {showChecklistModal && selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Checklist</h3>
+                  <p className="text-sm text-gray-600 mt-1">Add items to create a checklist</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowChecklistModal(false);
+                    setChecklistItems([]);
+                    setNewChecklistItem('');
+                    setChecklistName('');
+                    setSaveAsTemplate(false);
+                    setEditingChecklistIndex(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Checklist Name</label>
+                  <input
+                    type="text"
+                    value={checklistName}
+                    onChange={(e) => setChecklistName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter checklist name..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Items</label>
+                  <div className="space-y-2">
+                    {checklistItems.map((item, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={item}
+                          onChange={(e) => {
+                            const newItems = [...checklistItems];
+                            newItems[index] = e.target.value;
+                            setChecklistItems(newItems);
+                          }}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Enter item..."
+                        />
+                        <button
+                          onClick={() => {
+                            const newItems = checklistItems.filter((_, i) => i !== index);
+                            setChecklistItems(newItems);
+                          }}
+                          className="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50"
+                        >
+                          <XMarkIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newChecklistItem}
+                        onChange={(e) => setNewChecklistItem(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Add new item..."
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && newChecklistItem.trim()) {
+                            setChecklistItems([...checklistItems, newChecklistItem.trim()]);
+                            setNewChecklistItem('');
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          if (newChecklistItem.trim()) {
+                            setChecklistItems([...checklistItems, newChecklistItem.trim()]);
+                            setNewChecklistItem('');
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                {checklistItems.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="saveAsTemplate"
+                      checked={saveAsTemplate}
+                      onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="saveAsTemplate" className="text-sm text-gray-700">
+                      Save as template for future use
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {checklistItems.length} item{checklistItems.length !== 1 ? 's' : ''}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowChecklistModal(false);
+                      setChecklistItems([]);
+                      setNewChecklistItem('');
+                      setChecklistName('');
+                      setSaveAsTemplate(false);
+                      setEditingChecklistIndex(null);
+                    }}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (selectedChecklistItem) {
+                        // Handle checklist item dates
+                        const { checklistIndex, itemIndex } = selectedChecklistItem;
+                        const newChecklists = [...selectedCard.checklists];
+                        newChecklists[checklistIndex].items[itemIndex] = {
+                          ...newChecklists[checklistIndex].items[itemIndex],
+                          dueDate: tempDueDate,
+                          dueTime: tempDueTime,
+                          reminderOption: reminderOption,
+                          customReminderDate: customReminderDate,
+                          customReminderTime: customReminderTime
+                        };
+                        
+                        updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+                        setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
+                        
+                        // Send checklist item reminder if due date and reminder are set
+                        if (tempDueDate && reminderOption && newChecklists[checklistIndex].items[itemIndex].assignedTo?.length > 0) {
+                          try {
+                            await fetch('/api/notifications/checklist-reminder', {
+                              method: 'POST',
+                              headers: getHeaders(),
+                              body: JSON.stringify({
+                                cardId: selectedCard.id,
+                                columnId: selectedCard.columnId,
+                                practiceId: currentPracticeId,
+                                checklistIndex,
+                                itemIndex,
+                                checklistItem: newChecklists[checklistIndex].items[itemIndex],
+                                cardData: selectedCard
+                              })
+                            });
+                          } catch (error) {
+                            console.error('Failed to send checklist reminder:', error);
+                          }
+                        }
+                      } else {
+                        // Handle card-level dates
+                        updateCard(selectedCard.columnId, selectedCard.id, {
+                          startDate: tempStartDate,
+                          dueDate: tempDueDate,
+                          dueTime: tempDueTime,
+                          reminderOption: reminderOption,
+                          customReminderDate: customReminderDate,
+                          customReminderTime: customReminderTime
+                        });
+                        
+                        setSelectedCard(prev => ({
+                          ...prev,
+                          startDate: tempStartDate,
+                          dueDate: tempDueDate,
+                          dueTime: tempDueTime,
+                          reminderOption: reminderOption,
+                          customReminderDate: customReminderDate,
+                          customReminderTime: customReminderTime
+                        }));
+                        
+                        // Send card reminder if due date and reminder are set
+                        if (tempDueDate && reminderOption) {
+                          try {
+                            await fetch('/api/notifications/card-reminder', {
+                              method: 'POST',
+                              headers: getHeaders(),
+                              body: JSON.stringify({
+                                cardId: selectedCard.id,
+                                columnId: selectedCard.columnId,
+                                practiceId: currentPracticeId,
+                                cardData: {
+                                  ...selectedCard,
+                                  startDate: tempStartDate,
+                                  dueDate: tempDueDate,
+                                  dueTime: tempDueTime,
+                                  reminderOption: reminderOption,
+                                  customReminderDate: customReminderDate,
+                                  customReminderTime: customReminderTime
+                                }
+                              })
+                            });
+                          } catch (error) {
+                            console.error('Failed to send card reminder:', error);
+                          }
+                        }
+                      }
+                      
+                      setShowDatesModal(false);
+                      setSelectedChecklistItem(null);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Checklist Modal */}
+      {showChecklistModal && selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Checklist</h3>
+                  <p className="text-sm text-gray-600 mt-1">Add items to create a checklist</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowChecklistModal(false);
+                    setChecklistItems([]);
+                    setNewChecklistItem('');
+                    setChecklistName('');
+                    setSaveAsTemplate(false);
+                    setEditingChecklistIndex(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Checklist Name</label>
+                  <input
+                    type="text"
+                    value={checklistName}
+                    onChange={(e) => setChecklistName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter checklist name..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Items</label>
+                  <div className="space-y-2">
+                    {checklistItems.map((item, index) => (
+                      <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded border">
+                        <span className="flex-1">{item}</span>
+                        <button
+                          onClick={() => setChecklistItems(prev => prev.filter((_, i) => i !== index))}
+                          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100"
+                        >
+                          <XMarkIcon className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newChecklistItem}
+                        onChange={(e) => setNewChecklistItem(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && newChecklistItem.trim()) {
+                            setChecklistItems(prev => [...prev, newChecklistItem.trim()]);
+                            setNewChecklistItem('');
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Add checklist item..."
+                      />
+                      <button
+                        onClick={() => {
+                          if (newChecklistItem.trim()) {
+                            setChecklistItems(prev => [...prev, newChecklistItem.trim()]);
+                            setNewChecklistItem('');
+                          }
+                        }}
+                        disabled={!newChecklistItem.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="saveAsTemplate"
+                    checked={saveAsTemplate}
+                    onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                  <label htmlFor="saveAsTemplate" className="text-sm text-gray-700">
+                    Save as template for future use
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {checklistItems.length} item{checklistItems.length !== 1 ? 's' : ''}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowChecklistModal(false);
+                      setChecklistItems([]);
+                      setNewChecklistItem('');
+                      setChecklistName('');
+                      setSaveAsTemplate(false);
+                      setEditingChecklistIndex(null);
+                    }}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (checklistItems.length > 0) {
+                        const newChecklist = {
+                          id: Date.now().toString(),
+                          name: checklistName || 'Checklist',
+                          items: checklistItems.map(item => ({ text: item, completed: false }))
+                        };
+                        
+                        let currentChecklists;
+                        if (editingChecklistIndex !== null) {
+                          // Editing existing checklist
+                          currentChecklists = [...selectedCard.checklists];
+                          currentChecklists[editingChecklistIndex] = newChecklist;
+                        } else {
+                          // Adding new checklist
+                          currentChecklists = [...(selectedCard.checklists || []), newChecklist];
+                        }
+                        
+                        updateCard(selectedCard.columnId, selectedCard.id, {
+                          checklists: currentChecklists
+                        });
+                        setSelectedCard(prev => ({
+                          ...prev,
+                          checklists: currentChecklists
+                        }));
+                        
+                        // Save as template if requested
+                        if (saveAsTemplate && checklistName) {
+                          try {
+                            await fetch('/api/practice-boards/checklist-templates', {
+                              method: 'POST',
+                              headers: getHeaders(),
+                              body: JSON.stringify({
+                                practiceId: currentPracticeId,
+                                name: checklistName,
+                                items: checklistItems
+                              })
+                            });
+                            loadChecklistTemplates();
+                          } catch (error) {
+                            console.error('Failed to save checklist template:', error);
+                          }
+                        }
+                        
+                        setShowChecklistModal(false);
+                        setChecklistItems([]);
+                        setNewChecklistItem('');
+                        setChecklistName('');
+                        setSaveAsTemplate(false);
+                        setEditingChecklistIndex(null);
+                      }
+                    }}
+                    disabled={checklistItems.length === 0}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {editingChecklistIndex !== null ? 'Update Checklist' : 'Add Checklist'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+      {showChecklistModal && selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{editingChecklistIndex !== null ? 'Edit Checklist' : 'Create Checklist'}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{editingChecklistIndex !== null ? 'Modify checklist items' : 'Add checklist items to insert into the description'}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowChecklistModal(false);
+                    setChecklistItems([]);
+                    setNewChecklistItem('');
+                    setEditingChecklistIndex(null);
+                    setChecklistName('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {/* Checklist Name */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Checklist Name</label>
+                <input
+                  type="text"
+                  placeholder="Enter checklist name..."
+                  value={checklistName}
+                  onChange={(e) => setChecklistName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoFocus
+                />
+              </div>
+              
+              {/* Add New Item */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Add Checklist Item</label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    placeholder="Enter checklist item..."
+                    value={newChecklistItem}
+                    onChange={(e) => setNewChecklistItem(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newChecklistItem.trim()) {
+                        setChecklistItems([...checklistItems, newChecklistItem.trim()]);
+                        setNewChecklistItem('');
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button
+                    onClick={() => {
+                      if (newChecklistItem.trim()) {
+                        setChecklistItems([...checklistItems, newChecklistItem.trim()]);
+                        setNewChecklistItem('');
+                      }
+                    }}
+                    disabled={!newChecklistItem.trim()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              
+              {/* Save as Template Option */}
+              {editingChecklistIndex === null && (
+                <div className="mb-6">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={saveAsTemplate}
+                      onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Save as template for future use</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1 ml-6">Templates can be reused on any card in this practice board</p>
+                </div>
+              )}
+              
+              {/* Checklist Items */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Checklist Items ({checklistItems.length})
+                  </label>
+                  {checklistItems.length > 0 && (
+                    <button
+                      onClick={() => setChecklistItems([])}
+                      className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+                
+                {checklistItems.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    {checklistItems.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-white rounded border hover:shadow-sm transition-all duration-200">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-4 h-4 border-2 border-gray-300 rounded flex-shrink-0"></div>
+                          <span className="text-sm text-gray-900">{item}</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setChecklistItems(checklistItems.filter((_, i) => i !== index));
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition-all duration-200"
+                          title="Remove item"
+                        >
+                          <XMarkIcon className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-400 border border-gray-200 rounded-lg bg-gray-50">
+                    <svg className="h-8 w-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <p className="text-sm">No checklist items</p>
+                    <p className="text-xs text-gray-500 mt-1">Add items using the input above</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {checklistItems.length} item{checklistItems.length !== 1 ? 's' : ''} ready to insert
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowChecklistModal(false);
+                      setChecklistItems([]);
+                      setNewChecklistItem('');
+                    }}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (checklistItems.length > 0) {
+                        const currentChecklists = selectedCard.checklists || [];
+                        let newChecklists;
+                        
+                        if (editingChecklistIndex !== null) {
+                          // Edit existing checklist
+                          newChecklists = [...currentChecklists];
+                          const existingItems = newChecklists[editingChecklistIndex].items;
+                          newChecklists[editingChecklistIndex] = {
+                            ...newChecklists[editingChecklistIndex],
+                            name: checklistName || 'Checklist',
+                            items: checklistItems.map((text, index) => {
+                              const existingItem = existingItems.find(item => item.text === text);
+                              return existingItem || { text, completed: false };
+                            })
+                          };
+                        } else {
+                          // Create new checklist
+                          const newChecklist = {
+                            id: Date.now().toString(),
+                            name: checklistName || 'Checklist',
+                            items: checklistItems.map(text => ({ text, completed: false }))
+                          };
+                          newChecklists = [...currentChecklists, newChecklist];
+                          
+                          // Save as template if requested
+                          if (saveAsTemplate && checklistName && checklistItems.length > 0) {
+                            try {
+                              const saveResponse = await fetch('/api/practice-boards/checklist-templates', {
+                                method: 'POST',
+                                headers: {
+                                  ...getHeaders(),
+                                  'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                  practiceId: currentPracticeId,
+                                  name: checklistName,
+                                  items: checklistItems
+                                })
+                              });
+                              if (saveResponse.ok) {
+                                await loadChecklistTemplates();
+                              }
+                            } catch (error) {
+                              console.error('Error saving template:', error);
+                            }
+                          }
+                        }
+                        
+                        updateCard(selectedCard.columnId, selectedCard.id, {
+                          checklists: newChecklists
+                        });
+                        setSelectedCard(prev => ({
+                          ...prev,
+                          checklists: newChecklists
+                        }));
+                        
+                        setShowChecklistModal(false);
+                        setChecklistItems([]);
+                        setNewChecklistItem('');
+                        setEditingChecklistIndex(null);
+                        setChecklistName('');
+                        setSaveAsTemplate(false);
+                      }
+                    }}
+                    disabled={checklistItems.length === 0}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+                  >
+                    {editingChecklistIndex !== null ? 'Update Checklist' : 'Insert Checklist'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Label Management Modal */}
+      {showLabelManagementModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[85vh] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Manage Labels</h3>
+                <button
+                  onClick={() => {
+                    setShowLabelManagementModal(false);
+                    setNewLabelName('');
+                    setNewLabelColor('#3B82F6');
+                    setEditingLabel(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              {/* Create New Label */}
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-800 mb-3">Create New Label</h4>
+                <div className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={newLabelName}
+                      onChange={(e) => setNewLabelName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Label name..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') addLabel();
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="color"
+                      value={newLabelColor}
+                      onChange={(e) => setNewLabelColor(e.target.value)}
+                      className="w-12 h-9 border border-gray-300 rounded cursor-pointer"
+                    />
+                  </div>
+                  <button
+                    onClick={addLabel}
+                    disabled={!newLabelName.trim()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              
+              {/* Existing Labels */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-3">Existing Labels ({availableLabels.length})</h4>
+                {availableLabels.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {availableLabels.map(label => (
+                      <div key={label.id} className="p-3 bg-gray-50 rounded-lg border">
+                        {editingLabel === label.id ? (
+                          <div className="flex gap-2 items-center">
+                            <input
+                              type="text"
+                              value={editLabelName}
+                              onChange={(e) => setEditLabelName(e.target.value)}
+                              className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  updateLabel(label.id);
+                                } else if (e.key === 'Escape') {
+                                  setEditingLabel(null);
+                                }
+                              }}
+                              autoFocus
+                            />
+                            <input
+                              type="color"
+                              value={editLabelColor}
+                              onChange={(e) => setEditLabelColor(e.target.value)}
+                              className="w-8 h-8 border border-gray-300 rounded cursor-pointer"
+                            />
+                            <button
+                              onClick={() => updateLabel(label.id)}
+                              className="text-green-600 hover:text-green-700 p-1 rounded hover:bg-green-100"
+                              title="Save"
+                            >
+                              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => setEditingLabel(null)}
+                              className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100"
+                              title="Cancel"
+                            >
+                              <XMarkIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div 
+                                className="w-4 h-4 rounded-full"
+                                style={{ backgroundColor: label.color }}
+                              />
+                              <span className="text-sm font-medium text-gray-900">{label.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => {
+                                  setEditingLabel(label.id);
+                                  setEditLabelName(label.name);
+                                  setEditLabelColor(label.color);
+                                }}
+                                className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-100 transition-colors"
+                                title="Edit label"
+                              >
+                                <PencilIcon className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (window.confirm(`Delete label "${label.name}"?`)) {
+                                    try {
+                                      const response = await fetch('/api/practice-boards/labels', {
+                                        method: 'DELETE',
+                                        headers: getHeaders(),
+                                        body: JSON.stringify({ 
+                                          practiceId: currentPracticeId, 
+                                          labelId: label.id 
+                                        })
+                                      });
+                                      if (response.ok) {
+                                        const data = await response.json();
+                                        setAvailableLabels(data.labels);
+                                      }
+                                    } catch (error) {
+                                      console.error('Error deleting label:', error);
+                                    }
+                                  }
+                                }}
+                                className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100 transition-colors"
+                                title="Delete label"
+                              >
+                                <XMarkIcon className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-400">
+                    <p className="text-sm">No labels created yet</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={() => {
+                  setShowLabelManagementModal(false);
+                  setNewLabelName('');
+                  setNewLabelColor('#3B82F6');
+                }}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* File Preview Portal */}
+      {previewFile && typeof window !== 'undefined' && createPortal(
+        <div 
+          className="fixed z-[9999] pointer-events-none"
+          style={{
+            left: previewType === 'attachment' ? previewPosition.x : previewPosition.x - 680,
+            top: previewPosition.y,
+            transform: previewType === 'attachment' ? 'translate(-50%, -50%)' : 'translateY(-50%)'
+          }}
+          onMouseEnter={() => setPreviewFile(null)}
+        >
+          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-6 w-[680px]">
+            <div className="flex items-center gap-4 mb-4">
+              {previewFile.filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                <PhotoIcon className="h-8 w-8 text-blue-500" />
+              ) : (
+                <DocumentIcon className="h-8 w-8 text-gray-500" />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-medium text-gray-900 truncate">{previewFile.filename}</p>
+                <p className="text-sm text-gray-500">{Math.round((previewFile.size || 0) / 1024)}KB</p>
+              </div>
+            </div>
+            {previewFile.filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+              <div className="w-[640px] h-[480px] bg-gray-100 rounded border overflow-hidden">
+                <img 
+                  src={`/api/files/${previewFile.path}`}
+                  alt={previewFile.filename}
+                  className="w-full h-full object-cover"
+                  onLoad={() => console.log('🔥 Image loaded successfully')}
+                  onError={(e) => {
+                    console.log('🔥 Image failed to load');
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                <div className="w-full h-full flex items-center justify-center text-gray-400" style={{display: 'none'}}>
+                  <PhotoIcon className="h-16 w-16" />
+                </div>
+              </div>
+            ) : (
+              <div className="w-[640px] h-[480px] bg-gray-100 rounded border flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <DocumentIcon className="h-24 w-24 mx-auto mb-4" />
+                  <p className="text-sm">File Preview</p>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
