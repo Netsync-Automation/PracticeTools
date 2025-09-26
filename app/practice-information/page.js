@@ -18,6 +18,7 @@ import { PlusIcon, XMarkIcon, EllipsisVerticalIcon, PencilIcon, TrashIcon, Paper
 import AttachmentPreview from '../../components/AttachmentPreview';
 import MultiAttachmentPreview from '../../components/MultiAttachmentPreview';
 import BoardSettingsModal from '../../components/BoardSettingsModal';
+import DateTimePicker from '../../components/DateTimePicker';
 import {
   DndContext,
   DragOverlay,
@@ -2651,11 +2652,13 @@ export default function PracticeInformationPage() {
                                             <button
                                               onClick={() => {
                                                 // Open dates modal for this checklist item
-                                                setShowDatesModal(true);
                                                 setSelectedChecklistItem({ checklistIndex, itemIndex });
                                                 setTempDueDate(item.dueDate || '');
                                                 setTempDueTime(item.dueTime || '');
-                                                setReminderOption(item.reminderOption || '');
+                                                setReminderOption('');
+                                                setCustomReminderDate('');
+                                                setCustomReminderTime('');
+                                                setShowDatesModal(true);
                                               }}
                                               className="text-orange-500 hover:text-orange-700 p-1 rounded hover:bg-orange-50 transition-colors"
                                               title="Set due date"
@@ -2883,9 +2886,9 @@ export default function PracticeInformationPage() {
                               setTempStartDate(selectedCard.startDate || '');
                               setTempDueDate(selectedCard.dueDate || '');
                               setTempDueTime(selectedCard.dueTime || '');
-                              setReminderOption(selectedCard.reminderOption || '');
-                              setCustomReminderDate(selectedCard.customReminderDate || '');
-                              setCustomReminderTime(selectedCard.customReminderTime || '');
+                              setReminderOption('');
+                              setCustomReminderDate('');
+                              setCustomReminderTime('');
                               setShowDatesModal(true);
                             }
                           }}
@@ -3725,276 +3728,116 @@ export default function PracticeInformationPage() {
       )}
       
       {/* Dates Modal */}
-      {showDatesModal && selectedCard && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Set Dates & Reminders</h3>
-                  <p className="text-sm text-gray-600 mt-1">Configure start date, due date, and reminders</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowDatesModal(false);
-                    setSelectedChecklistItem(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
-                >
-                  <XMarkIcon className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
+      <DateTimePicker
+        isOpen={showDatesModal}
+        onClose={() => {
+          setShowDatesModal(false);
+          setSelectedChecklistItem(null);
+        }}
+        onSave={async (data) => {
+          if (selectedChecklistItem) {
+            // Handle checklist item dates
+            const { checklistIndex, itemIndex } = selectedChecklistItem;
+            const newChecklists = [...selectedCard.checklists];
+            newChecklists[checklistIndex].items[itemIndex] = {
+              ...newChecklists[checklistIndex].items[itemIndex],
+              dueDate: data.dueDate,
+              dueTime: data.dueTime,
+              reminderOption: data.reminderOption,
+              customReminderDate: data.customReminderDate,
+              customReminderTime: data.customReminderTime
+            };
             
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-              <div className="grid grid-cols-2 gap-6">
-                {/* Calendar View */}
-                <div>
-                  <h4 className="text-md font-semibold text-gray-800 mb-4">Calendar Selection</h4>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                      <input
-                        type="date"
-                        value={tempStartDate}
-                        onChange={(e) => setTempStartDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                      <input
-                        type="date"
-                        value={tempDueDate}
-                        onChange={(e) => setTempDueDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Time</label>
-                      <input
-                        type="time"
-                        value={tempDueTime}
-                        onChange={(e) => setTempDueTime(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Manual Entry */}
-                <div>
-                  <h4 className="text-md font-semibold text-gray-800 mb-4">Manual Entry</h4>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Start Date (MM/DD/YYYY)</label>
-                      <input
-                        type="text"
-                        placeholder="MM/DD/YYYY"
-                        value={tempStartDate ? new Date(tempStartDate).toLocaleDateString() : ''}
-                        onChange={(e) => {
-                          const date = new Date(e.target.value);
-                          if (!isNaN(date.getTime())) {
-                            setTempStartDate(date.toISOString().split('T')[0]);
-                          }
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date (MM/DD/YYYY)</label>
-                      <input
-                        type="text"
-                        placeholder="MM/DD/YYYY"
-                        value={tempDueDate ? new Date(tempDueDate).toLocaleDateString() : ''}
-                        onChange={(e) => {
-                          const date = new Date(e.target.value);
-                          if (!isNaN(date.getTime())) {
-                            setTempDueDate(date.toISOString().split('T')[0]);
-                          }
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Time (HH:MM)</label>
-                      <input
-                        type="text"
-                        placeholder="HH:MM (24-hour format)"
-                        value={tempDueTime}
-                        onChange={(e) => setTempDueTime(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Reminder Options */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">Due Date Reminder</h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Reminder Time</label>
-                    <select
-                      value={reminderOption}
-                      onChange={(e) => setReminderOption(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">No reminder</option>
-                      <option value="1day">1 day before</option>
-                      <option value="1hour">1 hour before</option>
-                      <option value="15min">15 minutes before</option>
-                      <option value="custom">Custom</option>
-                    </select>
-                  </div>
-                  
-                  {reminderOption === 'custom' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Custom Reminder Date</label>
-                        <input
-                          type="date"
-                          value={customReminderDate}
-                          onChange={(e) => setCustomReminderDate(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Custom Reminder Time</label>
-                        <input
-                          type="time"
-                          value={customReminderTime}
-                          onChange={(e) => setCustomReminderTime(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                    <p><strong>Note:</strong> Reminders will be sent via Webex to all assigned users and followers of this card.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+            setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
             
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => {
-                    setTempStartDate('');
-                    setTempDueDate('');
-                    setTempDueTime('');
-                    setReminderOption('');
-                    setCustomReminderDate('');
-                    setCustomReminderTime('');
-                  }}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  Clear All
-                </button>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      setShowDatesModal(false);
-                      setSelectedChecklistItem(null);
-                    }}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (selectedChecklistItem) {
-                        // Handle checklist item dates
-                        const { checklistIndex, itemIndex } = selectedChecklistItem;
-                        const newChecklists = [...selectedCard.checklists];
-                        newChecklists[checklistIndex].items[itemIndex] = {
-                          ...newChecklists[checklistIndex].items[itemIndex],
-                          dueDate: tempDueDate,
-                          dueTime: tempDueTime,
-                          reminderOption: reminderOption,
-                          customReminderDate: customReminderDate,
-                          customReminderTime: customReminderTime
-                        };
-                        
-                        updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
-                        setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
-                        
-                        // Send checklist item reminder if due date and reminder are set
-                        if (tempDueDate && reminderOption && newChecklists[checklistIndex].items[itemIndex].assignedTo?.length > 0) {
-                          try {
-                            await fetch('/api/notifications/checklist-reminder', {
-                              method: 'POST',
-                              headers: getHeaders(),
-                              body: JSON.stringify({
-                                cardId: selectedCard.id,
-                                columnId: selectedCard.columnId,
-                                practiceId: currentPracticeId,
-                                checklistIndex,
-                                itemIndex,
-                                checklistItem: newChecklists[checklistIndex].items[itemIndex],
-                                cardData: selectedCard
-                              })
-                            });
-                          } catch (error) {
-                            console.error('Failed to schedule checklist reminder:', error);
-                          }
-                        }
-                      } else {
-                        // Handle card-level dates
-                        updateCard(selectedCard.columnId, selectedCard.id, {
-                          startDate: tempStartDate,
-                          dueDate: tempDueDate,
-                          dueTime: tempDueTime,
-                          reminderOption: reminderOption,
-                          customReminderDate: customReminderDate,
-                          customReminderTime: customReminderTime
-                        });
-                        
-                        setSelectedCard(prev => ({
-                          ...prev,
-                          startDate: tempStartDate,
-                          dueDate: tempDueDate,
-                          dueTime: tempDueTime,
-                          reminderOption: reminderOption,
-                          customReminderDate: customReminderDate,
-                          customReminderTime: customReminderTime
-                        }));
-                        
-                        // Send card reminder if due date and reminder are set
-                        if (tempDueDate && reminderOption) {
-                          try {
-                            await fetch('/api/notifications/card-reminder', {
-                              method: 'POST',
-                              headers: getHeaders(),
-                              body: JSON.stringify({
-                                cardId: selectedCard.id,
-                                columnId: selectedCard.columnId,
-                                practiceId: currentPracticeId,
-                                cardData: selectedCard
-                              })
-                            });
-                          } catch (error) {
-                            console.error('Failed to schedule card reminder:', error);
-                          }
-                        }
-                      }
-                      
-                      setShowDatesModal(false);
-                      setSelectedChecklistItem(null);
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    Save Dates
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            // Schedule checklist item reminder if due date and reminder are set
+            if (data.dueDate && data.reminderOption && newChecklists[checklistIndex].items[itemIndex].assignedTo?.includes(user.email)) {
+              try {
+                await fetch('/api/notifications/checklist-reminder', {
+                  method: 'POST',
+                  headers: getHeaders(),
+                  body: JSON.stringify({
+                    cardId: selectedCard.id,
+                    columnId: selectedCard.columnId,
+                    practiceId: currentPracticeId,
+                    checklistIndex,
+                    itemIndex,
+                    checklistItem: newChecklists[checklistIndex].items[itemIndex],
+                    cardData: selectedCard,
+                    currentUserEmail: user.email
+                  })
+                });
+              } catch (error) {
+                console.error('Failed to schedule checklist reminder:', error);
+              }
+            }
+          } else {
+            // Handle card-level dates
+            const cardUpdates = {
+              startDate: data.startDate,
+              dueDate: data.dueDate,
+              dueTime: data.dueTime
+            };
+            
+            updateCard(selectedCard.columnId, selectedCard.id, cardUpdates);
+            setSelectedCard(prev => ({ ...prev, ...cardUpdates }));
+            
+            // Schedule card reminder if due date and reminder are set
+            if (data.dueDate && data.reminderOption) {
+              try {
+                await fetch('/api/notifications/card-reminder', {
+                  method: 'POST',
+                  headers: getHeaders(),
+                  body: JSON.stringify({
+                    cardId: selectedCard.id,
+                    columnId: selectedCard.columnId,
+                    practiceId: currentPracticeId,
+                    cardData: {
+                      ...selectedCard,
+                      ...cardUpdates,
+                      reminderOption: data.reminderOption,
+                      customReminderDate: data.customReminderDate,
+                      customReminderTime: data.customReminderTime
+                    }
+                  })
+                });
+              } catch (error) {
+                console.error('Error saving card reminder preferences:', error);
+              }
+            }
+          }
+          
+          setShowDatesModal(false);
+          setSelectedChecklistItem(null);
+        }}
+        title={selectedChecklistItem ? "Set Checklist Item Dates" : "Set Card Dates & Reminders"}
+        subtitle={selectedChecklistItem ? "Configure dates for this checklist item" : "Configure dates and notifications for this card"}
+        initialData={{
+          startDate: selectedChecklistItem ? '' : (selectedCard?.startDate || tempStartDate),
+          dueDate: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.dueDate || tempDueDate
+            : (selectedCard?.dueDate || tempDueDate),
+          dueTime: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.dueTime || tempDueTime
+            : (selectedCard?.dueTime || tempDueTime),
+          reminderOption: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.reminderOption || ''
+            : (selectedCard?.reminderOption || reminderOption),
+          customReminderDate: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.customReminderDate || ''
+            : (selectedCard?.customReminderDate || customReminderDate),
+          customReminderTime: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.customReminderTime || ''
+            : (selectedCard?.customReminderTime || customReminderTime),
+          assignedUsers: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.assignedTo || []
+            : (selectedCard?.assignedTo || [])
+        }}
+        showStartDate={!selectedChecklistItem}
+        showReminders={true}
+        context={selectedChecklistItem ? "checklist" : "card"}
+      />
       
       {/* Checklist Modal */}
       {showChecklistModal && selectedCard && (
