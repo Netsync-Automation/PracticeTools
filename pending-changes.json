@@ -21455,6 +21455,381 @@
         "app/projects/resource-assignments/page.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1758908076658,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/api/notifications/card-follow/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:36.658Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908076932,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/practice-boards/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:36.932Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908077004,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/practice-boards/topics/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:37.004Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908077102,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-26T17:34:37.102Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908077187,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-26T17:34:37.187Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908078854,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/api/notifications/card-follow/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:38.854Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908079153,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/practice-boards/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:39.153Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908079239,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/practice-boards/topics/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:39.239Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908079310,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-26T17:34:39.310Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908079405,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-26T17:34:39.405Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908080504,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/api/notifications/card-follow/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:40.504Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908080748,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/practice-boards/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:40.748Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908080832,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/practice-boards/topics/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:40.832Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908080914,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-26T17:34:40.914Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908081017,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-26T17:34:41.017Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922341346,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/notifications/checklist-reminder/route.js"
+      },
+      "timestamp": "2025-09-26T21:32:21.346Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922341421,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-26T21:32:21.421Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922342547,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/notifications/checklist-reminder/route.js"
+      },
+      "timestamp": "2025-09-26T21:32:22.547Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922342631,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-26T21:32:22.631Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922343455,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/notifications/checklist-reminder/route.js"
+      },
+      "timestamp": "2025-09-26T21:32:23.455Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922343527,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-09-26T21:32:23.527Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -72602,6 +72977,265 @@
       "files": [
         "app/api/auth/saml/acs/route.js",
         "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908076562,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/files/[...path]/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:36.562Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1758908076744,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/notifications/checklist-reminder/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:36.744Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908076819,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/practice-boards/list/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:36.819Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908078772,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/files/[...path]/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:38.772Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908078938,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/notifications/checklist-reminder/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:38.938Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908079045,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/practice-boards/list/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:39.045Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908080411,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/files/[...path]/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:40.411Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908080588,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/notifications/checklist-reminder/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:40.588Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758908080673,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/practice-boards/list/route.js"
+      },
+      "timestamp": "2025-09-26T17:34:40.673Z",
+      "files": [
+        "app/api/files/[...path]/route.js",
+        "app/api/notifications/card-follow/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/api/practice-boards/list/route.js",
+        "app/api/practice-boards/route.js",
+        "app/api/practice-boards/topics/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922341278,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/notifications/card-reminder/route.js"
+      },
+      "timestamp": "2025-09-26T21:32:21.278Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1758922341507,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-26T21:32:21.507Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922342442,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/notifications/card-reminder/route.js"
+      },
+      "timestamp": "2025-09-26T21:32:22.442Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922342705,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-26T21:32:22.705Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922343362,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/notifications/card-reminder/route.js"
+      },
+      "timestamp": "2025-09-26T21:32:23.362Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1758922343597,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-09-26T21:32:23.597Z",
+      "files": [
+        "app/api/notifications/card-reminder/route.js",
+        "app/api/notifications/checklist-reminder/route.js",
+        "app/practice-information/page.js",
+        "lib/dynamodb.js",
         "pending-changes.json"
       ]
     }

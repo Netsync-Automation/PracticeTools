@@ -29,6 +29,41 @@ export async function GET(request) {
     if (topicsData) {
       const parsed = JSON.parse(topicsData);
       topics = parsed.topics || ['Main Topic'];
+    } else {
+      // Auto-discover topics from existing board data if no topics list exists
+      try {
+        const allSettings = await db.getAllSettings();
+        const discoveredTopics = new Set(['Main Topic']);
+        
+        // Look for practice board keys that match this practice
+        const boardKeyPrefix = `${environment}_practice_board_${practiceId}`;
+        
+        for (const setting of allSettings) {
+          if (setting.setting_key.startsWith(boardKeyPrefix)) {
+            try {
+              const boardData = JSON.parse(setting.setting_value);
+              if (boardData.topic) {
+                discoveredTopics.add(boardData.topic);
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse board data for topic discovery:', setting.setting_key);
+            }
+          }
+        }
+        
+        topics = Array.from(discoveredTopics).sort((a, b) => {
+          if (a === 'Main Topic') return -1;
+          if (b === 'Main Topic') return 1;
+          return a.localeCompare(b);
+        });
+        
+        // Save the discovered topics for future use
+        if (topics.length > 1) {
+          await db.saveSetting(topicsKey, JSON.stringify({ topics }));
+        }
+      } catch (error) {
+        console.error('Error discovering topics:', error);
+      }
     }
     
     return NextResponse.json({ topics });
@@ -52,13 +87,13 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Practice ID and topic required' }, { status: 400 });
     }
 
-    // Check permissions - simplified approach
+    // DSR: Check topic creation permissions
     const user = validation.user;
-    const canEdit = user.isAdmin || 
+    const canCreateTopics = user.isAdmin || 
       (user.role === 'practice_manager' || user.role === 'practice_principal');
     
-    if (!canEdit) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    if (!canCreateTopics) {
+      return NextResponse.json({ error: 'Only practice managers and principals can create topics' }, { status: 403 });
     }
 
     // Get existing topics - DSR compliant with environment prefix
@@ -70,6 +105,36 @@ export async function POST(request) {
     if (topicsData) {
       const parsed = JSON.parse(topicsData);
       topics = parsed.topics || ['Main Topic'];
+    } else {
+      // Auto-discover topics from existing board data if no topics list exists
+      try {
+        const allSettings = await db.getAllSettings();
+        const discoveredTopics = new Set(['Main Topic']);
+        
+        // Look for practice board keys that match this practice
+        const boardKeyPrefix = `${environment}_practice_board_${practiceId}`;
+        
+        for (const setting of allSettings) {
+          if (setting.setting_key.startsWith(boardKeyPrefix)) {
+            try {
+              const boardData = JSON.parse(setting.setting_value);
+              if (boardData.topic) {
+                discoveredTopics.add(boardData.topic);
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse board data for topic discovery:', setting.setting_key);
+            }
+          }
+        }
+        
+        topics = Array.from(discoveredTopics).sort((a, b) => {
+          if (a === 'Main Topic') return -1;
+          if (b === 'Main Topic') return 1;
+          return a.localeCompare(b);
+        });
+      } catch (error) {
+        console.error('Error discovering topics:', error);
+      }
     }
     
     // Add new topic if it doesn't exist

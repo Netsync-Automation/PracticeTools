@@ -19,7 +19,7 @@ export async function GET(request) {
     
     // Get all practice board settings - DSR compliant with environment prefix
     const environment = getEnvironment();
-    const allSettings = await db.getAllSettings();
+    const allSettings = await db.getAllSettingsAsObject();
     console.log('🔍 [API] Total settings found:', Object.keys(allSettings).length);
     
     const practiceBoards = [];
@@ -74,21 +74,23 @@ export async function GET(request) {
     
     console.log('🔍 [API] All practice boards found:', practiceBoards.length);
     
-    // Filter boards based on user permissions
-    let filteredBoards = practiceBoards;
+    // DSR: Mark user's owned boards and set permissions
+    const boardsWithPermissions = practiceBoards.map(board => {
+      const isOwned = board.practices && user.practices && 
+        board.practices.some(practice => user.practices.includes(practice));
+      
+      return {
+        ...board,
+        isOwned,
+        canEdit: user.isAdmin || isOwned,
+        canCreateTopics: user.isAdmin || (user.role === 'practice_manager' || user.role === 'practice_principal')
+      };
+    });
     
-    // Practice roles and other roles (account_manager, isr, netsync_employee) can view ALL boards
-    const viewAllRoles = ['practice_manager', 'practice_principal', 'practice_member', 'account_manager', 'isr', 'netsync_employee', 'executive'];
-    if (!user.isAdmin && !viewAllRoles.includes(user.role)) {
-      // Other users can only see boards for their assigned practices
-      filteredBoards = practiceBoards.filter(board => 
-        board.practices && board.practices.some(practice => user.practices?.includes(practice))
-      );
-      console.log('🔍 [API] Filtered boards for user:', filteredBoards.length);
-    }
+    console.log('🔍 [API] Boards with permissions:', boardsWithPermissions.length);
     
-    console.log('🔍 [API] Final practice boards list:', filteredBoards.length);
-    return NextResponse.json({ boards: filteredBoards });
+    console.log('🔍 [API] Final practice boards list:', boardsWithPermissions.length);
+    return NextResponse.json({ boards: boardsWithPermissions });
   } catch (error) {
     console.error('🔍 [API] Error listing practice boards:', error);
     return NextResponse.json({ error: 'Failed to list practice boards' }, { status: 500 });

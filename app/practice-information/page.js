@@ -1,6 +1,7 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useBoardDragDrop } from '../../hooks/useBoardDragDrop';
 import { useCsrf } from '../../hooks/useCsrf';
@@ -17,6 +18,7 @@ import { PlusIcon, XMarkIcon, EllipsisVerticalIcon, PencilIcon, TrashIcon, Paper
 import AttachmentPreview from '../../components/AttachmentPreview';
 import MultiAttachmentPreview from '../../components/MultiAttachmentPreview';
 import BoardSettingsModal from '../../components/BoardSettingsModal';
+import DateTimePicker from '../../components/DateTimePicker';
 import {
   DndContext,
   DragOverlay,
@@ -184,6 +186,8 @@ export default function PracticeInformationPage() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [cardComment, setCardComment] = useState('');
   const [cardFiles, setCardFiles] = useState([]);
+  const [commentFiles, setCommentFiles] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [availableBoards, setAvailableBoards] = useState([]);
   const [currentPracticeId, setCurrentPracticeId] = useState('');
   const [currentBoardName, setCurrentBoardName] = useState('');
@@ -224,6 +228,13 @@ export default function PracticeInformationPage() {
   const [columnsExpanded, setColumnsExpanded] = useState(true);
   const [individualColumnStates, setIndividualColumnStates] = useState({});
   const [highlightedItem, setHighlightedItem] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 });
+  const [previewType, setPreviewType] = useState('comment'); // 'comment' or 'attachment'
+  const [showLabelManagementModal, setShowLabelManagementModal] = useState(false);
+  const [editingLabel, setEditingLabel] = useState(null);
+  const [editLabelName, setEditLabelName] = useState('');
+  const [editLabelColor, setEditLabelColor] = useState('');
 
   // Topic preference management
   const getTopicPreferenceKey = (practiceId, userEmail) => {
@@ -314,8 +325,19 @@ export default function PracticeInformationPage() {
         const response = await fetch(`/api/practice-boards?practiceId=${currentPracticeId}&topic=${encodeURIComponent(currentTopic)}`);
         if (response.ok) {
           const data = await response.json();
-          if (JSON.stringify(data.columns) !== JSON.stringify(columns)) {
-            setColumns(data.columns || []);
+          // Ensure all cards have required fields for proper functionality
+          const normalizedColumns = (data.columns || []).map(column => ({
+            ...column,
+            cards: (column.cards || []).map(card => ({
+              ...card,
+              followers: card.followers || [],
+              comments: card.comments || [],
+              attachments: card.attachments || []
+            }))
+          }));
+          
+          if (JSON.stringify(normalizedColumns) !== JSON.stringify(columns)) {
+            setColumns(normalizedColumns);
             setLastUpdate(Date.now());
           }
         }
@@ -339,8 +361,8 @@ export default function PracticeInformationPage() {
 
   const loadAvailableBoards = async () => {
     try {
-      console.log('🔍 [FRONTEND] Starting loadAvailableBoards');
-      console.log('🔍 [FRONTEND] Current user:', {
+      console.log('ðŸ” [FRONTEND] Starting loadAvailableBoards');
+      console.log('ðŸ” [FRONTEND] Current user:', {
         email: user?.email,
         name: user?.name,
         role: user?.role,
@@ -351,42 +373,42 @@ export default function PracticeInformationPage() {
       });
       
       const response = await fetch('/api/practice-boards/list');
-      console.log('🔍 [FRONTEND] API response status:', response.status, response.statusText);
+      console.log('ðŸ” [FRONTEND] API response status:', response.status, response.statusText);
       const data = await response.json();
-      console.log('🔍 [FRONTEND] API response data:', data);
+      console.log('ðŸ” [FRONTEND] API response data:', data);
       const boards = data.boards || [];
-      console.log('🔍 [FRONTEND] Parsed boards:', boards);
+      console.log('ðŸ” [FRONTEND] Parsed boards:', boards);
       
       setAvailableBoards(boards);
       
       if (boards.length === 0) {
-        console.log('🔍 [FRONTEND] No boards available, setting loading to false');
+        console.log('ðŸ” [FRONTEND] No boards available, setting loading to false');
         setIsLoading(false);
       } else if (boards.length > 0 && !currentPracticeId) {
-        console.log('🔍 [FRONTEND] Finding default board for user');
+        console.log('ðŸ” [FRONTEND] Finding default board for user');
         let defaultBoard;
         
         if (user?.practices && user.practices.length > 0) {
-          console.log('🔍 [FRONTEND] User has practices, looking for matching board:', user.practices);
+          console.log('ðŸ” [FRONTEND] User has practices, looking for matching board:', user.practices);
           defaultBoard = boards.find(board => {
             const hasMatch = board.practices?.some(practice => user.practices.includes(practice));
-            console.log('🔍 [FRONTEND] Checking board:', board.practiceId, 'practices:', board.practices, 'hasMatch:', hasMatch);
+            console.log('ðŸ” [FRONTEND] Checking board:', board.practiceId, 'practices:', board.practices, 'hasMatch:', hasMatch);
             return hasMatch;
           });
-          console.log('🔍 [FRONTEND] Found matching board:', defaultBoard);
+          console.log('ðŸ” [FRONTEND] Found matching board:', defaultBoard);
         }
         
         if (!defaultBoard) {
-          console.log('🔍 [FRONTEND] No matching board found, using first board alphabetically');
+          console.log('ðŸ” [FRONTEND] No matching board found, using first board alphabetically');
           const sortedBoards = boards.sort((a, b) => 
             (a.practices?.[0] || '').localeCompare(b.practices?.[0] || '')
           );
           defaultBoard = sortedBoards[0];
-          console.log('🔍 [FRONTEND] Selected first board:', defaultBoard);
+          console.log('ðŸ” [FRONTEND] Selected first board:', defaultBoard);
         }
         
         if (defaultBoard) {
-          console.log('🔍 [FRONTEND] Setting default board:', {
+          console.log('ðŸ” [FRONTEND] Setting default board:', {
             practiceId: defaultBoard.practiceId,
             practices: defaultBoard.practices,
             boardName: defaultBoard.practices?.join(', ') || ''
@@ -395,16 +417,64 @@ export default function PracticeInformationPage() {
           setCurrentBoardName(defaultBoard.practices?.join(', ') || '');
           setCurrentBoardPractices(defaultBoard.practices || []);
           
-          // Load saved topic preference for the default board
+          // Load saved topic preference for the default board, or find most active topic
           const savedTopic = getTopicPreference(defaultBoard.practiceId);
-          console.log('🔍 [FRONTEND] Saved topic preference:', savedTopic);
+          console.log('ðŸ” [FRONTEND] Saved topic preference:', savedTopic);
           if (savedTopic) {
             setCurrentTopic(savedTopic);
+          } else {
+            // If no saved preference, find the topic with most recent activity
+            try {
+              const topicsResponse = await fetch(`/api/practice-boards/topics?practiceId=${defaultBoard.practiceId}`);
+              if (topicsResponse.ok) {
+                const topicsData = await topicsResponse.json();
+                const topics = topicsData.topics || ['Main Topic'];
+                
+                // Check each topic for recent activity and pick the most active one
+                let mostActiveTopic = 'Main Topic';
+                let latestActivity = 0;
+                
+                for (const topic of topics) {
+                  try {
+                    const boardResponse = await fetch(`/api/practice-boards?practiceId=${defaultBoard.practiceId}&topic=${encodeURIComponent(topic)}`);
+                    if (boardResponse.ok) {
+                      const boardData = await boardResponse.json();
+                      const columns = boardData.columns || [];
+                      
+                      // Find the most recent activity in this topic
+                      let topicLatestActivity = 0;
+                      columns.forEach(column => {
+                        column.cards?.forEach(card => {
+                          const cardTime = new Date(card.lastEditedAt || card.createdAt).getTime();
+                          if (cardTime > topicLatestActivity) {
+                            topicLatestActivity = cardTime;
+                          }
+                        });
+                      });
+                      
+                      if (topicLatestActivity > latestActivity) {
+                        latestActivity = topicLatestActivity;
+                        mostActiveTopic = topic;
+                      }
+                    }
+                  } catch (error) {
+                    console.warn('Error checking topic activity:', topic, error);
+                  }
+                }
+                
+                console.log('ðŸ” [FRONTEND] Most active topic:', mostActiveTopic, 'with activity at:', new Date(latestActivity));
+                setCurrentTopic(mostActiveTopic);
+                saveTopicPreference(defaultBoard.practiceId, mostActiveTopic);
+              }
+            } catch (error) {
+              console.warn('Error finding most active topic, using Main Topic:', error);
+              setCurrentTopic('Main Topic');
+            }
           }
         }
       }
     } catch (error) {
-      console.error('🔍 [FRONTEND] Error loading available boards:', error);
+      console.error('ðŸ” [FRONTEND] Error loading available boards:', error);
     }
   };
 
@@ -436,10 +506,21 @@ export default function PracticeInformationPage() {
             const data = JSON.parse(event.data);
             
             if (data.type === 'board_updated') {
-              setColumns(data.columns);
+              // Ensure all cards have required fields for proper functionality
+              const normalizedColumns = (data.columns || []).map(column => ({
+                ...column,
+                cards: (column.cards || []).map(card => ({
+                  ...card,
+                  followers: card.followers || [],
+                  comments: card.comments || [],
+                  attachments: card.attachments || []
+                }))
+              }));
+              
+              setColumns(normalizedColumns);
               setSelectedCard(prevCard => {
                 if (prevCard) {
-                  const updatedCard = data.columns
+                  const updatedCard = normalizedColumns
                     .find(col => col.id === prevCard.columnId)
                     ?.cards.find(card => card.id === prevCard.id);
                   return updatedCard ? { ...updatedCard, columnId: prevCard.columnId } : prevCard;
@@ -568,7 +649,18 @@ export default function PracticeInformationPage() {
         topicsResponse.json()
       ]);
       
-      setColumns(boardData.columns || []);
+      // Ensure all cards have required fields for proper functionality
+      const normalizedColumns = (boardData.columns || []).map(column => ({
+        ...column,
+        cards: (column.cards || []).map(card => ({
+          ...card,
+          followers: card.followers || [],
+          comments: card.comments || [],
+          attachments: card.attachments || []
+        }))
+      }));
+      
+      setColumns(normalizedColumns);
       const topics = topicsData.topics || ['Main Topic'];
       setAvailableTopics(topics);
       
@@ -730,7 +822,7 @@ export default function PracticeInformationPage() {
 
   const saveBoardSettings = async (settings) => {
     try {
-      console.log('🔧 [FRONTEND] Saving settings for practiceId:', currentPracticeId, 'settings:', settings);
+      console.log('ðŸ”§ [FRONTEND] Saving settings for practiceId:', currentPracticeId, 'settings:', settings);
       // Always save background settings at practice level (shared across all topics)
       const response = await fetch('/api/practice-boards/settings', {
         method: 'POST',
@@ -738,7 +830,7 @@ export default function PracticeInformationPage() {
         body: JSON.stringify({ practiceId: currentPracticeId, settings })
       });
       const result = await response.json();
-      console.log('🔧 [FRONTEND] Settings save result:', result);
+      console.log('ðŸ”§ [FRONTEND] Settings save result:', result);
       return result;
     } catch (error) {
       console.error('Error saving board settings:', error);
@@ -864,7 +956,8 @@ export default function PracticeInformationPage() {
         createdAt: new Date().toISOString(),
         createdBy: user?.email,
         comments: [],
-        attachments: []
+        attachments: [],
+        followers: []
       };
       
       const newColumns = columns.map(col => 
@@ -892,12 +985,37 @@ export default function PracticeInformationPage() {
   };
 
   const updateCard = async (columnId, cardId, updates) => {
+    // First, get the current card to preserve existing data
+    const currentCard = columns.find(col => col.id === columnId)?.cards.find(card => card.id === cardId);
+    
+    // Track changes for notification
+    const changes = {};
+    if (currentCard) {
+      Object.keys(updates).forEach(key => {
+        if (key !== 'lastEditedBy' && key !== 'lastEditedAt' && key !== 'followers') {
+          const oldValue = currentCard[key];
+          const newValue = updates[key];
+          
+          // Only track if values are actually different
+          if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+            changes[key] = { from: oldValue, to: newValue };
+          }
+        }
+      });
+    }
+    
     const newColumns = columns.map(col => 
       col.id === columnId 
         ? { 
             ...col, 
             cards: col.cards.map(card => 
-              card.id === cardId ? { ...card, ...updates, lastEditedBy: user?.email, lastEditedAt: new Date().toISOString() } : card
+              card.id === cardId ? { 
+                ...card, 
+                ...updates, 
+                followers: updates.followers !== undefined ? updates.followers : (card.followers || []), // Preserve existing followers unless explicitly updating
+                lastEditedBy: user?.email, 
+                lastEditedAt: new Date().toISOString() 
+              } : card
             )
           }
         : col
@@ -906,36 +1024,78 @@ export default function PracticeInformationPage() {
     saveBoardData(newColumns);
     setEditingCard(null);
     
-    // Send follow notifications
-    const updatedCard = newColumns.find(col => col.id === columnId)?.cards.find(card => card.id === cardId);
-    if (updatedCard?.followers?.length > 0) {
+    // Send notification only if there are actual changes
+    if (Object.keys(changes).length > 0) {
+      const updatedCard = newColumns.find(col => col.id === columnId)?.cards.find(card => card.id === cardId);
       try {
-        await fetch('/api/notifications/card-follow', {
+        const response = await fetch('/api/notifications/card-follow', {
           method: 'POST',
           headers: getHeaders(),
           body: JSON.stringify({
             cardId,
             columnId,
             practiceId: currentPracticeId,
+            topic: currentTopic,
             action: 'updated',
             user,
-            cardData: updatedCard
+            cardData: updatedCard,
+            changes
           })
         });
+        
+        const result = await response.json();
+        console.log('ðŸ”” [NOTIFICATION DEBUG] API response:', {
+          status: response.status,
+          ok: response.ok,
+          result,
+          changes
+        });
       } catch (error) {
-        console.error('Failed to send follow notifications:', error);
+        console.error('ðŸ”” [NOTIFICATION DEBUG] Failed to send follow notifications:', error);
       }
     }
   };
 
   const addComment = async (columnId, cardId) => {
     const sanitizedComment = sanitizeText(cardComment);
-    if (sanitizedComment) {
+    if (sanitizedComment || commentFiles.length > 0) {
+      let attachments = [];
+      
+      // Upload comment attachments if any
+      if (commentFiles.length > 0) {
+        try {
+          const formData = new FormData();
+          commentFiles.forEach(file => {
+            formData.append('attachments', file);
+          });
+          
+          const response = await fetch('/api/files/upload', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            attachments = result.attachments.map(att => ({
+              id: att.id,
+              filename: att.filename,
+              size: att.size,
+              path: att.s3Key,
+              uploadedBy: user?.email,
+              created_at: att.created_at
+            }));
+          }
+        } catch (error) {
+          console.error('Error uploading comment files:', error);
+        }
+      }
+      
       const comment = {
         id: Date.now().toString(),
-        text: sanitizedComment,
+        text: sanitizedComment || '',
         author: user?.name || user?.email,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        attachments: attachments
       };
       
       const newColumns = columns.map(col => 
@@ -959,34 +1119,35 @@ export default function PracticeInformationPage() {
         comments: [...(prev.comments || []), comment]
       }));
       
-      // Send follow notifications
+      // Send follow notifications - let API handle database lookup
       const updatedCard = newColumns.find(col => col.id === columnId)?.cards.find(card => card.id === cardId);
-      if (updatedCard?.followers?.length > 0) {
-        try {
-          await fetch('/api/notifications/card-follow', {
-            method: 'POST',
-            headers: getHeaders(),
-            body: JSON.stringify({
-              cardId,
-              columnId,
-              practiceId: currentPracticeId,
-              action: 'commented',
-              user,
-              cardData: updatedCard
-            })
-          });
-        } catch (error) {
-          console.error('Failed to send follow notifications:', error);
-        }
+      try {
+        await fetch('/api/notifications/card-follow', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({
+            cardId,
+            columnId,
+            practiceId: currentPracticeId,
+            topic: currentTopic,
+            action: 'commented',
+            user,
+            cardData: updatedCard,
+            changes: { comment: { from: null, to: sanitizedComment || 'Added attachment(s)' } }
+          })
+        });
+      } catch (error) {
+        console.error('Failed to send follow notifications:', error);
       }
       
       setCardComment('');
+      setCommentFiles([]);
     }
   };
 
   const loadUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch('/api/practice-boards/users');
       if (response.ok) {
         const data = await response.json();
         const users = data.users || [];
@@ -1010,7 +1171,7 @@ export default function PracticeInformationPage() {
     }
   };
 
-  const toggleUserAssignment = (userEmail) => {
+  const toggleUserAssignment = async (userEmail) => {
     if (selectedChecklistItem) {
       // Handle checklist item assignment
       const { checklistIndex, itemIndex } = selectedChecklistItem;
@@ -1039,6 +1200,14 @@ export default function PracticeInformationPage() {
         ? currentAssigned.filter(email => email !== userEmail)
         : [...currentAssigned, userEmail];
       
+      // Track assignment changes for notification
+      const changes = {
+        assignedTo: {
+          from: currentAssigned,
+          to: newAssigned
+        }
+      };
+      
       const newColumns = columns.map(col => 
         col.id === selectedCard.columnId 
           ? { 
@@ -1055,6 +1224,27 @@ export default function PracticeInformationPage() {
       setColumns(newColumns);
       saveBoardData(newColumns);
       setSelectedCard(prev => ({ ...prev, assignedTo: newAssigned }));
+      
+      // Send notification for assignment change
+      const updatedCard = newColumns.find(col => col.id === selectedCard.columnId)?.cards.find(card => card.id === selectedCard.id);
+      try {
+        await fetch('/api/notifications/card-follow', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({
+            cardId: selectedCard.id,
+            columnId: selectedCard.columnId,
+            practiceId: currentPracticeId,
+            topic: currentTopic,
+            action: 'updated',
+            user,
+            cardData: updatedCard,
+            changes
+          })
+        });
+      } catch (error) {
+        console.error('Failed to send assignment notification:', error);
+      }
     }
   };
 
@@ -1115,44 +1305,114 @@ export default function PracticeInformationPage() {
     }
   };
 
-  const toggleCardFollowing = (columnId, cardId) => {
-    const isCurrentlyFollowing = selectedCard.followers?.includes(user?.email);
-    const newColumns = columns.map(col => 
-      col.id === columnId 
-        ? { 
-            ...col, 
-            cards: col.cards.map(card => 
-              card.id === cardId 
-                ? { 
-                    ...card, 
-                    followers: isCurrentlyFollowing
-                      ? (card.followers || []).filter(email => email !== user?.email)
-                      : [...(card.followers || []), user?.email],
-                    lastEditedBy: user?.email,
-                    lastEditedAt: new Date().toISOString()
-                  }
-                : card
-            )
-          }
-        : col
-    );
-    setColumns(newColumns);
-    saveBoardData(newColumns);
-    
-    if (selectedCard && selectedCard.id === cardId) {
-      const updatedFollowers = isCurrentlyFollowing
-        ? (selectedCard.followers || []).filter(email => email !== user?.email)
-        : [...(selectedCard.followers || []), user?.email];
-      setSelectedCard(prev => ({
-        ...prev,
-        followers: updatedFollowers,
-        lastEditedBy: user?.email,
-        lastEditedAt: new Date().toISOString()
-      }));
+  const updateLabel = async (labelId) => {
+    if (!editLabelName.trim()) return;
+    try {
+      const response = await fetch('/api/practice-boards/labels', {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ 
+          practiceId: currentPracticeId, 
+          labelId: labelId,
+          name: editLabelName.trim(), 
+          color: editLabelColor 
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableLabels(data.labels);
+        setEditingLabel(null);
+      }
+    } catch (error) {
+      console.error('Error updating label:', error);
     }
   };
 
-  const toggleCardLabel = (columnId, cardId, labelId) => {
+  const toggleCardFollowing = async (columnId, cardId) => {
+    console.log('ðŸ”„ [FOLLOW DEBUG] toggleCardFollowing called', {
+      columnId,
+      cardId,
+      userEmail: user?.email,
+      timestamp: new Date().toISOString()
+    });
+    
+    if (!user?.email) {
+      console.error('ðŸ”„ [FOLLOW DEBUG] No user email available');
+      return;
+    }
+    
+    try {
+      // Use industry standard API endpoint approach
+      const practiceId = currentPracticeId;
+      const response = await fetch(`/api/practice-boards/cards/${cardId}/follow`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          practiceId, 
+          columnId 
+        })
+      });
+      
+      console.log('ðŸ”„ [FOLLOW DEBUG] API response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('ðŸ”„ [FOLLOW DEBUG] API response data:', data);
+        
+        // Update local state to reflect the new follow status
+        const newColumns = columns.map(col => 
+          col.id === columnId 
+            ? { 
+                ...col, 
+                cards: col.cards.map(card => 
+                  card.id === cardId 
+                    ? { 
+                        ...card, 
+                        followers: data.following
+                          ? [...(card.followers || []).filter(email => email !== user?.email), user?.email]
+                          : (card.followers || []).filter(email => email !== user?.email),
+                        lastEditedBy: user?.email,
+                        lastEditedAt: new Date().toISOString()
+                      }
+                    : card
+                )
+              }
+            : col
+        );
+        
+        setColumns(newColumns);
+        
+        // Update selected card if it's the one being followed
+        if (selectedCard && selectedCard.id === cardId) {
+          const updatedFollowers = data.following
+            ? [...(selectedCard.followers || []).filter(email => email !== user?.email), user?.email]
+            : (selectedCard.followers || []).filter(email => email !== user?.email);
+          
+          console.log('ðŸ”„ [FOLLOW DEBUG] Updating selected card', {
+            updatedFollowers,
+            following: data.following
+          });
+          
+          setSelectedCard(prev => ({
+            ...prev,
+            followers: updatedFollowers,
+            lastEditedBy: user?.email,
+            lastEditedAt: new Date().toISOString()
+          }));
+        }
+        
+        console.log('ðŸ”„ [FOLLOW DEBUG] toggleCardFollowing completed successfully');
+      } else {
+        console.error('ðŸ”„ [FOLLOW DEBUG] API request failed:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('ðŸ”„ [FOLLOW DEBUG] Error in toggleCardFollowing:', error);
+    }
+  };
+
+  const toggleCardLabel = async (columnId, cardId, labelId) => {
     const newColumns = columns.map(col => 
       col.id === columnId 
         ? { 
@@ -1185,6 +1445,34 @@ export default function PracticeInformationPage() {
         lastEditedBy: user?.email,
         lastEditedAt: new Date().toISOString()
       }));
+      
+      // Send notification for label change
+      const changes = {
+        labels: {
+          from: selectedCard.labels || [],
+          to: updatedLabels
+        }
+      };
+      
+      const updatedCard = newColumns.find(col => col.id === columnId)?.cards.find(card => card.id === cardId);
+      try {
+        await fetch('/api/notifications/card-follow', {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify({
+            cardId,
+            columnId,
+            practiceId: currentPracticeId,
+            topic: currentTopic,
+            action: 'labeled',
+            user,
+            cardData: updatedCard,
+            changes
+          })
+        });
+      } catch (error) {
+        console.error('Failed to send label notification:', error);
+      }
     }
   };
 
@@ -1267,13 +1555,21 @@ export default function PracticeInformationPage() {
   };
 
   const openCardModal = (card, columnId) => {
-    setSelectedCard({ ...card, columnId });
+    setSelectedCard({ 
+      ...card, 
+      columnId,
+      followers: card.followers || [], // Ensure followers is always an array
+      comments: card.comments || [],
+      attachments: card.attachments || []
+    });
   };
 
   const closeCardModal = () => {
     setSelectedCard(null);
     setCardComment('');
     setCardFiles([]);
+    setCommentFiles([]);
+    setShowEmojiPicker(false);
     setShowLabelDropdown(false);
     setShowNewLabel(false);
     setShowAssignModal(false);
@@ -1340,10 +1636,13 @@ export default function PracticeInformationPage() {
       if (showProjectMenu && !event.target.closest('.relative')) {
         setShowProjectMenu(false);
       }
+      if (showEmojiPicker && !event.target.closest('.relative')) {
+        setShowEmojiPicker(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showLabelDropdown, showUserDropdown, showChecklistDropdown, showAddMenu, showProjectMenu]);
+  }, [showLabelDropdown, showUserDropdown, showChecklistDropdown, showAddMenu, showProjectMenu, showEmojiPicker]);
 
   // Drag and drop setup
   const sensors = useSensors(
@@ -1470,7 +1769,7 @@ export default function PracticeInformationPage() {
                       try {
                         const response = await fetch('/api/debug/user-analysis');
                         const analysis = await response.json();
-                        console.log('🔍 [DEBUG] User Analysis:', analysis);
+                        console.log('ðŸ” [DEBUG] User Analysis:', analysis);
                         
                         // Calculate current board permissions (matching actual UI logic)
                         const currentBoardPermissions = {
@@ -1522,7 +1821,7 @@ export default function PracticeInformationPage() {
                         message += `All Available Boards:\n`;
                         analysis.practiceBoards.all.forEach(board => {
                           const isCurrent = board.id === currentPracticeId;
-                          message += `${isCurrent ? '→ ' : '  '}${board.id}: [${board.practices.join(', ')}]${isCurrent ? ' (CURRENT)' : ''}\n`;
+                          message += `${isCurrent ? 'â†’ ' : '  '}${board.id}: [${board.practices.join(', ')}]${isCurrent ? ' (CURRENT)' : ''}\n`;
                         });
                         
                         alert(message);
@@ -1541,6 +1840,8 @@ export default function PracticeInformationPage() {
                 </div>
               </div>
             </div>
+            
+
             
             {/* Controls Bar */}
             {availableBoards.length > 0 && (
@@ -1577,7 +1878,12 @@ export default function PracticeInformationPage() {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <label className="text-sm font-semibold text-gray-700 min-w-fit">Topic</label>
+                      <label className="text-sm font-semibold text-gray-700 min-w-fit">
+                        Topic
+                        {availableTopics.length > 1 && (
+                          <span className="ml-1 text-xs text-blue-600">({availableTopics.length} available)</span>
+                        )}
+                      </label>
                       {editingTopic ? (
                         <input
                           type="text"
@@ -2046,13 +2352,17 @@ export default function PracticeInformationPage() {
                   />
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                     <span>Created {new Date(selectedCard.createdAt).toLocaleDateString()} at {new Date(selectedCard.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    <span>•</span>
+                    <span>â€¢</span>
                     <span>By {selectedCard.createdBy}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => canComment && toggleCardFollowing(selectedCard.columnId, selectedCard.id)}
+                    onClick={async () => {
+                      if (canComment) {
+                        await toggleCardFollowing(selectedCard.columnId, selectedCard.id);
+                      }
+                    }}
                     disabled={!canComment}
                     className={`p-2 rounded-full transition-all duration-200 ${
                       selectedCard.followers?.includes(user?.email)
@@ -2342,11 +2652,13 @@ export default function PracticeInformationPage() {
                                             <button
                                               onClick={() => {
                                                 // Open dates modal for this checklist item
-                                                setShowDatesModal(true);
                                                 setSelectedChecklistItem({ checklistIndex, itemIndex });
                                                 setTempDueDate(item.dueDate || '');
                                                 setTempDueTime(item.dueTime || '');
-                                                setReminderOption(item.reminderOption || '');
+                                                setReminderOption('');
+                                                setCustomReminderDate('');
+                                                setCustomReminderTime('');
+                                                setShowDatesModal(true);
                                               }}
                                               className="text-orange-500 hover:text-orange-700 p-1 rounded hover:bg-orange-50 transition-colors"
                                               title="Set due date"
@@ -2454,22 +2766,23 @@ export default function PracticeInformationPage() {
                                       style={{ backgroundColor: label.color }}
                                     />
                                     <span>{label.name}</span>
-                                    {isSelected && <span className="ml-auto text-blue-600">✓</span>}
+                                    {isSelected && <span className="ml-auto text-blue-600">âœ“</span>}
                                   </button>
                                 );
                               })}
                               <hr className="my-1" />
                               <button
                                 onClick={() => {
-                                  setShowNewLabel(true);
+                                  setShowLabelManagementModal(true);
                                   setShowLabelDropdown(false);
                                 }}
-                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors whitespace-nowrap"
+                                title="Create/Edit Labels"
                               >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                 </svg>
-                                <span>Create new label</span>
+                                <span className="truncate">Create/Edit Labels</span>
                               </button>
                             </div>
                           </div>
@@ -2528,7 +2841,7 @@ export default function PracticeInformationPage() {
                           onClick={() => {
                             if (canComment) {
                               setShowAssignModal(true);
-                              // Always reload users to get fresh data
+                              // Always reload users to get fresh data for practice members
                               loadUsers();
                             }
                           }}
@@ -2573,9 +2886,9 @@ export default function PracticeInformationPage() {
                               setTempStartDate(selectedCard.startDate || '');
                               setTempDueDate(selectedCard.dueDate || '');
                               setTempDueTime(selectedCard.dueTime || '');
-                              setReminderOption(selectedCard.reminderOption || '');
-                              setCustomReminderDate(selectedCard.customReminderDate || '');
-                              setCustomReminderTime(selectedCard.customReminderTime || '');
+                              setReminderOption('');
+                              setCustomReminderDate('');
+                              setCustomReminderTime('');
                               setShowDatesModal(true);
                             }
                           }}
@@ -2694,7 +3007,25 @@ export default function PracticeInformationPage() {
                       
                       {canComment && (
                         <div className="mb-4">
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                          <div 
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors"
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.currentTarget.classList.add('border-blue-400', 'bg-blue-50');
+                            }}
+                            onDragLeave={(e) => {
+                              e.preventDefault();
+                              e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+                              const files = Array.from(e.dataTransfer.files || []);
+                              if (files.length > 0) {
+                                addAttachments(selectedCard.columnId, selectedCard.id, files);
+                              }
+                            }}
+                          >
                             <PaperClipIcon className="h-6 w-6 text-gray-400 mx-auto mb-2" />
                             <input
                               type="file"
@@ -2715,7 +3046,7 @@ export default function PracticeInformationPage() {
                             >
                               Click to upload files
                             </label>
-                            <p className="text-xs text-gray-500 mt-1">Max 5MB each</p>
+                            <p className="text-xs text-gray-500 mt-1">or drag and drop â€¢ Max 5MB each</p>
                           </div>
                         </div>
                       )}
@@ -2734,25 +3065,66 @@ export default function PracticeInformationPage() {
                             <div key={attachment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
                               <div className="flex items-center space-x-2 min-w-0">
                                 {attachment.filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                  <PhotoIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                                  <div 
+                                    className="w-8 h-8 rounded border overflow-hidden flex-shrink-0 cursor-pointer"
+                                    onMouseEnter={(e) => {
+                                      setPreviewType('attachment');
+                                      setPreviewPosition({
+                                        x: window.innerWidth / 2,
+                                        y: window.innerHeight / 2
+                                      });
+                                      setPreviewFile({
+                                        filename: attachment.filename,
+                                        path: attachment.path,
+                                        size: attachment.size
+                                      });
+                                    }}
+                                    onMouseLeave={() => setPreviewFile(null)}
+                                  >
+                                    <img 
+                                      src={`/api/files/${attachment.path}`}
+                                      alt={attachment.filename}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
                                 ) : (
                                   <DocumentIcon className="h-4 w-4 text-gray-500 flex-shrink-0" />
                                 )}
                                 <div className="min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 truncate">{attachment.filename}</p>
+                                  <button
+                                    onClick={() => {
+                                      const iframe = document.createElement('iframe');
+                                      iframe.style.display = 'none';
+                                      iframe.src = `/api/files/${attachment.path}`;
+                                      document.body.appendChild(iframe);
+                                      setTimeout(() => {
+                                        document.body.removeChild(iframe);
+                                      }, 1000);
+                                    }}
+                                    className="text-sm font-medium text-gray-900 truncate hover:text-blue-600 cursor-pointer text-left"
+                                  >
+                                    {attachment.filename}
+                                  </button>
                                   <p className="text-xs text-gray-500">
                                     {Math.round((attachment.size || 0) / 1024)}KB
                                   </p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1 flex-shrink-0">
-                                <a
-                                  href={`/api/files/${attachment.path}`}
-                                  download={attachment.filename}
+                                <button
+                                  onClick={() => {
+                                    const iframe = document.createElement('iframe');
+                                    iframe.style.display = 'none';
+                                    iframe.src = `/api/files/${attachment.path}`;
+                                    document.body.appendChild(iframe);
+                                    setTimeout(() => {
+                                      document.body.removeChild(iframe);
+                                    }, 1000);
+                                  }}
                                   className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50"
                                 >
                                   Download
-                                </a>
+                                </button>
                                 {canComment && (
                                   <button
                                     onClick={() => removeAttachment(selectedCard.columnId, selectedCard.id, attachment.id)}
@@ -2781,16 +3153,90 @@ export default function PracticeInformationPage() {
                     {canComment && (
                       <div className="mb-4">
                         <div className="space-y-3">
-                          <textarea
-                            value={cardComment}
-                            onChange={(e) => setCardComment(e.target.value)}
-                            className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                            rows={3}
-                            placeholder="Add a comment..."
-                          />
+                          <div className="relative">
+                            <textarea
+                              value={cardComment}
+                              onChange={(e) => setCardComment(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                  e.preventDefault();
+                                  addComment(selectedCard.columnId, selectedCard.id);
+                                }
+                              }}
+                              className="w-full p-3 pr-20 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                              rows={3}
+                              placeholder="Add a comment... (Press Enter to submit, Shift+Enter for new line)"
+                            />
+                            <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                              <div className="relative">
+                                <button
+                                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                  className="p-1.5 text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 rounded transition-colors"
+                                  title="Add emoji"
+                                >
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                    <circle cx="9" cy="9" r="1.5" />
+                                    <circle cx="15" cy="9" r="1.5" />
+                                    <path d="M8.5 14.5c0-1.38 1.12-2.5 2.5-2.5h2c1.38 0 2.5 1.12 2.5 2.5" stroke="currentColor" strokeWidth="1" fill="none" />
+                                  </svg>
+                                </button>
+                                {showEmojiPicker && (
+                                  <div className="absolute bottom-full right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 grid grid-cols-6 gap-1 z-10">
+                                    {['ðŸ˜€', 'ðŸ˜ƒ', 'ðŸ˜„', 'ðŸ˜', 'ðŸ˜Š', 'ðŸ˜', 'ðŸ¤”', 'ðŸ˜¢', 'ðŸ˜‚', 'ðŸ‘', 'ðŸ‘Ž', 'â¤ï¸', 'ðŸŽ‰', 'ðŸ”¥', 'ðŸ’¯', 'âœ…', 'âŒ', 'âš ï¸'].map(emoji => (
+                                      <button
+                                        key={emoji}
+                                        onClick={() => {
+                                          setCardComment(prev => prev + emoji);
+                                          setShowEmojiPicker(false);
+                                        }}
+                                        className="p-1 hover:bg-gray-100 rounded text-lg"
+                                      >
+                                        {emoji}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <input
+                                type="file"
+                                multiple
+                                onChange={(e) => {
+                                  const files = Array.from(e.target.files || []);
+                                  setCommentFiles(prev => [...prev, ...files].slice(0, 3));
+                                }}
+                                accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                                className="hidden"
+                                id="comment-attachment-upload"
+                              />
+                              <label
+                                htmlFor="comment-attachment-upload"
+                                className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded cursor-pointer transition-colors"
+                                title="Attach files"
+                              >
+                                <PaperClipIcon className="w-4 h-4" />
+                              </label>
+                            </div>
+                          </div>
+                          {commentFiles.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-gray-600">Attachments:</p>
+                              {commentFiles.map((file, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded border text-xs">
+                                  <span className="truncate">{file.name} ({Math.round(file.size / 1024)}KB)</span>
+                                  <button
+                                    onClick={() => setCommentFiles(prev => prev.filter((_, i) => i !== index))}
+                                    className="text-red-500 hover:text-red-700 ml-2"
+                                  >
+                                    <XMarkIcon className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           <button
                             onClick={() => addComment(selectedCard.columnId, selectedCard.id)}
-                            disabled={!cardComment.trim()}
+                            disabled={!cardComment.trim() && commentFiles.length === 0}
                             className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                           >
                             Post Comment
@@ -2817,7 +3263,102 @@ export default function PracticeInformationPage() {
                                 {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{comment.text}</p>
+                            {comment.text && (
+                              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed mb-2">{comment.text}</p>
+                            )}
+                            {comment.attachments && comment.attachments.length > 0 && (
+                              <div className="space-y-1 mt-2">
+                                {comment.attachments.map(attachment => (
+                                  <div key={attachment.id} className="flex items-center gap-2 p-2 bg-white rounded border">
+                                    {attachment.filename?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                      <div 
+                                        className="w-6 h-6 rounded border overflow-hidden flex-shrink-0 cursor-pointer"
+                                        onMouseEnter={(e) => {
+                                          setPreviewType('comment');
+                                          const rect = e.currentTarget.getBoundingClientRect();
+                                          setPreviewPosition({
+                                            x: rect.left,
+                                            y: rect.top + rect.height / 2
+                                          });
+                                          setPreviewFile({
+                                            filename: attachment.filename,
+                                            path: attachment.path,
+                                            size: attachment.size
+                                          });
+                                        }}
+                                        onMouseLeave={() => setPreviewFile(null)}
+                                      >
+                                        <img 
+                                          src={`/api/files/${attachment.path}`}
+                                          alt={attachment.filename}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    ) : (
+                                      <DocumentIcon className="h-3 w-3 text-gray-500" />
+                                    )}
+                                    <button
+                                      onClick={(e) => {
+                                        console.log('ðŸ”¥ File click triggered:', attachment.filename);
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        console.log('ðŸ”¥ Opening download URL:', `/api/files/${attachment.path}`);
+                                        
+                                        // Create hidden iframe to force download
+                                        const iframe = document.createElement('iframe');
+                                        iframe.style.display = 'none';
+                                        iframe.src = `/api/files/${attachment.path}`;
+                                        document.body.appendChild(iframe);
+                                        
+                                        // Remove iframe after download starts
+                                        setTimeout(() => {
+                                          document.body.removeChild(iframe);
+                                        }, 1000);
+                                        
+                                        console.log('ðŸ”¥ Download initiated via iframe');
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        setPreviewType('comment');
+                                        console.log('ðŸ”¥ Mouse enter on file:', attachment.filename);
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        console.log('ðŸ”¥ Button rect:', rect);
+                                        setPreviewPosition({
+                                          x: rect.left,
+                                          y: rect.top + rect.height / 2
+                                        });
+                                        setPreviewFile({
+                                          filename: attachment.filename,
+                                          path: attachment.path,
+                                          size: attachment.size
+                                        });
+                                      }}
+                                      onMouseLeave={() => {
+                                        console.log('ðŸ”¥ Mouse leave');
+                                        setPreviewFile(null);
+                                      }}
+                                      className="text-xs text-blue-600 hover:text-blue-800 truncate flex-1 text-left cursor-pointer hover:underline"
+                                    >
+                                      {attachment.filename}
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const iframe = document.createElement('iframe');
+                                        iframe.style.display = 'none';
+                                        iframe.src = `/api/files/${attachment.path}`;
+                                        document.body.appendChild(iframe);
+                                        setTimeout(() => {
+                                          document.body.removeChild(iframe);
+                                        }, 1000);
+                                      }}
+                                      className="text-blue-600 hover:text-blue-800 text-xs px-1 py-0.5 rounded hover:bg-blue-50 ml-2"
+                                    >
+                                      Download
+                                    </button>
+                                    <span className="text-xs text-gray-500 ml-2">{Math.round((attachment.size || 0) / 1024)}KB</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -3187,275 +3728,135 @@ export default function PracticeInformationPage() {
       )}
       
       {/* Dates Modal */}
-      {showDatesModal && selectedCard && (
+      <DateTimePicker
+        isOpen={showDatesModal}
+        onClose={() => {
+          setShowDatesModal(false);
+          setSelectedChecklistItem(null);
+        }}
+        onSave={async (data) => {
+          if (selectedChecklistItem) {
+            // Handle checklist item dates
+            const { checklistIndex, itemIndex } = selectedChecklistItem;
+            const newChecklists = [...selectedCard.checklists];
+            newChecklists[checklistIndex].items[itemIndex] = {
+              ...newChecklists[checklistIndex].items[itemIndex],
+              dueDate: data.dueDate,
+              dueTime: data.dueTime,
+              reminderOption: data.reminderOption,
+              customReminderDate: data.customReminderDate,
+              customReminderTime: data.customReminderTime
+            };
+            
+            updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
+            setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
+            
+            // Schedule checklist item reminder if due date and reminder are set
+            if (data.dueDate && data.reminderOption && newChecklists[checklistIndex].items[itemIndex].assignedTo?.includes(user.email)) {
+              try {
+                await fetch('/api/notifications/checklist-reminder', {
+                  method: 'POST',
+                  headers: getHeaders(),
+                  body: JSON.stringify({
+                    cardId: selectedCard.id,
+                    columnId: selectedCard.columnId,
+                    practiceId: currentPracticeId,
+                    checklistIndex,
+                    itemIndex,
+                    checklistItem: newChecklists[checklistIndex].items[itemIndex],
+                    cardData: selectedCard,
+                    currentUserEmail: user.email
+                  })
+                });
+              } catch (error) {
+                console.error('Failed to schedule checklist reminder:', error);
+              }
+            }
+          } else {
+            // Handle card-level dates
+            const cardUpdates = {
+              startDate: data.startDate,
+              dueDate: data.dueDate,
+              dueTime: data.dueTime
+            };
+            
+            updateCard(selectedCard.columnId, selectedCard.id, cardUpdates);
+            setSelectedCard(prev => ({ ...prev, ...cardUpdates }));
+            
+            // Schedule card reminder if due date and reminder are set
+            if (data.dueDate && data.reminderOption) {
+              try {
+                await fetch('/api/notifications/card-reminder', {
+                  method: 'POST',
+                  headers: getHeaders(),
+                  body: JSON.stringify({
+                    cardId: selectedCard.id,
+                    columnId: selectedCard.columnId,
+                    practiceId: currentPracticeId,
+                    cardData: {
+                      ...selectedCard,
+                      ...cardUpdates,
+                      reminderOption: data.reminderOption,
+                      customReminderDate: data.customReminderDate,
+                      customReminderTime: data.customReminderTime
+                    }
+                  })
+                });
+              } catch (error) {
+                console.error('Error saving card reminder preferences:', error);
+              }
+            }
+          }
+          
+          setShowDatesModal(false);
+          setSelectedChecklistItem(null);
+        }}
+        title={selectedChecklistItem ? "Set Checklist Item Dates" : "Set Card Dates & Reminders"}
+        subtitle={selectedChecklistItem ? "Configure dates for this checklist item" : "Configure dates and notifications for this card"}
+        initialData={{
+          startDate: selectedChecklistItem ? '' : (selectedCard?.startDate || tempStartDate),
+          dueDate: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.dueDate || tempDueDate
+            : (selectedCard?.dueDate || tempDueDate),
+          dueTime: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.dueTime || tempDueTime
+            : (selectedCard?.dueTime || tempDueTime),
+          reminderOption: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.reminderOption || ''
+            : (selectedCard?.reminderOption || reminderOption),
+          customReminderDate: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.customReminderDate || ''
+            : (selectedCard?.customReminderDate || customReminderDate),
+          customReminderTime: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.customReminderTime || ''
+            : (selectedCard?.customReminderTime || customReminderTime),
+          assignedUsers: selectedChecklistItem 
+            ? selectedCard?.checklists?.[selectedChecklistItem.checklistIndex]?.items?.[selectedChecklistItem.itemIndex]?.assignedTo || []
+            : (selectedCard?.assignedTo || [])
+        }}
+        showStartDate={!selectedChecklistItem}
+        showReminders={true}
+        context={selectedChecklistItem ? "checklist" : "card"}
+      />
+      
+      {/* Checklist Modal */}
+      {showChecklistModal && selectedCard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Set Dates & Reminders</h3>
-                  <p className="text-sm text-gray-600 mt-1">Configure start date, due date, and reminders</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowDatesModal(false);
-                    setSelectedChecklistItem(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
-                >
-                  <XMarkIcon className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-              <div className="grid grid-cols-2 gap-6">
-                {/* Calendar View */}
-                <div>
-                  <h4 className="text-md font-semibold text-gray-800 mb-4">Calendar Selection</h4>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                      <input
-                        type="date"
-                        value={tempStartDate}
-                        onChange={(e) => setTempStartDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                      <input
-                        type="date"
-                        value={tempDueDate}
-                        onChange={(e) => setTempDueDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Time</label>
-                      <input
-                        type="time"
-                        value={tempDueTime}
-                        onChange={(e) => setTempDueTime(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Manual Entry */}
-                <div>
-                  <h4 className="text-md font-semibold text-gray-800 mb-4">Manual Entry</h4>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Start Date (MM/DD/YYYY)</label>
-                      <input
-                        type="text"
-                        placeholder="MM/DD/YYYY"
-                        value={tempStartDate ? new Date(tempStartDate).toLocaleDateString() : ''}
-                        onChange={(e) => {
-                          const date = new Date(e.target.value);
-                          if (!isNaN(date.getTime())) {
-                            setTempStartDate(date.toISOString().split('T')[0]);
-                          }
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Date (MM/DD/YYYY)</label>
-                      <input
-                        type="text"
-                        placeholder="MM/DD/YYYY"
-                        value={tempDueDate ? new Date(tempDueDate).toLocaleDateString() : ''}
-                        onChange={(e) => {
-                          const date = new Date(e.target.value);
-                          if (!isNaN(date.getTime())) {
-                            setTempDueDate(date.toISOString().split('T')[0]);
-                          }
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Due Time (HH:MM)</label>
-                      <input
-                        type="text"
-                        placeholder="HH:MM (24-hour format)"
-                        value={tempDueTime}
-                        onChange={(e) => setTempDueTime(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Reminder Options */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">Due Date Reminder</h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Reminder Time</label>
-                    <select
-                      value={reminderOption}
-                      onChange={(e) => setReminderOption(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">No reminder</option>
-                      <option value="1day">1 day before</option>
-                      <option value="1hour">1 hour before</option>
-                      <option value="15min">15 minutes before</option>
-                      <option value="custom">Custom</option>
-                    </select>
-                  </div>
-                  
-                  {reminderOption === 'custom' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Custom Reminder Date</label>
-                        <input
-                          type="date"
-                          value={customReminderDate}
-                          onChange={(e) => setCustomReminderDate(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Custom Reminder Time</label>
-                        <input
-                          type="time"
-                          value={customReminderTime}
-                          onChange={(e) => setCustomReminderTime(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                    <p><strong>Note:</strong> Reminders will be sent via Webex to all assigned users and followers of this card.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => {
-                    setTempStartDate('');
-                    setTempDueDate('');
-                    setTempDueTime('');
-                    setReminderOption('');
-                    setCustomReminderDate('');
-                    setCustomReminderTime('');
-                  }}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  Clear All
-                </button>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      setShowDatesModal(false);
-                      setSelectedChecklistItem(null);
-                    }}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (selectedChecklistItem) {
-                        // Handle checklist item dates
-                        const { checklistIndex, itemIndex } = selectedChecklistItem;
-                        const newChecklists = [...selectedCard.checklists];
-                        newChecklists[checklistIndex].items[itemIndex] = {
-                          ...newChecklists[checklistIndex].items[itemIndex],
-                          dueDate: tempDueDate,
-                          dueTime: tempDueTime,
-                          reminderOption: reminderOption,
-                          customReminderDate: customReminderDate,
-                          customReminderTime: customReminderTime
-                        };
-                        
-                        updateCard(selectedCard.columnId, selectedCard.id, { checklists: newChecklists });
-                        setSelectedCard(prev => ({ ...prev, checklists: newChecklists }));
-                        
-                        // Send Webex reminder if due date and reminder are set
-                        if (tempDueDate && reminderOption && newChecklists[checklistIndex].items[itemIndex].assignedTo?.length > 0) {
-                          try {
-                            await fetch('/api/notifications/checklist-reminder', {
-                              method: 'POST',
-                              headers: getHeaders(),
-                              body: JSON.stringify({
-                                cardId: selectedCard.id,
-                                columnId: selectedCard.columnId,
-                                practiceId: currentPracticeId,
-                                checklistIndex,
-                                itemIndex,
-                                checklistItem: newChecklists[checklistIndex].items[itemIndex],
-                                cardData: selectedCard
-                              })
-                            });
-                          } catch (error) {
-                            console.error('Failed to schedule checklist reminder:', error);
-                          }
-                        }
-                      } else {
-                        // Handle card-level dates
-                        updateCard(selectedCard.columnId, selectedCard.id, {
-                          startDate: tempStartDate,
-                          dueDate: tempDueDate,
-                          dueTime: tempDueTime,
-                          reminderOption: reminderOption,
-                          customReminderDate: customReminderDate,
-                          customReminderTime: customReminderTime
-                        });
-                        setSelectedCard(prev => ({
-                          ...prev,
-                          startDate: tempStartDate,
-                          dueDate: tempDueDate,
-                          dueTime: tempDueTime,
-                          reminderOption: reminderOption,
-                          customReminderDate: customReminderDate,
-                          customReminderTime: customReminderTime
-                        }));
-                      }
-                      
-                      setShowDatesModal(false);
-                      setSelectedChecklistItem(null);
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    Save Dates
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Checklist Modal */}
-      {showChecklistModal && selectedCard && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{editingChecklistIndex !== null ? 'Edit Checklist' : 'Create Checklist'}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{editingChecklistIndex !== null ? 'Modify checklist items' : 'Add checklist items to insert into the description'}</p>
+                  <h3 className="text-lg font-semibold text-gray-900">Checklist</h3>
+                  <p className="text-sm text-gray-600 mt-1">Add items to create a checklist</p>
                 </div>
                 <button
                   onClick={() => {
                     setShowChecklistModal(false);
                     setChecklistItems([]);
                     setNewChecklistItem('');
-                    setEditingChecklistIndex(null);
                     setChecklistName('');
+                    setSaveAsTemplate(false);
+                    setEditingChecklistIndex(null);
                   }}
                   className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-white hover:shadow-md transition-all duration-200"
                 >
@@ -3464,120 +3865,83 @@ export default function PracticeInformationPage() {
               </div>
             </div>
             
-            <div className="p-6">
-              {/* Checklist Name */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Checklist Name</label>
-                <input
-                  type="text"
-                  placeholder="Enter checklist name..."
-                  value={checklistName}
-                  onChange={(e) => setChecklistName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  autoFocus
-                />
-              </div>
-              
-              {/* Add New Item */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Add Checklist Item</label>
-                <div className="flex gap-3">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Checklist Name</label>
                   <input
                     type="text"
-                    placeholder="Enter checklist item..."
-                    value={newChecklistItem}
-                    onChange={(e) => setNewChecklistItem(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newChecklistItem.trim()) {
-                        setChecklistItems([...checklistItems, newChecklistItem.trim()]);
-                        setNewChecklistItem('');
-                      }
-                    }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={checklistName}
+                    onChange={(e) => setChecklistName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter checklist name..."
                   />
-                  <button
-                    onClick={() => {
-                      if (newChecklistItem.trim()) {
-                        setChecklistItems([...checklistItems, newChecklistItem.trim()]);
-                        setNewChecklistItem('');
-                      }
-                    }}
-                    disabled={!newChecklistItem.trim()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-              
-              {/* Save as Template Option */}
-              {editingChecklistIndex === null && (
-                <div className="mb-6">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={saveAsTemplate}
-                      onChange={(e) => setSaveAsTemplate(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Save as template for future use</span>
-                  </label>
-                  <p className="text-xs text-gray-500 mt-1 ml-6">Templates can be reused on any card in this practice board</p>
-                </div>
-              )}
-              
-              {/* Checklist Items */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-semibold text-gray-800">
-                    Checklist Items ({checklistItems.length})
-                  </label>
-                  {checklistItems.length > 0 && (
-                    <button
-                      onClick={() => setChecklistItems([])}
-                      className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
-                    >
-                      Clear All
-                    </button>
-                  )}
                 </div>
                 
-                {checklistItems.length > 0 ? (
-                  <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Items</label>
+                  <div className="space-y-2">
                     {checklistItems.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-white rounded border hover:shadow-sm transition-all duration-200">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="w-4 h-4 border-2 border-gray-300 rounded flex-shrink-0"></div>
-                          <span className="text-sm text-gray-900">{item}</span>
-                        </div>
+                      <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded border">
+                        <span className="flex-1">{item}</span>
                         <button
-                          onClick={() => {
-                            setChecklistItems(checklistItems.filter((_, i) => i !== index));
-                          }}
-                          className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition-all duration-200"
-                          title="Remove item"
+                          onClick={() => setChecklistItems(prev => prev.filter((_, i) => i !== index))}
+                          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100"
                         >
                           <XMarkIcon className="h-3 w-3" />
                         </button>
                       </div>
                     ))}
+                    
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newChecklistItem}
+                        onChange={(e) => setNewChecklistItem(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && newChecklistItem.trim()) {
+                            setChecklistItems(prev => [...prev, newChecklistItem.trim()]);
+                            setNewChecklistItem('');
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Add checklist item..."
+                      />
+                      <button
+                        onClick={() => {
+                          if (newChecklistItem.trim()) {
+                            setChecklistItems(prev => [...prev, newChecklistItem.trim()]);
+                            setNewChecklistItem('');
+                          }
+                        }}
+                        disabled={!newChecklistItem.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-400 border border-gray-200 rounded-lg bg-gray-50">
-                    <svg className="h-8 w-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    <p className="text-sm">No checklist items</p>
-                    <p className="text-xs text-gray-500 mt-1">Add items using the input above</p>
-                  </div>
-                )}
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="saveAsTemplate"
+                    checked={saveAsTemplate}
+                    onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                  <label htmlFor="saveAsTemplate" className="text-sm text-gray-700">
+                    Save as template for future use
+                  </label>
+                </div>
               </div>
             </div>
             
             <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  {checklistItems.length} item{checklistItems.length !== 1 ? 's' : ''} ready to insert
+                  {checklistItems.length} item{checklistItems.length !== 1 ? 's' : ''}
                 </div>
                 <div className="flex gap-3">
                   <button
@@ -3585,6 +3949,9 @@ export default function PracticeInformationPage() {
                       setShowChecklistModal(false);
                       setChecklistItems([]);
                       setNewChecklistItem('');
+                      setChecklistName('');
+                      setSaveAsTemplate(false);
+                      setEditingChecklistIndex(null);
                     }}
                     className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
                   >
@@ -3593,74 +3960,60 @@ export default function PracticeInformationPage() {
                   <button
                     onClick={async () => {
                       if (checklistItems.length > 0) {
-                        const currentChecklists = selectedCard.checklists || [];
-                        let newChecklists;
+                        const newChecklist = {
+                          id: Date.now().toString(),
+                          name: checklistName || 'Checklist',
+                          items: checklistItems.map(item => ({ text: item, completed: false }))
+                        };
                         
+                        let currentChecklists;
                         if (editingChecklistIndex !== null) {
-                          // Edit existing checklist
-                          newChecklists = [...currentChecklists];
-                          const existingItems = newChecklists[editingChecklistIndex].items;
-                          newChecklists[editingChecklistIndex] = {
-                            ...newChecklists[editingChecklistIndex],
-                            name: checklistName || 'Checklist',
-                            items: checklistItems.map((text, index) => {
-                              const existingItem = existingItems.find(item => item.text === text);
-                              return existingItem || { text, completed: false };
-                            })
-                          };
+                          // Editing existing checklist
+                          currentChecklists = [...selectedCard.checklists];
+                          currentChecklists[editingChecklistIndex] = newChecklist;
                         } else {
-                          // Create new checklist
-                          const newChecklist = {
-                            id: Date.now().toString(),
-                            name: checklistName || 'Checklist',
-                            items: checklistItems.map(text => ({ text, completed: false }))
-                          };
-                          newChecklists = [...currentChecklists, newChecklist];
-                          
-                          // Save as template if requested
-                          if (saveAsTemplate && checklistName && checklistItems.length > 0) {
-                            try {
-                              const saveResponse = await fetch('/api/practice-boards/checklist-templates', {
-                                method: 'POST',
-                                headers: {
-                                  ...getHeaders(),
-                                  'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                  practiceId: currentPracticeId,
-                                  name: checklistName,
-                                  items: checklistItems
-                                })
-                              });
-                              if (saveResponse.ok) {
-                                await loadChecklistTemplates();
-                              }
-                            } catch (error) {
-                              console.error('Error saving template:', error);
-                            }
-                          }
+                          // Adding new checklist
+                          currentChecklists = [...(selectedCard.checklists || []), newChecklist];
                         }
                         
                         updateCard(selectedCard.columnId, selectedCard.id, {
-                          checklists: newChecklists
+                          checklists: currentChecklists
                         });
                         setSelectedCard(prev => ({
                           ...prev,
-                          checklists: newChecklists
+                          checklists: currentChecklists
                         }));
+                        
+                        // Save as template if requested
+                        if (saveAsTemplate && checklistName) {
+                          try {
+                            await fetch('/api/practice-boards/checklist-templates', {
+                              method: 'POST',
+                              headers: getHeaders(),
+                              body: JSON.stringify({
+                                practiceId: currentPracticeId,
+                                name: checklistName,
+                                items: checklistItems
+                              })
+                            });
+                            loadChecklistTemplates();
+                          } catch (error) {
+                            console.error('Failed to save checklist template:', error);
+                          }
+                        }
                         
                         setShowChecklistModal(false);
                         setChecklistItems([]);
                         setNewChecklistItem('');
-                        setEditingChecklistIndex(null);
                         setChecklistName('');
                         setSaveAsTemplate(false);
+                        setEditingChecklistIndex(null);
                       }
                     }}
                     disabled={checklistItems.length === 0}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                   >
-                    {editingChecklistIndex !== null ? 'Update Checklist' : 'Insert Checklist'}
+                    {editingChecklistIndex !== null ? 'Update Checklist' : 'Add Checklist'}
                   </button>
                 </div>
               </div>
