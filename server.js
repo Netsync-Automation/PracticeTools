@@ -7,7 +7,10 @@ console.log('🚀 [STARTUP] Environment variables:');
 console.log('  - NODE_ENV:', process.env.NODE_ENV);
 console.log('  - ENVIRONMENT:', process.env.ENVIRONMENT);
 console.log('  - PORT:', process.env.PORT);
+console.log('  - AWS_REGION:', process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION);
+console.log('  - AWS_EXECUTION_ENV:', process.env.AWS_EXECUTION_ENV);
 console.log('  - NEXTAUTH_URL:', process.env.NEXTAUTH_URL ? 'SET' : 'NOT SET');
+console.log('  - ADMIN_API_KEY:', process.env.ADMIN_API_KEY ? 'SET' : 'NOT SET');
 
 const dev = process.env.NODE_ENV !== 'production' && process.env.ENVIRONMENT !== 'prod';
 const hostname = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
