@@ -449,6 +449,7 @@ class CommitBuilder {
           'practicematcher': 'Enhanced practice-matcher Service with improved functionality and error handling',
           'sanitize': 'Enhanced sanitize Service with improved functionality and error handling',
           'webexservice': 'Enhanced webex-service Service with improved functionality and error handling',
+          'authhandler': 'Enhanced auth-handler Service with improved functionality and error handling',
     };
     
     // Check for pattern matches
