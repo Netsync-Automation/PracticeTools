@@ -3,6 +3,34 @@ import { db, getEnvironment } from '../../../lib/dynamodb.js';
 import { getCached, setCached, clearCache } from '../../../lib/cache.js';
 import { validateUserSession } from '../../../lib/auth-check.js';
 
+// DSR: Helper function to infer practices from practiceId
+function inferPracticesFromId(practiceId) {
+  const practiceMap = {
+    'audiovisual-collaboration-contactcenter-iot-physicalsecurity': ['Collaboration'],
+    'collaboration': ['Collaboration'],
+    'security': ['Security'],
+    'datacenter': ['Data Center'],
+    'networking': ['Networking'],
+    'cloud': ['Cloud'],
+    'wireless': ['Wireless']
+  };
+  
+  // Direct match
+  if (practiceMap[practiceId]) {
+    return practiceMap[practiceId];
+  }
+  
+  // Try to match parts of compound IDs
+  const practices = [];
+  for (const [key, value] of Object.entries(practiceMap)) {
+    if (practiceId.includes(key) || key.includes(practiceId)) {
+      practices.push(...value);
+    }
+  }
+  
+  return [...new Set(practices)]; // Remove duplicates
+}
+
 
 export const dynamic = 'force-dynamic';
 export async function GET(request) {
@@ -154,14 +182,20 @@ export async function POST(request) {
         topic,   // Update topic
         practiceId // Update practiceId
       };
+      
+      // DSR: Ensure practices field exists for permission checking
+      if (!boardData.practices || !Array.isArray(boardData.practices)) {
+        // Infer practices from practiceId if missing
+        boardData.practices = inferPracticesFromId(practiceId);
+      }
+    } else {
+      // DSR: New board - ensure practices field is set
+      boardData.practices = inferPracticesFromId(practiceId);
     }
     
-    console.log('[PRACTICE-BOARDS-DEBUG] Attempting to save board data');
     const success = await db.saveSetting(boardKey, JSON.stringify(boardData));
-    console.log('[PRACTICE-BOARDS-DEBUG] Save result:', success);
     
     if (success) {
-      console.log('[PRACTICE-BOARDS-DEBUG] Board saved successfully, clearing cache and sending notifications');
       // Clear cache for this board - use DSR compliant key
       clearCache(`board_${environment}_practice_board_${practiceId}`);
       
