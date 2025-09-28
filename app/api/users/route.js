@@ -68,8 +68,15 @@ export async function POST(request) {
     }
     
     // Determine auth method and source
-    const finalAuthMethod = authMethod || (role === 'account_manager' ? 'sso' : 'saml');
+    const finalAuthMethod = authMethod || (password ? 'local' : (role === 'account_manager' ? 'sso' : 'saml'));
     const source = role === 'account_manager' ? 'Local' : 'manual';
+    
+    console.log('[USER-CREATION-DEBUG] Auth method determination:', {
+      providedAuthMethod: authMethod,
+      hasPassword: !!password,
+      role: role,
+      finalAuthMethod: finalAuthMethod
+    });
     
     const success = await db.createOrUpdateUser(
       email,
