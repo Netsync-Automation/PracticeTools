@@ -49,11 +49,16 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { name, email, role, region } = await request.json();
+    const { name, email, role, region, authMethod, password, practices } = await request.json();
     
     // Validate required fields
     if (!name || !email || !role) {
       return NextResponse.json({ error: 'Name, email, and role are required' }, { status: 400 });
+    }
+    
+    // Validate password for local auth
+    if (authMethod === 'local' && !password) {
+      return NextResponse.json({ error: 'Password is required for local authentication' }, { status: 400 });
     }
     
     // Check if user already exists
@@ -62,20 +67,20 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User with this email already exists' }, { status: 409 });
     }
     
-    // Create new user with DSR-compliant settings for account managers
-    const authMethod = role === 'account_manager' ? 'sso' : 'saml';
+    // Determine auth method and source
+    const finalAuthMethod = authMethod || (role === 'account_manager' ? 'sso' : 'saml');
     const source = role === 'account_manager' ? 'Local' : 'manual';
     
     const success = await db.createOrUpdateUser(
       email,
       name,
-      authMethod,
+      finalAuthMethod,
       role,
-      null,
+      password,
       source,
       false,
       false,
-      [],
+      practices || [],
       'active',
       null,
       region
