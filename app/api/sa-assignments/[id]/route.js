@@ -520,7 +520,9 @@ export async function PUT(request, { params }) {
         updates.unassignedAt = timestamp;
       } else if (newStatus === 'Assigned') {
         updates.assignedAt = timestamp;
-      } else if (newStatus === 'Complete') {
+      } else if (newStatus === 'Pending Approval') {
+        updates.pendingApprovalAt = timestamp;
+      } else if (newStatus === 'Complete' || newStatus === 'Approved') {
         updates.completedAt = timestamp;
         // Store who completed it if provided
         if (updates.completedBy) {

@@ -237,19 +237,21 @@ export default function ResourceAssignmentsPage() {
   };
 
   const fetchPracticeETAs = async () => {
-    if (filters.practice && filters.practice.length > 0) {
-      try {
+    try {
+      let url = '/api/practice-etas';
+      if (filters.practice && filters.practice.length > 0) {
         const practicesParam = filters.practice.join(',');
-        const response = await fetch(`/api/practice-etas?practices=${encodeURIComponent(practicesParam)}`);
-        const data = await response.json();
-        if (data.success) {
-          setPracticeETAs(data.etas);
-        }
-      } catch (error) {
-        console.error('Error fetching practice ETAs:', error);
+        url += `?practices=${encodeURIComponent(practicesParam)}`;
       }
-    } else {
-      setPracticeETAs({});
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.success) {
+        setPracticeETAs(data.etas || []);
+      }
+    } catch (error) {
+      console.error('Error fetching practice ETAs:', error);
+      setPracticeETAs([]);
     }
   };
 
@@ -324,10 +326,12 @@ export default function ResourceAssignmentsPage() {
   }, [filters.status.length, filters.practice, filters.region, filters.dateFrom, filters.dateTo, filters.search, filters.sort]);
 
   // Calculate average ETAs from filtered practices and convert to days
-  const calculateAverageETA = (etaType) => {
-    const relevantETAs = Object.values(practiceETAs)
-      .filter(eta => eta[etaType] > 0)
-      .map(eta => eta[etaType]);
+  const calculateAverageETA = (statusTransition) => {
+    if (!Array.isArray(practiceETAs) || practiceETAs.length === 0) return 0;
+    
+    const relevantETAs = practiceETAs
+      .filter(eta => eta.statusTransition === statusTransition && eta.avgDurationHours > 0)
+      .map(eta => eta.avgDurationHours);
     
     if (relevantETAs.length === 0) return 0;
     const averageHours = relevantETAs.reduce((sum, hours) => sum + hours, 0) / relevantETAs.length;
@@ -335,8 +339,8 @@ export default function ResourceAssignmentsPage() {
     return Math.round(days * 100) / 100; // Round to 2 decimal places
   };
 
-  const practiceAssignmentETA = calculateAverageETA('practice_assignment_eta_hours');
-  const resourceAssignmentETA = calculateAverageETA('resource_assignment_eta_hours');
+  const practiceAssignmentETA = calculateAverageETA('pending_to_unassigned');
+  const resourceAssignmentETA = calculateAverageETA('unassigned_to_assigned');
 
   if (loading || !user) {
     return (

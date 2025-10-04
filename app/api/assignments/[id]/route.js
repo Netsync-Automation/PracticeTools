@@ -84,10 +84,50 @@ export async function PUT(request, { params }) {
       updateData = await request.json();
     }
     
+    // Get current assignment to track status changes for ETA calculation
+    const currentAssignment = await db.getAssignmentById(params.id);
+    const oldStatus = currentAssignment?.status;
+    const newStatus = updateData.status;
+    
     const success = await db.updateAssignment(params.id, updateData);
     
     if (success) {
       const assignment = await db.getAssignmentById(params.id);
+      
+      // Track ETA data for status transitions
+      if (oldStatus && newStatus && oldStatus !== newStatus && assignment.practice && assignment.practice !== 'Pending') {
+        try {
+          const practices = assignment.practice.split(',').map(p => p.trim());
+          const createdAt = new Date(currentAssignment.created_at || currentAssignment.requestDate);
+          const now = new Date();
+          const durationHours = (now - createdAt) / (1000 * 60 * 60); // Convert to hours
+          
+          let statusTransition = null;
+          if (oldStatus === 'Pending' && newStatus === 'Unassigned') {
+            statusTransition = 'pending_to_unassigned';
+          } else if (oldStatus === 'Unassigned' && newStatus === 'Assigned') {
+            statusTransition = 'unassigned_to_assigned';
+          }
+          
+          if (statusTransition && durationHours > 0) {
+            // Record ETA for each practice
+            for (const practice of practices) {
+              await fetch('/api/practice-etas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  practice,
+                  statusTransition,
+                  durationHours
+                })
+              });
+            }
+          }
+        } catch (etaError) {
+          console.error('Failed to record ETA data:', etaError);
+        }
+      }
+      
       
       // Send SSE notification for assignment update
       try {
