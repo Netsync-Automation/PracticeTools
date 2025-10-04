@@ -275,6 +275,7 @@ export default function SaAssignmentsPage() {
     checkAuth();
     fetchSaAssignments();
     fetchSaStatuses();
+    fetchPracticeETAs();
     
     let eventSource;
     let reconnectTimer;
@@ -379,7 +380,13 @@ export default function SaAssignmentsPage() {
 
   const fetchPracticeETAs = async () => {
     try {
-      const response = await fetch('/api/practice-etas');
+      let url = '/api/practice-etas';
+      if (filters.practice && filters.practice.length > 0) {
+        const practicesParam = filters.practice.join(',');
+        url += `?practices=${encodeURIComponent(practicesParam)}`;
+      }
+      
+      const response = await fetch(url);
       const data = await response.json();
       if (data.success) {
         setPracticeETAs(data.etas || []);
@@ -540,6 +547,11 @@ export default function SaAssignmentsPage() {
     setCurrentPage(1);
     fetchPracticeETAs();
   }, [filters.status.length, filters.practice, filters.region, filters.dateFrom, filters.dateTo, filters.search, filters.sort]);
+  
+  // Fetch ETAs when practice filter changes
+  useEffect(() => {
+    fetchPracticeETAs();
+  }, [filters.practice]);
 
   const calculateFilteredETA = (transitionType) => {
     if (!practiceETAs || !Array.isArray(practiceETAs) || practiceETAs.length === 0) return 0;
@@ -568,53 +580,18 @@ export default function SaAssignmentsPage() {
     if (!practiceETAs || !Array.isArray(practiceETAs) || practiceETAs.length === 0) return 0;
     
     try {
-      // Get all individual SAs from filtered assignments using new practiceAssignments structure
-      const allIndividualSAs = [];
+      let relevantETAs = practiceETAs.filter(eta => eta && eta.statusTransition === 'assigned_to_completed');
       
-      allFilteredSaAssignments
-        .filter(a => a.status === 'Assigned')
-        .forEach(assignment => {
-          if (assignment.practiceAssignments) {
-            try {
-              const practiceAssignments = JSON.parse(assignment.practiceAssignments);
-              Object.values(practiceAssignments).forEach(saList => {
-                if (Array.isArray(saList)) {
-                  saList.forEach(sa => {
-                    const friendlyName = sa.replace(/<[^>]+>/g, '').trim();
-                    allIndividualSAs.push(friendlyName);
-                  });
-                }
-              });
-            } catch (e) {
-              // Fallback to legacy saAssigned field
-              if (assignment.saAssigned) {
-                assignment.saAssigned.split(',').forEach(sa => {
-                  const friendlyName = sa.replace(/<[^>]+>/g, '').trim();
-                  allIndividualSAs.push(friendlyName);
-                });
-              }
-            }
-          } else if (assignment.saAssigned) {
-            // Fallback to legacy saAssigned field
-            assignment.saAssigned.split(',').forEach(sa => {
-              const friendlyName = sa.replace(/<[^>]+>/g, '').trim();
-              allIndividualSAs.push(friendlyName);
-            });
-          }
-        });
+      // Apply practice filter if set
+      if (filters.practice && filters.practice.length > 0) {
+        relevantETAs = relevantETAs.filter(eta => 
+          filters.practice.includes(eta.practice)
+        );
+      }
       
-      if (allIndividualSAs.length === 0) return 0;
+      if (relevantETAs.length === 0) return 0;
       
-      // Find ETAs for these specific SAs
-      const saETAs = practiceETAs.filter(eta => 
-        eta.statusTransition === 'assigned_to_completed' && 
-        eta.saName && 
-        allIndividualSAs.includes(eta.saName)
-      );
-      
-      if (saETAs.length === 0) return 0;
-      
-      const averageHours = saETAs.reduce((sum, eta) => sum + eta.avgDurationHours, 0) / saETAs.length;
+      const averageHours = relevantETAs.reduce((sum, eta) => sum + eta.avgDurationHours, 0) / relevantETAs.length;
       return Math.round((averageHours / 24) * 100) / 100;
     } catch (error) {
       console.error('Error calculating SA completion ETA:', error);
@@ -622,8 +599,9 @@ export default function SaAssignmentsPage() {
     }
   };
 
-  const pendingToUnassignedETA = calculateFilteredETA('pending_to_unassigned');
-  const toAssignedETA = calculateFilteredETA('to_assigned');
+  const practiceAssignmentETA = calculateFilteredETA('pending_to_unassigned');
+  const resourceAssignmentETA = calculateFilteredETA('unassigned_to_assigned');
+  const managementApprovalsETA = calculateFilteredETA('assigned_to_pending_approval');
   const saCompletionETA = calculateSACompletionETA();
 
   if (loading || !user) {
@@ -757,20 +735,27 @@ export default function SaAssignmentsPage() {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900">Average ETAs</h3>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between p-2 bg-indigo-50 rounded-lg">
                     <div className="flex items-center gap-1">
                       <span className="text-sm">⏱️</span>
                       <span className="text-xs font-medium text-indigo-700">Practice Assignment</span>
                     </div>
-                    <span className="text-sm font-bold text-indigo-600">{pendingToUnassignedETA > 0 ? `${pendingToUnassignedETA}d` : 'N/A'}</span>
+                    <span className="text-sm font-bold text-indigo-600">{practiceAssignmentETA > 0 ? `${practiceAssignmentETA}d` : 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between p-2 bg-teal-50 rounded-lg">
                     <div className="flex items-center gap-1">
                       <span className="text-sm">🎯</span>
                       <span className="text-xs font-medium text-teal-700">Resource Assignment</span>
                     </div>
-                    <span className="text-sm font-bold text-teal-600">{toAssignedETA > 0 ? `${toAssignedETA}d` : 'N/A'}</span>
+                    <span className="text-sm font-bold text-teal-600">{resourceAssignmentETA > 0 ? `${resourceAssignmentETA}d` : 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">📋</span>
+                      <span className="text-xs font-medium text-purple-700">Management Approvals</span>
+                    </div>
+                    <span className="text-sm font-bold text-purple-600">{managementApprovalsETA > 0 ? `${managementApprovalsETA}d` : 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between p-2 bg-emerald-50 rounded-lg">
                     <div className="flex items-center gap-1">
