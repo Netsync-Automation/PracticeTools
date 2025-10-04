@@ -22183,6 +22183,311 @@
         "lib/auth-check.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1759591024666,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:04.666Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js"
+      ]
+    },
+    {
+      "id": 1759591024774,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:04.774Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591024925,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:04.925Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591025036,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:05.036Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591025167,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-04T15:17:05.167Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591025284,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-10-04T15:17:05.284Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591026858,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:06.858Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591026962,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:06.962Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591027069,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:07.069Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591027188,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:07.188Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591027393,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-04T15:17:07.393Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591027487,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-10-04T15:17:07.487Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591028620,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:08.620Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591028727,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:08.727Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591028834,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/sa-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:08.834Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591028941,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/sa-assignments/page.js"
+      },
+      "timestamp": "2025-10-04T15:17:08.941Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591029036,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-04T15:17:09.036Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759591029143,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-10-04T15:17:09.143Z",
+      "files": [
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "app/projects/sa-assignments/[id]/page.js",
+        "app/projects/sa-assignments/page.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [

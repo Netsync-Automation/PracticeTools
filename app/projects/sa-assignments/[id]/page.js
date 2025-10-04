@@ -11,6 +11,7 @@ import MultiResourceSelector from '../../../../components/MultiResourceSelector'
 import MultiAccountManagerSelector from '../../../../components/MultiAccountManagerSelector';
 import AssignResourceModal from '../../../../components/AssignResourceModal';
 import CompleteStatusModal from '../../../../components/CompleteStatusModal';
+import UserField from '../../../../components/UserField';
 import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
 import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
@@ -419,7 +420,9 @@ export default function SaAssignmentDetailPage({ params }) {
         const data = await response.json();
         if (data.users && Array.isArray(data.users)) {
           setAllUsers(data.users);
-          window.cachedUsers = data.users; // Cache for PracticeDisplay component
+          if (typeof window !== 'undefined') {
+            window.cachedUsers = data.users; // Cache for PracticeDisplay component
+          }
         } else {
           console.warn('Invalid users data received:', data);
           setAllUsers([]);
@@ -435,12 +438,16 @@ export default function SaAssignmentDetailPage({ params }) {
   };
 
   // Global refresh function for user list updates
-  window.refreshUsers = (newUsers) => {
-    if (newUsers && Array.isArray(newUsers)) {
-      setAllUsers(newUsers);
-      window.cachedUsers = newUsers;
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.refreshUsers = (newUsers) => {
+        if (newUsers && Array.isArray(newUsers)) {
+          setAllUsers(newUsers);
+          window.cachedUsers = newUsers;
+        }
+      };
     }
-  };
+  }, []);
 
 
 
@@ -956,21 +963,42 @@ export default function SaAssignmentDetailPage({ params }) {
                       <div>
                         <label className="block text-sm font-medium text-gray-500 mb-2">Account Manager</label>
                         <div className="bg-gray-50 rounded-lg px-4 py-3">
-                          <p className="text-sm font-medium text-gray-900">{extractFriendlyName(saAssignment.am) || 'Not assigned'}</p>
+                          <UserField 
+                            userField={saAssignment.am}
+                            assignmentId={saAssignment.id}
+                            fieldType="am"
+                            assignmentType="sa-assignment"
+                            assignment={saAssignment}
+                            className="text-sm font-medium text-gray-900"
+                          />
                         </div>
                       </div>
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-500 mb-2">ISR/SA Requested</label>
                         <div className="bg-gray-50 rounded-lg px-4 py-3">
-                          <p className="text-sm font-medium text-gray-900">{extractFriendlyName(saAssignment.isr) || 'Not assigned'}</p>
+                          <UserField 
+                            userField={saAssignment.isr}
+                            assignmentId={saAssignment.id}
+                            fieldType="isr"
+                            assignmentType="sa-assignment"
+                            assignment={saAssignment}
+                            className="text-sm font-medium text-gray-900"
+                          />
                         </div>
                       </div>
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-500 mb-2">Submitted By</label>
                         <div className="bg-gray-50 rounded-lg px-4 py-3">
-                          <p className="text-sm font-medium text-gray-900">{extractFriendlyName(saAssignment.submittedBy) || 'Not specified'}</p>
+                          <UserField 
+                            userField={saAssignment.submittedBy}
+                            assignmentId={saAssignment.id}
+                            fieldType="submittedBy"
+                            assignmentType="sa-assignment"
+                            assignment={saAssignment}
+                            className="text-sm font-medium text-gray-900"
+                          />
                         </div>
                       </div>
                     </div>

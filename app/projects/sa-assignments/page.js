@@ -18,6 +18,7 @@ import MultiAccountManagerSelector from '../../../components/MultiAccountManager
 import AssignResourceModal from '../../../components/AssignResourceModal';
 import CompleteStatusModal from '../../../components/CompleteStatusModal';
 import RegionSelector from '../../../components/RegionSelector';
+import UserField from '../../../components/UserField';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
 import { getEnvironment, getTableName } from '../../../lib/dynamodb';
 import StatBox from '../../../components/StatBox';
@@ -173,7 +174,20 @@ export default function SaAssignmentsPage() {
           
           // Apply role-based defaults if not already set
           const rolesWithMyAssignments = ['practice_member', 'account_manager', 'isr', 'practice_manager', 'practice_principal'];
-          if (rolesWithMyAssignments.includes(user.role) && !parsedFilters.myAssignments) {
+          const managementRoles = ['admin', 'practice_manager', 'practice_principal'];
+          
+          // DSR: Set management role defaults
+          if (managementRoles.includes(user.role)) {
+            if (!parsedFilters.status || parsedFilters.status.length === 0) {
+              parsedFilters.status = ['Pending', 'Unassigned'];
+            }
+            if ((user.role === 'practice_manager' || user.role === 'practice_principal') && user.practices && (!parsedFilters.practice || parsedFilters.practice.length === 0)) {
+              parsedFilters.practice = [...user.practices, 'Pending'];
+            }
+            if (parsedFilters.myAssignments === undefined) {
+              parsedFilters.myAssignments = false;
+            }
+          } else if (rolesWithMyAssignments.includes(user.role) && parsedFilters.myAssignments === undefined) {
             parsedFilters.myAssignments = true;
             parsedFilters.sort = getDefaultSortForRole(user.role);
           }
@@ -195,20 +209,40 @@ export default function SaAssignmentsPage() {
       }
       
       if (shouldSetDefaults) {
-        const rolesWithMyAssignments = ['practice_member', 'account_manager', 'isr', 'practice_manager', 'practice_principal'];
-        setFilters({
-          status: [],
-          individualSAStatus: [],
-          practice: [],
-          region: '',
-          dateFrom: '',
-          dateTo: '',
-          search: '',
-          sort: rolesWithMyAssignments.includes(user.role) ? getDefaultSortForRole(user.role) : 'newest',
-          myWorkCompleted: false,
-          myWorkInProgress: true,
-          myAssignments: rolesWithMyAssignments.includes(user.role)
-        });
+        const rolesWithMyAssignments = ['practice_member', 'account_manager', 'isr'];
+        const managementRoles = ['admin', 'practice_manager', 'practice_principal'];
+        
+        // DSR: Default filters for management roles
+        if (managementRoles.includes(user.role)) {
+          setFilters({
+            status: ['Pending', 'Unassigned'],
+            individualSAStatus: [],
+            practice: (user.role === 'practice_manager' || user.role === 'practice_principal') && user.practices 
+              ? [...user.practices, 'Pending'] : [],
+            region: '',
+            dateFrom: '',
+            dateTo: '',
+            search: '',
+            sort: 'newest',
+            myWorkCompleted: false,
+            myWorkInProgress: true,
+            myAssignments: false
+          });
+        } else {
+          setFilters({
+            status: [],
+            individualSAStatus: [],
+            practice: [],
+            region: '',
+            dateFrom: '',
+            dateTo: '',
+            search: '',
+            sort: rolesWithMyAssignments.includes(user.role) ? getDefaultSortForRole(user.role) : 'newest',
+            myWorkCompleted: false,
+            myWorkInProgress: true,
+            myAssignments: rolesWithMyAssignments.includes(user.role)
+          });
+        }
       }
     }
   }, [user]);
@@ -760,20 +794,42 @@ export default function SaAssignmentsPage() {
                 </div>
                 <button
                   onClick={() => {
-                    const rolesWithMyAssignments = ['practice_member', 'account_manager', 'isr', 'practice_manager', 'practice_principal'];
-                    const defaultFilters = { 
-                      status: [], 
-                      individualSAStatus: [],
-                      practice: [], 
-                      region: '', 
-                      dateFrom: '', 
-                      dateTo: '', 
-                      search: '', 
-                      sort: rolesWithMyAssignments.includes(user?.role) ? getDefaultSortForRole(user.role) : 'newest',
-                      myWorkCompleted: false,
-                      myWorkInProgress: true,
-                      myAssignments: rolesWithMyAssignments.includes(user?.role)
-                    };
+                    const rolesWithMyAssignments = ['practice_member', 'account_manager', 'isr'];
+                    const managementRoles = ['admin', 'practice_manager', 'practice_principal'];
+                    
+                    let defaultFilters;
+                    
+                    // DSR: Default filters for management roles
+                    if (managementRoles.includes(user?.role)) {
+                      defaultFilters = {
+                        status: ['Pending', 'Unassigned'],
+                        individualSAStatus: [],
+                        practice: (user?.role === 'practice_manager' || user?.role === 'practice_principal') && user?.practices 
+                          ? [...user.practices, 'Pending'] : [],
+                        region: '',
+                        dateFrom: '',
+                        dateTo: '',
+                        search: '',
+                        sort: 'newest',
+                        myWorkCompleted: false,
+                        myWorkInProgress: true,
+                        myAssignments: false
+                      };
+                    } else {
+                      defaultFilters = {
+                        status: [],
+                        individualSAStatus: [],
+                        practice: [],
+                        region: '',
+                        dateFrom: '',
+                        dateTo: '',
+                        search: '',
+                        sort: rolesWithMyAssignments.includes(user?.role) ? getDefaultSortForRole(user.role) : 'newest',
+                        myWorkCompleted: false,
+                        myWorkInProgress: true,
+                        myAssignments: rolesWithMyAssignments.includes(user?.role)
+                      };
+                    }
                     localStorage.removeItem('saAssignmentsFilters');
                     setFilters(defaultFilters);
                     setCurrentPage(1);
@@ -1564,7 +1620,14 @@ function SaAssignmentsTable({ saAssignments, user, onSaAssignmentUpdate, allSaAs
                   <div className="text-sm text-gray-900">{saAssignment.region}</div>
                 </td>
                 <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900">{extractFriendlyName(saAssignment.am)}</div>
+                  <UserField 
+                    userField={saAssignment.am}
+                    assignmentId={saAssignment.id}
+                    fieldType="am"
+                    assignmentType="sa-assignment"
+                    assignment={saAssignment}
+                    className="text-sm text-gray-900"
+                  />
                 </td>
                 <td className="px-2 py-3">
                   <div className="text-sm text-gray-900">

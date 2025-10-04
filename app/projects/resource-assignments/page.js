@@ -491,43 +491,65 @@ export default function ResourceAssignmentsPage() {
                   </svg>
                   Filter Assignments
                 </h3>
-                <button
-                  onClick={() => {
-                    let defaultFilters;
-                    if (user?.role === 'practice_member') {
-                      // Practice members: no default filters, sort by My Assignments
-                      defaultFilters = {
-                        status: [],
-                        practice: [],
-                        region: '',
-                        dateFrom: '',
-                        dateTo: '',
-                        search: '',
-                        sort: 'myAssignments'
-                      };
-                    } else {
-                      // Managers/principals: default filters
-                      defaultFilters = {
-                        status: ['practice_manager', 'practice_principal'].includes(user?.role) ? ['Pending', 'Unassigned'] : [],
-                        practice: ['practice_manager', 'practice_principal'].includes(user?.role) ? [...(user?.practices || []), 'Pending'] : [],
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setFilters({
+                        status: ['Unassigned'],
+                        practice: user?.practices || [],
                         region: '',
                         dateFrom: '',
                         dateTo: '',
                         search: '',
                         sort: 'newest'
-                      };
-                    }
-                    localStorage.removeItem('resourceAssignmentsFilters');
-                    setFilters(defaultFilters);
-                    setCurrentPage(1);
-                  }}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Reset
-                </button>
+                      });
+                      setCurrentPage(1);
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    Unassigned Projects
+                  </button>
+                  <button
+                    onClick={() => {
+                      let defaultFilters;
+                      if (user?.role === 'practice_member') {
+                        // Practice members: no default filters, sort by My Assignments
+                        defaultFilters = {
+                          status: [],
+                          practice: [],
+                          region: '',
+                          dateFrom: '',
+                          dateTo: '',
+                          search: '',
+                          sort: 'myAssignments'
+                        };
+                      } else {
+                        // Managers/principals: default filters
+                        defaultFilters = {
+                          status: ['practice_manager', 'practice_principal'].includes(user?.role) ? ['Pending', 'Unassigned'] : [],
+                          practice: ['practice_manager', 'practice_principal'].includes(user?.role) ? [...(user?.practices || []), 'Pending'] : [],
+                          region: '',
+                          dateFrom: '',
+                          dateTo: '',
+                          search: '',
+                          sort: 'newest'
+                        };
+                      }
+                      localStorage.removeItem('resourceAssignmentsFilters');
+                      setFilters(defaultFilters);
+                      setCurrentPage(1);
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Reset
+                  </button>
+                </div>
               </div>
               
               {/* Search Bar */}
