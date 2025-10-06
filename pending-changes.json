@@ -75487,6 +75487,83 @@
         "lib/email-service.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1759786866532,
+      "description": "Updated temp-delete-pm-from-assignments.js",
+      "details": {
+        "file": "temp-delete-pm-from-assignments.js"
+      },
+      "timestamp": "2025-10-06T21:41:06.532Z",
+      "files": [
+        "temp-delete-pm-from-assignments.js",
+        "temp-fix-assignment-395.js"
+      ]
+    },
+    {
+      "id": 1759786866603,
+      "description": "Updated temp-fix-assignment-395.js",
+      "details": {
+        "file": "temp-fix-assignment-395.js"
+      },
+      "timestamp": "2025-10-06T21:41:06.603Z",
+      "files": [
+        "pending-changes.json",
+        "temp-delete-pm-from-assignments.js",
+        "temp-fix-assignment-395.js"
+      ]
+    },
+    {
+      "id": 1759786867062,
+      "description": "Updated temp-delete-pm-from-assignments.js",
+      "details": {
+        "file": "temp-delete-pm-from-assignments.js"
+      },
+      "timestamp": "2025-10-06T21:41:07.062Z",
+      "files": [
+        "pending-changes.json",
+        "temp-delete-pm-from-assignments.js",
+        "temp-fix-assignment-395.js"
+      ]
+    },
+    {
+      "id": 1759786867179,
+      "description": "Updated temp-fix-assignment-395.js",
+      "details": {
+        "file": "temp-fix-assignment-395.js"
+      },
+      "timestamp": "2025-10-06T21:41:07.179Z",
+      "files": [
+        "pending-changes.json",
+        "temp-delete-pm-from-assignments.js",
+        "temp-fix-assignment-395.js"
+      ]
+    },
+    {
+      "id": 1759786867546,
+      "description": "Updated temp-delete-pm-from-assignments.js",
+      "details": {
+        "file": "temp-delete-pm-from-assignments.js"
+      },
+      "timestamp": "2025-10-06T21:41:07.546Z",
+      "files": [
+        "pending-changes.json",
+        "temp-delete-pm-from-assignments.js",
+        "temp-fix-assignment-395.js"
+      ]
+    },
+    {
+      "id": 1759786867607,
+      "description": "Updated temp-fix-assignment-395.js",
+      "details": {
+        "file": "temp-fix-assignment-395.js"
+      },
+      "timestamp": "2025-10-06T21:41:07.607Z",
+      "files": [
+        "pending-changes.json",
+        "temp-delete-pm-from-assignments.js",
+        "temp-fix-assignment-395.js"
+      ]
     }
   ]
 }
