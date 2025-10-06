@@ -304,9 +304,10 @@ export default function ResourceAssignmentsPage() {
     let matchesMyAssignments = true;
     if (filters.sort === 'myAssignments') {
       const isProjectManagementUser = user?.practices?.includes('Project Management');
+      const userName = user?.name?.toLowerCase() || '';
       const isAssigned = isProjectManagementUser 
-        ? assignment.pm && assignment.pm.toLowerCase().includes(user?.name?.toLowerCase() || '')
-        : assignment.resourceAssigned && assignment.resourceAssigned.toLowerCase().includes(user?.name?.toLowerCase() || '');
+        ? assignment.pm && extractDisplayNames(assignment.pm).toLowerCase().includes(userName)
+        : assignment.resourceAssigned && extractDisplayNames(assignment.resourceAssigned).toLowerCase().includes(userName);
       if (!isAssigned) {
         matchesMyAssignments = false;
       }
@@ -577,7 +578,11 @@ export default function ResourceAssignmentsPage() {
                     <div className="flex-1">
                       <p className="text-sm font-medium text-blue-900 mb-1">
                         {user.role === 'practice_member' ? (
-                          'Showing all assignments - use "My Assignments" sort to see your assigned work'
+                          user.practices?.includes('Project Management') ? (
+                            'Showing all assignments - use "My Assignments" sort to see projects where you are the PM'
+                          ) : (
+                            'Showing all assignments - use "My Assignments" sort to see your assigned work'
+                          )
                         ) : ['practice_manager', 'practice_principal'].includes(user.role) ? (
                           `Default view: Pending & Unassigned assignments for your practices (${user.practices?.join(', ') || 'None'})`
                         ) : user.isAdmin || user.role === 'executive' ? (
@@ -588,7 +593,11 @@ export default function ResourceAssignmentsPage() {
                       </p>
                       <p className="text-xs text-blue-700">
                         {user.role === 'practice_member' ? (
-                          'Practice members can view all assignments but should focus on their assigned work.'
+                          user.practices?.includes('Project Management') ? (
+                            'Project Management members see assignments where they are listed as the Project Manager.'
+                          ) : (
+                            'Practice members can view all assignments but should focus on their assigned work.'
+                          )
                         ) : ['practice_manager', 'practice_principal'].includes(user.role) ? (
                           'As a practice leader, you see assignments that need your attention. Use filters to customize your view.'
                         ) : user.isAdmin || user.role === 'executive' ? (
