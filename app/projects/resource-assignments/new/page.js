@@ -144,6 +144,8 @@ export default function NewAssignmentPage() {
   const [loading, setLoading] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [regions, setRegions] = useState([]);
+  const [duplicateCheck, setDuplicateCheck] = useState({ checking: false, isDuplicate: false, duplicates: [] });
+  const duplicateCheckTimeoutRef = useRef(null);
   const [formData, setFormData] = useState({
     practice: [],
     status: 'Unassigned',
@@ -188,6 +190,13 @@ export default function NewAssignmentPage() {
     
     checkAuth();
     fetchRegions();
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (duplicateCheckTimeoutRef.current) {
+        clearTimeout(duplicateCheckTimeoutRef.current);
+      }
+    };
   }, [router]);
 
   const fetchRegions = async () => {
@@ -221,6 +230,39 @@ export default function NewAssignmentPage() {
     }
   };
 
+  const checkForDuplicates = async (projectNumber, customerName) => {
+    if (!projectNumber.trim() || !customerName.trim()) {
+      setDuplicateCheck({ checking: false, isDuplicate: false, duplicates: [] });
+      return;
+    }
+
+    setDuplicateCheck(prev => ({ ...prev, checking: true }));
+
+    try {
+      const response = await fetch('/api/assignments/check-duplicate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ projectNumber, customerName }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setDuplicateCheck({
+          checking: false,
+          isDuplicate: data.isDuplicate,
+          duplicates: data.duplicates || []
+        });
+      } else {
+        setDuplicateCheck({ checking: false, isDuplicate: false, duplicates: [] });
+      }
+    } catch (error) {
+      console.error('Error checking duplicates:', error);
+      setDuplicateCheck({ checking: false, isDuplicate: false, duplicates: [] });
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => {
@@ -232,6 +274,19 @@ export default function NewAssignmentPage() {
       // Auto-set date assigned when resource is assigned
       if (name === 'resourceAssigned' && value.trim() && !prev.dateAssigned) {
         newData.dateAssigned = new Date().toISOString().split('T')[0];
+      }
+      
+      // Check for duplicates when project number or customer name changes
+      if (name === 'projectNumber' || name === 'customerName') {
+        if (duplicateCheckTimeoutRef.current) {
+          clearTimeout(duplicateCheckTimeoutRef.current);
+        }
+        
+        duplicateCheckTimeoutRef.current = setTimeout(() => {
+          const projectNumber = name === 'projectNumber' ? value : newData.projectNumber;
+          const customerName = name === 'customerName' ? value : newData.customerName;
+          checkForDuplicates(projectNumber, customerName);
+        }, 500); // 500ms debounce
       }
       
       return newData;
@@ -287,7 +342,11 @@ export default function NewAssignmentPage() {
       if (data.success) {
         router.push(`/projects/resource-assignments/${data.assignment.id}`);
       } else {
-        alert('Failed to create assignment: ' + (data.error || 'Unknown error'));
+        if (data.isDuplicate) {
+          alert(`Duplicate Assignment Detected\n\n${data.error}\n\nPlease check if this assignment already exists or use a different project number.`);
+        } else {
+          alert('Failed to create assignment: ' + (data.error || 'Unknown error'));
+        }
       }
     } catch (error) {
       console.error('Error creating assignment:', error);
@@ -335,28 +394,75 @@ export default function NewAssignmentPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Project Number *</label>
-                      <input
-                        type="text"
-                        name="projectNumber"
-                        value={formData.projectNumber}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="PRJ-2024-001"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          name="projectNumber"
+                          value={formData.projectNumber}
+                          onChange={handleInputChange}
+                          required
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            duplicateCheck.isDuplicate ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                          }`}
+                          placeholder="PRJ-2024-001"
+                        />
+                        {duplicateCheck.checking && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name *</label>
-                      <input
-                        type="text"
-                        name="customerName"
-                        value={formData.customerName}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Acme Corporation"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          name="customerName"
+                          value={formData.customerName}
+                          onChange={handleInputChange}
+                          required
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            duplicateCheck.isDuplicate ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                          }`}
+                          placeholder="Acme Corporation"
+                        />
+                        {duplicateCheck.checking && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                    
+                    {/* Duplicate Warning */}
+                    {duplicateCheck.isDuplicate && duplicateCheck.duplicates.length > 0 && (
+                      <div className="md:col-span-2 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <h3 className="text-sm font-medium text-red-800">
+                              Duplicate Assignment Detected
+                            </h3>
+                            <div className="mt-2 text-sm text-red-700">
+                              <p>An assignment with this project number and customer already exists:</p>
+                              <ul className="mt-1 list-disc list-inside">
+                                {duplicateCheck.duplicates.map(duplicate => (
+                                  <li key={duplicate.id}>
+                                    Assignment #{duplicate.assignment_number} - Status: {duplicate.status}
+                                  </li>
+                                ))}
+                              </ul>
+                              <p className="mt-2 font-medium">Please verify this is not a duplicate or use a different project number.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Project Description *</label>
                       <textarea
@@ -527,10 +633,10 @@ export default function NewAssignmentPage() {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || duplicateCheck.isDuplicate || duplicateCheck.checking}
                     className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {loading ? 'Creating...' : 'Create Assignment'}
+                    {loading ? 'Creating...' : duplicateCheck.checking ? 'Checking...' : 'Create Assignment'}
                   </button>
                 </div>
               </form>
