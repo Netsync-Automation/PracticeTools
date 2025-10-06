@@ -22708,6 +22708,41 @@
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1759767145648,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-06T16:12:25.648Z",
+      "files": [
+        "app/projects/resource-assignments/page.js"
+      ]
+    },
+    {
+      "id": 1759767146068,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-06T16:12:26.068Z",
+      "files": [
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759767146358,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-06T16:12:26.358Z",
+      "files": [
+        "app/projects/resource-assignments/page.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
