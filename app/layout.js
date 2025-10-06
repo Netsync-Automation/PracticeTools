@@ -1,6 +1,7 @@
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '../contexts/AppContext'
+import SessionInterceptor from '../components/SessionInterceptor'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -41,6 +42,7 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/favicon.ico" />
       </head>
       <body className={inter.className}>
+        <SessionInterceptor />
         <AppProvider>
           {children}
         </AppProvider>

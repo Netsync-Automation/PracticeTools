@@ -136,6 +136,15 @@ export async function PUT(request, { params }) {
           type: 'assignment_updated',
           assignmentId: params.id,
           assignment: assignment,
+          updates: updateData,
+          timestamp: Date.now()
+        });
+        // Also notify specific assignment page
+        notifyClients(params.id, {
+          type: 'assignment_updated',
+          assignmentId: params.id,
+          assignment: assignment,
+          updates: updateData,
           timestamp: Date.now()
         });
       } catch (sseError) {
@@ -173,6 +182,18 @@ export async function DELETE(request, { params }) {
     const success = await db.deleteAssignment(params.id);
     
     if (success) {
+      // Send SSE notification for assignment deletion
+      try {
+        const { notifyClients } = await import('../../events/route');
+        notifyClients('all', {
+          type: 'assignment_deleted',
+          assignmentId: params.id,
+          timestamp: Date.now()
+        });
+      } catch (sseError) {
+        console.error('Failed to send SSE notification:', sseError);
+      }
+      
       return NextResponse.json({
         success: true,
         message: 'Assignment deleted successfully'

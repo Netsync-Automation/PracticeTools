@@ -1,0 +1,1434 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import Navbar from '../../../components/Navbar';
+import SidebarLayout from '../../../components/SidebarLayout';
+import AccessCheck from '../../../components/AccessCheck';
+import Breadcrumb from '../../../components/Breadcrumb';
+import Pagination from '../../../components/Pagination';
+import { PRACTICE_OPTIONS } from '../../../constants/practices';
+
+export default function TrainingCertsPage() {
+  const router = useRouter();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [entries, setEntries] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editEntry, setEditEntry] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState({});
+  const [practiceSettings, setPracticeSettings] = useState({ vendors: [], levels: [], types: [] });
+  const [filters, setFilters] = useState({
+    search: '',
+    practice: '',
+    type: '',
+    vendor: '',
+    level: ''
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const entriesPerPage = 20;
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/check-session');
+        if (response.ok) {
+          const sessionData = await response.json();
+          if (sessionData.user) {
+            setUser(sessionData.user);
+            localStorage.setItem('user', JSON.stringify(sessionData.user));
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      }
+      
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        setUser(JSON.parse(userData));
+        return;
+      }
+      
+      router.push('/login');
+    };
+    
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/training-certs/settings');
+        if (response.ok) {
+          const data = await response.json();
+          setSettings(data.settings || {});
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    
+    const fetchEntries = async () => {
+      try {
+        const response = await fetch('/api/training-certs');
+        if (response.ok) {
+          const data = await response.json();
+          setEntries(data.entries || []);
+        }
+      } catch (error) {
+        console.error('Error fetching entries:', error);
+      }
+    };
+    
+    checkAuth();
+    fetchSettings();
+    fetchEntries();
+    setLoading(false);
+  }, [router]);
+
+  useEffect(() => {
+    if (showSettings) {
+      const fetchSettings = async () => {
+        try {
+          const response = await fetch('/api/training-certs/settings');
+          if (response.ok) {
+            const data = await response.json();
+            setSettings(data.settings || {});
+          }
+        } catch (error) {
+          console.error('Error fetching settings:', error);
+        }
+      };
+      fetchSettings();
+    }
+  }, [showSettings]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      localStorage.removeItem('user');
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      localStorage.removeItem('user');
+      router.push('/login');
+    }
+  };
+
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <AccessCheck user={user}>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar user={user} onLogout={handleLogout} />
+        
+        <SidebarLayout user={user}>
+          <div className="p-8">
+            <Breadcrumb items={[
+              { label: 'Practice Information', href: '/practice-information' },
+              { label: 'Training & Certs' }
+            ]} />
+            
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-3">
+                Training & Certifications
+              </h1>
+              <p className="text-blue-600/80 text-lg">Manage training programs and certification tracking</p>
+            </div>
+
+            <div className="flex items-center justify-between mb-6">
+              <div></div>
+              <div className="flex gap-3">
+                {(user?.isAdmin || user?.role === 'practice_manager' || user?.role === 'practice_principal') && (
+                  <button
+                    onClick={() => setShowSettings(true)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                  >
+                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Settings
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                >
+                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add New
+                </button>
+              </div>
+            </div>
+
+            {/* Search and Filters */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+                  </svg>
+                  Filter Training & Certifications
+                </h3>
+                <button
+                  onClick={() => {
+                    setFilters({
+                      search: '',
+                      practice: '',
+                      type: '',
+                      vendor: '',
+                      level: ''
+                    });
+                    setCurrentPage(1);
+                  }}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Reset
+                </button>
+              </div>
+              
+              {/* Search Bar */}
+              <div className="relative mb-6">
+                <MagnifyingGlassIcon className="h-5 w-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by name, vendor, code, or notes..."
+                  value={filters.search}
+                  onChange={(e) => setFilters({...filters, search: e.target.value})}
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 focus:bg-white transition-colors"
+                />
+              </div>
+              
+              {/* Filter Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Practice</label>
+                  <select
+                    value={filters.practice}
+                    onChange={(e) => setFilters({...filters, practice: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                  >
+                    <option value="">All Practices</option>
+                    {(PRACTICE_OPTIONS || []).map(practice => (
+                      <option key={practice} value={practice}>{practice}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Type</label>
+                  <select
+                    value={filters.type}
+                    onChange={(e) => setFilters({...filters, type: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                  >
+                    <option value="">All Types</option>
+                    <option value="Training">Training</option>
+                    <option value="Certification">Certification</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Vendor</label>
+                  <select
+                    value={filters.vendor}
+                    onChange={(e) => setFilters({...filters, vendor: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                  >
+                    <option value="">All Vendors</option>
+                    {(settings && typeof settings === 'object' ? Object.values(settings) : [])
+                      .flatMap(s => (s && s.vendors ? s.vendors : []))
+                      .filter((v, i, arr) => v && arr.indexOf(v) === i)
+                      .map(vendor => (
+                        <option key={vendor} value={vendor}>{vendor}</option>
+                      ))}
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Level</label>
+                  <select
+                    value={filters.level}
+                    onChange={(e) => setFilters({...filters, level: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
+                  >
+                    <option value="">All Levels</option>
+                    {(settings && typeof settings === 'object' ? Object.values(settings) : [])
+                      .flatMap(s => (s && s.levels ? s.levels : []))
+                      .filter((v, i, arr) => v && arr.indexOf(v) === i)
+                      .map(level => (
+                        <option key={level} value={level}>{level}</option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+              
+              {/* Active Filters Display */}
+              {(filters.search || filters.practice || filters.type || filters.vendor || filters.level) && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium text-gray-600">Active filters:</span>
+                    {filters.search && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        Search: "{filters.search}"
+                        <button onClick={() => setFilters({...filters, search: ''})} className="hover:bg-blue-200 rounded-full p-0.5">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    {filters.practice && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        Practice: {filters.practice}
+                        <button onClick={() => setFilters({...filters, practice: ''})} className="hover:bg-green-200 rounded-full p-0.5">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    {filters.type && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                        Type: {filters.type}
+                        <button onClick={() => setFilters({...filters, type: ''})} className="hover:bg-purple-200 rounded-full p-0.5">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    {filters.vendor && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
+                        Vendor: {filters.vendor}
+                        <button onClick={() => setFilters({...filters, vendor: ''})} className="hover:bg-orange-200 rounded-full p-0.5">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    {filters.level && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
+                        Level: {filters.level}
+                        <button onClick={() => setFilters({...filters, level: ''})} className="hover:bg-indigo-200 rounded-full p-0.5">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <TrainingCertsTable 
+              entries={entries}
+              filters={filters}
+              currentPage={currentPage}
+              entriesPerPage={entriesPerPage}
+              onPageChange={setCurrentPage}
+              onEntryClick={(entry) => {
+                setEditEntry(entry);
+                setShowEditModal(true);
+              }}
+              onRefresh={() => {
+                const fetchEntries = async () => {
+                  try {
+                    const response = await fetch('/api/training-certs');
+                    if (response.ok) {
+                      const data = await response.json();
+                      setEntries(data.entries || []);
+                    }
+                  } catch (error) {
+                    console.error('Error fetching entries:', error);
+                  }
+                };
+                fetchEntries();
+              }}
+            />
+
+            {/* Add New Modal */}
+            <AddTrainingModal
+              isOpen={showAddModal}
+              onClose={() => {
+                setShowAddModal(false);
+                // Refresh entries after adding
+                const fetchEntries = async () => {
+                  try {
+                    const response = await fetch('/api/training-certs');
+                    if (response.ok) {
+                      const data = await response.json();
+                      setEntries(data.entries || []);
+                    }
+                  } catch (error) {
+                    console.error('Error fetching entries:', error);
+                  }
+                };
+                fetchEntries();
+              }}
+              user={user}
+              settings={settings}
+            />
+
+            {/* Edit Modal */}
+            <EditTrainingModal
+              isOpen={showEditModal}
+              onClose={() => {
+                setShowEditModal(false);
+                setEditEntry(null);
+              }}
+              entry={editEntry}
+              user={user}
+              settings={settings}
+              onSave={() => {
+                const fetchEntries = async () => {
+                  try {
+                    const response = await fetch('/api/training-certs');
+                    if (response.ok) {
+                      const data = await response.json();
+                      setEntries(data.entries || []);
+                    }
+                  } catch (error) {
+                    console.error('Error fetching entries:', error);
+                  }
+                };
+                fetchEntries();
+              }}
+            />
+
+            {/* Settings Modal */}
+            <SettingsModal
+              isOpen={showSettings}
+              onClose={() => setShowSettings(false)}
+              settings={settings}
+              onSettingsUpdate={setSettings}
+              user={user}
+            />
+          </div>
+        </SidebarLayout>
+      </div>
+    </AccessCheck>
+  );
+}
+
+function AddTrainingModal({ isOpen, onClose, user, settings }) {
+  const [formData, setFormData] = useState({
+    practice: user?.practices?.[0] || '',
+    type: '',
+    vendor: '',
+    name: '',
+    code: '',
+    level: '',
+    trainingType: '',
+    prerequisites: '',
+    examsRequired: '',
+    examCost: '',
+    notes: ''
+  });
+  const [saving, setSaving] = useState(false);
+  const [practiceOptions, setPracticeOptions] = useState({ vendors: [], levels: [], types: [] });
+
+  // Load practice-specific options when practice changes
+  useEffect(() => {
+    const loadPracticeOptions = async () => {
+      if (formData.practice) {
+        try {
+          const response = await fetch(`/api/training-certs/settings?practice=${encodeURIComponent(formData.practice)}`);
+          if (response.ok) {
+            const data = await response.json();
+            setPracticeOptions(data.settings || { vendors: [], levels: [], types: [] });
+          }
+        } catch (error) {
+          console.error('Error loading practice options:', error);
+          setPracticeOptions({ vendors: [], levels: [], types: [] });
+        }
+      } else {
+        setPracticeOptions({ vendors: [], levels: [], types: [] });
+      }
+    };
+    
+    if (isOpen) {
+      loadPracticeOptions();
+    }
+  }, [formData.practice, isOpen]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const response = await fetch('/api/training-certs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (response.ok) {
+        onClose();
+        setFormData({
+          practice: user?.practices?.[0] || '',
+          type: '',
+          vendor: '',
+          name: '',
+          code: '',
+          level: '',
+          trainingType: '',
+          prerequisites: '',
+          examsRequired: '',
+          examCost: '',
+          notes: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Add Training/Certification</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Practice *</label>
+                <select
+                  value={formData.practice}
+                  onChange={(e) => setFormData({...formData, practice: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select Practice</option>
+                  {(PRACTICE_OPTIONS || []).map(practice => (
+                    <option key={practice} value={practice}>{practice}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select Type</option>
+                  <option value="Training">Training</option>
+                  <option value="Certification">Certification</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vendor *</label>
+                <select
+                  value={formData.vendor}
+                  onChange={(e) => setFormData({...formData, vendor: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select Vendor</option>
+                  {practiceOptions.vendors.map(vendor => (
+                    <option key={vendor} value={vendor}>{vendor}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                <select
+                  value={formData.level}
+                  onChange={(e) => setFormData({...formData, level: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select Level</option>
+                  {practiceOptions.levels.map(level => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                <input
+                  type="text"
+                  value={formData.code}
+                  onChange={(e) => setFormData({...formData, code: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Type/Path</label>
+              <select
+                value={formData.trainingType}
+                onChange={(e) => setFormData({...formData, trainingType: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select Type/Path</option>
+                {practiceOptions.types.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Prerequisites</label>
+                <textarea
+                  value={formData.prerequisites}
+                  onChange={(e) => setFormData({...formData, prerequisites: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Exams Required</label>
+                <textarea
+                  value={formData.examsRequired}
+                  onChange={(e) => setFormData({...formData, examsRequired: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Typical Exam Cost</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.examCost}
+                onChange={(e) => setFormData({...formData, examCost: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({...formData, notes: e.target.value.slice(0, 500)})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows={3}
+                maxLength={500}
+                placeholder="Maximum 500 characters"
+              />
+              <div className="text-xs text-gray-500 mt-1">{formData.notes.length}/500 characters</div>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditTrainingModal({ isOpen, onClose, entry, user, settings, onSave }) {
+  const [formData, setFormData] = useState({
+    practice: '',
+    type: '',
+    vendor: '',
+    name: '',
+    code: '',
+    level: '',
+    trainingType: '',
+    prerequisites: '',
+    examsRequired: '',
+    examCost: '',
+    notes: ''
+  });
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [practiceOptions, setPracticeOptions] = useState({ vendors: [], levels: [], types: [] });
+
+  // Load entry data when modal opens
+  useEffect(() => {
+    if (isOpen && entry) {
+      setFormData({
+        practice: entry.practice || '',
+        type: entry.type || '',
+        vendor: entry.vendor || '',
+        name: entry.name || '',
+        code: entry.code || '',
+        level: entry.level || '',
+        trainingType: entry.trainingType || '',
+        prerequisites: entry.prerequisites || '',
+        examsRequired: entry.examsRequired || '',
+        examCost: entry.examCost || '',
+        notes: entry.notes || ''
+      });
+    }
+  }, [isOpen, entry]);
+
+  // Load practice-specific options when practice changes
+  useEffect(() => {
+    const loadPracticeOptions = async () => {
+      if (formData.practice) {
+        try {
+          const response = await fetch(`/api/training-certs/settings?practice=${encodeURIComponent(formData.practice)}`);
+          if (response.ok) {
+            const data = await response.json();
+            setPracticeOptions(data.settings || { vendors: [], levels: [], types: [] });
+          }
+        } catch (error) {
+          console.error('Error loading practice options:', error);
+          setPracticeOptions({ vendors: [], levels: [], types: [] });
+        }
+      } else {
+        setPracticeOptions({ vendors: [], levels: [], types: [] });
+      }
+    };
+    
+    if (isOpen && formData.practice) {
+      loadPracticeOptions();
+    }
+  }, [formData.practice, isOpen]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/training-certs/${entry.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (response.ok) {
+        onSave();
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error updating:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this training/certification entry?')) return;
+    
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/training-certs/${entry.id}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        onSave();
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error deleting:', error);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  if (!isOpen || !entry) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">Edit Training/Certification</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Practice *</label>
+                <select
+                  value={formData.practice}
+                  onChange={(e) => setFormData({...formData, practice: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select Practice</option>
+                  {(PRACTICE_OPTIONS || []).map(practice => (
+                    <option key={practice} value={practice}>{practice}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select Type</option>
+                  <option value="Training">Training</option>
+                  <option value="Certification">Certification</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vendor *</label>
+                <select
+                  value={formData.vendor}
+                  onChange={(e) => setFormData({...formData, vendor: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select Vendor</option>
+                  {practiceOptions.vendors.map(vendor => (
+                    <option key={vendor} value={vendor}>{vendor}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+                <select
+                  value={formData.level}
+                  onChange={(e) => setFormData({...formData, level: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select Level</option>
+                  {practiceOptions.levels.map(level => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                <input
+                  type="text"
+                  value={formData.code}
+                  onChange={(e) => setFormData({...formData, code: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Type/Path</label>
+              <select
+                value={formData.trainingType}
+                onChange={(e) => setFormData({...formData, trainingType: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select Type/Path</option>
+                {practiceOptions.types.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Prerequisites</label>
+                <textarea
+                  value={formData.prerequisites}
+                  onChange={(e) => setFormData({...formData, prerequisites: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Exams Required</label>
+                <textarea
+                  value={formData.examsRequired}
+                  onChange={(e) => setFormData({...formData, examsRequired: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Typical Exam Cost</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.examCost}
+                onChange={(e) => setFormData({...formData, examCost: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({...formData, notes: e.target.value.slice(0, 500)})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows={3}
+                maxLength={500}
+                placeholder="Maximum 500 characters"
+              />
+              <div className="text-xs text-gray-500 mt-1">{formData.notes.length}/500 characters</div>
+            </div>
+
+            <div className="flex gap-3 justify-between pt-4">
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting || saving}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving || deleting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {saving ? 'Updating...' : 'Update'}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsModal({ isOpen, onClose, settings, onSettingsUpdate, user }) {
+  const [selectedPractice, setSelectedPractice] = useState('');
+  const [localSettings, setLocalSettings] = useState({ vendors: [], levels: [], types: [] });
+  const [saving, setSaving] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('vendors');
+  const [newOption, setNewOption] = useState('');
+
+  // Load practice-specific settings when practice changes
+  useEffect(() => {
+    const loadPracticeSettings = async () => {
+      if (selectedPractice) {
+        try {
+          const response = await fetch(`/api/training-certs/settings?practice=${encodeURIComponent(selectedPractice)}`);
+          if (response.ok) {
+            const data = await response.json();
+            setLocalSettings(data.settings || { vendors: [], levels: [], types: [] });
+          }
+        } catch (error) {
+          console.error('Error loading practice settings:', error);
+          setLocalSettings({ vendors: [], levels: [], types: [] });
+        }
+      } else {
+        setLocalSettings({ vendors: [], levels: [], types: [] });
+      }
+    };
+    
+    if (isOpen && selectedPractice) {
+      loadPracticeSettings();
+    }
+  }, [selectedPractice, isOpen]);
+
+  // Reset when modal opens and set default practice
+  useEffect(() => {
+    if (isOpen) {
+      const defaultPractice = user?.practices?.[0] || '';
+      setSelectedPractice(defaultPractice);
+      setLocalSettings({ vendors: [], levels: [], types: [] });
+    }
+  }, [isOpen, user]);
+
+  const categoryLabels = {
+    vendors: 'Vendor Options',
+    levels: 'Level Options',
+    types: 'Type/Path Options'
+  };
+
+  const handleSave = async (category, options) => {
+    if (!selectedPractice) return;
+    
+    try {
+      const updatedSettings = {
+        ...localSettings,
+        [category]: options
+      };
+      
+      const response = await fetch('/api/training-certs/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ practice: selectedPractice, settings: updatedSettings })
+      });
+      
+      if (response.ok) {
+        setLocalSettings(updatedSettings);
+        // Update parent settings
+        const updatedParentSettings = {
+          ...settings,
+          [selectedPractice]: updatedSettings
+        };
+        onSettingsUpdate(updatedParentSettings);
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    }
+  };
+
+  const addOption = () => {
+    if (!newOption.trim()) return;
+    
+    const currentOptions = localSettings[activeCategory] || [];
+    const newOptions = [...currentOptions, newOption.trim()];
+    
+    handleSave(activeCategory, newOptions);
+    setNewOption('');
+  };
+
+  const removeOption = (category, optionToRemove) => {
+    const currentOptions = localSettings[category] || [];
+    const newOptions = currentOptions.filter(opt => opt !== optionToRemove);
+    handleSave(category, newOptions);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-xl w-full max-w-6xl h-full max-h-[95vh] flex flex-col shadow-2xl">
+        {/* Header */}
+        <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-blue-700 p-4 sm:p-6 text-white rounded-t-xl">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold">Training & Certifications Settings</h2>
+              <p className="text-blue-100 text-sm mt-1">Manage dropdown options and field configurations</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-blue-100 hover:text-white transition-colors p-2 rounded-lg hover:bg-blue-800"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Practice Selection */}
+        <div className="flex-shrink-0 border-b bg-gray-50 p-4">
+          <div className="max-w-md">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Practice to Configure
+            </label>
+            <select
+              value={selectedPractice}
+              onChange={(e) => setSelectedPractice(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            >
+              <option value="">Choose a practice...</option>
+              {(PRACTICE_OPTIONS || []).map(practice => (
+                <option key={practice} value={practice}>{practice}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          {selectedPractice ? (
+            <>
+              {/* Category Selection Sidebar */}
+              <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r bg-gray-50 p-4 overflow-y-auto">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Option Categories</h3>
+                <div className="grid grid-cols-1 gap-2">
+                  {Object.keys(categoryLabels).map(category => (
+                    <button
+                      key={category}
+                      onClick={() => setActiveCategory(category)}
+                      className={`text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                        activeCategory === category
+                          ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {categoryLabels[category]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Options Management */}
+              <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
+                <div className="h-full flex flex-col">
+                  <div className="flex-shrink-0">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {categoryLabels[activeCategory]} for {selectedPractice}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Configure {activeCategory} options specific to the {selectedPractice} practice.
+                    </p>
+
+                    {/* Add New Option */}
+                    <div className="flex flex-col sm:flex-row gap-2 mb-6">
+                      <input
+                        type="text"
+                        value={newOption}
+                        onChange={(e) => setNewOption(e.target.value)}
+                        placeholder="Enter new option"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onKeyPress={(e) => e.key === 'Enter' && addOption()}
+                      />
+                      <button
+                        onClick={addOption}
+                        disabled={!newOption.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      >
+                        Add Option
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Current Options */}
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="space-y-2">
+                      {(localSettings[activeCategory] || []).map((option, index) => (
+                        <div
+                          key={index}
+                          className="flex justify-between items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                        >
+                          <span className="text-gray-900 flex-1 mr-2">{option}</span>
+                          <button
+                            onClick={() => removeOption(activeCategory, option)}
+                            className="text-red-500 hover:text-red-700 transition-colors p-1 rounded hover:bg-red-50"
+                            title="Remove option"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                      
+                      {(localSettings[activeCategory] || []).length === 0 && (
+                        <div className="text-center py-12">
+                          <div className="text-gray-400 mb-2">
+                            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                          </div>
+                          <p className="text-gray-500">No {activeCategory} configured for {selectedPractice}</p>
+                          <p className="text-gray-400 text-sm mt-1">Add your first option above</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Practice</h3>
+                <p className="text-gray-500">Choose a practice above to configure its training and certification options.</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex-shrink-0 flex justify-end p-4 sm:p-6 border-t bg-gray-50 rounded-b-xl">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onPageChange, onEntryClick, onRefresh }) {
+  const handleDelete = async (e, entryId) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this training/certification entry?')) return;
+    
+    try {
+      const response = await fetch(`/api/training-certs/${entryId}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error('Error deleting:', error);
+    }
+  };
+  // Filter entries based on search and filter criteria
+  const filteredEntries = entries.filter(entry => {
+    const matchesSearch = !filters.search || 
+      entry.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+      entry.vendor.toLowerCase().includes(filters.search.toLowerCase()) ||
+      (entry.code && entry.code.toLowerCase().includes(filters.search.toLowerCase())) ||
+      (entry.notes && entry.notes.toLowerCase().includes(filters.search.toLowerCase()));
+    
+    const matchesPractice = !filters.practice || entry.practice === filters.practice;
+    const matchesType = !filters.type || entry.type === filters.type;
+    const matchesVendor = !filters.vendor || entry.vendor === filters.vendor;
+    const matchesLevel = !filters.level || entry.level === filters.level;
+    
+    return matchesSearch && matchesPractice && matchesType && matchesVendor && matchesLevel;
+  });
+
+  const totalPages = Math.ceil(filteredEntries.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedEntries = filteredEntries.slice(startIndex, startIndex + entriesPerPage);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    onPageChange(1);
+  }, [filters.search, filters.practice, filters.type, filters.vendor, filters.level, onPageChange]);
+
+  if (filteredEntries.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+            <span className="text-2xl">🎓</span>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {entries.length === 0 ? 'No Training & Certifications' : 'No Matching Results'}
+          </h3>
+          <p className="text-gray-500 mb-6">
+            {entries.length === 0 
+              ? 'No training or certification entries yet.' 
+              : 'No entries match your current filters.'}
+          </p>
+          {entries.length === 0 && (
+            <button
+              onClick={onRefresh}
+              className="btn-primary"
+            >
+              Add First Entry
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Results info */}
+      <div className="text-sm text-gray-500">
+        {filteredEntries.length} entries, Page {currentPage} of {totalPages}
+      </div>
+      
+      {/* Top Pagination */}
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+      />
+      
+      {/* Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Practice</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type/Path</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exam Cost</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created/Last Edit</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {paginatedEntries.map((entry) => (
+                <tr key={entry.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => onEntryClick(entry)}>
+                  <td className="px-4 py-3">
+                    <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                      {entry.practice}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      entry.type === 'Training' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                    }`}>
+                      {entry.type}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-900">{entry.vendor}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-900">{entry.name}</div>
+                    {entry.notes && (
+                      <div className="text-xs text-gray-500 mt-1 line-clamp-2" title={entry.notes}>
+                        {entry.notes}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-gray-900 font-mono">{entry.code || '-'}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-gray-900">{entry.level || '-'}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-gray-900">{entry.trainingType || '-'}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-gray-900">
+                      {entry.examCost ? `$${parseFloat(entry.examCost).toFixed(2)}` : '-'}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {entry.lastEdited ? (
+                      <>
+                        <div className="text-xs text-gray-900">
+                          {entry.lastEdited.split(' by ')[0]}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          by {entry.lastEdited.split(' by ')[1] || 'Unknown'}
+                        </div>
+                      </>
+                    ) : entry.created ? (
+                      <>
+                        <div className="text-xs text-gray-900">
+                          {entry.created.split(' by ')[0]}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          by {entry.created.split(' by ')[1] || 'Unknown'}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-sm text-gray-900">
+                          {new Date(entry.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(entry.createdAt).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            timeZoneName: 'short'
+                          })}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          by {entry.createdBy || 'Unknown'}
+                        </div>
+                      </>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={(e) => handleDelete(e, entry.id)}
+                      className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
+                      title="Delete entry"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      {/* Bottom Pagination */}
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+      />
+    </div>
+  );
+}

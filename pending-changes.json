@@ -22537,6 +22537,177 @@
         "lib/eta-tracker.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1759763175850,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-10-06T15:06:15.850Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763175930,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-06T15:06:15.930Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763176121,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-06T15:06:16.121Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763178011,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-10-06T15:06:18.011Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763178117,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-06T15:06:18.117Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763178283,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-06T15:06:18.283Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763179784,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/[id]/page.js"
+      },
+      "timestamp": "2025-10-06T15:06:19.784Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763179887,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-06T15:06:19.887Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763180056,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-06T15:06:20.056Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -74453,6 +74624,290 @@
         "app/projects/sa-assignments/page.js",
         "commit-and-push.js",
         "lib/eta-tracker.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763175399,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-06T15:06:15.399Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1759763175479,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/route.js"
+      },
+      "timestamp": "2025-10-06T15:06:15.479Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763175647,
+      "description": "Enhanced layout with specific functionality improvements",
+      "details": {
+        "file": "app/layout.js"
+      },
+      "timestamp": "2025-10-06T15:06:15.647Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763175750,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-10-06T15:06:15.750Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763176023,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-06T15:06:16.023Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763177620,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-06T15:06:17.620Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763177707,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/route.js"
+      },
+      "timestamp": "2025-10-06T15:06:17.707Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763177829,
+      "description": "Enhanced layout with specific functionality improvements",
+      "details": {
+        "file": "app/layout.js"
+      },
+      "timestamp": "2025-10-06T15:06:17.829Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763177927,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-10-06T15:06:17.927Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763178194,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-06T15:06:18.194Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763179463,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-06T15:06:19.463Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763179553,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/route.js"
+      },
+      "timestamp": "2025-10-06T15:06:19.553Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763179629,
+      "description": "Enhanced layout with specific functionality improvements",
+      "details": {
+        "file": "app/layout.js"
+      },
+      "timestamp": "2025-10-06T15:06:19.629Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763179706,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-10-06T15:06:19.706Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759763179951,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-06T15:06:19.951Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/assignments/route.js",
+        "app/layout.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/[id]/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "lib/dynamodb.js",
         "pending-changes.json"
       ]
     }
