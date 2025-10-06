@@ -36,6 +36,12 @@ const menuItems = [
         name: 'Contact Information',
         href: '/contact-information',
         description: 'View practice contact information'
+      },
+      {
+        id: 'training-certs',
+        name: 'Training & Certs',
+        href: '/practice-information/training-certs',
+        description: 'Manage training and certifications'
       }
     ]
   },

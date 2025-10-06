@@ -18,6 +18,7 @@ import { PlusIcon, XMarkIcon, EllipsisVerticalIcon, PencilIcon, TrashIcon, Paper
 import AttachmentPreview from '../../components/AttachmentPreview';
 import MultiAttachmentPreview from '../../components/MultiAttachmentPreview';
 import BoardSettingsModal from '../../components/BoardSettingsModal';
+import LabelManagementModal from '../../components/LabelManagementModal';
 import DateTimePicker from '../../components/DateTimePicker';
 import {
   DndContext,
@@ -2298,6 +2299,17 @@ export default function PracticeInformationPage() {
         />
       )}
 
+      {showLabelManagementModal && (
+        <LabelManagementModal
+          isOpen={showLabelManagementModal}
+          onClose={() => setShowLabelManagementModal(false)}
+          currentPracticeId={currentPracticeId}
+          availableLabels={availableLabels}
+          onLabelsUpdated={setAvailableLabels}
+          getHeaders={getHeaders}
+        />
+      )}
+
       {selectedCard && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl w-[85vw] max-w-7xl max-h-[95vh] overflow-hidden">
@@ -2352,7 +2364,7 @@ export default function PracticeInformationPage() {
                   />
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                     <span>Created {new Date(selectedCard.createdAt).toLocaleDateString()} at {new Date(selectedCard.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    <span>â€¢</span>
+                    <span>•</span>
                     <span>By {selectedCard.createdBy}</span>
                   </div>
                 </div>

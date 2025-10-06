@@ -17,6 +17,7 @@ import MultiResourceSelector from '../../../components/MultiResourceSelector';
 import RegionSelector from '../../../components/RegionSelector';
 import { PRACTICE_OPTIONS } from '../../../constants/practices';
 import StatBox from '../../../components/StatBox';
+import { extractDisplayNames } from '../../../utils/displayUtils';
 
 export default function ResourceAssignmentsPage() {
   const router = useRouter();
@@ -169,18 +170,23 @@ export default function ResourceAssignmentsPage() {
           } else if (data.type === 'assignment_created') {
             fetchAssignments();
           } else if (data.type === 'assignment_updated') {
-            if (data.updates) {
-              // Update specific assignment in state instead of full refresh
+            if (data.assignment) {
+              // Update specific assignment in state with full assignment data
               setAssignments(prevAssignments => 
                 prevAssignments.map(assignment => 
                   assignment.id === data.assignmentId 
-                    ? { ...assignment, ...data.updates }
+                    ? data.assignment
                     : assignment
                 )
               );
             } else {
               fetchAssignments();
             }
+          } else if (data.type === 'assignment_deleted') {
+            // Remove deleted assignment from state
+            setAssignments(prevAssignments => 
+              prevAssignments.filter(assignment => assignment.id !== data.assignmentId)
+            );
           } else if (data.type === 'heartbeat') {
             // Heartbeat received
           }
@@ -294,10 +300,13 @@ export default function ResourceAssignmentsPage() {
       assignment.projectNumber.toLowerCase().includes(filters.search.toLowerCase()) ||
       assignment.pm.toLowerCase().includes(filters.search.toLowerCase());
     
-    // Filter for 'My Assignments' - check if current user is assigned as resource
+    // Filter for 'My Assignments' - check PM field for Project Management practice, resource field for others
     let matchesMyAssignments = true;
     if (filters.sort === 'myAssignments') {
-      const isAssigned = assignment.resourceAssigned && assignment.resourceAssigned.toLowerCase().includes(user?.name?.toLowerCase() || '');
+      const isProjectManagementUser = user?.practices?.includes('Project Management');
+      const isAssigned = isProjectManagementUser 
+        ? assignment.pm && assignment.pm.toLowerCase().includes(user?.name?.toLowerCase() || '')
+        : assignment.resourceAssigned && assignment.resourceAssigned.toLowerCase().includes(user?.name?.toLowerCase() || '');
       if (!isAssigned) {
         matchesMyAssignments = false;
       }
@@ -555,6 +564,43 @@ export default function ResourceAssignmentsPage() {
                   </button>
                 </div>
               </div>
+              
+              {/* Filter Explanation */}
+              {user && (
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-blue-100 rounded-full p-1 mt-0.5">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-blue-900 mb-1">
+                        {user.role === 'practice_member' ? (
+                          'Showing all assignments - use "My Assignments" sort to see your assigned work'
+                        ) : ['practice_manager', 'practice_principal'].includes(user.role) ? (
+                          `Default view: Pending & Unassigned assignments for your practices (${user.practices?.join(', ') || 'None'})`
+                        ) : user.isAdmin || user.role === 'executive' ? (
+                          'Admin view: All assignments across all practices'
+                        ) : (
+                          'Showing all assignments'
+                        )}
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        {user.role === 'practice_member' ? (
+                          'Practice members can view all assignments but should focus on their assigned work.'
+                        ) : ['practice_manager', 'practice_principal'].includes(user.role) ? (
+                          'As a practice leader, you see assignments that need your attention. Use filters to customize your view.'
+                        ) : user.isAdmin || user.role === 'executive' ? (
+                          'You have full access to all assignments across the organization.'
+                        ) : (
+                          'Use the filters below to customize your view.'
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Search Bar */}
               <div className="relative mb-6">
@@ -1110,20 +1156,21 @@ function AssignmentsTable({ assignments, user, onAssignmentUpdate, allAssignment
                 <td className="px-2 py-3">
                   <div className="text-sm text-gray-900">
                     {assignment.resourceAssigned ? (
-                      assignment.resourceAssigned.includes(',') ? (
-                        <div className="space-y-1">
-                          {assignment.resourceAssigned.split(',').slice(0, 2).map((resource, index) => (
-                            <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full mr-1">
-                              {resource.trim()}
-                            </div>
-                          ))}
-                          {assignment.resourceAssigned.split(',').length > 2 && (
-                            <div className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                              +{assignment.resourceAssigned.split(',').length - 2} more
-                            </div>
-                          )}
-                        </div>
-                      ) : assignment.resourceAssigned
+                      <div className="space-y-1">
+                        {extractDisplayNames(assignment.resourceAssigned).split(',').slice(0, 2).map((resource, index) => (
+                          <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full mr-1">
+                            {resource.trim()}
+                          </div>
+                        ))}
+                        {assignment.resourceAssigned.split(',').length > 2 && (
+                          <div 
+                            className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full cursor-help"
+                            title={extractDisplayNames(assignment.resourceAssigned).split(',').slice(2).map(r => r.trim()).join(', ')}
+                          >
+                            +{assignment.resourceAssigned.split(',').length - 2} more
+                          </div>
+                        )}
+                      </div>
                     ) : ''}
                   </div>
                 </td>

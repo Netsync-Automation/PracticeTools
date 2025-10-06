@@ -18,6 +18,7 @@ import RegionSelector from '../../../../components/RegionSelector';
 import AccountManagerSelector from '../../../../components/AccountManagerSelector';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../../../constants/assignmentStatus';
 import { PRACTICE_OPTIONS } from '../../../../constants/practices';
+import { extractDisplayNames } from '../../../../utils/displayUtils';
 
 function FileUploadZone({ attachments, setAttachments }) {
   const [dragActive, setDragActive] = useState(false);
@@ -246,10 +247,18 @@ export default function AssignmentDetailPage() {
           if (data.type === 'connected') {
             isConnected = true;
           } else if (data.type === 'assignment_updated' && data.assignmentId === params.id) {
-            fetchAssignment(); // Refresh assignment data
+            if (data.assignment) {
+              // Update assignment state directly with new data
+              setAssignment(data.assignment);
+            } else {
+              fetchAssignment(); // Fallback to refresh
+            }
           } else if (data.type === 'assignment_comment_added' && data.assignmentId === params.id) {
             // Trigger comment refresh in AssignmentConversation component
             window.dispatchEvent(new CustomEvent('assignmentCommentAdded', { detail: data }));
+          } else if (data.type === 'assignment_deleted' && data.assignmentId === params.id) {
+            // Assignment was deleted, redirect to assignments list
+            router.push('/projects/resource-assignments');
           } else if (data.type === 'heartbeat') {
             // Heartbeat received
           }
@@ -569,7 +578,7 @@ export default function AssignmentDetailPage() {
                     
                     {/* Action Buttons */}
                     <div className="flex items-center gap-3">
-                      {(user?.role === 'practice_member' || user?.role === 'practice_manager' || user?.role === 'practice_principal') && assignment.status === 'Unassigned' && (
+                      {(user?.role === 'practice_member' || user?.role === 'practice_manager' || user?.role === 'practice_principal') && !user?.practices?.includes('Project Management') && assignment.status === 'Unassigned' && (
                         <button
                           onClick={() => {
                             const practices = assignment.practice ? assignment.practice.split(',').map(p => p.trim()) : [];
@@ -714,10 +723,10 @@ export default function AssignmentDetailPage() {
                       </div>
                     )}
                     
-                    {assignment.documentationLink && (
+                    {assignment.projectNumber && (
                       <div className="mt-6 flex items-center gap-3">
                         <a
-                          href={assignment.documentationLink}
+                          href={`https://savant.netsync.com/v2/pmo/projects/details/documentation?jobNo=${assignment.projectNumber}&isPmo=true`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
@@ -727,17 +736,19 @@ export default function AssignmentDetailPage() {
                           </svg>
                           View Documentation
                         </a>
-                        <a
-                          href="https://savant.netsync.com/v2/engineering/eng-resources/all"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                          </svg>
-                          Assign Resource
-                        </a>
+                        {(user?.role === 'practice_manager' || user?.role === 'practice_principal') && (
+                          <a
+                            href="https://savant.netsync.com/v2/engineering/eng-resources/all"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                            </svg>
+                            Assign Resource
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>
@@ -940,17 +951,13 @@ export default function AssignmentDetailPage() {
                         <label className="block text-sm font-medium text-gray-500 mb-2">Resource Assigned</label>
                         <div className="bg-gray-50 rounded-lg px-4 py-3">
                           {assignment.resourceAssigned ? (
-                            assignment.resourceAssigned.includes(',') ? (
-                              <div className="flex flex-wrap gap-1">
-                                {assignment.resourceAssigned.split(',').map((resource, index) => (
-                                  <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                                    {resource.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-sm font-medium text-gray-900">{assignment.resourceAssigned}</p>
-                            )
+                            <div className="flex flex-wrap gap-1">
+                              {extractDisplayNames(assignment.resourceAssigned).split(',').map((resource, index) => (
+                                <div key={index} className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                  {resource.trim()}
+                                </div>
+                              ))}
+                            </div>
                           ) : (
                             <p className="text-sm text-gray-500 italic">Not assigned</p>
                           )}
