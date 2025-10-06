@@ -71,51 +71,62 @@ export async function POST(request) {
       console.error('Error parsing notification users:', error);
     }
     
-    const assignmentId = await db.addAssignment(
-      formData.get('practice'),
-      formData.get('status') || 'Active',
-      formData.get('projectNumber'),
-      formData.get('requestDate'),
-      formData.get('eta'),
-      formData.get('customerName'),
-      formData.get('projectDescription'),
-      formData.get('region'),
-      formData.get('am'),
-      formData.get('pm'),
-      formData.get('resourceAssigned'),
-      formData.get('dateAssigned'),
-      formData.get('notes') || '',
-      formData.get('documentationLink') || '',
-      formData.get('pmEmail') || '',
-      attachments,
-      notificationUsers
-    );
-
-    if (assignmentId) {
-      const assignment = await db.getAssignmentById(assignmentId);
-      
-      // Send SSE notification for assignment creation
-      try {
-        const { notifyClients } = await import('../events/route');
-        notifyClients('all', {
-          type: 'assignment_created',
-          assignmentId: assignmentId,
-          assignment: assignment,
-          timestamp: Date.now()
-        });
-      } catch (sseError) {
-        console.error('Failed to send SSE notification:', sseError);
-      }
-      
-      return NextResponse.json({
-        success: true,
-        assignment
-      });
-    } else {
-      return NextResponse.json(
-        { success: false, error: 'Failed to create assignment' },
-        { status: 500 }
+    try {
+      const assignmentId = await db.addAssignment(
+        formData.get('practice'),
+        formData.get('status') || 'Active',
+        formData.get('projectNumber'),
+        formData.get('requestDate'),
+        formData.get('eta'),
+        formData.get('customerName'),
+        formData.get('projectDescription'),
+        formData.get('region'),
+        formData.get('am'),
+        formData.get('pm'),
+        formData.get('resourceAssigned'),
+        formData.get('dateAssigned'),
+        formData.get('notes') || '',
+        formData.get('documentationLink') || '',
+        formData.get('pmEmail') || '',
+        attachments,
+        notificationUsers
       );
+
+      if (assignmentId) {
+        const assignment = await db.getAssignmentById(assignmentId);
+        
+        // Send SSE notification for assignment creation
+        try {
+          const { notifyClients } = await import('../events/route');
+          notifyClients('all', {
+            type: 'assignment_created',
+            assignmentId: assignmentId,
+            assignment: assignment,
+            timestamp: Date.now()
+          });
+        } catch (sseError) {
+          console.error('Failed to send SSE notification:', sseError);
+        }
+        
+        return NextResponse.json({
+          success: true,
+          assignment
+        });
+      } else {
+        return NextResponse.json(
+          { success: false, error: 'Failed to create assignment' },
+          { status: 500 }
+        );
+      }
+    } catch (duplicateError) {
+      // Handle duplicate assignment error
+      if (duplicateError.message.includes('Duplicate assignment found')) {
+        return NextResponse.json(
+          { success: false, error: duplicateError.message, isDuplicate: true },
+          { status: 409 }
+        );
+      }
+      throw duplicateError; // Re-throw if it's not a duplicate error
     }
   } catch (error) {
     console.error('Error creating assignment:', error);

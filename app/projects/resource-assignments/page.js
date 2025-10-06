@@ -508,9 +508,11 @@ export default function ResourceAssignmentsPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => {
+                      // DSR: Project Management practice users see all unassigned projects, not filtered by practice
+                      const isProjectManagementUser = user?.practices?.includes('Project Management');
                       setFilters({
                         status: ['Unassigned'],
-                        practice: user?.practices || [],
+                        practice: isProjectManagementUser ? [] : (user?.practices || []),
                         region: '',
                         dateFrom: '',
                         dateTo: '',
