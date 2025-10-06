@@ -94,19 +94,31 @@ export async function PUT(request, { params }) {
     if (success) {
       const assignment = await db.getAssignmentById(params.id);
       
-      // Track ETA data for status transitions
+      // Track ETA data for status transitions with proper duration calculation
       if (oldStatus && newStatus && oldStatus !== newStatus && assignment.practice && assignment.practice !== 'Pending') {
         try {
           const practices = assignment.practice.split(',').map(p => p.trim());
-          const createdAt = new Date(currentAssignment.created_at || currentAssignment.requestDate);
           const now = new Date();
-          const durationHours = (now - createdAt) / (1000 * 60 * 60); // Convert to hours
           
           let statusTransition = null;
+          let durationHours = 0;
+          
           if (oldStatus === 'Pending' && newStatus === 'Unassigned') {
             statusTransition = 'pending_to_unassigned';
+            // Calculate from creation to unassigned
+            const createdAt = new Date(currentAssignment.created_at || currentAssignment.requestDate);
+            durationHours = (now - createdAt) / (1000 * 60 * 60);
+            
+            // Store unassigned timestamp for future calculations
+            updateData.unassignedAt = now.toISOString();
           } else if (oldStatus === 'Unassigned' && newStatus === 'Assigned') {
             statusTransition = 'unassigned_to_assigned';
+            // Calculate from unassigned to assigned
+            const unassignedAt = new Date(currentAssignment.unassignedAt || currentAssignment.created_at || currentAssignment.requestDate);
+            durationHours = (now - unassignedAt) / (1000 * 60 * 60);
+            
+            // Store assigned timestamp
+            updateData.assignedAt = now.toISOString();
           }
           
           if (statusTransition && durationHours > 0) {
