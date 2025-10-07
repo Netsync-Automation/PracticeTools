@@ -187,6 +187,9 @@ export default function ResourceAssignmentsPage() {
             setAssignments(prevAssignments => 
               prevAssignments.filter(assignment => assignment.id !== data.assignmentId)
             );
+          } else if (data.type === 'eta_updated') {
+            // Refresh ETA calculations when practice ETAs are updated
+            fetchPracticeETAs();
           } else if (data.type === 'heartbeat') {
             // Heartbeat received
           }
