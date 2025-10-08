@@ -124,15 +124,20 @@ export async function PUT(request, { params }) {
           if (statusTransition && durationHours > 0) {
             // Record ETA for each practice
             for (const practice of practices) {
-              await fetch('/api/practice-etas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  practice,
-                  statusTransition,
-                  durationHours
-                })
-              });
+              try {
+                const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+                await fetch(`${baseUrl}/api/practice-etas`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    practice,
+                    statusTransition,
+                    durationHours
+                  })
+                });
+              } catch (etaFetchError) {
+                console.error(`Failed to record ETA for practice ${practice}:`, etaFetchError);
+              }
             }
           }
         } catch (etaError) {
@@ -140,6 +145,18 @@ export async function PUT(request, { params }) {
         }
       }
       
+      
+      // DSR: Send WebEx notification for unassigned status
+      if (newStatus === 'Unassigned' && oldStatus !== 'Unassigned') {
+        console.log(`[DEBUG] WebEx notification trigger - Assignment ID: ${params.id}, Practice: ${assignment.practice}, Status change: ${oldStatus} -> ${newStatus}`);
+        try {
+          const { WebexMultiRoomService } = await import('../../../../lib/webex-multi-room');
+          const result = await WebexMultiRoomService.sendResourceAssignmentNotifications(assignment, 'unassigned');
+          console.log(`[DEBUG] WebEx notification result:`, result);
+        } catch (webexError) {
+          console.error('Failed to send WebEx notification for unassigned resource:', webexError);
+        }
+      }
       
       // Send SSE notification for assignment update
       try {

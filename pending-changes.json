@@ -23136,6 +23136,621 @@
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1759965495479,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-08T23:18:15.479Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js"
+      ]
+    },
+    {
+      "id": 1759965495662,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:15.662Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965495835,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:15.835Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965496282,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-08T23:18:16.282Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965498914,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-08T23:18:18.914Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499076,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:19.076Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499267,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:19.267Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499850,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-08T23:18:19.850Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965501967,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-08T23:18:21.967Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502117,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:22.117Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502247,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:22.247Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502869,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-08T23:18:22.869Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965508271,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-08T23:18:28.271Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965508466,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:28.466Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965508647,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:28.647Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965509200,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-08T23:18:29.200Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965511875,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-08T23:18:31.875Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512020,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:32.020Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512207,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:32.207Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512778,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-08T23:18:32.778Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965514960,
+      "description": "Enhanced WebEx notifications to use practice-specific bots based on issue practice assignment",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-08T23:18:34.960Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515123,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:35.123Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515309,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:35.309Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515842,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-08T23:18:35.842Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -31104,6 +31719,160 @@
         "lib/practice-extractor.js",
         "lib/practice-matcher.js",
         "lib/sanitize.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965496414,
+      "description": "Enhanced email service with specific functionality improvements",
+      "details": {
+        "file": "lib/email-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:16.414Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965500015,
+      "description": "Enhanced email service with specific functionality improvements",
+      "details": {
+        "file": "lib/email-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:20.015Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965503053,
+      "description": "Enhanced email service with specific functionality improvements",
+      "details": {
+        "file": "lib/email-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:23.053Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965509363,
+      "description": "Enhanced email service with specific functionality improvements",
+      "details": {
+        "file": "lib/email-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:29.363Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512941,
+      "description": "Enhanced email service with specific functionality improvements",
+      "details": {
+        "file": "lib/email-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:32.941Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965516002,
+      "description": "Enhanced email service with specific functionality improvements",
+      "details": {
+        "file": "lib/email-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:36.002Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
         "pending-changes.json"
       ]
     }
@@ -75687,6 +76456,1498 @@
         "app/api/practice-etas/route.js",
         "app/projects/resource-assignments/page.js",
         "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965495575,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/admin/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:15.575Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965495772,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/comments/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:15.772Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965495903,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/save-room/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:15.903Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965495985,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:15.985Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965496108,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:16.108Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965496202,
+      "description": "Enhanced assignment email-processor with specific functionality improvements",
+      "details": {
+        "file": "lib/assignment-email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:16.202Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965496348,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:16.348Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965496480,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:16.480Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965498994,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/admin/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:18.994Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499156,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/comments/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:19.156Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499361,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/save-room/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:19.361Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499442,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:19.442Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499524,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:19.524Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499608,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:19.608Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499690,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-08T23:18:19.690Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499770,
+      "description": "Enhanced assignment email-processor with specific functionality improvements",
+      "details": {
+        "file": "lib/assignment-email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:19.770Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965499917,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:19.917Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965500096,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:20.096Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502031,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/admin/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:22.031Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502183,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/comments/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:22.183Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502327,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/save-room/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:22.327Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502408,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:22.408Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502500,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:22.500Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502592,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:22.592Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502677,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-08T23:18:22.677Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502786,
+      "description": "Enhanced assignment email-processor with specific functionality improvements",
+      "details": {
+        "file": "lib/assignment-email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:22.786Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965502958,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:22.958Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965503132,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:23.132Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965508380,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/admin/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:28.380Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965508549,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/comments/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:28.549Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965508731,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/save-room/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:28.731Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965508798,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:28.798Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965508892,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:28.892Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965508955,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:28.955Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965509024,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-08T23:18:29.024Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965509119,
+      "description": "Enhanced assignment email-processor with specific functionality improvements",
+      "details": {
+        "file": "lib/assignment-email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:29.119Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965509284,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:29.284Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965509429,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:29.429Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965511954,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/admin/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:31.954Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512127,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/comments/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:32.127Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512275,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/save-room/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:32.275Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512357,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:32.357Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512422,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:32.422Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512492,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:32.492Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512605,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-08T23:18:32.605Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512671,
+      "description": "Enhanced assignment email-processor with specific functionality improvements",
+      "details": {
+        "file": "lib/assignment-email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:32.671Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965512861,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:32.861Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965513038,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:33.038Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515028,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/admin/webex-bots/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:35.028Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515229,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/issues/[id]/comments/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:35.229Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515391,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-bots/save-room/route.js"
+      },
+      "timestamp": "2025-10-08T23:18:35.391Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515472,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:35.472Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515539,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:35.539Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515623,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-08T23:18:35.623Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515695,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-08T23:18:35.695Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515762,
+      "description": "Enhanced assignment email-processor with specific functionality improvements",
+      "details": {
+        "file": "lib/assignment-email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:35.762Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965515938,
+      "description": "Enhanced email processor with specific functionality improvements",
+      "details": {
+        "file": "lib/email-processor.js"
+      },
+      "timestamp": "2025-10-08T23:18:35.938Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1759965516071,
+      "description": "Enhanced sa webex-service with specific functionality improvements",
+      "details": {
+        "file": "lib/sa-webex-service.js"
+      },
+      "timestamp": "2025-10-08T23:18:36.071Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/admin/webex-bots/route.js",
+        "app/api/assignments/[id]/route.js",
+        "app/api/issues/[id]/comments/route.js",
+        "app/api/webex-bots/route.js",
+        "app/api/webex-bots/save-room/route.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "commit-and-push.js",
+        "lib/assignment-email-processor.js",
+        "lib/dynamodb.js",
+        "lib/email-processor.js",
+        "lib/email-service.js",
+        "lib/sa-webex-service.js",
         "pending-changes.json"
       ]
     }

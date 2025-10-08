@@ -47,31 +47,44 @@ export async function POST(request) {
       { name: `WEBEX_${practiceKey}_ROOM_NAME`, value: botConfig.roomName || 'PLACEHOLDER_ROOM_NAME' }
     ];
     
-    // Create parameters for both environments
-    for (const env of ['prod', 'dev']) {
-      for (const param of ssmParams) {
-        const paramPath = env === 'prod' 
-          ? `/PracticeTools/${param.name}`
-          : `/PracticeTools/${env}/${param.name}`;
-          
-        try {
-          await ssmClient.send(new PutParameterCommand({
-            Name: paramPath,
-            Value: param.value,
-            Type: 'String',
-            Overwrite: true
-          }));
-        } catch (error) {
-          console.error(`Failed to create SSM parameter ${paramPath}:`, error);
-        }
+    // DSR: Add Room 2 parameters for Resource Assignment Notifications (future use)
+    if (botConfig.roomId2 || botConfig.roomName2) {
+      ssmParams.push(
+        { name: `WEBEX_${practiceKey}_ROOM_ID_2`, value: botConfig.roomId2 || 'PLACEHOLDER_ROOM_ID_2' },
+        { name: `WEBEX_${practiceKey}_ROOM_NAME_2`, value: botConfig.roomName2 || 'PLACEHOLDER_ROOM_NAME_2' }
+      );
+    }
+    
+    // DSR: Only create parameters for current environment
+    const currentEnv = process.env.ENVIRONMENT || 'dev';
+    for (const param of ssmParams) {
+      const paramPath = currentEnv === 'prod' 
+        ? `/PracticeTools/${param.name}`
+        : `/PracticeTools/${currentEnv}/${param.name}`;
+        
+      try {
+        await ssmClient.send(new PutParameterCommand({
+          Name: paramPath,
+          Value: param.value,
+          Type: 'String',
+          Overwrite: true
+        }));
+      } catch (error) {
+        console.error(`Failed to create SSM parameter ${paramPath}:`, error);
       }
     }
     
-    // Update AppRunner YAML files with new environment variables
+    // DSR: Update AppRunner YAML files with new environment variables for Room 1 (Practice Issues)
     try {
       const { updateAppRunnerYaml } = await import('../../../lib/apprunner-updater.js');
-      await updateAppRunnerYaml(practiceKey, 'dev');
-      await updateAppRunnerYaml(practiceKey, 'prod');
+      await updateAppRunnerYaml(practiceKey, 'dev', 1);
+      await updateAppRunnerYaml(practiceKey, 'prod', 1);
+      
+      // DSR: Add Room 2 variables if configured for Resource Assignment Notifications
+      if (botConfig.roomId2 || botConfig.roomName2) {
+        await updateAppRunnerYaml(practiceKey, 'dev', 2);
+        await updateAppRunnerYaml(practiceKey, 'prod', 2);
+      }
     } catch (error) {
       console.error('Failed to update AppRunner YAML files:', error);
       // Don't fail the entire operation if YAML update fails
@@ -103,6 +116,7 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const botConfig = await request.json();
+    console.log('[DEBUG] WebEx bot PUT request data:', JSON.stringify(botConfig, null, 2));
     
     if (!botConfig.id) {
       return NextResponse.json({ error: 'Bot ID required for update' }, { status: 400 });
@@ -121,9 +135,11 @@ export async function PUT(request) {
       }
     }
     
+    // Use first practice alphabetically for SSM naming
+    const practiceKey = botConfig.practices.sort()[0].toUpperCase().replace(/[^A-Z0-9]/g, '_');
+    
     // Update SSM parameters with new values
     const ssmClient = new SSMClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
-    const practiceKey = botConfig.practices.sort()[0].toUpperCase().replace(/[^A-Z0-9]/g, '_');
     
     const ssmParams = [
       { name: `WEBEX_${practiceKey}_ACCESS_TOKEN`, value: botConfig.accessToken },
@@ -131,24 +147,32 @@ export async function PUT(request) {
       { name: `WEBEX_${practiceKey}_ROOM_NAME`, value: botConfig.roomName }
     ];
     
-    // Update parameters for both environments (only if values are provided)
-    for (const env of ['prod', 'dev']) {
-      for (const param of ssmParams) {
-        if (param.value) {
-          const paramPath = env === 'prod' 
-            ? `/PracticeTools/${param.name}`
-            : `/PracticeTools/${env}/${param.name}`;
-            
-          try {
-            await ssmClient.send(new PutParameterCommand({
-              Name: paramPath,
-              Value: param.value,
-              Type: 'String',
-              Overwrite: true
-            }));
-          } catch (error) {
-            console.error(`Failed to update SSM parameter ${paramPath}:`, error);
-          }
+    // DSR: Add Room 2 parameters for Resource Assignment Notifications if provided
+    if (botConfig.roomId2 || botConfig.resourceRoomId) {
+      ssmParams.push({ name: `WEBEX_${practiceKey}_ROOM_ID_2`, value: botConfig.roomId2 || botConfig.resourceRoomId });
+    }
+    if (botConfig.roomName2 || botConfig.resourceRoomName) {
+      ssmParams.push({ name: `WEBEX_${practiceKey}_ROOM_NAME_2`, value: botConfig.roomName2 || botConfig.resourceRoomName });
+    }
+    
+    // DSR: Only update SSM parameters for current environment
+    const currentEnv = process.env.ENVIRONMENT || 'dev';
+    for (const param of ssmParams) {
+      if (param.value) {
+        const paramPath = currentEnv === 'prod' 
+          ? `/PracticeTools/${param.name}`
+          : `/PracticeTools/${currentEnv}/${param.name}`;
+          
+        try {
+          await ssmClient.send(new PutParameterCommand({
+            Name: paramPath,
+            Value: param.value,
+            Type: 'String',
+            Overwrite: true
+          }));
+          console.log(`[DEBUG] Successfully updated SSM parameter: ${paramPath}`);
+        } catch (error) {
+          console.error(`Failed to update SSM parameter ${paramPath}:`, error);
         }
       }
     }
