@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { validateUserSession } from '../../../../lib/auth-check';
-import { db } from '../../../../lib/dynamodb';
+import { DynamoDBService } from '../../../../lib/dynamodb';
+
+const db = new DynamoDBService();
 
 export const dynamic = 'force-dynamic';
 

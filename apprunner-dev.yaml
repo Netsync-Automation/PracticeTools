@@ -74,6 +74,10 @@ run:
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_AUDIO_VISUAL_ROOM_ID_1
     - name: WEBEX_AUDIO_VISUAL_ROOM_NAME
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_AUDIO_VISUAL_ROOM_NAME
+    - name: WEBEX_AUDIO_VISUAL_ROOM_ID_2
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_AUDIO_VISUAL_ROOM_ID_2
+    - name: WEBEX_AUDIO_VISUAL_ROOM_NAME_2
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_AUDIO_VISUAL_ROOM_NAME_2
     - name: WEBEX_DATA_CENTER_ACCESS_TOKEN
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_DATA_CENTER_ACCESS_TOKEN
     - name: WEBEX_DATA_CENTER_ROOM_ID_1

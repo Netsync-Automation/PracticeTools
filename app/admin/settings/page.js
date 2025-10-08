@@ -43,7 +43,9 @@ export default function SettingsPage() {
     friendlyName: '',
     name: '',
     practices: [],
-    accessToken: ''
+    accessToken: '',
+    resourceRoomId: '',
+    resourceRoomName: ''
   });
   const [botRooms, setBotRooms] = useState([]);
   const [fetchingBotRooms, setFetchingBotRooms] = useState(false);
@@ -51,6 +53,7 @@ export default function SettingsPage() {
   const [completedSteps, setCompletedSteps] = useState([]);
   const [savingToken, setSavingToken] = useState(false);
   const [selectedSpace, setSelectedSpace] = useState('');
+  const [selectedResourceSpace, setSelectedResourceSpace] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const [saving, setSaving] = useState({
     general: false,
@@ -309,7 +312,50 @@ export default function SettingsPage() {
         try {
           const response = await fetch('/api/admin/webex-bots?t=' + Date.now());
           const data = await response.json();
-          setWebexBots(data.bots || []);
+          let bots = data.bots || [];
+          
+          // DSR: Auto-migrate legacy single WebEx spaces to Room 1 (Practice Issues)
+          const migratedBots = [];
+          for (const bot of bots) {
+            if (bot.roomId && !bot.hasOwnProperty('resourceRoomId') && !bot.migrated) {
+              try {
+                console.log('DSR: Migrating legacy WebEx bot:', bot.name);
+                const migrateResponse = await fetch('/api/webex-bots/migrate-legacy', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    botId: bot.id,
+                    roomId: bot.roomId,
+                    roomName: bot.roomName
+                  })
+                });
+                
+                if (migrateResponse.ok) {
+                  const migrateResult = await migrateResponse.json();
+                  if (migrateResult.success) {
+                    console.log('DSR: Successfully migrated bot to Practice Issues notifications');
+                    migratedBots.push({ 
+                      ...bot, 
+                      resourceRoomId: '', 
+                      resourceRoomName: '',
+                      migrated: true
+                    });
+                  } else {
+                    migratedBots.push(bot);
+                  }
+                } else {
+                  migratedBots.push(bot);
+                }
+              } catch (error) {
+                console.error('DSR: Migration failed for bot:', bot.name, error);
+                migratedBots.push(bot);
+              }
+            } else {
+              migratedBots.push(bot);
+            }
+          }
+          
+          setWebexBots(migratedBots);
         } catch (error) {
           console.error('Error loading WebEx bots:', error);
         }
@@ -1125,7 +1171,12 @@ export default function SettingsPage() {
                             </div>
                             {bot.roomName && (
                               <p className="text-sm text-gray-600 mt-2">
-                                <span className="font-medium">Room:</span> {bot.roomName}
+                                <span className="font-medium">Practice Issues:</span> {bot.roomName}
+                              </p>
+                            )}
+                            {bot.resourceRoomName && (
+                              <p className="text-sm text-gray-600 mt-1">
+                                <span className="font-medium">Resource Assignment:</span> {bot.resourceRoomName}
                               </p>
                             )}
                           </div>
@@ -1164,7 +1215,8 @@ export default function SettingsPage() {
                               )}
                             </button>
                             <button
-                              onClick={() => {
+                              onClick={async () => {
+
                                 setIsEditMode(true);
                                 setNewBot({
                                   id: bot.id,
@@ -1173,11 +1225,15 @@ export default function SettingsPage() {
                                   practices: bot.practices || [],
                                   accessToken: '',
                                   roomId: bot.roomId || '',
-                                  roomName: bot.roomName || ''
+                                  roomName: bot.roomName || '',
+                                  resourceRoomId: bot.resourceRoomId || '',
+                                  resourceRoomName: bot.resourceRoomName || ''
                                 });
                                 setCurrentStep(1);
                                 setCompletedSteps([]);
                                 setSelectedSpace(bot.roomId || '');
+                                setSelectedResourceSpace(bot.resourceRoomId || '');
+
                                 setShowAddBot(true);
                               }}
                               className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded"
@@ -2964,23 +3020,37 @@ export default function SettingsPage() {
                           setSavingToken(true);
                           try {
                             if (isEditMode) {
+
+                              
                               // For edit mode, just proceed to next step
                               setCompletedSteps([1]);
                               setCurrentStep(2);
-                              // Only load existing rooms if no new token was entered
-                              if (newBot.roomId && !newBot.accessToken) {
+                              
+                              // Load existing rooms for edit mode
+                              if (newBot.roomId || newBot.resourceRoomId) {
                                 const practiceKey = newBot.practices.sort()[0].toUpperCase().replace(/[^A-Z0-9]/g, '_');
+
+                                
                                 const response = await fetch('/api/webex-bots/fetch-spaces', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ ssmPrefix: practiceKey })
+                                  body: JSON.stringify({ 
+                                    ssmPrefix: practiceKey,
+                                    accessToken: newBot.accessToken || null
+                                  })
                                 });
                                 const data = await response.json();
                                 if (response.ok) {
                                   setBotRooms(data.rooms || []);
+                                } else {
+                                  console.error('Fetch spaces failed:', data);
                                 }
-                              } else if (newBot.accessToken) {
-                                // Clear rooms if new token entered - user must fetch manually
+                              } else {
+
+                              }
+                              
+                              if (newBot.accessToken) {
+
                                 setBotRooms([]);
                               }
                             } else {
@@ -3022,15 +3092,18 @@ export default function SettingsPage() {
                   </div>
                 )}
                 
-                {/* Step 2: Select Space */}
+                {/* Step 2: Configure Notification Spaces */}
                 {currentStep === 2 && (
-                  <div className="space-y-6">
-                    <div className="text-center mb-4">
-                      <h4 className="text-lg font-medium text-gray-900">Step 2: Select WebEx Space</h4>
-                      <p className="text-sm text-gray-600">{isEditMode ? 'Update which space the bot will send notifications to' : 'Choose which space the bot will send notifications to'}</p>
+                  <div className="space-y-8">
+                    <div className="text-center mb-6">
+                      <h4 className="text-lg font-medium text-gray-900">Step 2: Configure Practice Issues Notifications</h4>
+                      <p className="text-sm text-gray-600">
+                        {isEditMode ? 'Update the WebEx space for Practice Issues notifications (required). Other notification spaces are optional.' : 'Configure the WebEx space for Practice Issues notifications (required). Other notification spaces are optional.'}
+                      </p>
                     </div>
                     
-                    <div className="flex justify-center mb-6">
+                    {/* Fetch Spaces Button */}
+                    <div className="flex justify-center mb-8">
                       <button
                         onClick={async () => {
                           setFetchingBotRooms(true);
@@ -3058,42 +3131,152 @@ export default function SettingsPage() {
                           }
                         }}
                         disabled={fetchingBotRooms}
-                        className={`px-8 py-3 rounded-lg font-medium ${
+                        className={`inline-flex items-center gap-3 px-8 py-3 rounded-xl font-medium shadow-sm transition-all ${
                           fetchingBotRooms
                             ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : 'bg-green-600 text-white hover:bg-green-700'
+                            : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 hover:shadow-md'
                         }`}
                       >
-                        {fetchingBotRooms ? 'Fetching Spaces...' : 'Fetch Available Spaces'}
+                        {fetchingBotRooms ? (
+                          <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
+                            Fetching Spaces...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Fetch Available Spaces
+                          </>
+                        )}
                       </button>
                     </div>
                     
+
+                    
                     {botRooms.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Available Spaces</label>
-                        <select
-                          value={selectedSpace}
-                          onChange={(e) => {
-                            setSelectedSpace(e.target.value);
-                            const selectedRoom = botRooms.find(room => room.id === e.target.value);
-                            setNewBot({
-                              ...newBot,
-                              roomId: e.target.value,
-                              roomName: selectedRoom ? selectedRoom.title : ''
-                            });
-                          }}
-                          className="input-field mb-4"
-                        >
-                          <option value="">Select a space...</option>
-                          {botRooms.map((room) => (
-                            <option key={room.id} value={room.id}>
-                              {room.title}
-                            </option>
-                          ))}
-                        </select>
+                      <div className="space-y-8">
+                        {/* Practice Issues Notifications - Required */}
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6 shadow-sm">
+                          <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="text-lg font-semibold text-gray-900">Practice Issues Notifications <span className="text-red-500">*</span></h5>
+                              <p className="text-sm text-gray-600 mt-1">
+                                Configure the WebEx space for issue tracking notifications, updates, and alerts (required)
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <label className="block text-sm font-medium text-gray-700">Select WebEx Space</label>
+                            <div className="relative">
+                              <select
+                                value={selectedSpace}
+                                onChange={(e) => {
+  
+                                  setSelectedSpace(e.target.value);
+                                  const selectedRoom = botRooms.find(room => room.id === e.target.value);
+                                  setNewBot({
+                                    ...newBot,
+                                    roomId: e.target.value,
+                                    roomName: selectedRoom ? selectedRoom.title : ''
+                                  });
+                                }}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all"
+                              >
+                                <option value="">Choose a space for issue notifications...</option>
+                                {botRooms.map((room) => (
+                                  <option key={room.id} value={room.id}>
+                                    {room.title}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </div>
+                            {selectedSpace && (
+                              <div className="flex items-center gap-2 p-3 bg-blue-100 rounded-lg">
+                                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-sm font-medium text-blue-800">
+                                  Selected: {botRooms.find(room => room.id === selectedSpace)?.title}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                         
+                        {/* Resource Assignment Notifications - Optional */}
+                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-200 p-6 shadow-sm">
+                          <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center shadow-sm">
+                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="text-lg font-semibold text-gray-900">Resource Assignment Notifications <span className="text-gray-500 text-sm">(Optional)</span></h5>
+                              <p className="text-sm text-gray-600 mt-1">
+                                Configure the WebEx space for resource assignment notifications and updates (optional)
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <label className="block text-sm font-medium text-gray-700">Select WebEx Space (Optional)</label>
+                            <div className="relative">
+                              <select
+                                value={selectedResourceSpace}
+                                onChange={(e) => {
+                                  setSelectedResourceSpace(e.target.value);
+                                  const selectedRoom = botRooms.find(room => room.id === e.target.value);
+                                  setNewBot({
+                                    ...newBot,
+                                    resourceRoomId: e.target.value,
+                                    resourceRoomName: selectedRoom ? selectedRoom.title : ''
+                                  });
+                                }}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm transition-all"
+                              >
+                                <option value="">Choose a space for resource notifications (optional)...</option>
+                                {botRooms.map((room) => (
+                                  <option key={room.id} value={room.id}>
+                                    {room.title}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </div>
+                            </div>
+                            {selectedResourceSpace && (
+                              <div className="flex items-center gap-2 p-3 bg-purple-100 rounded-lg">
+                                <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-sm font-medium text-purple-800">
+                                  Selected: {botRooms.find(room => room.id === selectedResourceSpace)?.title}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Continue Button - Only requires Practice Issues space */}
                         {selectedSpace && (
-                          <div className="flex justify-center">
+                          <div className="flex justify-center pt-6">
                             <button
                               onClick={async () => {
                                 setSaving(prev => ({...prev, webex: true}));
@@ -3105,7 +3288,9 @@ export default function SettingsPage() {
                                     body: JSON.stringify({
                                       ssmPrefix: practiceKey,
                                       roomId: newBot.roomId,
-                                      roomName: newBot.roomName
+                                      roomName: newBot.roomName,
+                                      resourceRoomId: newBot.resourceRoomId || '',
+                                      resourceRoomName: newBot.resourceRoomName || ''
                                     })
                                   });
                                   
@@ -3115,25 +3300,53 @@ export default function SettingsPage() {
                                     setCompletedSteps([1, 2]);
                                     setCurrentStep(3);
                                   } else {
-                                    alert('Failed to save space');
+                                    alert('Failed to save notification spaces');
                                   }
                                 } catch (error) {
-                                  alert('Error saving space');
+                                  alert('Error saving notification spaces');
                                 } finally {
                                   setSaving(prev => ({...prev, webex: false}));
                                 }
                               }}
                               disabled={saving.webex}
-                              className={`px-8 py-3 rounded-lg font-medium ${
+                              className={`inline-flex items-center gap-3 px-8 py-3 rounded-xl font-medium shadow-sm transition-all ${
                                 saving.webex
                                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                                  : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-md'
                               }`}
                             >
-                              {saving.webex ? 'Saving Space...' : 'Save Space & Continue'}
+                              {saving.webex ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
+                                  Saving Spaces...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  Save Notification Spaces & Continue
+                                </>
+                              )}
                             </button>
                           </div>
                         )}
+                        
+                        {/* Info Box */}
+                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                          <div className="flex items-start gap-3">
+                            <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                            <div className="flex-1">
+                              <h6 className="text-sm font-medium text-gray-900 mb-1">Notification Space Configuration</h6>
+                              <p className="text-sm text-gray-600">
+                                Practice Issues notifications are required. Resource Assignment notifications are optional and can be configured later. 
+                                You can use the same space for both notification types if desired.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -3144,9 +3357,10 @@ export default function SettingsPage() {
                   <div className="space-y-6">
                     <div className="text-center mb-6">
                       <h4 className="text-lg font-medium text-gray-900">Step 3: Confirm {isEditMode ? 'Changes' : 'Setup'}</h4>
-                      <p className="text-sm text-gray-600">Review your WebEx bot configuration</p>
+                      <p className="text-sm text-gray-600">Review your WebEx bot configuration and notification spaces</p>
                     </div>
                     
+                    {/* Bot Details */}
                     <div className="bg-gray-50 rounded-lg p-6 space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Bot E-mail</label>
@@ -3163,15 +3377,139 @@ export default function SettingsPage() {
                           ))}
                         </div>
                       </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Selected Space</label>
-                        <div className="text-sm text-gray-900 bg-white p-2 rounded border">{newBot.roomName}</div>
+                    </div>
+                    
+                    {/* Notification Spaces Configuration */}
+                    <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl border border-gray-200 p-8 shadow-lg">
+                      <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">WebEx Notification Channels</h3>
+                        <p className="text-gray-600 max-w-md mx-auto">Your configured WebEx spaces will receive automated notifications for different types of activities</p>
                       </div>
                       
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Space ID</label>
-                        <div className="text-sm text-gray-600 bg-white p-2 rounded border font-mono">{newBot.roomId}</div>
+                      <div className="grid gap-6">
+                        {/* Practice Issues Channel */}
+                        {newBot.roomId && newBot.roomName ? (
+                          <div className="group relative overflow-hidden bg-white rounded-2xl border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5"></div>
+                            <div className="relative p-6">
+                              <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                  </svg>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h4 className="text-lg font-semibold text-gray-900">Practice Issues Channel</h4>
+                                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">Primary</span>
+                                  </div>
+                                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                                    Receives notifications for new issues, status updates, comments, and resolution alerts from your practice's issue tracking system
+                                  </p>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                      </svg>
+                                      <span className="text-sm font-medium text-gray-900 truncate">{newBot.roomName}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                                      </svg>
+                                      <span className="text-xs text-gray-500 font-mono truncate">{newBot.roomId}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-white rounded-2xl border-2 border-dashed border-gray-300 p-6">
+                            <div className="flex items-center gap-4 text-gray-500">
+                              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Practice Issues Channel</h4>
+                                <p className="text-sm">Not configured</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Resource Assignment Channel */}
+                        {newBot.resourceRoomId && newBot.resourceRoomName ? (
+                          <div className="group relative overflow-hidden bg-white rounded-2xl border border-purple-200 shadow-sm hover:shadow-md transition-all duration-300">
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5"></div>
+                            <div className="relative p-6">
+                              <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                  </svg>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h4 className="text-lg font-semibold text-gray-900">Resource Assignment Channel</h4>
+                                    <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">Secondary</span>
+                                  </div>
+                                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                                    Receives notifications for new resource assignments, status changes, and team member allocations across projects
+                                  </p>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                      </svg>
+                                      <span className="text-sm font-medium text-gray-900 truncate">{newBot.resourceRoomName}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                                      </svg>
+                                      <span className="text-xs text-gray-500 font-mono truncate">{newBot.resourceRoomId}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-white rounded-2xl border-2 border-dashed border-gray-300 p-6">
+                            <div className="flex items-center gap-4 text-gray-500">
+                              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                              </div>
+                              <div>
+                                <h4 className="font-medium">Resource Assignment Channel</h4>
+                                <p className="text-sm">Not configured</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* No spaces configured message */}
+                        {!newBot.roomId && !newBot.resourceRoomId && (
+                          <div className="text-center py-12">
+                            <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                              <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                              </svg>
+                            </div>
+                            <h4 className="text-lg font-semibold text-gray-900 mb-2">No Notification Channels Configured</h4>
+                            <p className="text-gray-600 max-w-sm mx-auto">Go back to Step 2 to configure your WebEx notification spaces</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                     

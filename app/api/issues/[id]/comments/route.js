@@ -119,16 +119,17 @@ export async function POST(request, { params }) {
         
         if (webexEnabled) {
           console.log('Attempting to send WebEx comment notifications...');
-          const { WebexNotifications } = await import('../../../../../lib/webex-notifications');
+          const { WebexMultiRoomService } = await import('../../../../../lib/webex-multi-room');
           const issue = await db.getIssueById(params.id);
           const allComments = await db.getComments(params.id);
           
-          console.log('Issue data:', { id: issue?.id, email: issue?.email });
+          console.log('Issue data:', { id: issue?.id, email: issue?.email, practice: issue?.practice });
           console.log('Comments count:', allComments?.length);
           console.log('Comment author:', { email: user.email, name: user.name });
           
           if (issue && allComments) {
-            const result = await WebexNotifications.sendCommentNotifications(issue, allComments, user);
+            // DSR: Use multi-room service for Practice Issues notifications (Room 1)
+            const result = await WebexMultiRoomService.sendIssueNotifications(issue, allComments, user);
             console.log('WebEx comment notification result:', result);
             
             console.log('WebEx comment notifications completed with follow status checking');
