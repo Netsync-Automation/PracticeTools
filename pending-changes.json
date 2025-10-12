@@ -23751,6 +23751,210 @@
         "lib/sa-webex-service.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760281130932,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-12T14:58:50.932Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281131108,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/training-certs/route.js"
+      },
+      "timestamp": "2025-10-12T14:58:51.108Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281131176,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-12T14:58:51.176Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281131420,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-12T14:58:51.420Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281132785,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-12T14:58:52.785Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281132878,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/training-certs/route.js"
+      },
+      "timestamp": "2025-10-12T14:58:52.878Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281132979,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-12T14:58:52.979Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281133171,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-12T14:58:53.171Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281134121,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-12T14:58:54.121Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281134205,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/training-certs/route.js"
+      },
+      "timestamp": "2025-10-12T14:58:54.205Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281134288,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-12T14:58:54.288Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281134472,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-12T14:58:54.472Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -77948,6 +78152,107 @@
         "lib/email-processor.js",
         "lib/email-service.js",
         "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281130858,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/field-options/route.js"
+      },
+      "timestamp": "2025-10-12T14:58:50.858Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1760281131313,
+      "description": "Enhanced ContactSettingsModal with specific functionality improvements",
+      "details": {
+        "file": "components/ContactSettingsModal.js"
+      },
+      "timestamp": "2025-10-12T14:58:51.313Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281132720,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/field-options/route.js"
+      },
+      "timestamp": "2025-10-12T14:58:52.720Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281133091,
+      "description": "Enhanced ContactSettingsModal with specific functionality improvements",
+      "details": {
+        "file": "components/ContactSettingsModal.js"
+      },
+      "timestamp": "2025-10-12T14:58:53.091Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281134038,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/field-options/route.js"
+      },
+      "timestamp": "2025-10-12T14:58:54.038Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760281134390,
+      "description": "Enhanced ContactSettingsModal with specific functionality improvements",
+      "details": {
+        "file": "components/ContactSettingsModal.js"
+      },
+      "timestamp": "2025-10-12T14:58:54.390Z",
+      "files": [
+        "app/api/field-options/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
         "pending-changes.json"
       ]
     }
