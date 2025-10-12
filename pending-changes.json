@@ -23955,6 +23955,108 @@
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760291202853,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-12T17:46:42.853Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291202916,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-12T17:46:42.916Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291204499,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-12T17:46:44.499Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291204566,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-12T17:46:44.566Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291205723,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-12T17:46:45.723Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291205816,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-12T17:46:45.816Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -32077,6 +32179,107 @@
         "lib/email-processor.js",
         "lib/email-service.js",
         "lib/sa-webex-service.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291202535,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/debug/assignment-emails/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:42.535Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1760291202606,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/debug/env/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:42.606Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291204149,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/debug/assignment-emails/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:44.149Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291204227,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/debug/env/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:44.227Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291205425,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/debug/assignment-emails/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:45.425Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291205503,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/debug/env/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:45.503Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
         "pending-changes.json"
       ]
     }
@@ -78252,6 +78455,108 @@
         "app/api/training-certs/route.js",
         "app/practice-information/training-certs/page.js",
         "components/ContactSettingsModal.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291202696,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/debug/user-analysis/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:42.696Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291202776,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:42.776Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291204340,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/debug/user-analysis/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:44.340Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291204419,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:44.419Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291205581,
+      "description": "Updated route.js",
+      "details": {
+        "file": "app/api/debug/user-analysis/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:45.581Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760291205658,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-12T17:46:45.658Z",
+      "files": [
+        "app/api/debug/assignment-emails/route.js",
+        "app/api/debug/env/route.js",
+        "app/api/debug/user-analysis/route.js",
+        "app/api/training-certs/[id]/route.js",
+        "app/practice-information/training-certs/page.js",
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
