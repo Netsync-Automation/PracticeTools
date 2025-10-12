@@ -39,6 +39,22 @@ export async function POST(request) {
     
     const data = await request.json();
     
+    // DSR: Permission check - only admins, practice managers, and practice principals can add
+    const user = validation.user;
+    const canAdd = user.isAdmin || user.role === 'practice_manager' || user.role === 'practice_principal';
+    
+    if (!canAdd) {
+      return NextResponse.json({ error: 'Insufficient permissions to add training/certification entries' }, { status: 403 });
+    }
+    
+    // DSR: Practice restriction - non-admins can only add for their practices
+    if (!user.isAdmin) {
+      const userPractices = user.practices || [];
+      if (!userPractices.includes(data.practice)) {
+        return NextResponse.json({ error: 'You can only add entries for practices you belong to' }, { status: 403 });
+      }
+    }
+    
     const entryId = await db.addTrainingCert(
       data.practice,
       data.type,
@@ -50,6 +66,8 @@ export async function POST(request) {
       data.prerequisites,
       data.examsRequired,
       data.examCost,
+      data.quantityNeeded,
+      data.incentive,
       data.notes,
       validation.user.email
     );

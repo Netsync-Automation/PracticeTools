@@ -51,9 +51,14 @@ export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId,
       const options = {};
       
       for (const field of fields) {
-        const response = await fetch(`/api/field-options?practiceGroupId=${practiceGroupId}&fieldName=${field}`);
-        const data = await response.json();
-        options[field] = data.options || ['Create your own options in Settings'];
+        if (field === 'msaSigned') {
+          // DSR: MSA Signed is fixed to Yes/No for all practices
+          options[field] = ['Yes', 'No'];
+        } else {
+          const response = await fetch(`/api/field-options?practiceGroupId=${practiceGroupId}&fieldName=${field}`);
+          const data = await response.json();
+          options[field] = data.options || ['Create your own options in Settings'];
+        }
       }
       
       setFieldOptions(options);
@@ -366,24 +371,40 @@ export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId,
                         {fieldLabels[activeField]}
                       </h3>
 
-                      {/* Add New Option */}
-                      <div className="flex flex-col sm:flex-row gap-2 mb-6">
-                        <input
-                          type="text"
-                          value={newOption}
-                          onChange={(e) => setNewOption(e.target.value)}
-                          placeholder="Enter new option"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          onKeyPress={(e) => e.key === 'Enter' && addOption()}
-                        />
-                        <button
-                          onClick={addOption}
-                          disabled={!newOption.trim()}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                        >
-                          Add Option
-                        </button>
-                      </div>
+                      {/* Add New Option - Hidden for MSA Signed */}
+                      {activeField !== 'msaSigned' && (
+                        <div className="flex flex-col sm:flex-row gap-2 mb-6">
+                          <input
+                            type="text"
+                            value={newOption}
+                            onChange={(e) => setNewOption(e.target.value)}
+                            placeholder="Enter new option"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onKeyPress={(e) => e.key === 'Enter' && addOption()}
+                          />
+                          <button
+                            onClick={addOption}
+                            disabled={!newOption.trim()}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                          >
+                            Add Option
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* MSA Signed Notice */}
+                      {activeField === 'msaSigned' && (
+                        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                          <div className="flex items-center">
+                            <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-sm text-blue-800">
+                              <strong>MSA Signed Options are fixed to "Yes" and "No" for all practices and cannot be modified.</strong>
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Current Options */}
@@ -395,7 +416,7 @@ export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId,
                             className="flex justify-between items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
                           >
                             <span className="text-gray-900 flex-1 mr-2">{option}</span>
-                            {option !== 'Create your own options in Settings' && (
+                            {option !== 'Create your own options in Settings' && activeField !== 'msaSigned' && (
                               <button
                                 onClick={() => removeOption(activeField, option)}
                                 className="text-red-500 hover:text-red-700 transition-colors p-1 rounded hover:bg-red-50"

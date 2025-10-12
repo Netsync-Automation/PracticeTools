@@ -16,20 +16,51 @@ export async function PUT(request, { params }) {
     const { id } = params;
     const data = await request.json();
     
+    // DSR: Permission check - only admins, practice managers, and practice principals can edit
+    const user = validation.user;
+    const canEdit = user.isAdmin || user.role === 'practice_manager' || user.role === 'practice_principal';
+    
+    if (!canEdit) {
+      return NextResponse.json({ error: 'Insufficient permissions to edit training/certification entries' }, { status: 403 });
+    }
+    
+    // DSR: Practice restriction - non-admins can only edit entries for their practices
+    if (!user.isAdmin) {
+      // Get the existing entry to check practice ownership
+      const existingEntry = await db.getTrainingCertById(id);
+      if (!existingEntry) {
+        return NextResponse.json({ error: 'Training/certification entry not found' }, { status: 404 });
+      }
+      
+      const userPractices = user.practices || [];
+      if (!userPractices.includes(existingEntry.practice)) {
+        return NextResponse.json({ error: 'You can only edit entries for practices you belong to' }, { status: 403 });
+      }
+      
+      // Also check if they're trying to change practice to one they don't belong to
+      if (data.practice && !userPractices.includes(data.practice)) {
+        return NextResponse.json({ error: 'You cannot change the practice to one you do not belong to' }, { status: 403 });
+      }
+    }
+    
     const success = await db.updateTrainingCert(
       id,
-      data.practice,
-      data.type,
-      data.vendor,
-      data.name,
-      data.code,
-      data.level,
-      data.trainingType,
-      data.prerequisites,
-      data.examsRequired,
-      data.examCost,
-      data.notes,
-      validation.user.email
+      {
+        practice: data.practice,
+        type: data.type,
+        vendor: data.vendor,
+        name: data.name,
+        code: data.code,
+        level: data.level,
+        trainingType: data.trainingType,
+        prerequisites: data.prerequisites,
+        examsRequired: data.examsRequired,
+        examCost: data.examCost,
+        quantityNeeded: data.quantityNeeded,
+        incentive: data.incentive,
+        notes: data.notes,
+        lastEditedBy: validation.user.email
+      }
     );
 
     if (success) {
@@ -59,6 +90,29 @@ export async function DELETE(request, { params }) {
     }
     
     const { id } = params;
+    
+    // DSR: Permission check - only admins, practice managers, and practice principals can delete
+    const user = validation.user;
+    const canDelete = user.isAdmin || user.role === 'practice_manager' || user.role === 'practice_principal';
+    
+    if (!canDelete) {
+      return NextResponse.json({ error: 'Insufficient permissions to delete training/certification entries' }, { status: 403 });
+    }
+    
+    // DSR: Practice restriction - non-admins can only delete entries for their practices
+    if (!user.isAdmin) {
+      // Get the existing entry to check practice ownership
+      const existingEntry = await db.getTrainingCertById(id);
+      if (!existingEntry) {
+        return NextResponse.json({ error: 'Training/certification entry not found' }, { status: 404 });
+      }
+      
+      const userPractices = user.practices || [];
+      if (!userPractices.includes(existingEntry.practice)) {
+        return NextResponse.json({ error: 'You can only delete entries for practices you belong to' }, { status: 403 });
+      }
+    }
+    
     const success = await db.deleteTrainingCert(id);
 
     if (success) {

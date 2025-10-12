@@ -13,6 +13,11 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Practice group ID and field name are required' }, { status: 400 });
     }
 
+    // DSR: MSA Signed field is fixed to Yes/No for all practices
+    if (fieldName === 'msaSigned') {
+      return NextResponse.json({ options: ['Yes', 'No'] });
+    }
+
     const options = await db.getFieldOptions(practiceGroupId, fieldName);
     return NextResponse.json({ options });
   } catch (error) {
