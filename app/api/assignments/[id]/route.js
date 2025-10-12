@@ -89,6 +89,11 @@ export async function PUT(request, { params }) {
     const oldStatus = currentAssignment?.status;
     const newStatus = updateData.status;
     
+    // DSR: Ensure dateAssigned is set when status becomes Assigned
+    if (newStatus === 'Assigned' && !updateData.dateAssigned) {
+      updateData.dateAssigned = new Date().toISOString().split('T')[0];
+    }
+    
     const success = await db.updateAssignment(params.id, updateData);
     
     if (success) {
@@ -111,14 +116,28 @@ export async function PUT(request, { params }) {
             
             // Store unassigned timestamp for future calculations
             updateData.unassignedAt = now.toISOString();
+          } else if (oldStatus === 'Pending' && newStatus === 'Assigned') {
+            statusTransition = 'pending_to_assigned';
+            // Calculate from creation to assigned (skipping unassigned)
+            const createdAt = new Date(currentAssignment.created_at || currentAssignment.requestDate);
+            durationHours = (now - createdAt) / (1000 * 60 * 60);
+            
+            // Store assigned timestamp and set dateAssigned if not already provided
+            updateData.assignedAt = now.toISOString();
+            if (!updateData.dateAssigned) {
+              updateData.dateAssigned = now.toISOString().split('T')[0];
+            }
           } else if (oldStatus === 'Unassigned' && newStatus === 'Assigned') {
             statusTransition = 'unassigned_to_assigned';
             // Calculate from unassigned to assigned
             const unassignedAt = new Date(currentAssignment.unassignedAt || currentAssignment.created_at || currentAssignment.requestDate);
             durationHours = (now - unassignedAt) / (1000 * 60 * 60);
             
-            // Store assigned timestamp
+            // Store assigned timestamp and set dateAssigned if not already provided
             updateData.assignedAt = now.toISOString();
+            if (!updateData.dateAssigned) {
+              updateData.dateAssigned = now.toISOString().split('T')[0];
+            }
           }
           
           if (statusTransition && durationHours > 0) {

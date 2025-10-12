@@ -367,10 +367,10 @@ export default function SidebarLayout({ children, user }) {
                       if (isCollapsed && item.submenu && hasAccessToAnySubmenu(item)) {
                         setIsCollapsed(false);
                         setExpandedMenus(prev => ({ ...prev, [item.id]: true }));
-                      } else if (item.href) {
-                        router.push(item.href);
                       } else if (item.submenu && hasAccessToAnySubmenu(item)) {
                         toggleMenu(item.id);
+                      } else if (item.href) {
+                        router.push(item.href);
                       }
                     }}
                     className={`

@@ -19,6 +19,7 @@ import AttachmentPreview from '../../components/AttachmentPreview';
 import MultiAttachmentPreview from '../../components/MultiAttachmentPreview';
 import BoardSettingsModal from '../../components/BoardSettingsModal';
 import LabelManagementModal from '../../components/LabelManagementModal';
+import CardSettingsModal from '../../components/CardSettingsModal';
 import DateTimePicker from '../../components/DateTimePicker';
 import {
   DndContext,
@@ -233,6 +234,7 @@ export default function PracticeInformationPage() {
   const [previewPosition, setPreviewPosition] = useState({ x: 0, y: 0 });
   const [previewType, setPreviewType] = useState('comment'); // 'comment' or 'attachment'
   const [showLabelManagementModal, setShowLabelManagementModal] = useState(false);
+  const [showCardSettings, setShowCardSettings] = useState(false);
   const [editingLabel, setEditingLabel] = useState(null);
   const [editLabelName, setEditLabelName] = useState('');
   const [editLabelColor, setEditLabelColor] = useState('');
@@ -1596,6 +1598,7 @@ export default function PracticeInformationPage() {
     setShowProjectNumberModal(false);
     setProjectNumber('');
     setShowProjectMenu(false);
+    setShowCardSettings(false);
   };
 
   // Handle search result navigation
@@ -2128,6 +2131,8 @@ export default function PracticeInformationPage() {
                                       availableLabels={availableLabels}
                                       toggleCardFollowing={toggleCardFollowing}
                                       user={user}
+                                      onUpdateCard={(updatedCard) => updateCard(column.id, card.id, updatedCard)}
+                                      getHeaders={getHeaders}
                                     />
                                   ))}
                                 </div>
@@ -2313,22 +2318,32 @@ export default function PracticeInformationPage() {
       {selectedCard && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl w-[85vw] max-w-7xl max-h-[95vh] overflow-hidden">
+            {/* Image Header - Only show if card has custom settings */}
+            {(selectedCard.settings?.backgroundColor || selectedCard.settings?.backgroundImage) && (
+              <div 
+                className="min-h-[80px] flex items-center"
+                style={{
+                  backgroundColor: selectedCard.settings?.backgroundColor || '#ffffff',
+                  backgroundImage: selectedCard.settings?.backgroundImage ? `url(${selectedCard.settings.backgroundImage})` : 'none',
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                }}
+              />
+            )}
             {/* Header */}
             <div 
-              className="px-8 py-6 border-b border-gray-200"
-              style={(() => {
-                const primaryLabel = selectedCard.labels && selectedCard.labels.length > 0 
-                  ? availableLabels.find(label => label.id === selectedCard.labels[0])
-                  : null;
-                return {
-                  background: primaryLabel 
-                    ? `linear-gradient(135deg, ${primaryLabel.color}15 0%, ${primaryLabel.color}08 100%)`
-                    : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                  borderTop: primaryLabel ? `4px solid ${primaryLabel.color}` : '4px solid #e2e8f0'
-                };
-              })()}
+              className="px-8 py-6 border-b border-gray-200 min-h-[80px] flex items-center"
+              style={{
+                borderTop: (() => {
+                  const primaryLabel = selectedCard.labels && selectedCard.labels.length > 0 
+                    ? availableLabels.find(label => label.id === selectedCard.labels[0])
+                    : null;
+                  return primaryLabel ? `4px solid ${primaryLabel.color}` : '4px solid #e2e8f0';
+                })()
+              }}
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-center justify-between w-full">
                 <div className="flex-1 mr-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm font-medium text-blue-600">
@@ -2358,7 +2373,7 @@ export default function PracticeInformationPage() {
                     type="text"
                     value={selectedCard.title}
                     onChange={(e) => setSelectedCard({ ...selectedCard, title: e.target.value })}
-                    className="text-2xl font-bold text-gray-900 bg-transparent border-none outline-none w-full placeholder-gray-400 focus:ring-0"
+                    className="text-2xl font-bold text-gray-900 border-none outline-none w-full placeholder-gray-400 focus:ring-0 bg-transparent"
                     onBlur={() => updateCard(selectedCard.columnId, selectedCard.id, { title: selectedCard.title })}
                     placeholder="Card title..."
                   />
@@ -2387,6 +2402,13 @@ export default function PracticeInformationPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
+                  </button>
+                  <button
+                    onClick={() => setShowCardSettings(true)}
+                    className="text-gray-400 hover:text-gray-600 hover:bg-gray-50 p-2 rounded-full transition-all duration-200"
+                    title="Card settings"
+                  >
+                    <CogIcon className="h-5 w-5" />
                   </button>
                   <button
                     onClick={closeCardModal}
@@ -3058,7 +3080,7 @@ export default function PracticeInformationPage() {
                             >
                               Click to upload files
                             </label>
-                            <p className="text-xs text-gray-500 mt-1">or drag and drop â€¢ Max 5MB each</p>
+                            <p className="text-xs text-gray-500 mt-1">or drag and drop • Max 5MB each</p>
                           </div>
                         </div>
                       )}
@@ -3386,6 +3408,20 @@ export default function PracticeInformationPage() {
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Card Settings Modal */}
+      {showCardSettings && selectedCard && (
+        <CardSettingsModal
+          isOpen={showCardSettings}
+          onClose={() => setShowCardSettings(false)}
+          card={selectedCard}
+          onUpdateCard={(updates) => {
+            updateCard(selectedCard.columnId, selectedCard.id, updates);
+            setSelectedCard(prev => ({ ...prev, ...updates }));
+          }}
+          getHeaders={getHeaders}
+        />
       )}
       
       {/* Project Number Modal */}
