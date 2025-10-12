@@ -663,22 +663,14 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                             e.stopPropagation();
                             handleSignUp(entry.id);
                           }}
-                          className={`p-1 rounded transition-colors ${
+                          className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
                             userSignUps.has(entry.id)
-                              ? 'text-green-600 hover:text-green-800 hover:bg-green-50'
-                              : 'text-blue-600 hover:text-blue-800 hover:bg-blue-50'
+                              ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:border-green-300'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300'
                           }`}
-                          title={userSignUps.has(entry.id) ? 'You are signed up - click to unsign' : 'Sign up for this training/certification'}
+                          title={userSignUps.has(entry.id) ? 'Remove yourself from the Sign-Up of this training or certification' : 'Sign up for this training or certification'}
                         >
-                          {userSignUps.has(entry.id) ? (
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                            </svg>
-                          )}
+                          {userSignUps.has(entry.id) ? 'Unsign' : 'Sign Up'}
                         </button>
                       )}
                       {userSignUps.has(entry.id) && !userCompletions.has(entry.id) && (
@@ -687,12 +679,10 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                             e.stopPropagation();
                             onMarkComplete(entry);
                           }}
-                          className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-50"
-                          title="Mark training/certification as complete"
+                          className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 border border-green-600 rounded hover:bg-green-700 hover:border-green-700 transition-all duration-200"
+                          title="Click here to show that you have completed this training or certification"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
+                          Complete
                         </button>
                       )}
                       {userCompletions.has(entry.id) && (
@@ -701,12 +691,10 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                             e.stopPropagation();
                             handleUnComplete(entry.id);
                           }}
-                          className="text-orange-600 hover:text-orange-800 p-1 rounded hover:bg-orange-50"
-                          title="You have completed this Training/Certification. Click to revert to Signed-Up state"
+                          className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 border border-green-600 rounded hover:bg-green-700 hover:border-green-700 transition-all duration-200"
+                          title="You have completed this training or certification, click to Revert to Signed Up"
                         >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clipRule="evenodd" />
-                          </svg>
+                          Revert
                         </button>
                       )}
                       {canEdit(entry) && (
@@ -715,12 +703,10 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                             e.stopPropagation();
                             // Handle delete
                           }}
-                          className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
-                          title="Delete entry"
+                          className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-red-600 border border-red-600 rounded hover:bg-red-700 hover:border-red-700 transition-all duration-200"
+                          title="Delete this training or certification entry"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
+                          Delete
                         </button>
                       )}
                     </div>
@@ -1290,6 +1276,9 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
   const [deleting, setDeleting] = useState(false);
   const [practiceOptions, setPracticeOptions] = useState({ vendors: [], levels: [], types: [] });
   const [activeTab, setActiveTab] = useState('details');
+  const [userSignedUp, setUserSignedUp] = useState(false);
+  const [userCompleted, setUserCompleted] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   const hasEditPermission = canEdit(entry || {});
 
@@ -1310,8 +1299,15 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
         incentive: entry.incentive || '',
         notes: entry.notes || ''
       });
+      
+      // Check user signup/completion status
+      if (user && entry) {
+        const userSignup = (entry.signUps || []).find(signup => signup.email === user.email);
+        setUserSignedUp(!!userSignup);
+        setUserCompleted(userSignup?.completed || false);
+      }
     }
-  }, [isOpen, entry]);
+  }, [isOpen, entry, user]);
 
   useEffect(() => {
     const loadPracticeOptions = async () => {
@@ -1347,8 +1343,9 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
+      
       if (response.ok) {
-        onSave();
+        await onSave();
         onClose();
       }
     } catch (error) {
@@ -1375,6 +1372,66 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
     } finally {
       setDeleting(false);
     }
+  };
+
+  const refreshEntryData = async () => {
+    try {
+      const response = await fetch('/api/training-certs');
+      if (response.ok) {
+        const data = await response.json();
+        const updatedEntry = data.entries.find(e => e.id === entry.id);
+        if (updatedEntry) {
+          // Update local state with fresh data
+          const userSignup = (updatedEntry.signUps || []).find(signup => signup.email === user.email);
+          setUserSignedUp(!!userSignup);
+          setUserCompleted(userSignup?.completed || false);
+          // Update the entry prop for tabs
+          Object.assign(entry, updatedEntry);
+        }
+      }
+      onSave();
+    } catch (error) {
+      console.error('Error refreshing entry data:', error);
+    }
+  };
+
+  const handleSignUp = async () => {
+    try {
+      const response = await fetch(`/api/training-certs/${entry.id}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: userSignedUp ? 'remove' : 'add' })
+      });
+      if (response.ok) {
+        await refreshEntryData();
+      }
+    } catch (error) {
+      console.error('Error updating signup:', error);
+    }
+  };
+
+  const handleUnComplete = async () => {
+    try {
+      const response = await fetch(`/api/training-certs/${entry.id}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'uncomplete' })
+      });
+      if (response.ok) {
+        await refreshEntryData();
+      }
+    } catch (error) {
+      console.error('Error updating completion:', error);
+    }
+  };
+
+  const handleMarkComplete = () => {
+    setShowCompletionModal(true);
+  };
+
+  const handleCompletionSuccess = async () => {
+    setShowCompletionModal(false);
+    await refreshEntryData();
   };
 
   if (!isOpen || !entry) return null;
@@ -1667,33 +1724,74 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
               </div>
 
               </div>
-              <div className="flex gap-3 justify-end p-6 border-t bg-gray-50">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-                >
-                  {hasEditPermission ? 'Cancel' : 'Close'}
-                </button>
-                {hasEditPermission && (
-                  <>
+              <div className="flex justify-between items-center px-6 py-4 border-t bg-gray-50/50">
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  {!userCompleted && (
                     <button
                       type="button"
-                      onClick={handleDelete}
-                      disabled={deleting || saving}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                      onClick={handleSignUp}
+                      className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                        userSignedUp
+                          ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:border-green-300'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300'
+                      }`}
+                      title={userSignedUp ? 'Remove yourself from the Sign-Up of this training or certification' : 'Sign up for this training or certification'}
                     >
-                      {deleting ? 'Deleting...' : 'Delete'}
+                      {userSignedUp ? 'Unsign' : 'Sign Up'}
                     </button>
+                  )}
+                  {userSignedUp && !userCompleted && (
                     <button
-                      type="submit"
-                      disabled={saving || deleting}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                      type="button"
+                      onClick={handleMarkComplete}
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-md hover:bg-green-700 hover:border-green-700 transition-all duration-200"
+                      title="Click here to show that you have completed this training or certification"
                     >
-                      {saving ? 'Updating...' : 'Update'}
+                      Complete
                     </button>
-                  </>
-                )}
+                  )}
+                  {userCompleted && (
+                    <button
+                      type="button"
+                      onClick={handleUnComplete}
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-md hover:bg-green-700 hover:border-green-700 transition-all duration-200"
+                      title="You have completed this training or certification, click to Revert to Signed Up"
+                    >
+                      Revert
+                    </button>
+                  )}
+                </div>
+                
+                {/* Form Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+                  >
+                    {hasEditPermission ? 'Cancel' : 'Close'}
+                  </button>
+                  {hasEditPermission && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={deleting || saving}
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-md hover:bg-red-700 hover:border-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                      >
+                        {deleting ? 'Deleting...' : 'Delete'}
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={saving || deleting}
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 hover:border-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                      >
+                        {saving ? 'Updating...' : 'Update'}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </form>
           ) : activeTab === 'signups' ? (
@@ -1793,6 +1891,15 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
             </div>
           ) : null}
         </div>
+        
+        {/* Completion Modal */}
+        <CompletionModal
+          isOpen={showCompletionModal}
+          onClose={() => setShowCompletionModal(false)}
+          entry={entry}
+          user={user}
+          onComplete={handleCompletionSuccess}
+        />
       </div>
     </div>
   );

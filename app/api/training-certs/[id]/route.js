@@ -43,25 +43,30 @@ export async function PUT(request, { params }) {
       }
     }
     
-    const success = await db.updateTrainingCert(
-      id,
-      {
-        practice: data.practice,
-        type: data.type,
-        vendor: data.vendor,
-        name: data.name,
-        code: data.code,
-        level: data.level,
-        trainingType: data.trainingType,
-        prerequisites: data.prerequisites,
-        examsRequired: data.examsRequired,
-        examCost: data.examCost,
-        quantityNeeded: data.quantityNeeded,
-        incentive: data.incentive,
-        notes: data.notes,
-        lastEditedBy: validation.user.email
-      }
-    );
+    const updateData = {
+      practice: data.practice,
+      type: data.type,
+      vendor: data.vendor,
+      name: data.name,
+      code: data.code,
+      level: data.level,
+      trainingType: data.trainingType,
+      prerequisites: data.prerequisites,
+      examsRequired: data.examsRequired,
+      examCost: data.examCost,
+      quantityNeeded: data.quantityNeeded,
+      incentive: data.incentive,
+      notes: data.notes,
+      lastEditedBy: validation.user.email
+    };
+    
+    let success;
+    try {
+      success = await db.updateTrainingCert(id, updateData);
+    } catch (dbError) {
+      console.error('Database error caught in API:', dbError);
+      throw dbError;
+    }
 
     if (success) {
       return NextResponse.json({ success: true });

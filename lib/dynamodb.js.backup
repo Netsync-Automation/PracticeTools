@@ -252,8 +252,7 @@ export class DynamoDBService {
 
   async getAllTrainingCerts() {
     const command = new ScanCommand({
-      TableName: TABLES.TRAINING_CERTS,
-      ConsistentRead: true  // Force consistent read to avoid eventual consistency issues
+      TableName: TABLES.TRAINING_CERTS
     });
     
     try {
@@ -271,77 +270,108 @@ export class DynamoDBService {
   }
 
   async updateTrainingCert(id, updates) {
+    console.log('=== updateTrainingCert START ===');
+    console.log('Input parameters:', { id, updates });
+    
     try {
+      console.log('Step 1: Initialize arrays');
+      let updateExpressions = [];
+      let attributeValues = {};
+      let attributeNames = {};
+      
+      console.log('Step 2: Validate inputs');
       if (!id || typeof id !== 'string') {
-        logger.error('Invalid ID provided for updateTrainingCert', { id });
+        console.error('Invalid ID provided:', id);
         return false;
       }
       
       if (!updates || typeof updates !== 'object') {
-        logger.error('Invalid updates object for updateTrainingCert', { updates });
+        console.error('Invalid updates object:', updates);
         return false;
       }
       
-      const updateExpressions = [];
-      const attributeValues = {};
-      const attributeNames = {};
+      console.log('Step 3: Process updates object');
+      console.log('Updates keys:', Object.keys(updates));
       
-      // Process all valid update fields
-      Object.keys(updates).forEach(key => {
-        if (key !== 'id' && updates[key] !== undefined && updates[key] !== null) {
+      const validKeys = Object.keys(updates).filter(key => {
+        const isValid = key !== 'id' && updates[key] !== undefined && updates[key] !== null;
+        console.log(`Key ${key}: value=${updates[key]}, valid=${isValid}`);
+        return isValid;
+      });
+      
+      console.log('Valid keys to process:', validKeys);
+      
+      validKeys.forEach((key, index) => {
+        console.log(`Processing key ${index}: ${key} = ${updates[key]}`);
+        
+        try {
           if (key === 'lastEditedBy') {
             updateExpressions.push(`#last_edited_by = :last_edited_by`);
             attributeNames['#last_edited_by'] = 'last_edited_by';
             attributeValues[':last_edited_by'] = { S: String(updates[key] || '') };
-          } else if (key === 'quantityNeeded') {
-            updateExpressions.push(`#quantity_needed = :quantity_needed`);
-            attributeNames['#quantity_needed'] = 'quantity_needed';
-            attributeValues[':quantity_needed'] = { S: String(updates[key] || '') };
-          } else if (key === 'examCost') {
-            updateExpressions.push(`#exam_cost = :exam_cost`);
-            attributeNames['#exam_cost'] = 'exam_cost';
-            attributeValues[':exam_cost'] = { S: String(updates[key] || '') };
-          } else if (key === 'examsRequired') {
-            updateExpressions.push(`#exams_required = :exams_required`);
-            attributeNames['#exams_required'] = 'exams_required';
-            attributeValues[':exams_required'] = { S: String(updates[key] || '') };
-          } else if (key === 'trainingType') {
-            updateExpressions.push(`#training_type = :training_type`);
-            attributeNames['#training_type'] = 'training_type';
-            attributeValues[':training_type'] = { S: String(updates[key] || '') };
           } else {
             updateExpressions.push(`#${key} = :${key}`);
             attributeNames[`#${key}`] = key;
             attributeValues[`:${key}`] = { S: String(updates[key] || '') };
           }
+          console.log(`  Successfully added key ${key} to update`);
+        } catch (keyError) {
+          console.error(`Error processing key ${key}:`, keyError);
         }
       });
       
-      if (updateExpressions.length === 0) {
+      console.log('Step 4: Check if we have updates');
+      console.log('Update expressions array:', updateExpressions);
+      console.log('Update expressions length:', updateExpressions ? updateExpressions.length : 'undefined');
+      
+      if (!updateExpressions || updateExpressions.length === 0) {
+        console.log('No valid updates found, returning true');
         return true;
       }
       
-      // Add timestamp
+      console.log('Step 5: Add timestamp');
       updateExpressions.push('#updated_at = :updated_at');
       attributeNames['#updated_at'] = 'updated_at';
       attributeValues[':updated_at'] = { S: new Date().toISOString() };
       
+      console.log('Step 6: Build command');
+      console.log('Final updateExpressions:', updateExpressions);
+      console.log('About to join array with length:', updateExpressions.length);
+      
+      if (!Array.isArray(updateExpressions)) {
+        console.error('updateExpressions is not an array:', typeof updateExpressions, updateExpressions);
+        return false;
+      }
+      
+      const joinedExpression = updateExpressions.join(', ');
+      console.log('Joined expression:', joinedExpression);
+      
       const command = new UpdateItemCommand({
         TableName: TABLES.TRAINING_CERTS,
         Key: { id: { S: id } },
-        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        UpdateExpression: `SET ${joinedExpression}`,
         ExpressionAttributeNames: attributeNames,
         ExpressionAttributeValues: attributeValues
       });
       
+      console.log('Step 7: Send command');
+      console.log('Command details:', JSON.stringify({
+        TableName: TABLES.TRAINING_CERTS,
+        Key: { id: { S: id } },
+        UpdateExpression: `SET ${joinedExpression}`,
+        ExpressionAttributeNames: attributeNames,
+        ExpressionAttributeValues: attributeValues
+      }, null, 2));
+      
       await this.client.send(command);
+      console.log('Step 8: Success');
       return true;
     } catch (error) {
-      logger.error('DynamoDB updateTrainingCert error', { 
-        error: error.message, 
-        id, 
-        updates: Object.keys(updates || {}) 
-      });
+      console.error('=== ERROR IN updateTrainingCert ===');
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      logger.error('DynamoDB updateTrainingCert error', { error: error.message, stack: error.stack });
       return false;
     }
   }
@@ -493,11 +523,11 @@ export class DynamoDBService {
       name: item.name?.S || '',
       code: item.code?.S || '',
       level: item.level?.S || '',
-      trainingType: item.training_type?.S || item.trainingType?.S || '',
+      trainingType: item.trainingType?.S || '',
       prerequisites: item.prerequisites?.S || '',
-      examsRequired: item.exams_required?.S || item.examsRequired?.S || '',
-      examCost: item.exam_cost?.S || item.examCost?.S || '',
-      quantityNeeded: item.quantity_needed?.S || item.quantityNeeded?.S || '',
+      examsRequired: item.examsRequired?.S || '',
+      examCost: item.examCost?.S || '',
+      quantityNeeded: item.quantityNeeded?.S || '',
       incentive: item.incentive?.S || '',
       notes: item.notes?.S || '',
       signUps: signUps,
@@ -6377,6 +6407,70 @@ export class DynamoDBService {
         return id;
       }
       logger.error('DynamoDB addTrainingCert error', { error: error.message });
+      return false;
+    }
+  }
+
+  async updateTrainingCert(id, practice, type, vendor, name, code, level, trainingType, prerequisites, examsRequired, examCost, quantityNeeded, incentive, notes, updatedBy) {
+    // Get user info for updatedBy field
+    let updatedByName = updatedBy;
+    if (typeof window === 'undefined') {
+      try {
+        const users = await this.getAllUsers();
+        const user = users.find(u => u.email === updatedBy);
+        if (user) {
+          updatedByName = user.name;
+        }
+      } catch (error) {
+        // Continue with email if user lookup fails
+      }
+    }
+    
+    // Create enhanced last edited field with date, time, timezone, and editor
+    const now = new Date();
+    const lastEdited = `${now.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit', 
+      year: 'numeric'
+    })} ${now.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    })} by ${updatedByName}`;
+    
+    try {
+      const command = new UpdateItemCommand({
+        TableName: TABLES.TRAINING_CERTS,
+        Key: { id: { S: id } },
+        UpdateExpression: 'SET practice = :practice, #type = :type, vendor = :vendor, #name = :name, code = :code, #level = :level, training_type = :trainingType, prerequisites = :prerequisites, exams_required = :examsRequired, exam_cost = :examCost, quantity_needed = :quantityNeeded, incentive = :incentive, notes = :notes, last_edited = :lastEdited, updated_at = :updatedAt',
+        ExpressionAttributeNames: {
+          '#type': 'type',
+          '#name': 'name',
+          '#level': 'level'
+        },
+        ExpressionAttributeValues: {
+          ':practice': { S: practice },
+          ':type': { S: type },
+          ':vendor': { S: vendor },
+          ':name': { S: name },
+          ':code': { S: code || '' },
+          ':level': { S: level || '' },
+          ':trainingType': { S: trainingType || '' },
+          ':prerequisites': { S: prerequisites || '' },
+          ':examsRequired': { S: examsRequired || '' },
+          ':examCost': { S: examCost || '' },
+          ':quantityNeeded': { S: quantityNeeded || '' },
+          ':incentive': { S: incentive || '' },
+          ':notes': { S: notes || '' },
+          ':lastEdited': { S: lastEdited },
+          ':updatedAt': { S: new Date().toISOString() }
+        }
+      });
+      
+      await this.client.send(command);
+      return true;
+    } catch (error) {
+      logger.error('DynamoDB updateTrainingCert error', { error: error.message });
       return false;
     }
   }
