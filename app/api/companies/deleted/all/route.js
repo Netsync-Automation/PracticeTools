@@ -22,9 +22,24 @@ export async function GET(request) {
 
     // Check permissions
     const user = validation.user;
-    const canViewDeleted = user.isAdmin || user.role === 'executive' || 
-      (['practice_manager', 'practice_principal'].includes(user.role) && 
-       user.practices?.some(practice => practiceGroupId?.includes(practice)));
+    let canViewDeleted = user.isAdmin || user.role === 'executive';
+    
+    // For practice managers and principals, check if they have access to any practices in this group
+    if (!canViewDeleted && ['practice_manager', 'practice_principal'].includes(user.role) && user.practices) {
+      // Get the practice group to find its practices
+      try {
+        const practiceGroupsResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/practice-groups`);
+        if (practiceGroupsResponse.ok) {
+          const practiceGroupsData = await practiceGroupsResponse.json();
+          const selectedGroup = practiceGroupsData.groups?.find(group => group.id === practiceGroupId);
+          if (selectedGroup) {
+            canViewDeleted = selectedGroup.practices.some(practice => user.practices.includes(practice));
+          }
+        }
+      } catch (error) {
+        console.error('Error checking practice group permissions:', error);
+      }
+    }
     
     if (!canViewDeleted) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });

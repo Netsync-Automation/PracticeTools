@@ -1201,7 +1201,9 @@ function AssignmentsTable({ assignments, user, onAssignmentUpdate, allAssignment
                   </div>
                 </td>
                 <td className="px-2 py-3">
-                  <div className="text-sm text-gray-900">{new Date(assignment.dateAssigned).toLocaleDateString()}</div>
+                  <div className="text-sm text-gray-900">
+                    {assignment.dateAssigned ? new Date(assignment.dateAssigned).toLocaleDateString() : 'Not set'}
+                  </div>
                 </td>
               </tr>
             ))}

@@ -24057,6 +24057,306 @@
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760307744564,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/companies/deleted/all/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:24.564Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307744673,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/companies/deleted/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:24.673Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307744771,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/contacts/deleted/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:24.771Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307744849,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-10-12T22:22:24.849Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307745030,
+      "description": "Enhanced DraggableCard with specific functionality improvements",
+      "details": {
+        "file": "components/DraggableCard.js"
+      },
+      "timestamp": "2025-10-12T22:22:25.030Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307747122,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/companies/deleted/all/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:27.122Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307747216,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/companies/deleted/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:27.216Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307747308,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/contacts/deleted/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:27.308Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307747375,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-10-12T22:22:27.375Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307747537,
+      "description": "Enhanced DraggableCard with specific functionality improvements",
+      "details": {
+        "file": "components/DraggableCard.js"
+      },
+      "timestamp": "2025-10-12T22:22:27.537Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307749051,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/companies/deleted/all/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:29.051Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307749157,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/companies/deleted/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:29.157Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307749237,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/contacts/deleted/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:29.237Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307749315,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-10-12T22:22:29.315Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307749481,
+      "description": "Enhanced DraggableCard with specific functionality improvements",
+      "details": {
+        "file": "components/DraggableCard.js"
+      },
+      "timestamp": "2025-10-12T22:22:29.481Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -78558,6 +78858,245 @@
         "app/api/training-certs/[id]/route.js",
         "app/practice-information/training-certs/page.js",
         "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307744490,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:24.490Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json"
+      ]
+    },
+    {
+      "id": 1760307744926,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-12T22:22:24.926Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307745117,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-12T22:22:25.117Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307745210,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-10-12T22:22:25.210Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307747056,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:27.056Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307747460,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-12T22:22:27.460Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307747614,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-12T22:22:27.614Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307747704,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-10-12T22:22:27.704Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307748962,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/assignments/[id]/route.js"
+      },
+      "timestamp": "2025-10-12T22:22:28.962Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307749403,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-12T22:22:29.403Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307749571,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-12T22:22:29.571Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760307749661,
+      "description": "Enhanced packageon with specific functionality improvements",
+      "details": {
+        "file": "package.json"
+      },
+      "timestamp": "2025-10-12T22:22:29.661Z",
+      "files": [
+        "app/api/assignments/[id]/route.js",
+        "app/api/companies/deleted/all/route.js",
+        "app/api/companies/deleted/route.js",
+        "app/api/contacts/deleted/route.js",
+        "app/practice-information/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/DraggableCard.js",
+        "components/SidebarLayout.js",
+        "package.json",
         "pending-changes.json"
       ]
     }

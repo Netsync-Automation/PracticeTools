@@ -1,7 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { PencilIcon, XMarkIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, XMarkIcon, ChatBubbleLeftIcon, CogIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 import MultiAttachmentPreview from './MultiAttachmentPreview';
+import CardSettingsModal from './CardSettingsModal';
 
 export function DraggableCard({ 
   card, 
@@ -13,8 +15,12 @@ export function DraggableCard({
   openCardModal,
   availableLabels = [],
   toggleCardFollowing,
-  user
+  user,
+  onUpdateCard,
+  getHeaders
 }) {
+  const [showSettings, setShowSettings] = useState(false);
+  
   const {
     attributes,
     listeners,
@@ -45,10 +51,17 @@ export function DraggableCard({
     ? card.labels.map(labelId => availableLabels.find(l => l.id === labelId)?.name).filter(Boolean).join(', ')
     : '';
 
+  const cardHeaderStyle = {
+    backgroundColor: card.settings?.backgroundColor || '#ffffff',
+    backgroundImage: card.settings?.backgroundImage ? `url(${card.settings.backgroundImage})` : 'none',
+    backgroundSize: 'contain',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
+  };
+
   return (
     <div
       ref={setNodeRef}
-      style={style}
       className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-all cursor-pointer mb-3 overflow-hidden ${
         canEdit ? 'hover:border-blue-300' : ''
       } ${isDragging ? 'z-50' : ''}`}
@@ -71,8 +84,16 @@ export function DraggableCard({
       aria-label={`Card: ${card.title}. ${card.description ? `Description: ${card.description.substring(0, 100)}...` : ''} ${canEdit ? 'Press Enter to open or drag to move' : 'Press Enter to open'}`}
       {...(canEdit ? { ...attributes, ...listeners } : {})}
     >
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
+      {/* Image Header - Only show if card has custom settings */}
+      {(card.settings?.backgroundColor || card.settings?.backgroundImage) && (
+        <div 
+          className="min-h-[60px] flex items-center"
+          style={cardHeaderStyle}
+        />
+      )}
+      {/* Card Header */}
+      <div className="px-4 py-3 border-b border-gray-100 min-h-[60px] flex items-center">
+        <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2 flex-1">
             {primaryLabel && (
               <div 
@@ -85,59 +106,60 @@ export function DraggableCard({
               {card.title}
             </h4>
           </div>
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleCardFollowing && toggleCardFollowing(columnId, card.id);
-            }}
-            className={`p-1 rounded transition-colors ${
-              card.followers?.includes(user?.email)
-                ? 'text-blue-600 hover:text-blue-700'
-                : 'text-gray-400 hover:text-blue-500'
-            }`}
-            title={card.followers?.includes(user?.email) ? 'Unfollow card' : 'Follow card'}
-          >
-            <svg className="h-3 w-3" fill={card.followers?.includes(user?.email) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-          {canEdit && (
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setEditingCard(card.id);
+                toggleCardFollowing && toggleCardFollowing(columnId, card.id);
               }}
-              className="text-gray-400 hover:text-blue-500 p-1"
-              title="Edit card"
-              aria-label={`Edit ${card.title} card`}
+              className={`p-1 rounded transition-colors ${
+                card.followers?.includes(user?.email)
+                  ? 'text-blue-600 hover:text-blue-700'
+                  : 'text-gray-400 hover:text-blue-500'
+              }`}
+              title={card.followers?.includes(user?.email) ? 'Unfollow card' : 'Follow card'}
             >
-              <PencilIcon className="h-3 w-3" />
+              <svg className="h-3 w-3" fill={card.followers?.includes(user?.email) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
             </button>
-          )}
-          {canDeleteCard(card) && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (window.confirm('Are you sure you want to delete this card?')) {
-                  deleteCard(columnId, card.id);
-                }
+                setShowSettings(true);
               }}
-              className="text-gray-400 hover:text-red-500 p-1"
-              title="Delete card"
-              aria-label={`Delete ${card.title} card`}
+              className="p-1 rounded transition-colors text-gray-400 hover:text-gray-600"
+              title="Card settings"
             >
-              <XMarkIcon className="h-3 w-3" />
+              <CogIcon className="h-3 w-3" />
             </button>
-          )}
+            {canDeleteCard(card) && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm('Are you sure you want to delete this card?')) {
+                    deleteCard(columnId, card.id);
+                  }
+                }}
+                className="text-gray-400 hover:text-red-500 p-1 rounded"
+                title="Delete card"
+                aria-label={`Delete ${card.title} card`}
+              >
+                <XMarkIcon className="h-3 w-3" />
+              </button>
+            )}
           </div>
         </div>
+      </div>
+      
+      {/* Card Content */}
+      <div className="p-4">
         {card.description && (
-        <p className="text-gray-600 text-sm mb-3 whitespace-pre-wrap line-clamp-2">
-          {card.description}
-        </p>
-      )}
+          <p className="text-gray-600 text-sm mb-3 whitespace-pre-wrap line-clamp-2">
+            {card.description}
+          </p>
+        )}
         {card.labels && card.labels.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
             {card.labels.map(labelId => {
@@ -155,29 +177,38 @@ export function DraggableCard({
           </div>
         )}
         <div className="flex items-center justify-between text-xs text-gray-400">
-        <div className="flex flex-col">
-          <span>{new Date(card.createdAt).toLocaleDateString()} {new Date(card.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-          <span className="text-gray-500">{card.lastEditedBy ? `Edited by ${card.lastEditedBy}` : `Created by ${card.createdBy}`}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {card.attachments && card.attachments.length > 0 && (
-            <div className="flex items-center gap-1 mb-1">
-              <MultiAttachmentPreview attachments={card.attachments} position="right">
-                <span className="text-xs text-blue-600" aria-label={`${card.attachments.length} attachments`}>
-                  📎 {card.attachments.length}
-                </span>
-              </MultiAttachmentPreview>
-            </div>
-          )}
-          {card.comments && card.comments.length > 0 && (
-            <span className="flex items-center gap-1" aria-label={`${card.comments.length} comments`}>
-              <ChatBubbleLeftIcon className="h-3 w-3" />
-              {card.comments.length}
-            </span>
-          )}
+          <div className="flex flex-col">
+            <span>{new Date(card.createdAt).toLocaleDateString()} {new Date(card.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            <span className="text-gray-500">{card.lastEditedBy ? `Edited by ${card.lastEditedBy}` : `Created by ${card.createdBy}`}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {card.attachments && card.attachments.length > 0 && (
+              <div className="flex items-center gap-1 mb-1">
+                <MultiAttachmentPreview attachments={card.attachments} position="right">
+                  <span className="text-xs text-blue-600" aria-label={`${card.attachments.length} attachments`}>
+                    📎 {card.attachments.length}
+                  </span>
+                </MultiAttachmentPreview>
+              </div>
+            )}
+            {card.comments && card.comments.length > 0 && (
+              <span className="flex items-center gap-1" aria-label={`${card.comments.length} comments`}>
+                <ChatBubbleLeftIcon className="h-3 w-3" />
+                {card.comments.length}
+              </span>
+            )}
           </div>
         </div>
       </div>
+      
+      {/* Settings Modal */}
+      <CardSettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        card={card}
+        onUpdateCard={onUpdateCard}
+        getHeaders={getHeaders}
+      />
     </div>
   );
 }
