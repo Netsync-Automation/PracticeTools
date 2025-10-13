@@ -57,8 +57,10 @@ export async function PUT(request, { params }) {
       quantityNeeded: data.quantityNeeded,
       incentive: data.incentive,
       notes: data.notes,
-      lastEditedBy: validation.user.email
+      updated_by: validation.user.email,
+      updated_by_name: validation.user.name
     };
+    console.log('[TRAINING-CERTS-UPDATE] Update data with lastEditedBy:', updateData);
     
     let success;
     try {
