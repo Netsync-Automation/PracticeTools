@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { v4 as uuidv4 } from 'uuid';
 import { db } from '../../../../../lib/dynamodb';
 import { validateUserSession } from '../../../../../lib/auth-check';
+
+const s3Client = new S3Client({
+  region: process.env.AWS_DEFAULT_REGION || 'us-east-1'
+});
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +40,44 @@ export async function POST(request, { params }) {
     let result;
     
     if (action === 'complete') {
-      result = await db.completeTrainingCert(id, validation.user.email, validation.user.name, certificateFile, notes);
+      let certificateUrl = null;
+      
+      // Upload certificate to S3 if provided
+      if (certificateFile && certificateFile.size > 0) {
+        const bucketName = process.env.S3_BUCKET;
+        if (!bucketName) {
+          return NextResponse.json({ error: 'S3 bucket not configured' }, { status: 500 });
+        }
+        
+        try {
+          const fileId = uuidv4();
+          const fileExtension = certificateFile.name.split('.').pop();
+          const fileName = `${fileId}.${fileExtension}`;
+          const filePath = `training-certificates/${fileName}`;
+          
+          const buffer = Buffer.from(await certificateFile.arrayBuffer());
+          
+          const command = new PutObjectCommand({
+            Bucket: bucketName,
+            Key: filePath,
+            Body: buffer,
+            ContentType: certificateFile.type,
+            Metadata: {
+              originalName: certificateFile.name,
+              uploadedAt: new Date().toISOString(),
+              uploadedBy: validation.user.email
+            }
+          });
+          
+          await s3Client.send(command);
+          certificateUrl = `/api/files/${filePath}`;
+        } catch (uploadError) {
+          console.error('Certificate upload error:', uploadError);
+          return NextResponse.json({ error: 'Failed to upload certificate' }, { status: 500 });
+        }
+      }
+      
+      result = await db.completeTrainingCert(id, validation.user.email, validation.user.name, certificateUrl, notes);
     } else if (action === 'uncomplete') {
       result = await db.uncompleteTrainingCert(id, validation.user.email, validation.user.name);
     } else if (action === 'add' || action === 'remove') {
