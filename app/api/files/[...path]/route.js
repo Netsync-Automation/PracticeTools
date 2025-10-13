@@ -10,16 +10,19 @@ export async function GET(request, { params }) {
   try {
     const path = params.path.join('/');
     const bucketName = process.env.S3_BUCKET;
+    const url = new URL(request.url);
+    const download = url.searchParams.get('download') === 'true';
     
     if (!bucketName) {
       return NextResponse.json({ error: 'S3 bucket not configured' }, { status: 500 });
     }
 
-    // Generate presigned URL for the file with download disposition
+    // Generate presigned URL for the file
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: path,
-      ResponseContentDisposition: 'attachment'
+      // Only add download disposition if explicitly requested
+      ...(download && { ResponseContentDisposition: 'attachment' })
     });
 
     const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
