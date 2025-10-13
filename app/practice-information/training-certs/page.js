@@ -654,6 +654,7 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                     <div className="text-xs text-gray-600 mt-1">
                       by {entry.updatedBy || 'Unknown'}
                     </div>
+
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
