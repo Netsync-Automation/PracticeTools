@@ -316,6 +316,7 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       
       if (editingCompany) {
         // Update existing company
+        
         const response = await fetch('/api/companies', {
           method: 'PUT',
           headers: getHeaders(),
@@ -332,7 +333,8 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
           );
           setCompanies(updatedCompanies);
           if (selectedCompany?.id === editingCompany.id) {
-            setSelectedCompany({ ...selectedCompany, ...sanitizedForm });
+            const newSelectedCompany = { ...selectedCompany, ...sanitizedForm };
+            setSelectedCompany(newSelectedCompany);
           }
         }
       } else {

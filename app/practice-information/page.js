@@ -21,6 +21,7 @@ import BoardSettingsModal from '../../components/BoardSettingsModal';
 import LabelManagementModal from '../../components/LabelManagementModal';
 import CardSettingsModal from '../../components/CardSettingsModal';
 import DateTimePicker from '../../components/DateTimePicker';
+import ImagePasteTextarea from '../../components/ImagePasteTextarea';
 import {
   DndContext,
   DragOverlay,
@@ -2435,9 +2436,9 @@ export default function PracticeInformationPage() {
                       <div className="space-y-4">
                         {editingDescription ? (
                           <div className="space-y-3">
-                            <textarea
+                            <ImagePasteTextarea
                               value={selectedCard.description || ''}
-                              onChange={(e) => setSelectedCard({ ...selectedCard, description: e.target.value })}
+                              onChange={(value) => setSelectedCard({ ...selectedCard, description: value })}
                               className="w-full p-4 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed shadow-sm transition-all duration-200"
                               rows={8}
                               placeholder="Add a detailed description..."
@@ -2530,8 +2531,11 @@ export default function PracticeInformationPage() {
                             <div className="w-full p-4 border border-gray-200 rounded-xl bg-gray-50 text-base leading-relaxed min-h-32">
                               {selectedCard.description ? (
                                 <div 
-                                  className="text-gray-900 whitespace-pre-wrap"
-                                  dangerouslySetInnerHTML={{ __html: linkifyText(selectedCard.description) }}
+                                  className="text-gray-900 prose prose-sm max-w-none"
+                                  dangerouslySetInnerHTML={{ __html: selectedCard.description }}
+                                  style={{
+                                    wordBreak: 'break-word'
+                                  }}
                                 />
                               ) : (
                                 <span className="text-gray-500 italic">No description provided</span>

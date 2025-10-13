@@ -156,9 +156,10 @@ export function DraggableCard({
       {/* Card Content */}
       <div className="p-4">
         {card.description && (
-          <p className="text-gray-600 text-sm mb-3 whitespace-pre-wrap line-clamp-2">
-            {card.description}
-          </p>
+          <div 
+            className="text-gray-600 text-sm mb-3 prose prose-sm max-w-none line-clamp-2"
+            dangerouslySetInnerHTML={{ __html: card.description }}
+          />
         )}
         {card.labels && card.labels.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
