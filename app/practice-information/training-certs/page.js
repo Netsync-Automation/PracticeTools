@@ -639,20 +639,20 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-sm text-gray-900">
-                      {new Date(entry.updated_at || entry.created_at).toLocaleDateString('en-US', {
+                      {entry.updatedAt ? new Date(entry.updatedAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
-                      })}
+                      }) : 'No date'}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {new Date(entry.updated_at || entry.created_at).toLocaleTimeString('en-US', {
+                      {entry.updatedAt ? new Date(entry.updatedAt).toLocaleTimeString('en-US', {
                         hour: 'numeric',
                         minute: '2-digit'
-                      })}
+                      }) : 'No time'}
                     </div>
                     <div className="text-xs text-gray-600 mt-1">
-                      by {entry.lastEditedBy || entry.createdBy || 'Unknown'}
+                      by {entry.updatedBy || 'Unknown'}
                     </div>
                   </td>
                   <td className="px-4 py-3">

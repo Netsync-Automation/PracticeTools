@@ -24428,6 +24428,96 @@
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760325263208,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-13T03:14:23.208Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325264412,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-13T03:14:24.412Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325265293,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-13T03:14:25.293Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325268555,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-13T03:14:28.555Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325269786,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-13T03:14:29.786Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325270696,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-13T03:14:30.696Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -79472,6 +79562,275 @@
         "app/practice-information/page.js",
         "components/ContactManagementSystem.js",
         "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325262979,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:22.979Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1760325263051,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:23.051Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325263130,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-13T03:14:23.130Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325264156,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:24.156Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325264251,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:24.251Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325264316,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-13T03:14:24.316Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325265033,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:25.033Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325265123,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:25.123Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325265201,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-13T03:14:25.201Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325268279,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:28.279Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325268385,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:28.385Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325268464,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-13T03:14:28.464Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325269485,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:29.485Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325269594,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:29.594Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325269689,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-13T03:14:29.689Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325270478,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:30.478Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325270539,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/route.js"
+      },
+      "timestamp": "2025-10-13T03:14:30.539Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760325270603,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-13T03:14:30.603Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/route.js",
+        "app/practice-information/training-certs/page.js",
         "lib/dynamodb.js",
         "pending-changes.json"
       ]

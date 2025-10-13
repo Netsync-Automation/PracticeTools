@@ -14,6 +14,8 @@ export async function GET(request) {
     }
     
     const entries = await db.getAllTrainingCerts();
+    console.log('[API-GET-TRAINING-CERTS] Sample entry:', entries[0]);
+    console.log('[API-GET-TRAINING-CERTS] updatedBy field:', entries[0]?.updatedBy);
     
     return NextResponse.json({
       success: true,
@@ -38,6 +40,8 @@ export async function POST(request) {
     }
     
     const data = await request.json();
+    console.log('[TRAINING-CERTS-CREATE] Request data:', data);
+    console.log('[TRAINING-CERTS-CREATE] User:', validation.user.email, validation.user.name);
     
     // DSR: Permission check - only admins, practice managers, and practice principals can add
     const user = validation.user;
@@ -55,6 +59,7 @@ export async function POST(request) {
       }
     }
     
+    console.log('[TRAINING-CERTS-CREATE] Calling addTrainingCert with createdBy:', validation.user.email);
     const entryId = await db.addTrainingCert(
       data.practice,
       data.type,
@@ -71,6 +76,14 @@ export async function POST(request) {
       data.notes,
       validation.user.email
     );
+    
+    // Update with user name
+    if (entryId) {
+      await db.updateTrainingCert(entryId, {
+        updated_by_name: validation.user.name
+      });
+    }
+    console.log('[TRAINING-CERTS-CREATE] addTrainingCert returned:', entryId);
 
     if (entryId) {
       return NextResponse.json({
