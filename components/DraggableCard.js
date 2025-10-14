@@ -5,6 +5,22 @@ import { useState } from 'react';
 import MultiAttachmentPreview from './MultiAttachmentPreview';
 import CardSettingsModal from './CardSettingsModal';
 
+// Utility function to truncate HTML content for preview
+function truncateHtmlContent(htmlContent, maxLength = 100) {
+  if (!htmlContent) return '';
+  
+  // Create a temporary div to extract text content from HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
+  const textContent = tempDiv.textContent || tempDiv.innerText || '';
+  
+  if (textContent.length <= maxLength) {
+    return textContent;
+  }
+  
+  return textContent.substring(0, maxLength).trim() + '...';
+}
+
 export function DraggableCard({ 
   card, 
   columnId, 
@@ -156,10 +172,9 @@ export function DraggableCard({
       {/* Card Content */}
       <div className="p-4">
         {card.description && (
-          <div 
-            className="text-gray-600 text-sm mb-3 prose prose-sm max-w-none line-clamp-2"
-            dangerouslySetInnerHTML={{ __html: card.description }}
-          />
+          <div className="text-gray-600 text-sm mb-3">
+            {truncateHtmlContent(card.description, 100)}
+          </div>
         )}
         {card.labels && card.labels.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">

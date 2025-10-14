@@ -24,67 +24,124 @@ export async function POST(request, { params }) {
     let action = 'toggle';
     let certificateFile = null;
     let notes = '';
+    let iterations = 1;
+    let completedIterations = 1;
+    
+    let formData = null;
     
     if (contentType && contentType.includes('multipart/form-data')) {
       // Handle form data for completion with file upload
-      const formData = await request.formData();
+      formData = await request.formData();
       action = formData.get('action') || 'toggle';
       certificateFile = formData.get('certificate');
       notes = formData.get('notes') || '';
+      completedIterations = parseInt(formData.get('completedIterations')) || 1;
     } else {
       // Handle JSON data for other actions
       const body = await request.json();
       action = body.action || 'toggle';
+      iterations = body.iterations || 1;
     }
     
     let result;
     
     if (action === 'complete') {
       let certificateUrl = null;
+      let iterationCertificates = [];
       
-      // Upload certificate to S3 if provided
-      if (certificateFile && certificateFile.size > 0) {
-        const bucketName = process.env.S3_BUCKET;
-        if (!bucketName) {
-          return NextResponse.json({ error: 'S3 bucket not configured' }, { status: 500 });
+      if (formData) {
+        // Process per-iteration uploads
+        for (let i = 0; i < completedIterations; i++) {
+          const iterationFile = formData.get(`certificate_${i}`);
+          const iterationNotes = formData.get(`iterationNotes_${i}`) || '';
+          let iterationCertUrl = null;
+          
+          if (iterationFile && iterationFile.size > 0) {
+            const bucketName = process.env.S3_BUCKET;
+            if (!bucketName) {
+              return NextResponse.json({ error: 'S3 bucket not configured' }, { status: 500 });
+            }
+            
+            try {
+              const fileId = uuidv4();
+              const fileExtension = iterationFile.name.split('.').pop();
+              const fileName = `${fileId}.${fileExtension}`;
+              const filePath = `training-certificates/${fileName}`;
+              
+              const buffer = Buffer.from(await iterationFile.arrayBuffer());
+              
+              const command = new PutObjectCommand({
+                Bucket: bucketName,
+                Key: filePath,
+                Body: buffer,
+                ContentType: iterationFile.type,
+                Metadata: {
+                  originalName: iterationFile.name,
+                  uploadedAt: new Date().toISOString(),
+                  uploadedBy: validation.user.email,
+                  iteration: (i + 1).toString()
+                }
+              });
+              
+              await s3Client.send(command);
+              iterationCertUrl = `/api/files/${filePath}`;
+            } catch (uploadError) {
+              console.error('Certificate upload error:', uploadError);
+              return NextResponse.json({ error: 'Failed to upload certificate' }, { status: 500 });
+            }
+          }
+          
+          iterationCertificates.push({
+            iteration: i + 1,
+            certificateUrl: iterationCertUrl,
+            notes: iterationNotes
+          });
         }
         
-        try {
-          const fileId = uuidv4();
-          const fileExtension = certificateFile.name.split('.').pop();
-          const fileName = `${fileId}.${fileExtension}`;
-          const filePath = `training-certificates/${fileName}`;
+        // Fallback for legacy single certificate upload
+        if (certificateFile && certificateFile.size > 0 && iterationCertificates.length === 0) {
+          const bucketName = process.env.S3_BUCKET;
+          if (!bucketName) {
+            return NextResponse.json({ error: 'S3 bucket not configured' }, { status: 500 });
+          }
           
-          const buffer = Buffer.from(await certificateFile.arrayBuffer());
-          
-          const command = new PutObjectCommand({
-            Bucket: bucketName,
-            Key: filePath,
-            Body: buffer,
-            ContentType: certificateFile.type,
-            Metadata: {
-              originalName: certificateFile.name,
-              uploadedAt: new Date().toISOString(),
-              uploadedBy: validation.user.email
-            }
-          });
-          
-          await s3Client.send(command);
-          certificateUrl = `/api/files/${filePath}`;
-        } catch (uploadError) {
-          console.error('Certificate upload error:', uploadError);
-          return NextResponse.json({ error: 'Failed to upload certificate' }, { status: 500 });
+          try {
+            const fileId = uuidv4();
+            const fileExtension = certificateFile.name.split('.').pop();
+            const fileName = `${fileId}.${fileExtension}`;
+            const filePath = `training-certificates/${fileName}`;
+            
+            const buffer = Buffer.from(await certificateFile.arrayBuffer());
+            
+            const command = new PutObjectCommand({
+              Bucket: bucketName,
+              Key: filePath,
+              Body: buffer,
+              ContentType: certificateFile.type,
+              Metadata: {
+                originalName: certificateFile.name,
+                uploadedAt: new Date().toISOString(),
+                uploadedBy: validation.user.email
+              }
+            });
+            
+            await s3Client.send(command);
+            certificateUrl = `/api/files/${filePath}`;
+          } catch (uploadError) {
+            console.error('Certificate upload error:', uploadError);
+            return NextResponse.json({ error: 'Failed to upload certificate' }, { status: 500 });
+          }
         }
       }
       
-      result = await db.completeTrainingCert(id, validation.user.email, validation.user.name, certificateUrl, notes);
+      result = await db.completeTrainingCertIterations(id, validation.user.email, validation.user.name, completedIterations, certificateUrl, notes, iterationCertificates);
     } else if (action === 'uncomplete') {
       result = await db.uncompleteTrainingCert(id, validation.user.email, validation.user.name);
     } else if (action === 'add' || action === 'remove') {
-      result = await db.toggleTrainingCertSignUp(id, validation.user.email, validation.user.name, action);
+      result = await db.toggleTrainingCertSignUp(id, validation.user.email, validation.user.name, action, iterations);
     } else {
       // Default toggle behavior
-      result = await db.toggleTrainingCertSignUp(id, validation.user.email, validation.user.name);
+      result = await db.toggleTrainingCertSignUp(id, validation.user.email, validation.user.name, null, iterations);
     }
 
     if (result.success) {
@@ -92,7 +149,9 @@ export async function POST(request, { params }) {
         success: true, 
         action: result.action,
         signedUp: result.signedUp,
-        completed: result.completed
+        completed: result.completed,
+        iterations: result.iterations,
+        completedIterations: result.completedIterations
       });
     } else {
       return NextResponse.json(

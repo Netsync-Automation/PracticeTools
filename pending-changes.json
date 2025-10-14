@@ -24556,6 +24556,483 @@
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760468459895,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/signup/route.js"
+      },
+      "timestamp": "2025-10-14T19:00:59.895Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json"
+      ]
+    },
+    {
+      "id": 1760468460147,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T19:01:00.147Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468460424,
+      "description": "Enhanced DraggableCard with specific functionality improvements",
+      "details": {
+        "file": "components/DraggableCard.js"
+      },
+      "timestamp": "2025-10-14T19:01:00.424Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468460655,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-14T19:01:00.655Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468463545,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/signup/route.js"
+      },
+      "timestamp": "2025-10-14T19:01:03.545Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468463892,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T19:01:03.892Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468464113,
+      "description": "Enhanced DraggableCard with specific functionality improvements",
+      "details": {
+        "file": "components/DraggableCard.js"
+      },
+      "timestamp": "2025-10-14T19:01:04.114Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468464342,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-14T19:01:04.342Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468467205,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/signup/route.js"
+      },
+      "timestamp": "2025-10-14T19:01:07.205Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468467488,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T19:01:07.488Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468467928,
+      "description": "Enhanced DraggableCard with specific functionality improvements",
+      "details": {
+        "file": "components/DraggableCard.js"
+      },
+      "timestamp": "2025-10-14T19:01:07.928Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468468170,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-14T19:01:08.170Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468638198,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/signup/route.js"
+      },
+      "timestamp": "2025-10-14T19:03:58.198Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468638440,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T19:03:58.440Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468639100,
+      "description": "Enhanced DraggableCard with specific functionality improvements",
+      "details": {
+        "file": "components/DraggableCard.js"
+      },
+      "timestamp": "2025-10-14T19:03:59.100Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468639332,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-14T19:03:59.332Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468644133,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/signup/route.js"
+      },
+      "timestamp": "2025-10-14T19:04:04.133Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468644408,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T19:04:04.408Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468644858,
+      "description": "Enhanced DraggableCard with specific functionality improvements",
+      "details": {
+        "file": "components/DraggableCard.js"
+      },
+      "timestamp": "2025-10-14T19:04:04.858Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468645088,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-14T19:04:05.088Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468649050,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/signup/route.js"
+      },
+      "timestamp": "2025-10-14T19:04:09.050Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468649292,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T19:04:09.292Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468649768,
+      "description": "Enhanced DraggableCard with specific functionality improvements",
+      "details": {
+        "file": "components/DraggableCard.js"
+      },
+      "timestamp": "2025-10-14T19:04:09.768Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468650084,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-14T19:04:10.084Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760472647602,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T20:10:47.602Z",
+      "files": [
+        "app/practice-information/training-certs/page.js"
+      ]
+    },
+    {
+      "id": 1760472648727,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T20:10:48.727Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760472649696,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T20:10:49.696Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760475688893,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T21:01:28.893Z",
+      "files": [
+        "app/practice-information/training-certs/page.js"
+      ]
+    },
+    {
+      "id": 1760475690098,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T21:01:30.098Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760475691165,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-14T21:01:31.165Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -80035,6 +80512,216 @@
         "app/api/training-certs/[id]/signup/route.js",
         "lib/dynamodb.js",
         "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468460908,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-10-14T19:01:00.908Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468464565,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-10-14T19:01:04.565Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468468450,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-10-14T19:01:08.450Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760468638750,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-14T19:03:58.750Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468639570,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-10-14T19:03:59.570Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468640127,
+      "description": "Enhanced semantic version with specific functionality improvements",
+      "details": {
+        "file": "semantic-version.js"
+      },
+      "timestamp": "2025-10-14T19:04:00.127Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468644638,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-14T19:04:04.638Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468645315,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-10-14T19:04:05.315Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468645535,
+      "description": "Enhanced semantic version with specific functionality improvements",
+      "details": {
+        "file": "semantic-version.js"
+      },
+      "timestamp": "2025-10-14T19:04:05.535Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468649523,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-14T19:04:09.523Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468650310,
+      "description": "Enhanced package lockon with specific functionality improvements",
+      "details": {
+        "file": "package-lock.json"
+      },
+      "timestamp": "2025-10-14T19:04:10.310Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
+      ]
+    },
+    {
+      "id": 1760468650561,
+      "description": "Enhanced semantic version with specific functionality improvements",
+      "details": {
+        "file": "semantic-version.js"
+      },
+      "timestamp": "2025-10-14T19:04:10.561Z",
+      "files": [
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "commit-and-push.js",
+        "components/DraggableCard.js",
+        "lib/dynamodb.js",
+        "package-lock.json",
+        "pending-changes.json",
+        "semantic-version.js"
       ]
     }
   ]

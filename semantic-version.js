@@ -5,6 +5,9 @@
  * Handles version calculation for both dev and prod environments
  */
 
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 import { db } from './lib/dynamodb.js';
 
 export class SemanticVersioner {

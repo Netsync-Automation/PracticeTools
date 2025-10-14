@@ -23,6 +23,9 @@ export default function TrainingCertsPage() {
   const [practiceSettings, setPracticeSettings] = useState({ vendors: [], levels: [], types: [] });
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completionEntry, setCompletionEntry] = useState(null);
+  const [showIterationSignupModal, setShowIterationSignupModal] = useState(false);
+  const [showIterationCompletionModal, setShowIterationCompletionModal] = useState(false);
+  const [iterationEntry, setIterationEntry] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
     practice: '',
@@ -461,6 +464,41 @@ export default function TrainingCertsPage() {
                 fetchEntries();
               }}
             />
+
+            <IterationSignupModal
+              isOpen={showIterationSignupModal}
+              onClose={() => setShowIterationSignupModal(false)}
+              entry={iterationEntry}
+              user={user}
+              onSignup={(iterations) => {
+                setShowIterationSignupModal(false);
+                if (iterationEntry) {
+                  handleSignUp(iterationEntry.id, iterations);
+                }
+              }}
+            />
+
+            <IterationCompletionModal
+              isOpen={showIterationCompletionModal}
+              onClose={() => setShowIterationCompletionModal(false)}
+              entry={iterationEntry}
+              user={user}
+              onComplete={() => {
+                setShowIterationCompletionModal(false);
+                const fetchEntries = async () => {
+                  try {
+                    const response = await fetch('/api/training-certs');
+                    if (response.ok) {
+                      const data = await response.json();
+                      setEntries(data.entries || []);
+                    }
+                  } catch (error) {
+                    console.error('Error fetching entries:', error);
+                  }
+                };
+                fetchEntries();
+              }}
+            />
           </div>
         </SidebarLayout>
       </div>
@@ -470,6 +508,9 @@ export default function TrainingCertsPage() {
 function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onPageChange, onEntryClick, canEdit, user, onRefresh, onMarkComplete }) {
   const [userSignUps, setUserSignUps] = useState(new Set());
   const [userCompletions, setUserCompletions] = useState(new Set());
+  const [showIterationSignupModal, setShowIterationSignupModal] = useState(false);
+  const [showIterationCompletionModal, setShowIterationCompletionModal] = useState(false);
+  const [iterationEntry, setIterationEntry] = useState(null);
 
   useEffect(() => {
     if (user && entries.length > 0) {
@@ -479,7 +520,9 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
         const userSignup = (entry.signUps || []).find(signup => signup.email === user.email);
         if (userSignup) {
           signedUpEntries.add(entry.id);
-          if (userSignup.completed) {
+          const totalIterations = userSignup.iterations || 1;
+          const completedIterations = userSignup.completedIterations || 0;
+          if (completedIterations >= totalIterations) {
             completedEntries.add(entry.id);
           }
         }
@@ -489,12 +532,15 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
     }
   }, [user, entries]);
 
-  const handleSignUp = async (entryId) => {
+  const handleSignUp = async (entryId, iterations = 1) => {
     try {
       const response = await fetch(`/api/training-certs/${entryId}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: userSignUps.has(entryId) ? 'remove' : 'add' })
+        body: JSON.stringify({ 
+          action: userSignUps.has(entryId) ? 'remove' : 'add',
+          iterations: iterations
+        })
       });
       if (response.ok) {
         onRefresh();
@@ -502,6 +548,16 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
     } catch (error) {
       console.error('Error updating signup:', error);
     }
+  };
+
+  const handleIterationSignup = (entry) => {
+    setIterationEntry(entry);
+    setShowIterationSignupModal(true);
+  };
+
+  const handleIterationCompletion = (entry) => {
+    setIterationEntry(entry);
+    setShowIterationCompletionModal(true);
   };
 
   const handleUnComplete = async (entryId) => {
@@ -634,7 +690,7 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-sm text-gray-900">
-                      {parseInt(entry.quantityNeeded) || 0}/{(entry.signUps || []).length}/{(entry.signUps || []).filter(signup => signup.completed).length}
+                      {parseInt(entry.quantityNeeded) || 0}/{(entry.signUps || []).reduce((sum, signup) => sum + (signup.iterations || 1), 0)}/{(entry.signUps || []).reduce((sum, signup) => sum + (signup.completedIterations || 0), 0)}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -662,7 +718,11 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleSignUp(entry.id);
+                            if (userSignUps.has(entry.id)) {
+                              handleSignUp(entry.id);
+                            } else {
+                              handleIterationSignup(entry);
+                            }
                           }}
                           className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
                             userSignUps.has(entry.id)
@@ -678,7 +738,7 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onMarkComplete(entry);
+                            handleIterationCompletion(entry);
                           }}
                           className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 border border-green-600 rounded hover:bg-green-700 hover:border-green-700 transition-all duration-200"
                           title="Click here to show that you have completed this training or certification"
@@ -723,6 +783,30 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={onPageChange}
+      />
+      
+      <IterationSignupModal
+        isOpen={showIterationSignupModal}
+        onClose={() => setShowIterationSignupModal(false)}
+        entry={iterationEntry}
+        user={user}
+        onSignup={(iterations) => {
+          setShowIterationSignupModal(false);
+          if (iterationEntry) {
+            handleSignUp(iterationEntry.id, iterations);
+          }
+        }}
+      />
+
+      <IterationCompletionModal
+        isOpen={showIterationCompletionModal}
+        onClose={() => setShowIterationCompletionModal(false)}
+        entry={iterationEntry}
+        user={user}
+        onComplete={() => {
+          setShowIterationCompletionModal(false);
+          onRefresh();
+        }}
       />
     </div>
   );
@@ -1305,7 +1389,9 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
       if (user && entry) {
         const userSignup = (entry.signUps || []).find(signup => signup.email === user.email);
         setUserSignedUp(!!userSignup);
-        setUserCompleted(userSignup?.completed || false);
+        const totalIterations = userSignup?.iterations || 1;
+        const completedIterations = userSignup?.completedIterations || 0;
+        setUserCompleted(completedIterations >= totalIterations);
       }
     }
   }, [isOpen, entry, user]);
@@ -1385,7 +1471,9 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
           // Update local state with fresh data
           const userSignup = (updatedEntry.signUps || []).find(signup => signup.email === user.email);
           setUserSignedUp(!!userSignup);
-          setUserCompleted(userSignup?.completed || false);
+          const totalIterations = userSignup?.iterations || 1;
+          const completedIterations = userSignup?.completedIterations || 0;
+          setUserCompleted(completedIterations >= totalIterations);
           // Update the entry prop for tabs
           Object.assign(entry, updatedEntry);
         }
@@ -1471,7 +1559,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Sign-ups ({(entry?.signUps || []).filter(signup => !signup.completed).length})
+              Signed Up Users ({(entry?.signUps || []).reduce((sum, signup) => sum + (signup.iterations || 1), 0)})
             </button>
             <button
               onClick={() => setActiveTab('completed')}
@@ -1481,7 +1569,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Completed ({(entry?.signUps || []).filter(signup => signup.completed).length})
+              Completed ({(entry?.signUps || []).reduce((sum, signup) => sum + (signup.completedIterations || 0), 0)})
             </button>
           </div>
         </div>
@@ -1798,27 +1886,74 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
           ) : activeTab === 'signups' ? (
             <div className="space-y-4 p-6">
               <div className="flex items-center justify-between">
-                <h4 className="text-md font-medium text-gray-900">Signed Up Users (In Progress)</h4>
+                <h4 className="text-md font-medium text-gray-900">All Signed Up Users</h4>
+                <div className="text-xs text-gray-500">
+                  Shows all users regardless of completion status
+                </div>
               </div>
               
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {(entry?.signUps || []).filter(signup => !signup.completed).length === 0 ? (
-                  <p className="text-gray-500 text-sm">No users signed up or all have completed.</p>
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {(!entry?.signUps || entry.signUps.length === 0) ? (
+                  <p className="text-gray-500 text-sm">No users signed up.</p>
                 ) : (
-                  (entry?.signUps || []).filter(signup => !signup.completed).map((signup, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <div className="font-medium text-gray-900">{signup.name}</div>
-                        <div className="text-sm text-gray-500">{signup.email}</div>
-                        <div className="text-xs text-gray-400">
-                          Signed up: {new Date(signup.signedUpAt || signup.timestamp).toLocaleDateString()}
+                  entry.signUps.map((signup, index) => {
+                    const totalIterations = signup.iterations || 1;
+                    const completedIterations = signup.completedIterations || 0;
+                    const progressPercent = (completedIterations / totalIterations) * 100;
+                    const isFullyCompleted = completedIterations >= totalIterations;
+                    
+                    return (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">{signup.name}</div>
+                            <div className="text-sm text-gray-500">{signup.email}</div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Signed up: {new Date(signup.signedUpAt || signup.timestamp).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                              {totalIterations} iteration{totalIterations > 1 ? 's' : ''}
+                            </span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              isFullyCompleted 
+                                ? 'bg-green-100 text-green-800' 
+                                : completedIterations > 0 
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {isFullyCompleted ? 'Complete' : completedIterations > 0 ? 'Partial' : 'Pending'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Progress</span>
+                            <span className="font-medium text-gray-900">
+                              {completedIterations} of {totalIterations} completed
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                isFullyCompleted ? 'bg-green-600' : completedIterations > 0 ? 'bg-yellow-500' : 'bg-gray-400'
+                              }`}
+                              style={{ width: `${progressPercent}%` }}
+                            ></div>
+                          </div>
+                          {completedIterations > 0 && (
+                            <div className={`text-xs font-medium ${
+                              isFullyCompleted ? 'text-green-600' : 'text-yellow-600'
+                            }`}>
+                              ✓ {completedIterations} iteration{completedIterations > 1 ? 's' : ''} completed
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-yellow-600">In Progress</span>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
               
@@ -1837,47 +1972,130 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                 <h4 className="text-md font-medium text-gray-900">Completed Users</h4>
               </div>
               
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {(entry?.signUps || []).filter(signup => signup.completed).length === 0 ? (
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {(entry?.signUps || []).filter(signup => (signup.completedIterations || 0) > 0).length === 0 ? (
                   <p className="text-gray-500 text-sm">No users have completed this training yet.</p>
                 ) : (
-                  (entry?.signUps || []).filter(signup => signup.completed).map((signup, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{signup.name}</div>
-                        <div className="text-sm text-gray-500">{signup.email}</div>
-                        <div className="text-xs text-gray-400">
-                          Completed: {new Date(signup.completedAt || signup.signedUpAt || signup.timestamp).toLocaleDateString()}
-                        </div>
-                        {signup.completionNotes && (
-                          <div className="text-xs text-gray-600 mt-1 italic">
-                            Notes: {signup.completionNotes}
+                  (entry?.signUps || []).filter(signup => (signup.completedIterations || 0) > 0).map((signup, index) => {
+                    const totalIterations = signup.iterations || 1;
+                    const completedIterations = signup.completedIterations || 0;
+                    const isFullyCompleted = completedIterations >= totalIterations;
+                    const progressPercent = (completedIterations / totalIterations) * 100;
+                    
+                    return (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">{signup.name}</div>
+                            <div className="text-sm text-gray-500">{signup.email}</div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Last completed: {new Date(signup.lastCompletedAt || signup.completedAt || signup.signedUpAt || signup.timestamp).toLocaleDateString()}
+                            </div>
+                            {signup.completionNotes && (
+                              <div className="text-xs text-gray-600 mt-1 italic bg-white p-2 rounded border">
+                                Notes: {signup.completionNotes}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          <span className="text-sm text-green-600 font-medium">Completed</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              isFullyCompleted 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {isFullyCompleted ? 'Fully Complete' : 'Partially Complete'}
+                            </span>
+                          </div>
                         </div>
-                        {signup.certificateUrl && (
-                          <a
-                            href={signup.certificateUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
-                            title="View certificate"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                          </a>
-                        )}
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-600">Completion Progress</span>
+                            <span className="font-medium text-gray-900">
+                              {completedIterations} of {totalIterations} iterations
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                isFullyCompleted ? 'bg-green-600' : 'bg-yellow-500'
+                              }`}
+                              style={{ width: `${progressPercent}%` }}
+                            ></div>
+                          </div>
+                          
+                          {/* Per-iteration certificates */}
+                          {completedIterations > 0 && (
+                            <div className="pt-3 border-t border-gray-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-medium text-gray-700">Iteration Details</span>
+                                <span className="text-xs text-gray-500">{(signup.iterationCertificates || []).filter(cert => cert.certificateUrl).length} certificates uploaded</span>
+                              </div>
+                              <div className="grid grid-cols-1 gap-2">
+                                {Array.from({ length: completedIterations }, (_, index) => {
+                                  const iterationNumber = index + 1;
+                                  const cert = (signup.iterationCertificates || []).find(c => c.iteration === iterationNumber);
+                                  return (
+                                    <div key={`${signup.email}-${iterationNumber}`} className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-5 h-5 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-xs font-semibold">
+                                          {iterationNumber}
+                                        </span>
+                                        <div>
+                                          <div className="text-xs font-medium text-gray-900">Iteration {iterationNumber}</div>
+                                          {cert?.notes && (
+                                            <div className="text-xs text-gray-500 truncate max-w-32" title={cert.notes}>
+                                              {cert.notes}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                      {cert?.certificateUrl ? (
+                                        <a
+                                          href={cert.certificateUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                                          title={`View certificate for iteration ${iterationNumber}`}
+                                        >
+                                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                          </svg>
+                                          View
+                                        </a>
+                                      ) : (
+                                        <span className="text-xs text-gray-400 italic">No file uploaded</span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Legacy single certificate */}
+                          {signup.certificateUrl && (!signup.iterationCertificates || signup.iterationCertificates.length === 0) && (
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                              <span className="text-xs text-gray-600">Certificate Available</span>
+                              <a
+                                href={signup.certificateUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                                title="View certificate"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                View Certificate
+                              </a>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
               
@@ -2076,6 +2294,382 @@ function CompletionModal({ isOpen, onClose, entry, user, onComplete }) {
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
                 {uploading ? 'Marking Complete...' : 'Mark Complete'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function IterationSignupModal({ isOpen, onClose, entry, user, onSignup }) {
+  const [iterations, setIterations] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      await onSignup(iterations);
+    } catch (error) {
+      console.error('Error signing up:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen || !entry) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Sign Up for Training</h3>
+              <p className="text-sm text-gray-600 mt-1">{entry.name}</p>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                How many iterations do you want to sign up for?
+              </label>
+              <div className="flex items-center space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setIterations(Math.max(1, iterations - 1))}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max="99"
+                  value={iterations}
+                  onChange={(e) => setIterations(Math.max(1, Math.min(99, parseInt(e.target.value) || 1)))}
+                  className="w-20 text-center text-lg font-semibold py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setIterations(Math.min(99, iterations + 1))}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                You can track completion progress for each iteration separately
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h4 className="text-sm font-medium text-blue-900">About Iterations</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Iterations allow you to track multiple completions of the same training or certification over time.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium flex items-center"
+              >
+                {loading && (
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {loading ? 'Signing Up...' : `Sign Up for ${iterations} Iteration${iterations > 1 ? 's' : ''}`}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function IterationCompletionModal({ isOpen, onClose, entry, user, onComplete }) {
+  // Get user's current signup info
+  const userSignup = entry?.signUps?.find(signup => signup.email === user?.email);
+  const totalIterations = userSignup?.iterations || 1;
+  const currentCompleted = userSignup?.completedIterations || 0;
+  const remainingIterations = totalIterations - currentCompleted;
+  
+  const [completedIterations, setCompletedIterations] = useState(remainingIterations);
+  const [iterationData, setIterationData] = useState([]);
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Update completedIterations when modal opens with fresh data
+  useEffect(() => {
+    if (isOpen && remainingIterations > 0) {
+      setCompletedIterations(remainingIterations);
+    }
+  }, [isOpen, remainingIterations]);
+
+  // Initialize iteration data when completedIterations changes
+  useEffect(() => {
+    const newData = Array.from({ length: completedIterations }, (_, index) => ({
+      id: index + 1,
+      file: null,
+      notes: ''
+    }));
+    setIterationData(newData);
+  }, [completedIterations]);
+
+  const handleFileChange = (iterationIndex, file) => {
+    if (file && file.type.startsWith('image/')) {
+      setIterationData(prev => prev.map((item, index) => 
+        index === iterationIndex ? { ...item, file } : item
+      ));
+    } else {
+      alert('Please select an image file');
+    }
+  };
+
+  const handleIterationNotesChange = (iterationIndex, notes) => {
+    setIterationData(prev => prev.map((item, index) => 
+      index === iterationIndex ? { ...item, notes: notes.slice(0, 100) } : item
+    ));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('action', 'complete');
+      formData.append('completedIterations', completedIterations.toString());
+      
+      // Add per-iteration data
+      iterationData.forEach((iteration, index) => {
+        if (iteration.file) {
+          formData.append(`certificate_${index}`, iteration.file);
+        }
+        if (iteration.notes) {
+          formData.append(`iterationNotes_${index}`, iteration.notes);
+        }
+      });
+      
+      if (notes) {
+        formData.append('notes', notes);
+      }
+      
+      const response = await fetch(`/api/training-certs/${entry.id}/signup`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (response.ok) {
+        onComplete();
+      }
+    } catch (error) {
+      console.error('Error marking complete:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen || !entry || !userSignup) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-2xl w-full h-[90vh] flex flex-col shadow-2xl">
+        <div className="flex-shrink-0 p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Mark Iterations Complete</h3>
+              <p className="text-sm text-gray-600 mt-1">{entry.name}</p>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-700">Progress</span>
+              <span className="text-sm text-gray-600">{currentCompleted} of {totalIterations} completed</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${(currentCompleted / totalIterations) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                How many iterations did you complete?
+              </label>
+              <div className="flex items-center space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setCompletedIterations(Math.max(1, completedIterations - 1))}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max={remainingIterations}
+                  value={completedIterations}
+                  onChange={(e) => setCompletedIterations(Math.max(1, Math.min(remainingIterations, parseInt(e.target.value) || 1)))}
+                  className="w-20 text-center text-lg font-semibold py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setCompletedIterations(Math.min(remainingIterations, completedIterations + 1))}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Maximum: {remainingIterations} remaining iteration{remainingIterations !== 1 ? 's' : ''}
+              </p>
+            </div>
+
+            {/* Per-iteration uploads */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Iteration Details
+              </h4>
+              
+              <div className="space-y-4 max-h-64 overflow-y-auto">
+                {iterationData.map((iteration, index) => (
+                  <div key={iteration.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-medium text-gray-900 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-semibold">
+                          {index + 1}
+                        </span>
+                        Iteration {index + 1}
+                      </h5>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Certificate Upload
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(index, e.target.files[0])}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        />
+                        {iteration.file && (
+                          <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            {iteration.file.name}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Notes
+                        </label>
+                        <textarea
+                          value={iteration.notes}
+                          onChange={(e) => handleIterationNotesChange(index, e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          rows={2}
+                          maxLength={100}
+                          placeholder="Notes for this iteration..."
+                        />
+                        <div className="text-xs text-gray-500 mt-1">{iteration.notes.length}/100 characters</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Overall Completion Notes (Optional)
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value.slice(0, 200))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows={3}
+                maxLength={200}
+                placeholder="General notes about completing these iterations..."
+              />
+              <div className="text-xs text-gray-500 mt-1">{notes.length}/200 characters</div>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors font-medium flex items-center"
+              >
+                {loading && (
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {loading ? 'Completing...' : `Complete ${completedIterations} Iteration${completedIterations > 1 ? 's' : ''}`}
               </button>
             </div>
           </form>
