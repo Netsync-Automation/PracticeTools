@@ -1553,7 +1553,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Sign-ups ({(entry?.signUps || []).filter(signup => (signup.completedIterations || 0) < (signup.iterations || 1)).length})
+              Sign-ups ({(entry?.signUps || []).reduce((sum, signup) => sum + (signup.iterations || 1), 0)})
             </button>
             <button
               onClick={() => setActiveTab('completed')}
@@ -1563,7 +1563,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Completed ({(entry?.signUps || []).filter(signup => (signup.completedIterations || 0) > 0).length})
+              Completed ({(entry?.signUps || []).reduce((sum, signup) => sum + (signup.completedIterations || 0), 0)})
             </button>
           </div>
         </div>
