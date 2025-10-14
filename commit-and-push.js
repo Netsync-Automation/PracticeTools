@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 import { AutoTracker } from './auto-tracker.js';
 import { SemanticVersioner } from './semantic-version.js';
 import { ReleaseNotesUpdater } from './release-notes-updater.js';
