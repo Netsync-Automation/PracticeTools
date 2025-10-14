@@ -30,6 +30,7 @@ function createDynamoClient(region) {
 class ProdPushManager {
   static appName = null;
   static awsRegion = null;
+  static backupDir = null;
   
   static async getApplicationName() {
     if (this.appName) return this.appName;
@@ -71,6 +72,27 @@ class ProdPushManager {
         this.awsRegion = region;
         console.log(`✅ Using AWS region: ${region}`);
         resolve(region);
+      });
+    });
+  }
+  
+  static async getBackupDirectory() {
+    if (this.backupDir) return this.backupDir;
+    
+    const defaultDir = 'D:\\Coding\\Backups\\PracticeTools\\prod';
+    
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    
+    return new Promise((resolve) => {
+      rl.question(`\n💾 Production Backup Directory [${defaultDir}]: `, (answer) => {
+        rl.close();
+        const backupDir = answer.trim() || defaultDir;
+        this.backupDir = backupDir;
+        console.log(`✅ Using backup directory: ${backupDir}`);
+        resolve(backupDir);
       });
     });
   }
@@ -452,7 +474,7 @@ class ProdPushManager {
   
   static async createBackup() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').split('.')[0];
-    const backupPath = join('D:', 'Coding', 'Backups', this.appName, 'prod', timestamp);
+    const backupPath = join(this.backupDir, this.appName, timestamp);
     
     // Create backup directory
     mkdirSync(backupPath, { recursive: true });
@@ -924,9 +946,10 @@ class ProdPushManager {
 async function main() {
   console.log('🚀 PRODUCTION PUSH SYSTEM\n');
   
-  // Step 0: Get and confirm application name and AWS region
+  // Step 0: Get and confirm application name, AWS region, and backup directory
   await ProdPushManager.getApplicationName();
   await ProdPushManager.getAwsRegion();
+  await ProdPushManager.getBackupDirectory();
   
   const results = {
     diffAnalysis: false,
