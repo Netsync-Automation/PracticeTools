@@ -520,7 +520,9 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
         const userSignup = (entry.signUps || []).find(signup => signup.email === user.email);
         if (userSignup) {
           signedUpEntries.add(entry.id);
-          if (userSignup.completed) {
+          const totalIterations = userSignup.iterations || 1;
+          const completedIterations = userSignup.completedIterations || 0;
+          if (completedIterations >= totalIterations) {
             completedEntries.add(entry.id);
           }
         }
@@ -1387,7 +1389,9 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
       if (user && entry) {
         const userSignup = (entry.signUps || []).find(signup => signup.email === user.email);
         setUserSignedUp(!!userSignup);
-        setUserCompleted(userSignup?.completed || false);
+        const totalIterations = userSignup?.iterations || 1;
+        const completedIterations = userSignup?.completedIterations || 0;
+        setUserCompleted(completedIterations >= totalIterations);
       }
     }
   }, [isOpen, entry, user]);
@@ -1467,7 +1471,9 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
           // Update local state with fresh data
           const userSignup = (updatedEntry.signUps || []).find(signup => signup.email === user.email);
           setUserSignedUp(!!userSignup);
-          setUserCompleted(userSignup?.completed || false);
+          const totalIterations = userSignup?.iterations || 1;
+          const completedIterations = userSignup?.completedIterations || 0;
+          setUserCompleted(completedIterations >= totalIterations);
           // Update the entry prop for tabs
           Object.assign(entry, updatedEntry);
         }
@@ -1553,7 +1559,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Sign-ups ({(entry?.signUps || []).reduce((sum, signup) => sum + (signup.iterations || 1), 0)})
+              Signed Up Users ({(entry?.signUps || []).reduce((sum, signup) => sum + (signup.iterations || 1), 0)})
             </button>
             <button
               onClick={() => setActiveTab('completed')}
@@ -1880,17 +1886,21 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
           ) : activeTab === 'signups' ? (
             <div className="space-y-4 p-6">
               <div className="flex items-center justify-between">
-                <h4 className="text-md font-medium text-gray-900">Signed Up Users (In Progress)</h4>
+                <h4 className="text-md font-medium text-gray-900">All Signed Up Users</h4>
+                <div className="text-xs text-gray-500">
+                  Shows all users regardless of completion status
+                </div>
               </div>
               
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                {(entry?.signUps || []).filter(signup => (signup.completedIterations || 0) < (signup.iterations || 1)).length === 0 ? (
-                  <p className="text-gray-500 text-sm">No users signed up or all have completed.</p>
+                {(!entry?.signUps || entry.signUps.length === 0) ? (
+                  <p className="text-gray-500 text-sm">No users signed up.</p>
                 ) : (
-                  (entry?.signUps || []).filter(signup => (signup.completedIterations || 0) < (signup.iterations || 1)).map((signup, index) => {
+                  entry.signUps.map((signup, index) => {
                     const totalIterations = signup.iterations || 1;
                     const completedIterations = signup.completedIterations || 0;
                     const progressPercent = (completedIterations / totalIterations) * 100;
+                    const isFullyCompleted = completedIterations >= totalIterations;
                     
                     return (
                       <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1906,6 +1916,15 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                             <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                               {totalIterations} iteration{totalIterations > 1 ? 's' : ''}
                             </span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              isFullyCompleted 
+                                ? 'bg-green-100 text-green-800' 
+                                : completedIterations > 0 
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {isFullyCompleted ? 'Complete' : completedIterations > 0 ? 'Partial' : 'Pending'}
+                            </span>
                           </div>
                         </div>
                         
@@ -1918,12 +1937,16 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                isFullyCompleted ? 'bg-green-600' : completedIterations > 0 ? 'bg-yellow-500' : 'bg-gray-400'
+                              }`}
                               style={{ width: `${progressPercent}%` }}
                             ></div>
                           </div>
                           {completedIterations > 0 && (
-                            <div className="text-xs text-green-600 font-medium">
+                            <div className={`text-xs font-medium ${
+                              isFullyCompleted ? 'text-green-600' : 'text-yellow-600'
+                            }`}>
                               ✓ {completedIterations} iteration{completedIterations > 1 ? 's' : ''} completed
                             </div>
                           )}
@@ -2002,47 +2025,51 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                           </div>
                           
                           {/* Per-iteration certificates */}
-                          {signup.iterationCertificates && signup.iterationCertificates.length > 0 && (
+                          {completedIterations > 0 && (
                             <div className="pt-3 border-t border-gray-200">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-medium text-gray-700">Iteration Certificates</span>
-                                <span className="text-xs text-gray-500">{signup.iterationCertificates.filter(cert => cert.certificateUrl).length} available</span>
+                                <span className="text-xs font-medium text-gray-700">Iteration Details</span>
+                                <span className="text-xs text-gray-500">{(signup.iterationCertificates || []).filter(cert => cert.certificateUrl).length} certificates uploaded</span>
                               </div>
                               <div className="grid grid-cols-1 gap-2">
-                                {signup.iterationCertificates.map((cert, certIndex) => (
-                                  <div key={certIndex} className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
-                                    <div className="flex items-center gap-2">
-                                      <span className="w-5 h-5 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-xs font-semibold">
-                                        {cert.iteration}
-                                      </span>
-                                      <div>
-                                        <div className="text-xs font-medium text-gray-900">Iteration {cert.iteration}</div>
-                                        {cert.notes && (
-                                          <div className="text-xs text-gray-500 truncate max-w-32" title={cert.notes}>
-                                            {cert.notes}
-                                          </div>
-                                        )}
+                                {Array.from({ length: completedIterations }, (_, index) => {
+                                  const iterationNumber = index + 1;
+                                  const cert = (signup.iterationCertificates || []).find(c => c.iteration === iterationNumber);
+                                  return (
+                                    <div key={`${signup.email}-${iterationNumber}`} className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-5 h-5 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-xs font-semibold">
+                                          {iterationNumber}
+                                        </span>
+                                        <div>
+                                          <div className="text-xs font-medium text-gray-900">Iteration {iterationNumber}</div>
+                                          {cert?.notes && (
+                                            <div className="text-xs text-gray-500 truncate max-w-32" title={cert.notes}>
+                                              {cert.notes}
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
+                                      {cert?.certificateUrl ? (
+                                        <a
+                                          href={cert.certificateUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                                          title={`View certificate for iteration ${iterationNumber}`}
+                                        >
+                                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                          </svg>
+                                          View
+                                        </a>
+                                      ) : (
+                                        <span className="text-xs text-gray-400 italic">No file uploaded</span>
+                                      )}
                                     </div>
-                                    {cert.certificateUrl ? (
-                                      <a
-                                        href={cert.certificateUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
-                                        title={`View certificate for iteration ${cert.iteration}`}
-                                      >
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        View
-                                      </a>
-                                    ) : (
-                                      <span className="text-xs text-gray-400 italic">No certificate</span>
-                                    )}
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </div>
                           )}
