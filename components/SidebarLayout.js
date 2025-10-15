@@ -83,6 +83,12 @@ const menuItems = [
         name: 'SA Assignments',
         href: '/projects/sa-assignments',
         description: 'Manage SA assignments and allocations'
+      },
+      {
+        id: 'quoting-tools',
+        name: 'Quoting Tools',
+        href: '/pre-sales/quoting-tools',
+        description: 'Manage quoting tools and processes'
       }
     ]
   },

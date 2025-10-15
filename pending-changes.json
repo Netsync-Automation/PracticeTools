@@ -80758,6 +80758,41 @@
         "pending-changes.json",
         "push-to-prod.js"
       ]
+    },
+    {
+      "id": 1760540227551,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-15T14:57:07.551Z",
+      "files": [
+        "components/SidebarLayout.js"
+      ]
+    },
+    {
+      "id": 1760540229321,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-15T14:57:09.321Z",
+      "files": [
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760540231097,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-15T14:57:11.097Z",
+      "files": [
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
     }
   ]
 }
