@@ -25033,6 +25033,221 @@
         "app/practice-information/training-certs/page.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760572774284,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-15T23:59:34.284Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1760572774375,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/signup/route.js"
+      },
+      "timestamp": "2025-10-15T23:59:34.375Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572774495,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-15T23:59:34.495Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572774870,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-15T23:59:34.870Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572776372,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-15T23:59:36.372Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572776485,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/signup/route.js"
+      },
+      "timestamp": "2025-10-15T23:59:36.485Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572776576,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-15T23:59:36.576Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572777045,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-15T23:59:37.045Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572778259,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/route.js"
+      },
+      "timestamp": "2025-10-15T23:59:38.259Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572778350,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/training-certs/[id]/signup/route.js"
+      },
+      "timestamp": "2025-10-15T23:59:38.350Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572778419,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-15T23:59:38.419Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572778783,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-15T23:59:38.783Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -80791,6 +81006,168 @@
       "timestamp": "2025-10-15T14:57:11.097Z",
       "files": [
         "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572774609,
+      "description": "Updated page.js",
+      "details": {
+        "file": "app/pre-sales/quoting-tools/olympus/page.js"
+      },
+      "timestamp": "2025-10-15T23:59:34.609Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572774680,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/pre-sales/quoting-tools/page.js"
+      },
+      "timestamp": "2025-10-15T23:59:34.680Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572774770,
+      "description": "Updated OlympusQuoteWizard.js",
+      "details": {
+        "file": "components/OlympusQuoteWizard.js"
+      },
+      "timestamp": "2025-10-15T23:59:34.770Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572776685,
+      "description": "Updated page.js",
+      "details": {
+        "file": "app/pre-sales/quoting-tools/olympus/page.js"
+      },
+      "timestamp": "2025-10-15T23:59:36.685Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572776794,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/pre-sales/quoting-tools/page.js"
+      },
+      "timestamp": "2025-10-15T23:59:36.794Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572776929,
+      "description": "Updated OlympusQuoteWizard.js",
+      "details": {
+        "file": "components/OlympusQuoteWizard.js"
+      },
+      "timestamp": "2025-10-15T23:59:36.929Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572778536,
+      "description": "Updated page.js",
+      "details": {
+        "file": "app/pre-sales/quoting-tools/olympus/page.js"
+      },
+      "timestamp": "2025-10-15T23:59:38.536Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572778623,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/pre-sales/quoting-tools/page.js"
+      },
+      "timestamp": "2025-10-15T23:59:38.623Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760572778696,
+      "description": "Updated OlympusQuoteWizard.js",
+      "details": {
+        "file": "components/OlympusQuoteWizard.js"
+      },
+      "timestamp": "2025-10-15T23:59:38.696Z",
+      "files": [
+        "app/api/training-certs/[id]/route.js",
+        "app/api/training-certs/[id]/signup/route.js",
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/olympus/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "components/OlympusQuoteWizard.js",
+        "lib/dynamodb.js",
         "pending-changes.json"
       ]
     }
