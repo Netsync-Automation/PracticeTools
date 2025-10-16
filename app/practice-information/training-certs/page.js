@@ -29,15 +29,32 @@ export default function TrainingCertsPage() {
   const [showRevertWarningModal, setShowRevertWarningModal] = useState(false);
   const [revertEntry, setRevertEntry] = useState(null);
   const [iterationEntry, setIterationEntry] = useState(null);
-  const [filters, setFilters] = useState({
-    search: '',
-    practice: '',
-    type: '',
-    vendor: '',
-    level: ''
+  const [filters, setFilters] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('trainingCertsFilters');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Error parsing saved filters:', e);
+        }
+      }
+    }
+    return {
+      search: '',
+      practice: '',
+      type: '',
+      vendor: '',
+      level: ''
+    };
   });
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 20;
+
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('trainingCertsFilters', JSON.stringify(filters));
+  }, [filters]);
 
   const canAddNew = () => {
     return user?.isAdmin || user?.role === 'practice_manager' || user?.role === 'practice_principal';
@@ -205,13 +222,15 @@ export default function TrainingCertsPage() {
                 </h3>
                 <button
                   onClick={() => {
-                    setFilters({
+                    const resetFilters = {
                       search: '',
                       practice: '',
                       type: '',
                       vendor: '',
                       level: ''
-                    });
+                    };
+                    setFilters(resetFilters);
+                    localStorage.setItem('trainingCertsFilters', JSON.stringify(resetFilters));
                     setCurrentPage(1);
                   }}
                   className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -1479,6 +1498,8 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
   const [showIterationCompletionModal, setShowIterationCompletionModal] = useState(false);
   const [showEditSignupModal, setShowEditSignupModal] = useState(false);
   const [showRevertWarning, setShowRevertWarning] = useState(false);
+  const [signupSearch, setSignupSearch] = useState('');
+  const [completedSearch, setCompletedSearch] = useState('');
 
   const hasEditPermission = canEdit(entry || {});
 
@@ -2032,11 +2053,23 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
           ) : activeTab === 'signups' ? (
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-shrink-0 p-6 pb-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <h4 className="text-md font-medium text-gray-900">All Signed Up Users</h4>
                   <div className="text-xs text-gray-500">
                     Shows all users regardless of completion status
                   </div>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, dates, or notes..."
+                    value={signupSearch}
+                    onChange={(e) => setSignupSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                  <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
               </div>
               
@@ -2045,7 +2078,23 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                   {(!entry?.signUps || entry.signUps.length === 0) ? (
                     <p className="text-gray-500 text-sm">No users signed up.</p>
                   ) : (
-                    entry.signUps.map((signup, index) => {
+                    entry.signUps
+                      .filter(signup => {
+                        if (!signupSearch) return true;
+                        const search = signupSearch.toLowerCase();
+                        const signupDate = new Date(signup.signedUpAt || signup.timestamp).toLocaleDateString();
+                        return signup.name.toLowerCase().includes(search) ||
+                               signup.email.toLowerCase().includes(search) ||
+                               signupDate.includes(search) ||
+                               (signup.completionNotes && signup.completionNotes.toLowerCase().includes(search)) ||
+                               (signup.iterationCertificates || []).some(cert => cert.notes && cert.notes.toLowerCase().includes(search));
+                      })
+                      .sort((a, b) => {
+                        if (a.email === user?.email) return -1;
+                        if (b.email === user?.email) return 1;
+                        return a.name.localeCompare(b.name);
+                      })
+                      .map((signup, index) => {
                       const totalIterations = signup.iterations || 1;
                       const completedIterations = signup.completedIterations || 0;
                       const progressPercent = (completedIterations / totalIterations) * 100;
@@ -2110,8 +2159,20 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
           ) : activeTab === 'completed' ? (
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-shrink-0 p-6 pb-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <h4 className="text-md font-medium text-gray-900">Completed Users</h4>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, dates, or notes..."
+                    value={completedSearch}
+                    onChange={(e) => setCompletedSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                  <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
               </div>
               
@@ -2120,7 +2181,24 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                   {(entry?.signUps || []).filter(signup => (signup.completedIterations || 0) > 0).length === 0 ? (
                     <p className="text-gray-500 text-sm">No users have completed this training yet.</p>
                   ) : (
-                    (entry?.signUps || []).filter(signup => (signup.completedIterations || 0) > 0).map((signup, index) => {
+                    (entry?.signUps || [])
+                      .filter(signup => (signup.completedIterations || 0) > 0)
+                      .filter(signup => {
+                        if (!completedSearch) return true;
+                        const search = completedSearch.toLowerCase();
+                        const completedDate = new Date(signup.lastCompletedAt || signup.completedAt || signup.signedUpAt || signup.timestamp).toLocaleDateString();
+                        return signup.name.toLowerCase().includes(search) ||
+                               signup.email.toLowerCase().includes(search) ||
+                               completedDate.includes(search) ||
+                               (signup.completionNotes && signup.completionNotes.toLowerCase().includes(search)) ||
+                               (signup.iterationCertificates || []).some(cert => cert.notes && cert.notes.toLowerCase().includes(search));
+                      })
+                      .sort((a, b) => {
+                        if (a.email === user?.email) return -1;
+                        if (b.email === user?.email) return 1;
+                        return a.name.localeCompare(b.name);
+                      })
+                      .map((signup, index) => {
                       const totalIterations = signup.iterations || 1;
                       const completedIterations = signup.completedIterations || 0;
                       const isFullyCompleted = completedIterations >= totalIterations;

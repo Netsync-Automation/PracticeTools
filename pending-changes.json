@@ -25248,6 +25248,95 @@
         "lib/dynamodb.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760625383462,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-16T14:36:23.462Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js"
+      ]
+    },
+    {
+      "id": 1760625383525,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/pre-sales/quoting-tools/page.js"
+      },
+      "timestamp": "2025-10-16T14:36:23.525Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625384717,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-16T14:36:24.717Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625384796,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/pre-sales/quoting-tools/page.js"
+      },
+      "timestamp": "2025-10-16T14:36:24.796Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625385655,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/practice-information/training-certs/page.js"
+      },
+      "timestamp": "2025-10-16T14:36:25.655Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625385748,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/pre-sales/quoting-tools/page.js"
+      },
+      "timestamp": "2025-10-16T14:36:25.748Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -81168,6 +81257,96 @@
         "app/pre-sales/quoting-tools/page.js",
         "components/OlympusQuoteWizard.js",
         "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625383674,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-16T14:36:23.674Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625383769,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-16T14:36:23.769Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625384888,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-16T14:36:24.888Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625384974,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-16T14:36:24.974Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625385813,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/projects/resource-assignments/page.js"
+      },
+      "timestamp": "2025-10-16T14:36:25.813Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760625385908,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-16T14:36:25.908Z",
+      "files": [
+        "app/practice-information/training-certs/page.js",
+        "app/pre-sales/quoting-tools/page.js",
+        "app/projects/resource-assignments/page.js",
+        "components/SidebarLayout.js",
         "pending-changes.json"
       ]
     }

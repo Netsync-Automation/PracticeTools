@@ -476,7 +476,7 @@ export default function SidebarLayout({ children, user }) {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           {children}
         </main>
       </div>
