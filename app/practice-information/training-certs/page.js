@@ -162,7 +162,7 @@ export default function TrainingCertsPage() {
 
   return (
     <AccessCheck user={user}>
-      <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-50">
         <Navbar user={user} onLogout={handleLogout} />
         
         <SidebarLayout user={user}>

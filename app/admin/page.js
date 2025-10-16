@@ -150,7 +150,7 @@ export default function AdminPage() {
 
   return (
     <AccessCheck user={user}>
-      <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-50">
         <Navbar user={user} onLogout={logout} />
       
       <div className="mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-8" style={{maxWidth: 'calc(100vw - 4rem)'}}>
