@@ -83,6 +83,12 @@ const menuItems = [
         name: 'SA Assignments',
         href: '/projects/sa-assignments',
         description: 'Manage SA assignments and allocations'
+      },
+      {
+        id: 'quoting-tools',
+        name: 'Quoting Tools',
+        href: '/pre-sales/quoting-tools',
+        description: 'Manage quoting tools and processes'
       }
     ]
   },
@@ -470,7 +476,7 @@ export default function SidebarLayout({ children, user }) {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           {children}
         </main>
       </div>

@@ -62,19 +62,24 @@ export async function PUT(request, { params }) {
     };
     console.log('[TRAINING-CERTS-UPDATE] Update data with lastEditedBy:', updateData);
     
-    let success;
+    let result;
     try {
-      success = await db.updateTrainingCert(id, updateData);
+      result = await db.updateTrainingCert(id, updateData);
     } catch (dbError) {
       console.error('Database error caught in API:', dbError);
       throw dbError;
     }
 
-    if (success) {
-      return NextResponse.json({ success: true });
+    if (result.success) {
+      return NextResponse.json({ 
+        success: true,
+        warning: result.warning,
+        affectedSignups: result.affectedSignups,
+        cleanupPerformed: result.cleanupPerformed
+      });
     } else {
       return NextResponse.json(
-        { success: false, error: 'Failed to update training cert entry' },
+        { success: false, error: result.error || 'Failed to update training cert entry' },
         { status: 500 }
       );
     }

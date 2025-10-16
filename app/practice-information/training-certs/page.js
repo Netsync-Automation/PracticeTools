@@ -25,16 +25,36 @@ export default function TrainingCertsPage() {
   const [completionEntry, setCompletionEntry] = useState(null);
   const [showIterationSignupModal, setShowIterationSignupModal] = useState(false);
   const [showIterationCompletionModal, setShowIterationCompletionModal] = useState(false);
+  const [showEditSignupModal, setShowEditSignupModal] = useState(false);
+  const [showRevertWarningModal, setShowRevertWarningModal] = useState(false);
+  const [revertEntry, setRevertEntry] = useState(null);
   const [iterationEntry, setIterationEntry] = useState(null);
-  const [filters, setFilters] = useState({
-    search: '',
-    practice: '',
-    type: '',
-    vendor: '',
-    level: ''
+  const [filters, setFilters] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('trainingCertsFilters');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Error parsing saved filters:', e);
+        }
+      }
+    }
+    return {
+      search: '',
+      practice: '',
+      type: '',
+      vendor: '',
+      level: ''
+    };
   });
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 20;
+
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('trainingCertsFilters', JSON.stringify(filters));
+  }, [filters]);
 
   const canAddNew = () => {
     return user?.isAdmin || user?.role === 'practice_manager' || user?.role === 'practice_principal';
@@ -202,13 +222,15 @@ export default function TrainingCertsPage() {
                 </h3>
                 <button
                   onClick={() => {
-                    setFilters({
+                    const resetFilters = {
                       search: '',
                       practice: '',
                       type: '',
                       vendor: '',
                       level: ''
-                    });
+                    };
+                    setFilters(resetFilters);
+                    localStorage.setItem('trainingCertsFilters', JSON.stringify(resetFilters));
                     setCurrentPage(1);
                   }}
                   className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -414,6 +436,8 @@ export default function TrainingCertsPage() {
               }}
             />
 
+
+
             <AddTrainingModal
               isOpen={showAddModal}
               onClose={() => {
@@ -483,7 +507,7 @@ export default function TrainingCertsPage() {
               onClose={() => setShowIterationCompletionModal(false)}
               entry={iterationEntry}
               user={user}
-              onComplete={() => {
+              onComplete={async () => {
                 setShowIterationCompletionModal(false);
                 const fetchEntries = async () => {
                   try {
@@ -491,12 +515,19 @@ export default function TrainingCertsPage() {
                     if (response.ok) {
                       const data = await response.json();
                       setEntries(data.entries || []);
+                      // Update iterationEntry with fresh data
+                      if (iterationEntry) {
+                        const updatedEntry = data.entries.find(e => e.id === iterationEntry.id);
+                        if (updatedEntry) {
+                          setIterationEntry(updatedEntry);
+                        }
+                      }
                     }
                   } catch (error) {
                     console.error('Error fetching entries:', error);
                   }
                 };
-                fetchEntries();
+                await fetchEntries();
               }}
             />
           </div>
@@ -510,6 +541,8 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
   const [userCompletions, setUserCompletions] = useState(new Set());
   const [showIterationSignupModal, setShowIterationSignupModal] = useState(false);
   const [showIterationCompletionModal, setShowIterationCompletionModal] = useState(false);
+  const [showRevertWarningModal, setShowRevertWarningModal] = useState(false);
+  const [revertEntry, setRevertEntry] = useState(null);
   const [iterationEntry, setIterationEntry] = useState(null);
 
   useEffect(() => {
@@ -560,15 +593,66 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
     setShowIterationCompletionModal(true);
   };
 
-  const handleUnComplete = async (entryId) => {
+  const handleEditSignup = (entry) => {
+    setIterationEntry(entry);
+    setShowEditSignupModal(true);
+  };
+
+  const [showEditSignupModal, setShowEditSignupModal] = useState(false);
+
+  const handleEditSignupSubmit = async (newIterations, force = false) => {
     try {
-      const response = await fetch(`/api/training-certs/${entryId}/signup`, {
+      const response = await fetch(`/api/training-certs/${iterationEntry.id}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'editSignup',
+          iterations: newIterations,
+          force: force
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setShowEditSignupModal(false);
+        onRefresh();
+        return { success: true };
+      } else if (result.error === 'ITERATIONS_CONFLICT') {
+        return { 
+          success: false, 
+          conflict: true, 
+          completedIterations: result.completedIterations,
+          newIterations: result.newIterations,
+          affectedIterations: result.affectedIterations
+        };
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error editing signup:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const handleUnComplete = (entry) => {
+    setRevertEntry(entry);
+    setShowRevertWarningModal(true);
+  };
+
+  const confirmRevert = async () => {
+    if (!revertEntry) return;
+    
+    try {
+      const response = await fetch(`/api/training-certs/${revertEntry.id}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'uncomplete' })
       });
       if (response.ok) {
         onRefresh();
+        setShowRevertWarningModal(false);
+        setRevertEntry(null);
       }
     } catch (error) {
       console.error('Error updating completion:', error);
@@ -714,6 +798,18 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
+                      {userSignUps.has(entry.id) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditSignup(entry);
+                          }}
+                          className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
+                          title="Edit your signup iterations for this training or certification"
+                        >
+                          Edit
+                        </button>
+                      )}
                       {!userCompletions.has(entry.id) && (
                         <button
                           onClick={(e) => {
@@ -750,7 +846,7 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleUnComplete(entry.id);
+                            handleUnComplete(entry);
                           }}
                           className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 border border-green-600 rounded hover:bg-green-700 hover:border-green-700 transition-all duration-200"
                           title="You have completed this training or certification, click to Revert to Signed Up"
@@ -803,10 +899,44 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
         onClose={() => setShowIterationCompletionModal(false)}
         entry={iterationEntry}
         user={user}
-        onComplete={() => {
+        onComplete={async () => {
           setShowIterationCompletionModal(false);
           onRefresh();
+          // Refresh the iterationEntry with latest data
+          if (iterationEntry) {
+            try {
+              const response = await fetch('/api/training-certs');
+              if (response.ok) {
+                const data = await response.json();
+                const updatedEntry = data.entries.find(e => e.id === iterationEntry.id);
+                if (updatedEntry) {
+                  setIterationEntry(updatedEntry);
+                }
+              }
+            } catch (error) {
+              console.error('Error refreshing iteration entry:', error);
+            }
+          }
         }}
+      />
+
+      <EditSignupModal
+        isOpen={showEditSignupModal}
+        onClose={() => setShowEditSignupModal(false)}
+        entry={iterationEntry}
+        user={user}
+        onSubmit={handleEditSignupSubmit}
+      />
+
+      <RevertWarningModal
+        isOpen={showRevertWarningModal}
+        onClose={() => {
+          setShowRevertWarningModal(false);
+          setRevertEntry(null);
+        }}
+        entry={revertEntry}
+        user={user}
+        onConfirm={confirmRevert}
       />
     </div>
   );
@@ -1364,6 +1494,12 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
   const [userSignedUp, setUserSignedUp] = useState(false);
   const [userCompleted, setUserCompleted] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showIterationSignupModal, setShowIterationSignupModal] = useState(false);
+  const [showIterationCompletionModal, setShowIterationCompletionModal] = useState(false);
+  const [showEditSignupModal, setShowEditSignupModal] = useState(false);
+  const [showRevertWarning, setShowRevertWarning] = useState(false);
+  const [signupSearch, setSignupSearch] = useState('');
+  const [completedSearch, setCompletedSearch] = useState('');
 
   const hasEditPermission = canEdit(entry || {});
 
@@ -1432,11 +1568,41 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
       });
       
       if (response.ok) {
+        const result = await response.json();
+        
+        // Show warning if iterations were reduced and data was affected
+        if (result.warning && result.affectedSignups && result.affectedSignups.length > 0) {
+          const affectedCount = result.affectedSignups.length;
+          const totalRemovedIterations = result.affectedSignups.reduce((sum, user) => sum + user.removedIterations, 0);
+          
+          alert(`Warning: ${result.warning}\n\nDetails:\n- ${affectedCount} user signup(s) affected\n- ${totalRemovedIterations} completed iteration(s) and associated certificates removed\n\nThe view will now refresh to show updated data.`);
+        }
+        
         await onSave();
+        
+        // Refresh the entry data to update the modal tabs
+        try {
+          const entriesResponse = await fetch('/api/training-certs');
+          if (entriesResponse.ok) {
+            const data = await entriesResponse.json();
+            const updatedEntry = data.entries.find(e => e.id === entry.id);
+            if (updatedEntry) {
+              // Update the entry object to refresh the modal tabs
+              Object.assign(entry, updatedEntry);
+            }
+          }
+        } catch (refreshError) {
+          console.error('Error refreshing entry data:', refreshError);
+        }
+        
         onClose();
+      } else {
+        const errorData = await response.json();
+        alert(`Error updating training/certification: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error updating:', error);
+      alert('Error updating training/certification. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -1486,20 +1652,89 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
 
   const handleSignUp = async () => {
     try {
-      const response = await fetch(`/api/training-certs/${entry.id}/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: userSignedUp ? 'remove' : 'add' })
-      });
-      if (response.ok) {
-        await refreshEntryData();
+      if (userSignedUp) {
+        const response = await fetch(`/api/training-certs/${entry.id}/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'remove' })
+        });
+        if (response.ok) {
+          await refreshEntryData();
+        }
+      } else {
+        setShowIterationSignupModal(true);
       }
     } catch (error) {
       console.error('Error updating signup:', error);
     }
   };
 
-  const handleUnComplete = async () => {
+  const handleIterationSignup = async (iterations) => {
+    try {
+      const response = await fetch(`/api/training-certs/${entry.id}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add', iterations })
+      });
+      if (response.ok) {
+        setShowIterationSignupModal(false);
+        await refreshEntryData();
+      }
+    } catch (error) {
+      console.error('Error signing up:', error);
+    }
+  };
+
+  // Handler for editing user signup iterations
+  const handleEditSignup = () => {
+    setShowEditSignupModal(true);
+  };
+
+  const handleEditSignupSubmit = async (newIterations, force = false) => {
+    try {
+      const response = await fetch(`/api/training-certs/${entry.id}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'editSignup',
+          iterations: newIterations,
+          force: force
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setShowEditSignupModal(false);
+        await refreshEntryData();
+        return { success: true };
+      } else if (result.error === 'ITERATIONS_CONFLICT') {
+        return { 
+          success: false, 
+          conflict: true, 
+          completedIterations: result.completedIterations,
+          newIterations: result.newIterations,
+          affectedIterations: result.affectedIterations
+        };
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error editing signup:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const handleUnComplete = () => {
+    setShowRevertWarning(true);
+  };
+
+  const handleIterationCompletion = async () => {
+    setShowIterationCompletionModal(false);
+    await refreshEntryData();
+  };
+
+  const confirmRevert = async () => {
     try {
       const response = await fetch(`/api/training-certs/${entry.id}/signup`, {
         method: 'POST',
@@ -1508,6 +1743,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
       });
       if (response.ok) {
         await refreshEntryData();
+        setShowRevertWarning(false);
       }
     } catch (error) {
       console.error('Error updating completion:', error);
@@ -1515,7 +1751,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
   };
 
   const handleMarkComplete = () => {
-    setShowCompletionModal(true);
+    setShowIterationCompletionModal(true);
   };
 
   const handleCompletionSuccess = async () => {
@@ -1528,7 +1764,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full h-[90vh] flex flex-col">
-        <div className="p-6 flex-shrink-0">
+        <div className="p-6 flex-shrink-0 border-b border-gray-200">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">
               {hasEditPermission ? 'Edit' : 'View'} Training/Certification
@@ -1540,7 +1776,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
             </button>
           </div>
 
-          <div className="flex border-b border-gray-200 mb-6">
+          <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab('details')}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
@@ -1574,9 +1810,9 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-hidden flex flex-col">
           {activeTab === 'details' ? (
-            <form onSubmit={handleSubmit} className="h-full flex flex-col">
+            <form id="edit-form" onSubmit={handleSubmit} className="h-full flex flex-col">
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -1813,311 +2049,398 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
               </div>
 
               </div>
-              <div className="flex justify-between items-center px-6 py-4 border-t bg-gray-50/50">
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2">
-                  {!userCompleted && (
-                    <button
-                      type="button"
-                      onClick={handleSignUp}
-                      className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
-                        userSignedUp
-                          ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:border-green-300'
-                          : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300'
-                      }`}
-                      title={userSignedUp ? 'Remove yourself from the Sign-Up of this training or certification' : 'Sign up for this training or certification'}
-                    >
-                      {userSignedUp ? 'Unsign' : 'Sign Up'}
-                    </button>
-                  )}
-                  {userSignedUp && !userCompleted && (
-                    <button
-                      type="button"
-                      onClick={handleMarkComplete}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-md hover:bg-green-700 hover:border-green-700 transition-all duration-200"
-                      title="Click here to show that you have completed this training or certification"
-                    >
-                      Complete
-                    </button>
-                  )}
-                  {userCompleted && (
-                    <button
-                      type="button"
-                      onClick={handleUnComplete}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-md hover:bg-green-700 hover:border-green-700 transition-all duration-200"
-                      title="You have completed this training or certification, click to Revert to Signed Up"
-                    >
-                      Revert
-                    </button>
-                  )}
-                </div>
-                
-                {/* Form Buttons */}
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
-                  >
-                    {hasEditPermission ? 'Cancel' : 'Close'}
-                  </button>
-                  {hasEditPermission && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleDelete}
-                        disabled={deleting || saving}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-md hover:bg-red-700 hover:border-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                      >
-                        {deleting ? 'Deleting...' : 'Delete'}
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={saving || deleting}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 hover:border-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                      >
-                        {saving ? 'Updating...' : 'Update'}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
             </form>
           ) : activeTab === 'signups' ? (
-            <div className="space-y-4 p-6">
-              <div className="flex items-center justify-between">
-                <h4 className="text-md font-medium text-gray-900">All Signed Up Users</h4>
-                <div className="text-xs text-gray-500">
-                  Shows all users regardless of completion status
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-shrink-0 p-6 pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-md font-medium text-gray-900">All Signed Up Users</h4>
+                  <div className="text-xs text-gray-500">
+                    Shows all users regardless of completion status
+                  </div>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, dates, or notes..."
+                    value={signupSearch}
+                    onChange={(e) => setSignupSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                  <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
               </div>
               
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {(!entry?.signUps || entry.signUps.length === 0) ? (
-                  <p className="text-gray-500 text-sm">No users signed up.</p>
-                ) : (
-                  entry.signUps.map((signup, index) => {
-                    const totalIterations = signup.iterations || 1;
-                    const completedIterations = signup.completedIterations || 0;
-                    const progressPercent = (completedIterations / totalIterations) * 100;
-                    const isFullyCompleted = completedIterations >= totalIterations;
-                    
-                    return (
-                      <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">{signup.name}</div>
-                            <div className="text-sm text-gray-500">{signup.email}</div>
-                            <div className="text-xs text-gray-400 mt-1">
-                              Signed up: {new Date(signup.signedUpAt || signup.timestamp).toLocaleDateString()}
+              <div className="flex-1 overflow-y-auto px-6">
+                <div className="space-y-3">
+                  {(!entry?.signUps || entry.signUps.length === 0) ? (
+                    <p className="text-gray-500 text-sm">No users signed up.</p>
+                  ) : (
+                    entry.signUps
+                      .filter(signup => {
+                        if (!signupSearch) return true;
+                        const search = signupSearch.toLowerCase();
+                        const signupDate = new Date(signup.signedUpAt || signup.timestamp).toLocaleDateString();
+                        return signup.name.toLowerCase().includes(search) ||
+                               signup.email.toLowerCase().includes(search) ||
+                               signupDate.includes(search) ||
+                               (signup.completionNotes && signup.completionNotes.toLowerCase().includes(search)) ||
+                               (signup.iterationCertificates || []).some(cert => cert.notes && cert.notes.toLowerCase().includes(search));
+                      })
+                      .sort((a, b) => {
+                        if (a.email === user?.email) return -1;
+                        if (b.email === user?.email) return 1;
+                        return a.name.localeCompare(b.name);
+                      })
+                      .map((signup, index) => {
+                      const totalIterations = signup.iterations || 1;
+                      const completedIterations = signup.completedIterations || 0;
+                      const progressPercent = (completedIterations / totalIterations) * 100;
+                      const isFullyCompleted = completedIterations >= totalIterations;
+                      
+                      return (
+                        <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900">{signup.name}</div>
+                              <div className="text-sm text-gray-500">{signup.email}</div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                Signed up: {new Date(signup.signedUpAt || signup.timestamp).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                {totalIterations} iteration{totalIterations > 1 ? 's' : ''}
+                              </span>
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                isFullyCompleted 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : completedIterations > 0 
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {isFullyCompleted ? 'Complete' : completedIterations > 0 ? 'Partial' : 'Pending'}
+                              </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                              {totalIterations} iteration{totalIterations > 1 ? 's' : ''}
-                            </span>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              isFullyCompleted 
-                                ? 'bg-green-100 text-green-800' 
-                                : completedIterations > 0 
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {isFullyCompleted ? 'Complete' : completedIterations > 0 ? 'Partial' : 'Pending'}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600">Progress</span>
-                            <span className="font-medium text-gray-900">
-                              {completedIterations} of {totalIterations} completed
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full transition-all duration-300 ${
-                                isFullyCompleted ? 'bg-green-600' : completedIterations > 0 ? 'bg-yellow-500' : 'bg-gray-400'
-                              }`}
-                              style={{ width: `${progressPercent}%` }}
-                            ></div>
-                          </div>
-                          {completedIterations > 0 && (
-                            <div className={`text-xs font-medium ${
-                              isFullyCompleted ? 'text-green-600' : 'text-yellow-600'
-                            }`}>
-                              ✓ {completedIterations} iteration{completedIterations > 1 ? 's' : ''} completed
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600">Progress</span>
+                              <span className="font-medium text-gray-900">
+                                {completedIterations} of {totalIterations} completed
+                              </span>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-              
-              <div className="flex justify-end pt-4">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          ) : activeTab === 'completed' ? (
-            <div className="space-y-4 p-6">
-              <div className="flex items-center justify-between">
-                <h4 className="text-md font-medium text-gray-900">Completed Users</h4>
-              </div>
-              
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {(entry?.signUps || []).filter(signup => (signup.completedIterations || 0) > 0).length === 0 ? (
-                  <p className="text-gray-500 text-sm">No users have completed this training yet.</p>
-                ) : (
-                  (entry?.signUps || []).filter(signup => (signup.completedIterations || 0) > 0).map((signup, index) => {
-                    const totalIterations = signup.iterations || 1;
-                    const completedIterations = signup.completedIterations || 0;
-                    const isFullyCompleted = completedIterations >= totalIterations;
-                    const progressPercent = (completedIterations / totalIterations) * 100;
-                    
-                    return (
-                      <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">{signup.name}</div>
-                            <div className="text-sm text-gray-500">{signup.email}</div>
-                            <div className="text-xs text-gray-400 mt-1">
-                              Last completed: {new Date(signup.lastCompletedAt || signup.completedAt || signup.signedUpAt || signup.timestamp).toLocaleDateString()}
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  isFullyCompleted ? 'bg-green-600' : completedIterations > 0 ? 'bg-yellow-500' : 'bg-gray-400'
+                                }`}
+                                style={{ width: `${progressPercent}%` }}
+                              ></div>
                             </div>
-                            {signup.completionNotes && (
-                              <div className="text-xs text-gray-600 mt-1 italic bg-white p-2 rounded border">
-                                Notes: {signup.completionNotes}
+                            {completedIterations > 0 && (
+                              <div className={`text-xs font-medium ${
+                                isFullyCompleted ? 'text-green-600' : 'text-yellow-600'
+                              }`}>
+                                ✓ {completedIterations} iteration{completedIterations > 1 ? 's' : ''} completed
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              isFullyCompleted 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {isFullyCompleted ? 'Fully Complete' : 'Partially Complete'}
-                            </span>
-                          </div>
                         </div>
-                        
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600">Completion Progress</span>
-                            <span className="font-medium text-gray-900">
-                              {completedIterations} of {totalIterations} iterations
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full transition-all duration-300 ${
-                                isFullyCompleted ? 'bg-green-600' : 'bg-yellow-500'
-                              }`}
-                              style={{ width: `${progressPercent}%` }}
-                            ></div>
-                          </div>
-                          
-                          {/* Per-iteration certificates */}
-                          {completedIterations > 0 && (
-                            <div className="pt-3 border-t border-gray-200">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-medium text-gray-700">Iteration Details</span>
-                                <span className="text-xs text-gray-500">{(signup.iterationCertificates || []).filter(cert => cert.certificateUrl).length} certificates uploaded</span>
-                              </div>
-                              <div className="grid grid-cols-1 gap-2">
-                                {Array.from({ length: completedIterations }, (_, index) => {
-                                  const iterationNumber = index + 1;
-                                  const cert = (signup.iterationCertificates || []).find(c => c.iteration === iterationNumber);
-                                  return (
-                                    <div key={`${signup.email}-${iterationNumber}`} className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg">
-                                      <div className="flex items-center gap-2">
-                                        <span className="w-5 h-5 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-xs font-semibold">
-                                          {iterationNumber}
-                                        </span>
-                                        <div>
-                                          <div className="text-xs font-medium text-gray-900">Iteration {iterationNumber}</div>
-                                          {cert?.notes && (
-                                            <div className="text-xs text-gray-500 truncate max-w-32" title={cert.notes}>
-                                              {cert.notes}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                      {cert?.certificateUrl ? (
-                                        <a
-                                          href={cert.certificateUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
-                                          title={`View certificate for iteration ${iterationNumber}`}
-                                        >
-                                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                          </svg>
-                                          View
-                                        </a>
-                                      ) : (
-                                        <span className="text-xs text-gray-400 italic">No file uploaded</span>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Legacy single certificate */}
-                          {signup.certificateUrl && (!signup.iterationCertificates || signup.iterationCertificates.length === 0) && (
-                            <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                              <span className="text-xs text-gray-600">Certificate Available</span>
-                              <a
-                                href={signup.certificateUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
-                                title="View certificate"
-                              >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                View Certificate
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : activeTab === 'completed' ? (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-shrink-0 p-6 pb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-md font-medium text-gray-900">Completed Users</h4>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, dates, or notes..."
+                    value={completedSearch}
+                    onChange={(e) => setCompletedSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                  <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
               </div>
               
-              <div className="flex justify-end pt-4">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                >
-                  Close
-                </button>
+              <div className="flex-1 overflow-y-auto px-6">
+                <div className="space-y-3">
+                  {(entry?.signUps || []).filter(signup => (signup.completedIterations || 0) > 0).length === 0 ? (
+                    <p className="text-gray-500 text-sm">No users have completed this training yet.</p>
+                  ) : (
+                    (entry?.signUps || [])
+                      .filter(signup => (signup.completedIterations || 0) > 0)
+                      .filter(signup => {
+                        if (!completedSearch) return true;
+                        const search = completedSearch.toLowerCase();
+                        const completedDate = new Date(signup.lastCompletedAt || signup.completedAt || signup.signedUpAt || signup.timestamp).toLocaleDateString();
+                        return signup.name.toLowerCase().includes(search) ||
+                               signup.email.toLowerCase().includes(search) ||
+                               completedDate.includes(search) ||
+                               (signup.completionNotes && signup.completionNotes.toLowerCase().includes(search)) ||
+                               (signup.iterationCertificates || []).some(cert => cert.notes && cert.notes.toLowerCase().includes(search));
+                      })
+                      .sort((a, b) => {
+                        if (a.email === user?.email) return -1;
+                        if (b.email === user?.email) return 1;
+                        return a.name.localeCompare(b.name);
+                      })
+                      .map((signup, index) => {
+                      const totalIterations = signup.iterations || 1;
+                      const completedIterations = signup.completedIterations || 0;
+                      const isFullyCompleted = completedIterations >= totalIterations;
+                      const progressPercent = (completedIterations / totalIterations) * 100;
+                      
+                      return (
+                        <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900">{signup.name}</div>
+                              <div className="text-sm text-gray-500">{signup.email}</div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                Last completed: {new Date(signup.lastCompletedAt || signup.completedAt || signup.signedUpAt || signup.timestamp).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                isFullyCompleted 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {isFullyCompleted ? 'Fully Complete' : 'Partially Complete'}
+                              </span>
+                            </div>
+                          </div>
+                          {signup.completionNotes && (
+                            <div className="mb-3 text-xs text-gray-600 italic bg-white p-3 rounded border break-all whitespace-pre-wrap overflow-wrap-anywhere">
+                              <span className="font-medium text-gray-700">Notes:</span> {signup.completionNotes}
+                            </div>
+                          )}
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600">Completion Progress</span>
+                              <span className="font-medium text-gray-900">
+                                {completedIterations} of {totalIterations} iterations
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  isFullyCompleted ? 'bg-green-600' : 'bg-yellow-500'
+                                }`}
+                                style={{ width: `${progressPercent}%` }}
+                              ></div>
+                            </div>
+                            
+                            {/* Per-iteration certificates */}
+                            {completedIterations > 0 && (
+                              <div className="pt-3 border-t border-gray-200">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-medium text-gray-700">Iteration Details</span>
+                                  <span className="text-xs text-gray-500">{(signup.iterationCertificates || []).filter(cert => cert.certificateUrl).length} certificates uploaded</span>
+                                </div>
+                                <div className="grid grid-cols-1 gap-2">
+                                  {Array.from({ length: completedIterations }, (_, index) => {
+                                    const iterationNumber = index + 1;
+                                    const cert = (signup.iterationCertificates || []).find(c => c.iteration === iterationNumber);
+                                    return (
+                                      <div key={`${signup.email}-${iterationNumber}`} className="p-2 bg-white border border-gray-200 rounded-lg">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <div className="flex items-center gap-2">
+                                            <span className="w-5 h-5 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-xs font-semibold">
+                                              {iterationNumber}
+                                            </span>
+                                            <div className="text-xs font-medium text-gray-900">Iteration {iterationNumber}</div>
+                                          </div>
+                                          {cert?.certificateUrl ? (
+                                            <a
+                                              href={cert.certificateUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors flex-shrink-0"
+                                              title={`View certificate for iteration ${iterationNumber}`}
+                                            >
+                                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                              </svg>
+                                              View
+                                            </a>
+                                          ) : (
+                                            <span className="text-xs text-gray-400 italic flex-shrink-0">No file uploaded</span>
+                                          )}
+                                        </div>
+                                        {cert?.notes && (
+                                          <div className="text-xs text-gray-500 break-all whitespace-pre-wrap overflow-wrap-anywhere">
+                                            {cert.notes}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Legacy single certificate */}
+                            {signup.certificateUrl && (!signup.iterationCertificates || signup.iterationCertificates.length === 0) && (
+                              <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                                <span className="text-xs text-gray-600">Certificate Available</span>
+                                <a
+                                  href={signup.certificateUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                                  title="View certificate"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  View Certificate
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             </div>
           ) : null}
         </div>
         
-        {/* Completion Modal */}
-        <CompletionModal
-          isOpen={showCompletionModal}
-          onClose={() => setShowCompletionModal(false)}
+        {/* Footer */}
+        <div className="flex-shrink-0 flex justify-between items-center px-6 py-4 border-t bg-gray-50">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {userSignedUp && (
+              <button
+                type="button"
+                onClick={handleEditSignup}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 hover:border-gray-300 transition-all duration-200"
+                title="Edit your signup iterations for this training or certification"
+              >
+                Edit
+              </button>
+            )}
+            {!userCompleted && (
+              <button
+                type="button"
+                onClick={handleSignUp}
+                className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded transition-all duration-200 ${
+                  userSignedUp
+                    ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:border-green-300'
+                    : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300'
+                }`}
+                title={userSignedUp ? 'Remove yourself from the Sign-Up of this training or certification' : 'Sign up for this training or certification'}
+              >
+                {userSignedUp ? 'Unsign' : 'Sign Up'}
+              </button>
+            )}
+            {userSignedUp && !userCompleted && (
+              <button
+                type="button"
+                onClick={handleMarkComplete}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 border border-green-600 rounded hover:bg-green-700 hover:border-green-700 transition-all duration-200"
+                title="Click here to show that you have completed this training or certification"
+              >
+                Complete
+              </button>
+            )}
+            {userCompleted && (
+              <button
+                type="button"
+                onClick={handleUnComplete}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium text-white bg-green-600 border border-green-600 rounded hover:bg-green-700 hover:border-green-700 transition-all duration-200"
+                title="You have completed this training or certification, click to Revert to Signed Up"
+              >
+                Revert
+              </button>
+            )}
+          </div>
+          
+          {/* Form Buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+            >
+              {hasEditPermission ? 'Cancel' : 'Close'}
+            </button>
+            {hasEditPermission && activeTab === 'details' && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting || saving}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-md hover:bg-red-700 hover:border-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+                <button
+                  type="submit"
+                  form="edit-form"
+                  disabled={saving || deleting}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 hover:border-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  {saving ? 'Updating...' : 'Update'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+        
+        {/* Iteration Signup Modal */}
+        <IterationSignupModal
+          isOpen={showIterationSignupModal}
+          onClose={() => setShowIterationSignupModal(false)}
           entry={entry}
           user={user}
-          onComplete={handleCompletionSuccess}
+          onSignup={handleIterationSignup}
+        />
+
+        {/* Iteration Completion Modal */}
+        <IterationCompletionModal
+          isOpen={showIterationCompletionModal}
+          onClose={() => setShowIterationCompletionModal(false)}
+          entry={entry}
+          user={user}
+          onComplete={handleIterationCompletion}
+        />
+
+        {/* Edit Signup Modal */}
+        <EditSignupModal
+          isOpen={showEditSignupModal}
+          onClose={() => setShowEditSignupModal(false)}
+          entry={entry}
+          user={user}
+          onSubmit={handleEditSignupSubmit}
+        />
+
+        {/* Revert Warning Modal */}
+        <RevertWarningModal
+          isOpen={showRevertWarning}
+          onClose={() => setShowRevertWarning(false)}
+          entry={entry}
+          user={user}
+          onConfirm={confirmRevert}
         />
       </div>
     </div>
@@ -2426,27 +2749,36 @@ function IterationCompletionModal({ isOpen, onClose, entry, user, onComplete }) 
   const currentCompleted = userSignup?.completedIterations || 0;
   const remainingIterations = totalIterations - currentCompleted;
   
-  const [completedIterations, setCompletedIterations] = useState(remainingIterations);
+  const [completedIterations, setCompletedIterations] = useState(1);
   const [iterationData, setIterationData] = useState([]);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [editingIteration, setEditingIteration] = useState(null);
+  const [editData, setEditData] = useState({});
 
   // Update completedIterations when modal opens with fresh data
   useEffect(() => {
     if (isOpen && remainingIterations > 0) {
-      setCompletedIterations(remainingIterations);
+      setCompletedIterations(1);
+      setNotes(userSignup?.completionNotes || '');
     }
-  }, [isOpen, remainingIterations]);
+    if (!isOpen) {
+      setEditingIteration(null);
+      setEditData({});
+      setIterationData([]);
+      setNotes('');
+    }
+  }, [isOpen, remainingIterations, userSignup?.completionNotes]);
 
   // Initialize iteration data when completedIterations changes
   useEffect(() => {
     const newData = Array.from({ length: completedIterations }, (_, index) => ({
-      id: index + 1,
+      id: currentCompleted + index + 1,
       file: null,
       notes: ''
     }));
     setIterationData(newData);
-  }, [completedIterations]);
+  }, [completedIterations, currentCompleted]);
 
   const handleFileChange = (iterationIndex, file) => {
     if (file && file.type.startsWith('image/')) {
@@ -2505,7 +2837,7 @@ function IterationCompletionModal({ isOpen, onClose, entry, user, onComplete }) 
   if (!isOpen || !entry || !userSignup) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="bg-white rounded-xl max-w-2xl w-full h-[90vh] flex flex-col shadow-2xl">
         <div className="flex-shrink-0 p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -2534,7 +2866,146 @@ function IterationCompletionModal({ isOpen, onClose, entry, user, onComplete }) 
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Completed Iterations - Outside Form */}
+          {currentCompleted > 0 && (
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Already Completed ({currentCompleted} of {totalIterations})
+              </h4>
+              
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {Array.from({ length: currentCompleted }, (_, index) => {
+                  const iterationNumber = index + 1;
+                  const cert = (userSignup.iterationCertificates || []).find(c => c.iteration === iterationNumber);
+                  const isEditing = editingIteration === iterationNumber;
+                  return (
+                    <div key={`completed-${iterationNumber}`} className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 bg-green-100 text-green-800 rounded-full flex items-center justify-center text-sm font-semibold">
+                            ✓
+                          </span>
+                          <span className="font-medium text-green-900">Iteration {iterationNumber} of {totalIterations}</span>
+                          <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Completed</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isEditing) {
+                              setEditingIteration(null);
+                              setEditData({});
+                            } else {
+                              setEditingIteration(iterationNumber);
+                              setEditData({ notes: cert?.notes || '', file: null });
+                            }
+                          }}
+                          className="text-xs text-green-700 hover:text-green-900 bg-green-100 hover:bg-green-200 px-2 py-1 rounded transition-colors"
+                        >
+                          {isEditing ? 'Cancel' : 'Edit'}
+                        </button>
+                      </div>
+                      {!isEditing && cert?.notes && (
+                        <div className="text-xs text-green-700 mt-2 ml-8">{cert.notes}</div>
+                      )}
+                      {isEditing && (
+                        <div className="mt-3 pt-3 border-t border-green-200 space-y-3">
+                          <div>
+                            <label className="block text-xs font-medium text-green-800 mb-1">Update Certificate</label>
+                            <p className="text-xs text-green-700 mb-1">
+                              Upload new certificate image (JPG, PNG, GIF, WebP)
+                            </p>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => setEditData({...editData, file: e.target.files[0]})}
+                              className="w-full px-2 py-1 border border-green-300 rounded text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                            />
+                            {editData.file && (
+                              <p className="text-xs text-green-600 mt-1">{editData.file.name}</p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-green-800 mb-1">Update Notes</label>
+                            <textarea
+                              value={editData.notes}
+                              onChange={(e) => setEditData({...editData, notes: e.target.value.slice(0, 100)})}
+                              className="w-full px-2 py-1 border border-green-300 rounded text-xs focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                              rows={2}
+                              maxLength={100}
+                              placeholder="Update notes..."
+                            />
+                            <div className="text-xs text-green-600 mt-1">{editData.notes?.length || 0}/100 characters</div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                // Save the edited iteration data
+                                try {
+                                  const formData = new FormData();
+                                  formData.append('action', 'editIteration');
+                                  formData.append('iteration', iterationNumber.toString());
+                                  if (editData.file) {
+                                    formData.append('certificate', editData.file);
+                                  }
+                                  if (editData.notes) {
+                                    formData.append('notes', editData.notes);
+                                  }
+                                  
+                                  const response = await fetch(`/api/training-certs/${entry.id}/signup`, {
+                                    method: 'POST',
+                                    body: formData
+                                  });
+                                  
+                                  if (response.ok) {
+                                    // Just refresh the entry data without closing modal
+                                    try {
+                                      const entriesResponse = await fetch('/api/training-certs');
+                                      if (entriesResponse.ok) {
+                                        const data = await entriesResponse.json();
+                                        const updatedEntry = data.entries.find(e => e.id === entry.id);
+                                        if (updatedEntry) {
+                                          Object.assign(entry, updatedEntry);
+                                        }
+                                      }
+                                    } catch (refreshError) {
+                                      console.error('Error refreshing entry:', refreshError);
+                                    }
+                                  }
+                                } catch (error) {
+                                  console.error('Error updating iteration:', error);
+                                }
+                                setEditingIteration(null);
+                                setEditData({});
+                              }}
+                              className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition-colors"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingIteration(null);
+                                setEditData({});
+                              }}
+                              className="text-xs bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -2573,65 +3044,71 @@ function IterationCompletionModal({ isOpen, onClose, entry, user, onComplete }) 
               </p>
             </div>
 
-            {/* Per-iteration uploads */}
+            {/* New Iterations to Complete */}
             <div className="space-y-4">
               <h4 className="text-lg font-medium text-gray-900 flex items-center gap-2">
                 <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                Iteration Details
+                Complete New Iterations
               </h4>
               
               <div className="space-y-4 max-h-64 overflow-y-auto">
-                {iterationData.map((iteration, index) => (
-                  <div key={iteration.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h5 className="font-medium text-gray-900 flex items-center gap-2">
-                        <span className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-semibold">
-                          {index + 1}
-                        </span>
-                        Iteration {index + 1}
-                      </h5>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Certificate Upload
-                        </label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileChange(index, e.target.files[0])}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                        />
-                        {iteration.file && (
-                          <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            {iteration.file.name}
-                          </p>
-                        )}
+                {iterationData.map((iteration, index) => {
+                  const actualIterationNumber = currentCompleted + index + 1;
+                  return (
+                    <div key={iteration.id} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="font-medium text-gray-900 flex items-center gap-2">
+                          <span className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-semibold">
+                            {actualIterationNumber}
+                          </span>
+                          Iteration {actualIterationNumber} of {totalIterations}
+                        </h5>
                       </div>
                       
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Notes
-                        </label>
-                        <textarea
-                          value={iteration.notes}
-                          onChange={(e) => handleIterationNotesChange(index, e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                          rows={2}
-                          maxLength={100}
-                          placeholder="Notes for this iteration..."
-                        />
-                        <div className="text-xs text-gray-500 mt-1">{iteration.notes.length}/100 characters</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Certificate Upload (Optional)
+                          </label>
+                          <p className="text-xs text-gray-600 mb-2">
+                            Upload certificate image (JPG, PNG, GIF, WebP)
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(index, e.target.files[0])}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          />
+                          {iteration.file && (
+                            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              {iteration.file.name}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Notes
+                          </label>
+                          <textarea
+                            value={iteration.notes}
+                            onChange={(e) => handleIterationNotesChange(index, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            rows={2}
+                            maxLength={100}
+                            placeholder="Notes for this iteration..."
+                          />
+                          <div className="text-xs text-gray-500 mt-1">{iteration.notes.length}/100 characters</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -2673,6 +3150,352 @@ function IterationCompletionModal({ isOpen, onClose, entry, user, onComplete }) 
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditSignupModal({ isOpen, onClose, entry, user, onSubmit }) {
+  const [iterations, setIterations] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [showConflictWarning, setShowConflictWarning] = useState(false);
+  const [conflictData, setConflictData] = useState(null);
+
+  // Get user's current signup info
+  const userSignup = entry?.signUps?.find(signup => signup.email === user?.email);
+  const currentIterations = userSignup?.iterations || 1;
+  const completedIterations = userSignup?.completedIterations || 0;
+
+  useEffect(() => {
+    if (isOpen && userSignup) {
+      setIterations(currentIterations);
+      setShowConflictWarning(false);
+      setConflictData(null);
+    }
+  }, [isOpen, currentIterations, userSignup]);
+
+  const handleSubmit = async (force = false) => {
+    if (iterations === currentIterations && !force) {
+      onClose();
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const result = await onSubmit(iterations, force);
+      
+      if (result.success) {
+        onClose();
+      } else if (result.conflict) {
+        setShowConflictWarning(true);
+        setConflictData(result);
+      } else {
+        alert(result.error || 'Failed to update signup');
+      }
+    } catch (error) {
+      console.error('Error submitting edit:', error);
+      alert('Failed to update signup');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForceSubmit = () => {
+    handleSubmit(true);
+  };
+
+  if (!isOpen || !entry || !userSignup) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Edit Signup Iterations</h3>
+              <p className="text-sm text-gray-600 mt-1">{entry.name}</p>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {!showConflictWarning ? (
+            <>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-blue-700 font-medium">Current Status:</span>
+                  <span className="text-blue-900">
+                    {completedIterations} of {currentIterations} completed
+                  </span>
+                </div>
+                <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                    style={{ width: `${(completedIterations / currentIterations) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  How many iterations do you want to be signed up for?
+                </label>
+                <div className="flex items-center space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => setIterations(Math.max(1, iterations - 1))}
+                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    max="99"
+                    value={iterations}
+                    onChange={(e) => setIterations(Math.max(1, Math.min(99, parseInt(e.target.value) || 1)))}
+                    className="w-20 text-center text-lg font-semibold py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIterations(Math.min(99, iterations + 1))}
+                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </button>
+                </div>
+                {iterations !== currentIterations && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    {iterations > currentIterations 
+                      ? `Adding ${iterations - currentIterations} iteration${iterations - currentIterations > 1 ? 's' : ''}`
+                      : `Removing ${currentIterations - iterations} iteration${currentIterations - iterations > 1 ? 's' : ''}`
+                    }
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSubmit(false)}
+                  disabled={loading || iterations === currentIterations}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium flex items-center"
+                >
+                  {loading && (
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {loading ? 'Updating...' : 'Update Signup'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start">
+                  <svg className="w-5 h-5 text-red-600 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <div>
+                    <h4 className="text-sm font-medium text-red-900">Completed Iterations Will Be Removed</h4>
+                    <p className="text-sm text-red-700 mt-1">
+                      Reducing from {currentIterations} to {iterations} iterations will remove {completedIterations - iterations} completed iteration{completedIterations - iterations > 1 ? 's' : ''} and their associated data.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+                <h5 className="text-sm font-medium text-gray-900 mb-2">Iterations that will be removed:</h5>
+                <div className="space-y-1">
+                  {Array.from({ length: completedIterations - iterations }, (_, index) => {
+                    const iterationNumber = iterations + index + 1;
+                    return (
+                      <div key={iterationNumber} className="text-sm text-gray-600">
+                        • Iteration {iterationNumber} (completed)
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowConflictWarning(false)}
+                  className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleForceSubmit}
+                  disabled={loading}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors font-medium flex items-center"
+                >
+                  {loading && (
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {loading ? 'Removing...' : 'Confirm Removal'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RevertWarningModal({ isOpen, onClose, entry, user, onConfirm }) {
+  const [loading, setLoading] = useState(false);
+
+  // Get user's signup info to show what will be lost
+  const userSignup = entry?.signUps?.find(signup => signup.email === user?.email);
+  const completedIterations = userSignup?.completedIterations || 0;
+  const iterationCertificates = userSignup?.iterationCertificates || [];
+  const hasLegacyCertificate = userSignup?.certificateUrl;
+  const hasNotes = userSignup?.completionNotes;
+  
+  const certificatesCount = iterationCertificates.filter(cert => cert.certificateUrl).length;
+  const totalCertificates = certificatesCount + (hasLegacyCertificate ? 1 : 0);
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      await onConfirm();
+    } catch (error) {
+      console.error('Error reverting completion:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen || !entry || !userSignup) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl max-w-lg w-full shadow-2xl">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">Revert Completion</h3>
+                <p className="text-sm text-gray-600">{entry.name}</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <div>
+                <h4 className="text-sm font-medium text-red-900 mb-2">Warning: Data Will Be Permanently Lost</h4>
+                <p className="text-sm text-red-700 mb-3">
+                  Reverting your completion will permanently delete all completion data for this training/certification. This action cannot be undone.
+                </p>
+                
+                <div className="space-y-2">
+                  <div className="text-sm text-red-800">
+                    <strong>What will be lost:</strong>
+                  </div>
+                  <ul className="text-sm text-red-700 space-y-1 ml-4">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0"></span>
+                      All {completedIterations} completed iteration{completedIterations > 1 ? 's' : ''}
+                    </li>
+                    {totalCertificates > 0 && (
+                      <li className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0"></span>
+                        {totalCertificates} uploaded certificate{totalCertificates > 1 ? 's' : ''}
+                      </li>
+                    )}
+                    {(hasNotes || iterationCertificates.some(cert => cert.notes)) && (
+                      <li className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0"></span>
+                        All completion notes and iteration notes
+                      </li>
+                    )}
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0"></span>
+                      Completion timestamps and history
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h4 className="text-sm font-medium text-blue-900 mb-1">After Reverting</h4>
+                <p className="text-sm text-blue-700">
+                  You will remain signed up for this training/certification, but your completion status will be reset to "Pending". You can complete the iterations again later.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={loading}
+              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors font-medium flex items-center"
+            >
+              {loading && (
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
+              {loading ? 'Reverting...' : 'Yes, Revert Completion'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
