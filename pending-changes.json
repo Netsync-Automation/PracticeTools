@@ -25337,6 +25337,100 @@
         "components/SidebarLayout.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760642939798,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-16T19:28:59.798Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "components/SidebarLayout.js"
+      ]
+    },
+    {
+      "id": 1760642941104,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-16T19:29:01.104Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642942405,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-16T19:29:02.405Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642946547,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-16T19:29:06.547Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642947911,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-16T19:29:07.911Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642949240,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-16T19:29:09.240Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -81561,6 +81655,371 @@
       "timestamp": "2025-10-16T14:59:02.978Z",
       "files": [
         "app/practice-information/training-certs/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642939878,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-16T19:28:59.878Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642940104,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:00.104Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642940188,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-16T19:29:00.188Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642941202,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:01.202Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642941330,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:01.330Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642941468,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:01.468Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642941582,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-16T19:29:01.582Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642942504,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:02.504Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642942618,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:02.618Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642942703,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:02.703Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642942828,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-16T19:29:02.828Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642946633,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:06.633Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642946747,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:06.747Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642946862,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:06.862Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642946973,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-16T19:29:06.973Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642947992,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:07.992Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642948078,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:08.078Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642948180,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:08.180Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642948314,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-16T19:29:08.314Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642949352,
+      "description": "Enhanced apprunner dev.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-dev.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:09.352Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642949437,
+      "description": "Enhanced apprunner prod.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner-prod.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:09.437Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642949539,
+      "description": "Enhanced apprunner.yaml with specific functionality improvements",
+      "details": {
+        "file": "apprunner.yaml"
+      },
+      "timestamp": "2025-10-16T19:29:09.539Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760642949682,
+      "description": "Added Practice Information menu item to sidebar navigation between Dashboard and Practice Issues",
+      "details": {
+        "file": "components/SidebarLayout.js"
+      },
+      "timestamp": "2025-10-16T19:29:09.682Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "apprunner-dev.yaml",
+        "apprunner-prod.yaml",
+        "apprunner.yaml",
+        "components/SidebarLayout.js",
         "pending-changes.json"
       ]
     }

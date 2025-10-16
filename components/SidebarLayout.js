@@ -14,7 +14,8 @@ import {
   PlusIcon,
   MinusIcon,
   InformationCircleIcon,
-  FolderIcon
+  FolderIcon,
+  AcademicCapIcon
 } from '@heroicons/react/24/outline';
 import { useApp } from '../contexts/AppContext';
 
@@ -119,6 +120,20 @@ const menuItems = [
         name: 'Analytics',
         href: '/leadership/analytics',
         description: 'View analytics and insights'
+      }
+    ]
+  },
+  {
+    id: 'company-education',
+    name: 'Company Education',
+    icon: AcademicCapIcon,
+    description: 'Training and educational resources',
+    submenu: [
+      {
+        id: 'scoop',
+        name: 'SCOOP',
+        href: '/company-education/scoop',
+        description: 'SCOOP training and data management'
       }
     ]
   },
