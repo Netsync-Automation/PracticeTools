@@ -2464,8 +2464,8 @@ function TrainingCertsStats({ entries, filters }) {
   });
 
   const totalNeeded = filteredEntries.reduce((sum, entry) => sum + (parseInt(entry.quantityNeeded) || 0), 0);
-  const totalSignUps = filteredEntries.reduce((sum, entry) => sum + (entry.signUps || []).length, 0);
-  const totalCompleted = filteredEntries.reduce((sum, entry) => sum + (entry.signUps || []).filter(signup => signup.completed).length, 0);
+  const totalSignUps = filteredEntries.reduce((sum, entry) => sum + (entry.signUps || []).reduce((signupSum, signup) => signupSum + (signup.iterations || 1), 0), 0);
+  const totalCompleted = filteredEntries.reduce((sum, entry) => sum + (entry.signUps || []).reduce((signupSum, signup) => signupSum + (signup.completedIterations || 0), 0), 0);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
