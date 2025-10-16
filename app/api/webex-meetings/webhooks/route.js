@@ -4,17 +4,24 @@ import { getValidAccessToken } from '../../../../lib/webex-token-manager';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request) {
+  console.log('[WEBHOOKS] POST request received');
   try {
     const { action } = await request.json();
+    console.log('[WEBHOOKS] Action requested:', action);
+    
+    console.log('[WEBHOOKS] Getting access token...');
     const accessToken = await getValidAccessToken();
+    console.log('[WEBHOOKS] Access token obtained:', !!accessToken);
     
     if (!accessToken) {
+      console.log('[WEBHOOKS] No access token available');
       return NextResponse.json({ error: 'Access token not configured' }, { status: 400 });
     }
     
     const baseUrl = request.headers.get('host') ? `https://${request.headers.get('host')}` : 'https://your-domain.com';
     
     if (action === 'create') {
+      console.log('[WEBHOOKS] Creating webhooks, baseUrl:', baseUrl);
       const webhooks = [
         {
           name: 'PracticeTools Recordings Webhook',
@@ -32,6 +39,7 @@ export async function POST(request) {
       
       const results = [];
       for (const webhook of webhooks) {
+        console.log('[WEBHOOKS] Creating webhook:', webhook.name);
         try {
           const response = await fetch('https://webexapis.com/v1/webhooks', {
             method: 'POST',
@@ -42,9 +50,12 @@ export async function POST(request) {
             body: JSON.stringify(webhook)
           });
           
+          console.log('[WEBHOOKS] Webhook response status:', response.status);
           const data = await response.json();
+          console.log('[WEBHOOKS] Webhook response data:', data);
           results.push({ webhook: webhook.name, success: response.ok, data });
         } catch (error) {
+          console.log('[WEBHOOKS] Webhook creation error:', error.message);
           results.push({ webhook: webhook.name, success: false, error: error.message });
         }
       }
@@ -65,8 +76,9 @@ export async function POST(request) {
     
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
-    console.error('Webhook management error:', error);
-    return NextResponse.json({ error: 'Failed to manage webhooks' }, { status: 500 });
+    console.error('[WEBHOOKS] Webhook management error:', error);
+    console.error('[WEBHOOKS] Error stack:', error.stack);
+    return NextResponse.json({ error: 'Failed to manage webhooks: ' + error.message }, { status: 500 });
   }
 }
 

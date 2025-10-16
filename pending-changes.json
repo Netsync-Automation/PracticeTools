@@ -25527,6 +25527,87 @@
         "app/company-education/scoop/page.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760651595077,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhooks/route.js"
+      },
+      "timestamp": "2025-10-16T21:53:15.077Z",
+      "files": [
+        "app/api/webex-meetings/webhooks/route.js",
+        "lib/webex-token-manager.js"
+      ]
+    },
+    {
+      "id": 1760651595172,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-16T21:53:15.172Z",
+      "files": [
+        "app/api/webex-meetings/webhooks/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760651595925,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhooks/route.js"
+      },
+      "timestamp": "2025-10-16T21:53:15.925Z",
+      "files": [
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760651596186,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-16T21:53:16.186Z",
+      "files": [
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760651596808,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhooks/route.js"
+      },
+      "timestamp": "2025-10-16T21:53:16.808Z",
+      "files": [
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760651596975,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-16T21:53:16.975Z",
+      "files": [
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -82688,6 +82769,34 @@
         "commit-and-push.js",
         "lib/create-tables.js",
         "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760651596045,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-16T21:53:16.045Z",
+      "files": [
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760651596881,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-16T21:53:16.881Z",
+      "files": [
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/webex-token-manager.js",
         "pending-changes.json"
       ]
     }
