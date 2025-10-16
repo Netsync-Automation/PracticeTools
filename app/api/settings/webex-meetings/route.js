@@ -26,7 +26,7 @@ async function putSSMParameter(name, value) {
     const command = new PutParameterCommand({
       Name: name,
       Value: value,
-      Type: 'SecureString',
+      Type: 'String',
       Overwrite: true
     });
     await ssmClient.send(command);

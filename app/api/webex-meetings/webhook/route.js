@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { getTableName } from '../../../../lib/dynamodb';
+import { storeMeetingData } from '../../../../lib/meeting-storage';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,14 +12,8 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 async function getMonitoredHosts() {
   try {
     const tableName = getTableName('webex_hosts');
-    
-    const command = new ScanCommand({
-      TableName: tableName
-    });
-    
-    const response = await docClient.send(command);
-    const hosts = response.Items || [];
-    return hosts.map(h => h.email);
+    const response = await docClient.send(new ScanCommand({ TableName: tableName }));
+    return (response.Items || []).map(h => h.email);
   } catch (error) {
     console.error('Error getting monitored hosts:', error);
     return [];
@@ -29,26 +24,19 @@ export async function POST(request) {
   try {
     const payload = await request.json();
     
-    // Log webhook for debugging
-    console.log('Webex webhook received:', JSON.stringify(payload, null, 2));
+    if (payload.challenge) {
+      return NextResponse.json({ challenge: payload.challenge });
+    }
     
-    // Get monitored hosts
-    const monitoredHosts = await getMonitoredHosts();
-    
-    // Handle different event types
     const { resource, event, data } = payload;
-    
-    // Filter events to only process monitored hosts
     const hostEmail = data?.hostEmail;
-    if (!hostEmail || !monitoredHosts.includes(hostEmail)) {
-      console.log(`Ignoring event for non-monitored host: ${hostEmail}`);
+    
+    if (!hostEmail || !(await getMonitoredHosts()).includes(hostEmail)) {
       return NextResponse.json({ success: true, message: 'Host not monitored' });
     }
     
-    if (resource === 'recordings' && (event === 'created' || event === 'updated')) {
-      await handleRecordingEvent(data);
-    } else if (resource === 'meetingTranscripts' && (event === 'created' || event === 'updated')) {
-      await handleTranscriptEvent(data);
+    if (resource === 'recordings' && event === 'created') {
+      await processRecording(data.id, hostEmail, data);
     }
     
     return NextResponse.json({ success: true });
@@ -58,52 +46,71 @@ export async function POST(request) {
   }
 }
 
-async function handleRecordingEvent(data) {
+async function processRecording(recordingId, hostEmail, eventData) {
   try {
-    const tableName = getTableName('webex_recordings');
+    const accessToken = process.env.WEBEX_MEETINGS_ACCESS_TOKEN;
+    if (!accessToken) throw new Error('No Webex access token');
     
-    const putCommand = new PutItemCommand({
-      TableName: tableName,
-      Item: {
-        recording_id: { S: data.id },
-        meeting_id: { S: data.meetingId || 'unknown' },
-        host_email: { S: data.hostEmail || 'unknown' },
-        topic: { S: data.topic || 'Unknown Meeting' },
-        start_time: { S: data.timeRecorded || new Date().toISOString() },
-        download_url: { S: data.downloadUrl || '' },
-        status: { S: 'available' },
-        webhook_received: { S: new Date().toISOString() },
-        processed: { BOOL: false }
-      }
+    // Get recording details
+    const recordingResponse = await fetch(`https://webexapis.com/v1/recordings/${recordingId}`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
     });
     
-    await dynamoClient.send(putCommand);
-    console.log('Recording event stored:', data.id);
-  } catch (error) {
-    console.error('Error storing recording event:', error);
-  }
-}
-
-async function handleTranscriptEvent(data) {
-  try {
-    const tableName = getTableName('webex_transcripts');
+    if (!recordingResponse.ok) throw new Error(`Failed to fetch recording: ${recordingResponse.status}`);
+    const recording = await recordingResponse.json();
     
-    const putCommand = new PutItemCommand({
-      TableName: tableName,
-      Item: {
-        transcript_id: { S: data.id },
-        meeting_id: { S: data.meetingId || 'unknown' },
-        host_email: { S: data.hostEmail || 'unknown' },
-        download_url: { S: data.downloadUrl || '' },
-        status: { S: 'available' },
-        webhook_received: { S: new Date().toISOString() },
-        processed: { BOOL: false }
+    // Download recording file
+    let recordingData = null;
+    if (recording.downloadUrl) {
+      const downloadResponse = await fetch(recording.downloadUrl, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      
+      if (downloadResponse.ok) {
+        const buffer = await downloadResponse.arrayBuffer();
+        recordingData = Buffer.from(buffer).toString('base64');
       }
+    }
+    
+    // Get transcript
+    let transcript = '';
+    if (recording.meetingId) {
+      try {
+        const transcriptResponse = await fetch(`https://webexapis.com/v1/meetingTranscripts?meetingId=${recording.meetingId}`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        
+        if (transcriptResponse.ok) {
+          const transcriptData = await transcriptResponse.json();
+          if (transcriptData.items?.length > 0) {
+            const transcriptDetailResponse = await fetch(`https://webexapis.com/v1/meetingTranscripts/${transcriptData.items[0].id}/download`, {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            
+            if (transcriptDetailResponse.ok) {
+              transcript = await transcriptDetailResponse.text();
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Transcript not available:', error.message);
+      }
+    }
+    
+    // Store meeting data
+    await storeMeetingData({
+      meetingId: recording.meetingId || recordingId,
+      startTime: recording.timeRecorded || new Date().toISOString(),
+      host: hostEmail,
+      participants: recording.participants || [],
+      recordingUrl: recording.downloadUrl,
+      recordingData,
+      transcript,
+      duration: recording.durationSeconds
     });
     
-    await dynamoClient.send(putCommand);
-    console.log('Transcript event stored:', data.id);
+    console.log(`Stored meeting data for ${recording.meetingId || recordingId}`);
   } catch (error) {
-    console.error('Error storing transcript event:', error);
+    console.error('Error processing recording:', error);
   }
 }

@@ -25431,6 +25431,102 @@
         "components/SidebarLayout.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760646704682,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-16T20:31:44.682Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646704788,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/company-education/scoop/page.js"
+      },
+      "timestamp": "2025-10-16T20:31:44.788Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646706241,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-16T20:31:46.241Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646706332,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/company-education/scoop/page.js"
+      },
+      "timestamp": "2025-10-16T20:31:46.332Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646707646,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-16T20:31:47.646Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646707743,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/company-education/scoop/page.js"
+      },
+      "timestamp": "2025-10-16T20:31:47.743Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -82020,6 +82116,149 @@
         "apprunner-prod.yaml",
         "apprunner.yaml",
         "components/SidebarLayout.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646704304,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-16T20:31:44.304Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js"
+      ]
+    },
+    {
+      "id": 1760646704453,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/webex-meetings/route.js"
+      },
+      "timestamp": "2025-10-16T20:31:44.453Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646704578,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/callback/route.js"
+      },
+      "timestamp": "2025-10-16T20:31:44.578Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646705957,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-16T20:31:45.957Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646706044,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/webex-meetings/route.js"
+      },
+      "timestamp": "2025-10-16T20:31:46.044Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646706150,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/callback/route.js"
+      },
+      "timestamp": "2025-10-16T20:31:46.150Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646707316,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-16T20:31:47.316Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646707402,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/settings/webex-meetings/route.js"
+      },
+      "timestamp": "2025-10-16T20:31:47.402Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760646707524,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/callback/route.js"
+      },
+      "timestamp": "2025-10-16T20:31:47.524Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/settings/webex-meetings/route.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
         "pending-changes.json"
       ]
     }

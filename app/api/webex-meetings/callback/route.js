@@ -24,7 +24,7 @@ async function putSSMParameter(name, value) {
     const command = new PutParameterCommand({
       Name: name,
       Value: value,
-      Type: 'SecureString',
+      Type: 'String',
       Overwrite: true
     });
     await ssmClient.send(command);
@@ -40,16 +40,19 @@ export async function GET(request) {
     const code = searchParams.get('code');
     const error = searchParams.get('error');
     
+    // Get NEXTAUTH_URL for consistent redirect
+    const env = getEnvironment();
+    const prefix = env === 'prod' ? '/PracticeTools' : `/PracticeTools/${env}`;
+    const nextAuthUrl = await getSSMParameter(`${prefix}/NEXTAUTH_URL`);
+    const baseUrl = nextAuthUrl || new URL(request.url).origin.replace('http://', 'https://');
+    
     if (error) {
-      return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=oauth_denied', request.url));
+      return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=oauth_denied', baseUrl));
     }
     
     if (!code) {
-      return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=no_code', request.url));
+      return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=no_code', baseUrl));
     }
-    
-    const env = getEnvironment();
-    const prefix = env === 'prod' ? '/PracticeTools' : `/PracticeTools/${env}`;
     
     const [clientId, clientSecret] = await Promise.all([
       getSSMParameter(`${prefix}/WEBEX_MEETINGS_CLIENT_ID`),
@@ -57,7 +60,7 @@ export async function GET(request) {
     ]);
     
     if (!clientId || !clientSecret) {
-      return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=missing_config', request.url));
+      return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=missing_config', baseUrl));
     }
     
     // Get NEXTAUTH_URL for consistent redirect URI
@@ -80,7 +83,7 @@ export async function GET(request) {
     });
     
     if (!tokenResponse.ok) {
-      return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=token_exchange_failed', request.url));
+      return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=token_exchange_failed', baseUrl));
     }
     
     const tokenData = await tokenResponse.json();
@@ -91,10 +94,10 @@ export async function GET(request) {
       putSSMParameter(`${prefix}/WEBEX_MEETINGS_REFRESH_TOKEN`, tokenData.refresh_token)
     ]);
     
-    return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&success=oauth_complete', request.url));
+    return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&success=oauth_complete', baseUrl));
     
   } catch (error) {
     console.error('OAuth callback error:', error);
-    return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=callback_error', request.url));
+    return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=callback_error', baseUrl));
   }
 }

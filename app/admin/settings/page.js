@@ -3295,9 +3295,22 @@ export default function SettingsPage() {
                           <button
                             onClick={async () => {
                               try {
-                                const response = await fetch('/api/webex-meetings/recordings?hostEmail=' + webexHosts[0].email);
-                                const data = await response.json();
-                                alert(`Test successful! Found ${data.items?.length || 0} recordings for ${webexHosts[0].email}`);
+                                let totalRecordings = 0;
+                                let results = [];
+                                
+                                for (const host of webexHosts) {
+                                  try {
+                                    const response = await fetch('/api/webex-meetings/recordings?hostEmail=' + host.email);
+                                    const data = await response.json();
+                                    const count = data.items?.length || 0;
+                                    totalRecordings += count;
+                                    results.push(`${host.email}: ${count} recordings`);
+                                  } catch (error) {
+                                    results.push(`${host.email}: Error - ${error.message}`);
+                                  }
+                                }
+                                
+                                alert(`Test Results for ${webexHosts.length} hosts:\n\n${results.join('\n')}\n\nTotal recordings found: ${totalRecordings}`);
                               } catch (error) {
                                 alert('Test failed: ' + error.message);
                               }
