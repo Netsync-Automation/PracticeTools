@@ -1,23 +1,7 @@
 import { NextResponse } from 'next/server';
-import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
-import { getEnvironment } from '../../../../lib/dynamodb';
+import { getValidAccessToken } from '../../../../lib/webex-token-manager';
 
 export const dynamic = 'force-dynamic';
-
-const ssmClient = new SSMClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
-
-async function getSSMParameter(name) {
-  try {
-    const command = new GetParameterCommand({
-      Name: name,
-      WithDecryption: true
-    });
-    const response = await ssmClient.send(command);
-    return response.Parameter?.Value;
-  } catch (error) {
-    return null;
-  }
-}
 
 export async function GET(request) {
   try {
@@ -28,10 +12,7 @@ export async function GET(request) {
       return NextResponse.json({ error: 'meetingId parameter required' }, { status: 400 });
     }
     
-    const env = getEnvironment();
-    const prefix = env === 'prod' ? '/PracticeTools' : `/PracticeTools/${env}`;
-    
-    const accessToken = await getSSMParameter(`${prefix}/WEBEX_MEETINGS_ACCESS_TOKEN`);
+    const accessToken = await getValidAccessToken();
     
     if (!accessToken) {
       return NextResponse.json({ error: 'Webex access token not configured' }, { status: 401 });

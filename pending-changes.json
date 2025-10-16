@@ -82261,6 +82261,435 @@
         "app/company-education/scoop/page.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760648394153,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/callback/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:54.153Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js"
+      ]
+    },
+    {
+      "id": 1760648394234,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/recordings/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:54.234Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648394359,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/transcripts/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:54.359Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648394429,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:54.429Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648394516,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/webhooks/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:54.516Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648394598,
+      "description": "Enhanced create tables with specific functionality improvements",
+      "details": {
+        "file": "lib/create-tables.js"
+      },
+      "timestamp": "2025-10-16T20:59:54.598Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648394694,
+      "description": "Enhanced meeting storage with specific functionality improvements",
+      "details": {
+        "file": "lib/meeting-storage.js"
+      },
+      "timestamp": "2025-10-16T20:59:54.694Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648396376,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/callback/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:56.376Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648396476,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/recordings/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:56.476Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648396589,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/transcripts/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:56.589Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648396689,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:56.689Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648396787,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/webhooks/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:56.787Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648396872,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-16T20:59:56.872Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648396973,
+      "description": "Enhanced create tables with specific functionality improvements",
+      "details": {
+        "file": "lib/create-tables.js"
+      },
+      "timestamp": "2025-10-16T20:59:56.973Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648397038,
+      "description": "Enhanced meeting storage with specific functionality improvements",
+      "details": {
+        "file": "lib/meeting-storage.js"
+      },
+      "timestamp": "2025-10-16T20:59:57.038Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648398299,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/callback/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:58.299Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648398404,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/recordings/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:58.404Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648398503,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/transcripts/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:58.503Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648398638,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:58.638Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648398756,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/webhooks/route.js"
+      },
+      "timestamp": "2025-10-16T20:59:58.756Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648398825,
+      "description": "Enhanced commit and-push with specific functionality improvements",
+      "details": {
+        "file": "commit-and-push.js"
+      },
+      "timestamp": "2025-10-16T20:59:58.825Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648398963,
+      "description": "Enhanced create tables with specific functionality improvements",
+      "details": {
+        "file": "lib/create-tables.js"
+      },
+      "timestamp": "2025-10-16T20:59:58.963Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760648399078,
+      "description": "Enhanced meeting storage with specific functionality improvements",
+      "details": {
+        "file": "lib/meeting-storage.js"
+      },
+      "timestamp": "2025-10-16T20:59:59.078Z",
+      "files": [
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/recordings/route.js",
+        "app/api/webex-meetings/transcripts/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "commit-and-push.js",
+        "lib/create-tables.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
     }
   ]
 }

@@ -40,7 +40,7 @@ export async function GET(request) {
     const code = searchParams.get('code');
     const error = searchParams.get('error');
     
-    // Get NEXTAUTH_URL for consistent redirect
+    // Get environment and base URL
     const env = getEnvironment();
     const prefix = env === 'prod' ? '/PracticeTools' : `/PracticeTools/${env}`;
     const nextAuthUrl = await getSSMParameter(`${prefix}/NEXTAUTH_URL`);
@@ -62,10 +62,6 @@ export async function GET(request) {
     if (!clientId || !clientSecret) {
       return NextResponse.redirect(new URL('/admin/settings?tab=company-edu&error=missing_config', baseUrl));
     }
-    
-    // Get NEXTAUTH_URL for consistent redirect URI
-    const nextAuthUrl = await getSSMParameter(`${prefix}/NEXTAUTH_URL`);
-    const baseUrl = nextAuthUrl || new URL(request.url).origin.replace('http://', 'https://');
     
     // Exchange code for access token
     const tokenResponse = await fetch('https://webexapis.com/v1/access_token', {

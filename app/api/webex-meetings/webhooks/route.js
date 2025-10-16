@@ -1,33 +1,12 @@
 import { NextResponse } from 'next/server';
-import { SSMClient, GetParameterCommand, PutParameterCommand } from '@aws-sdk/client-ssm';
-import { getEnvironment } from '../../../../lib/dynamodb';
-import crypto from 'crypto';
+import { getValidAccessToken } from '../../../../lib/webex-token-manager';
 
 export const dynamic = 'force-dynamic';
-
-const ssmClient = new SSMClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
-
-async function getAccessToken() {
-  const env = getEnvironment();
-  const prefix = env === 'prod' ? '/PracticeTools' : `/PracticeTools/${env}`;
-  
-  try {
-    const command = new GetParameterCommand({
-      Name: `${prefix}/WEBEX_MEETINGS_ACCESS_TOKEN`,
-      WithDecryption: true
-    });
-    const response = await ssmClient.send(command);
-    return response.Parameter?.Value;
-  } catch (error) {
-    console.error('Error getting access token:', error);
-    return null;
-  }
-}
 
 export async function POST(request) {
   try {
     const { action } = await request.json();
-    const accessToken = await getAccessToken();
+    const accessToken = await getValidAccessToken();
     
     if (!accessToken) {
       return NextResponse.json({ error: 'Access token not configured' }, { status: 400 });
@@ -94,7 +73,7 @@ export async function POST(request) {
 export async function DELETE(request) {
   try {
     const { webhookId } = await request.json();
-    const accessToken = await getAccessToken();
+    const accessToken = await getValidAccessToken();
     
     if (!accessToken) {
       return NextResponse.json({ error: 'Access token not configured' }, { status: 400 });

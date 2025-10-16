@@ -455,6 +455,8 @@ class CommitBuilder {
           'authhandler': 'Enhanced auth-handler Service with improved functionality and error handling',
           'etatracker': 'Enhanced eta-tracker Service with improved functionality and error handling',
           'assignmentemail-processor': 'Enhanced assignment-email-processor Service with improved functionality and error handling',
+          'createtables': 'Enhanced create-tables Service with improved functionality and error handling',
+          'meetingstorage': 'Enhanced meeting-storage Service with improved functionality and error handling',
     };
     
     // Check for pattern matches

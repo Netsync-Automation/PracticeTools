@@ -3,6 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { getTableName } from '../../../../lib/dynamodb';
 import { storeMeetingData } from '../../../../lib/meeting-storage';
+import { getValidAccessToken } from '../../../../lib/webex-token-manager';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,7 +49,7 @@ export async function POST(request) {
 
 async function processRecording(recordingId, hostEmail, eventData) {
   try {
-    const accessToken = process.env.WEBEX_MEETINGS_ACCESS_TOKEN;
+    const accessToken = await getValidAccessToken();
     if (!accessToken) throw new Error('No Webex access token');
     
     // Get recording details
