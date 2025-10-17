@@ -174,37 +174,83 @@ async function processRecording(recordingId, hostEmail, eventData) {
       }
     }
     
-    // Get transcript
+    // Get transcript using ended meeting instance ID
     let transcript = '';
-    if (recording.meetingId) {
+    const endedInstanceId = recording.meetingInstanceId;
+    if (endedInstanceId && endedInstanceId.includes('_I_')) {
       try {
-        await logWebhookEvent('fetch_transcript', 'info', { meetingId: recording.meetingId });
-        const transcriptResponse = await fetch(`https://webexapis.com/v1/meetingTranscripts?meetingId=${recording.meetingId}`, {
+        await logWebhookEvent('fetch_transcript', 'info', { endedInstanceId });
+        const transcriptResponse = await fetch(`https://webexapis.com/v1/meetingTranscripts?meetingId=${endedInstanceId}`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         
         if (transcriptResponse.ok) {
           const transcriptData = await transcriptResponse.json();
+          await logWebhookEvent('transcript_list_fetched', 'info', { 
+            endedInstanceId, 
+            transcriptCount: transcriptData.items?.length || 0 
+          });
+          
           if (transcriptData.items?.length > 0) {
-            const transcriptDetailResponse = await fetch(`https://webexapis.com/v1/meetingTranscripts/${transcriptData.items[0].id}/download`, {
-              headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
+            // Use vttDownloadLink or txtDownloadLink from the transcript item
+            const transcriptItem = transcriptData.items[0];
+            const downloadUrl = transcriptItem.vttDownloadLink || transcriptItem.txtDownloadLink;
             
-            if (transcriptDetailResponse.ok) {
-              transcript = await transcriptDetailResponse.text();
-              await logWebhookEvent('transcript_downloaded', 'success', { meetingId: recording.meetingId });
+            if (downloadUrl) {
+              const transcriptDetailResponse = await fetch(downloadUrl, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+              });
+              
+              if (transcriptDetailResponse.ok) {
+                transcript = await transcriptDetailResponse.text();
+                await logWebhookEvent('transcript_downloaded', 'success', { 
+                  endedInstanceId, 
+                  transcriptLength: transcript.length,
+                  downloadUrl 
+                });
+              } else {
+                await logWebhookEvent('transcript_download_failed', 'warning', { 
+                  endedInstanceId, 
+                  status: transcriptDetailResponse.status,
+                  downloadUrl 
+                });
+              }
+            } else {
+              await logWebhookEvent('no_download_links', 'warning', { 
+                endedInstanceId,
+                transcriptItem 
+              });
             }
+          } else {
+            await logWebhookEvent('no_transcripts_available', 'info', { 
+              endedInstanceId,
+              reason: 'No transcripts found for ended meeting instance'
+            });
           }
+        } else {
+          const errorText = await transcriptResponse.text();
+          await logWebhookEvent('transcript_list_failed', 'warning', { 
+            endedInstanceId, 
+            status: transcriptResponse.status,
+            error: errorText 
+          });
         }
       } catch (error) {
-        await logWebhookEvent('transcript_error', 'warning', { meetingId: recording.meetingId, error: error.message });
+        await logWebhookEvent('transcript_error', 'warning', { endedInstanceId, error: error.message });
       }
+    } else {
+      await logWebhookEvent('no_ended_instance_id', 'info', { 
+        meetingId: recording.meetingId,
+        meetingInstanceId: recording.meetingInstanceId,
+        reason: 'No ended meeting instance ID available for transcript access'
+      });
     }
     
     // Store meeting data
     await logWebhookEvent('store_meeting', 'info', { meetingId: recording.meetingId || recordingId });
     await storeMeetingData({
       meetingId: recording.meetingId || recordingId,
+      meetingInstanceId: recording.meetingInstanceId,
       startTime: recording.timeRecorded || new Date().toISOString(),
       host: hostEmail,
       participants: recording.participants || [],
@@ -214,7 +260,10 @@ async function processRecording(recordingId, hostEmail, eventData) {
       duration: recording.durationSeconds
     });
     
-    await logWebhookEvent('meeting_stored', 'success', { meetingId: recording.meetingId || recordingId });
+    await logWebhookEvent('meeting_stored', 'success', { 
+      meetingId: recording.meetingId || recordingId,
+      meetingInstanceId: recording.meetingInstanceId 
+    });
     console.log(`Stored meeting data for ${recording.meetingId || recordingId}`);
   } catch (error) {
     await logWebhookEvent('processing_error', 'error', { recordingId, error: error.message, stack: error.stack });

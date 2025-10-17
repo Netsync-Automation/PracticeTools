@@ -57,7 +57,7 @@ export async function GET(request) {
     
     const baseUrl = nextAuthUrl || new URL(request.url).origin.replace('http://', 'https://');
     const redirectUri = `${baseUrl}/api/webex-meetings/callback`;
-    const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read spark:people_read';
+    const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read meeting:admin_transcripts_read spark:people_read';
     
     const validation = {
       environment: env,
@@ -79,7 +79,7 @@ export async function GET(request) {
       if (!tokenValidation.valid) {
         validation.issues.push(`Access token issue: ${tokenValidation.error}`);
       } else if (!tokenValidation.hasRequiredScopes) {
-        validation.issues.push('Access token missing required scopes - will be fixed by re-authorization');
+        validation.issues.push('Access token missing required scopes (spark:people_read and/or meeting:admin_transcripts_read) - will be fixed by re-authorization');
         validation.allowReauthorization = true;
       }
     } else {
