@@ -3229,6 +3229,7 @@ export default function SettingsPage() {
                               alert(`Configuration Valid!\n\nEnvironment: ${validation.environment}\nRedirect URI: ${validation.redirectUri}\nScopes: ${validation.scopes}\n\nProceeding to authorization...`);
                               
                               const redirectUri = validation.redirectUri;
+                              // Updated with spark:people_read scope - v2
                               const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read spark:people_read';
                               const authUrl = `https://webexapis.com/v1/authorize?client_id=${settings.webexClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
                               window.open(authUrl, '_blank');
