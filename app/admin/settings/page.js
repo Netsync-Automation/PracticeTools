@@ -3349,6 +3349,90 @@ export default function SettingsPage() {
                           </svg>
                           Setup Webhooks
                         </button>
+                        
+                        <button
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/webex-meetings/validate-webhooks');
+                              const validation = await response.json();
+                              
+                              let message = `Webhook Validation Results\n\n`;
+                              message += `Total Webhooks: ${validation.totalWebhooks}\n`;
+                              message += `Valid Configuration: ${validation.isValid ? 'Yes' : 'No'}\n\n`;
+                              
+                              if (validation.recordingsWebhook) {
+                                message += `Recordings Webhook:\n`;
+                                message += `  ID: ${validation.recordingsWebhook.id}\n`;
+                                message += `  Name: ${validation.recordingsWebhook.name}\n`;
+                                message += `  Status: ${validation.recordingsWebhook.status}\n`;
+                                message += `  Target: ${validation.recordingsWebhook.targetUrl}\n\n`;
+                              } else {
+                                message += `Recordings Webhook: Not found\n\n`;
+                              }
+                              
+                              if (validation.transcriptsWebhook) {
+                                message += `Transcripts Webhook:\n`;
+                                message += `  ID: ${validation.transcriptsWebhook.id}\n`;
+                                message += `  Name: ${validation.transcriptsWebhook.name}\n`;
+                                message += `  Status: ${validation.transcriptsWebhook.status}\n`;
+                                message += `  Target: ${validation.transcriptsWebhook.targetUrl}\n\n`;
+                              } else {
+                                message += `Transcripts Webhook: Not found\n\n`;
+                              }
+                              
+                              if (validation.allWebhooks && validation.allWebhooks.length > 0) {
+                                message += `All Webhooks (${validation.allWebhooks.length}):\n`;
+                                validation.allWebhooks.forEach((webhook, i) => {
+                                  message += `${i + 1}. ${webhook.name} (${webhook.resource}/${webhook.event}) - ${webhook.status}\n`;
+                                });
+                              }
+                              
+                              alert(message);
+                            } catch (error) {
+                              alert('Webhook validation failed: ' + error.message);
+                            }
+                          }}
+                          className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Validate Webhooks
+                        </button>
+                        
+                        <button
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('/api/webex-meetings/logs?limit=20');
+                              const data = await response.json();
+                              
+                              if (data.logs && data.logs.length > 0) {
+                                let message = `Recent Webhook Events (${data.logs.length}):\n\n`;
+                                data.logs.forEach((log, i) => {
+                                  const timestamp = new Date(log.timestamp).toLocaleString();
+                                  message += `${i + 1}. [${timestamp}] ${log.event} - ${log.status}\n`;
+                                  if (log.details && typeof log.details === 'object') {
+                                    if (log.details.recordingId) message += `   Recording: ${log.details.recordingId}\n`;
+                                    if (log.details.hostEmail) message += `   Host: ${log.details.hostEmail}\n`;
+                                    if (log.details.error) message += `   Error: ${log.details.error}\n`;
+                                  }
+                                  message += `\n`;
+                                });
+                                alert(message);
+                              } else {
+                                alert('No webhook events found. This could mean:\n\n• Webhooks haven\'t been set up yet\n• No recordings have been processed\n• Webhook events are not being received');
+                              }
+                            } catch (error) {
+                              alert('Failed to fetch webhook logs: ' + error.message);
+                            }
+                          }}
+                          className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                          </svg>
+                          View Logs
+                        </button>
                       </div>
                     </div>
                   </div>
