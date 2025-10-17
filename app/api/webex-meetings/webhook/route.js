@@ -60,9 +60,15 @@ async function logWebhookEvent(event, status, details) {
 }
 
 export async function POST(request) {
+  console.log('[WEBHOOK] Starting webhook processing');
   try {
+    console.log('[WEBHOOK] Parsing request body');
     const payload = await request.json();
+    console.log('[WEBHOOK] Payload received:', JSON.stringify(payload, null, 2));
+    
+    console.log('[WEBHOOK] Logging webhook event');
     await logWebhookEvent('received', 'info', { payload });
+    console.log('[WEBHOOK] Event logged successfully');
     
     // Handle Webex webhook challenge (required for webhook verification)
     if (payload.challenge) {
@@ -110,9 +116,22 @@ export async function POST(request) {
     await logWebhookEvent('completed', 'success', { resource, event });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Webhook processing error:', error);
-    await logWebhookEvent('error', 'error', { error: error.message, stack: error.stack });
-    return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
+    console.error('[WEBHOOK] Critical error:', error);
+    console.error('[WEBHOOK] Error stack:', error.stack);
+    console.error('[WEBHOOK] Error name:', error.name);
+    console.error('[WEBHOOK] Error message:', error.message);
+    
+    try {
+      await logWebhookEvent('error', 'error', { error: error.message, stack: error.stack });
+    } catch (logError) {
+      console.error('[WEBHOOK] Failed to log error:', logError);
+    }
+    
+    return NextResponse.json({ 
+      error: 'Webhook processing failed', 
+      details: error.message,
+      type: error.name 
+    }, { status: 500 });
   }
 }
 

@@ -25853,6 +25853,44 @@
         "lib/webex-token-manager.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760706425502,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-17T13:07:05.502Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "lib/webex-token-manager.js"
+      ]
+    },
+    {
+      "id": 1760706426227,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-17T13:07:06.227Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760706426752,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-17T13:07:06.752Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -34076,6 +34114,45 @@
         "app/api/training-certs/[id]/route.js",
         "app/practice-information/training-certs/page.js",
         "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760706425585,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-17T13:07:05.585Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760706426313,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-17T13:07:06.313Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760706426850,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-17T13:07:06.850Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "lib/webex-token-manager.js",
         "pending-changes.json"
       ]
     }
