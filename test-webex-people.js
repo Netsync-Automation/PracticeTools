@@ -35,8 +35,9 @@ async function testWebexPeopleAPI() {
             return;
         }
         
-        // Test with the hostUserId from webhook logs
+        // Test with the EXACT hostUserId from latest webhook logs
         const hostUserId = 'Y2lzY29zcGFyazovL3VzL1BFT1BMRS8wYmIzNDhiMC1iNDUwLTRiMTMtODE5NC1mMjEwYzFkZDMzNWI';
+        console.log('This is the same hostUserId that returned NULL in webhook logs');
         
         console.log(`Looking up user: ${hostUserId}`);
         

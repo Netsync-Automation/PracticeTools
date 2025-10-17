@@ -1,32 +1,64 @@
-import { DynamoDBClient, ListTablesCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, ListTablesCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 
-async function checkTables() {
-  const client = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
-  
-  try {
-    console.log('Checking DynamoDB tables...');
-    const command = new ListTablesCommand({});
-    const response = await client.send(command);
+const region = 'us-east-1';
+const dynamodb = new DynamoDBClient({ region });
+
+async function listAllTables() {
+    console.log('=== LISTING ALL DYNAMODB TABLES ===');
     
-    console.log('All tables:', response.TableNames);
-    
-    // Check for email rules tables specifically
-    const emailRulesTables = response.TableNames.filter(name => 
-      name.includes('EmailRules') || name.includes('email-rules')
-    );
-    
-    console.log('Email Rules tables found:', emailRulesTables);
-    
-    // Check for dev vs prod patterns
-    const devTables = response.TableNames.filter(name => name.includes('-dev-'));
-    const prodTables = response.TableNames.filter(name => name.includes('-prod-') || (!name.includes('-dev-') && name.startsWith('PracticeTools')));
-    
-    console.log('Dev tables:', devTables);
-    console.log('Prod tables:', prodTables);
-    
-  } catch (error) {
-    console.error('Error listing tables:', error);
-  }
+    try {
+        const command = new ListTablesCommand({});
+        const response = await dynamodb.send(command);
+        
+        if (response.TableNames && response.TableNames.length > 0) {
+            console.log('Available tables:');
+            response.TableNames.forEach(tableName => {
+                console.log(`- ${tableName}`);
+            });
+            
+            // Check PracticeTools tables specifically
+            const practiceToolsTables = response.TableNames.filter(name => 
+                name.includes('PracticeTools')
+            );
+            
+            if (practiceToolsTables.length > 0) {
+                console.log('\nPracticeTools tables:');
+                for (const tableName of practiceToolsTables) {
+                    await checkTableContents(tableName);
+                }
+            }
+        } else {
+            console.log('No tables found');
+        }
+    } catch (error) {
+        console.error('Error listing tables:', error.message);
+    }
 }
 
-checkTables();
+async function checkTableContents(tableName) {
+    console.log(`\n--- Checking ${tableName} ---`);
+    
+    try {
+        const scanCommand = new ScanCommand({
+            TableName: tableName,
+            Limit: 5
+        });
+        
+        const response = await dynamodb.send(scanCommand);
+        
+        if (response.Items && response.Items.length > 0) {
+            console.log(`Found ${response.Items.length} items (showing first 5):`);
+            response.Items.forEach((item, index) => {
+                const unmarshalled = unmarshall(item);
+                console.log(`${index + 1}. ${JSON.stringify(unmarshalled, null, 2)}`);
+            });
+        } else {
+            console.log('Table is empty');
+        }
+    } catch (error) {
+        console.error(`Error scanning ${tableName}:`, error.message);
+    }
+}
+
+listAllTables().catch(console.error);
