@@ -25939,6 +25939,53 @@
         "lib/meeting-storage.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760714037485,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-17T15:13:57.485Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js"
+      ]
+    },
+    {
+      "id": 1760714038977,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-17T15:13:58.977Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714040222,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-17T15:14:00.222Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -34201,6 +34248,54 @@
       "files": [
         "app/api/webex-meetings/webhook/route.js",
         "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714037818,
+      "description": "Enhanced check webhook-logs with specific functionality improvements",
+      "details": {
+        "file": "check-webhook-logs.js"
+      },
+      "timestamp": "2025-10-17T15:13:57.818Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714039233,
+      "description": "Enhanced check webhook-logs with specific functionality improvements",
+      "details": {
+        "file": "check-webhook-logs.js"
+      },
+      "timestamp": "2025-10-17T15:13:59.233Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714040517,
+      "description": "Enhanced check webhook-logs with specific functionality improvements",
+      "details": {
+        "file": "check-webhook-logs.js"
+      },
+      "timestamp": "2025-10-17T15:14:00.517Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
         "pending-changes.json"
       ]
     }
@@ -83754,6 +83849,150 @@
         "app/api/webex-meetings/validate/route.js",
         "app/api/webex-meetings/webhook/route.js",
         "app/company-education/scoop/page.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714037593,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/company-education/scoop/page.js"
+      },
+      "timestamp": "2025-10-17T15:13:57.593Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714037691,
+      "description": "Enhanced check transcript-logs with specific functionality improvements",
+      "details": {
+        "file": "check-transcript-logs.js"
+      },
+      "timestamp": "2025-10-17T15:13:57.691Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714037892,
+      "description": "Enhanced meeting storage with specific functionality improvements",
+      "details": {
+        "file": "lib/meeting-storage.js"
+      },
+      "timestamp": "2025-10-17T15:13:57.892Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714039046,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/company-education/scoop/page.js"
+      },
+      "timestamp": "2025-10-17T15:13:59.046Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714039132,
+      "description": "Enhanced check transcript-logs with specific functionality improvements",
+      "details": {
+        "file": "check-transcript-logs.js"
+      },
+      "timestamp": "2025-10-17T15:13:59.132Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714039335,
+      "description": "Enhanced meeting storage with specific functionality improvements",
+      "details": {
+        "file": "lib/meeting-storage.js"
+      },
+      "timestamp": "2025-10-17T15:13:59.335Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714040319,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/company-education/scoop/page.js"
+      },
+      "timestamp": "2025-10-17T15:14:00.319Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714040418,
+      "description": "Enhanced check transcript-logs with specific functionality improvements",
+      "details": {
+        "file": "check-transcript-logs.js"
+      },
+      "timestamp": "2025-10-17T15:14:00.418Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
+        "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760714040600,
+      "description": "Enhanced meeting storage with specific functionality improvements",
+      "details": {
+        "file": "lib/meeting-storage.js"
+      },
+      "timestamp": "2025-10-17T15:14:00.600Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "app/company-education/scoop/page.js",
+        "check-transcript-logs.js",
+        "check-webhook-logs.js",
         "lib/meeting-storage.js",
         "pending-changes.json"
       ]

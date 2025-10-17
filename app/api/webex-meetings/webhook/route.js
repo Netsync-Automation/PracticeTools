@@ -174,12 +174,38 @@ async function processRecording(recordingId, hostEmail, eventData) {
       }
     }
     
-    // Get transcript using ended meeting instance ID
+    // Get transcript using direct download link or API
     let transcript = '';
-    const endedInstanceId = recording.meetingInstanceId;
-    if (endedInstanceId && endedInstanceId.includes('_I_')) {
+    
+    // Method 1: Try direct transcript download link first
+    const directTranscriptUrl = recording.temporaryDirectDownloadLinks?.transcriptDownloadLink;
+    if (directTranscriptUrl) {
       try {
-        await logWebhookEvent('fetch_transcript', 'info', { endedInstanceId });
+        await logWebhookEvent('fetch_direct_transcript', 'info', { recordingId, directTranscriptUrl });
+        const directResponse = await fetch(directTranscriptUrl);
+        
+        if (directResponse.ok) {
+          transcript = await directResponse.text();
+          await logWebhookEvent('direct_transcript_downloaded', 'success', { 
+            recordingId, 
+            transcriptLength: transcript.length 
+          });
+        } else {
+          await logWebhookEvent('direct_transcript_failed', 'warning', { 
+            recordingId, 
+            status: directResponse.status 
+          });
+        }
+      } catch (error) {
+        await logWebhookEvent('direct_transcript_error', 'warning', { recordingId, error: error.message });
+      }
+    }
+    
+    // Method 2: If no direct link or direct download failed, try API method
+    if (!transcript && recording.meetingId && recording.meetingId.includes('_I_')) {
+      try {
+        const endedInstanceId = recording.meetingId;
+        await logWebhookEvent('fetch_transcript_api', 'info', { endedInstanceId });
         const transcriptResponse = await fetch(`https://webexapis.com/v1/meetingTranscripts?meetingId=${endedInstanceId}`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
@@ -192,7 +218,6 @@ async function processRecording(recordingId, hostEmail, eventData) {
           });
           
           if (transcriptData.items?.length > 0) {
-            // Use vttDownloadLink or txtDownloadLink from the transcript item
             const transcriptItem = transcriptData.items[0];
             const downloadUrl = transcriptItem.vttDownloadLink || transcriptItem.txtDownloadLink;
             
@@ -203,20 +228,19 @@ async function processRecording(recordingId, hostEmail, eventData) {
               
               if (transcriptDetailResponse.ok) {
                 transcript = await transcriptDetailResponse.text();
-                await logWebhookEvent('transcript_downloaded', 'success', { 
+                await logWebhookEvent('api_transcript_downloaded', 'success', { 
                   endedInstanceId, 
                   transcriptLength: transcript.length,
                   downloadUrl 
                 });
               } else {
-                await logWebhookEvent('transcript_download_failed', 'warning', { 
+                await logWebhookEvent('api_transcript_download_failed', 'warning', { 
                   endedInstanceId, 
-                  status: transcriptDetailResponse.status,
-                  downloadUrl 
+                  status: transcriptDetailResponse.status 
                 });
               }
             } else {
-              await logWebhookEvent('no_download_links', 'warning', { 
+              await logWebhookEvent('no_transcript_download_links', 'warning', { 
                 endedInstanceId,
                 transcriptItem 
               });
@@ -229,20 +253,24 @@ async function processRecording(recordingId, hostEmail, eventData) {
           }
         } else {
           const errorText = await transcriptResponse.text();
-          await logWebhookEvent('transcript_list_failed', 'warning', { 
+          await logWebhookEvent('transcript_api_failed', 'warning', { 
             endedInstanceId, 
             status: transcriptResponse.status,
             error: errorText 
           });
         }
       } catch (error) {
-        await logWebhookEvent('transcript_error', 'warning', { endedInstanceId, error: error.message });
+        await logWebhookEvent('transcript_api_error', 'warning', { endedInstanceId: recording.meetingId, error: error.message });
       }
-    } else {
-      await logWebhookEvent('no_ended_instance_id', 'info', { 
+    }
+    
+    // Log final transcript status
+    if (!transcript) {
+      await logWebhookEvent('no_transcript_found', 'info', { 
+        recordingId,
         meetingId: recording.meetingId,
-        meetingInstanceId: recording.meetingInstanceId,
-        reason: 'No ended meeting instance ID available for transcript access'
+        hasDirectLink: !!directTranscriptUrl,
+        hasEndedInstanceId: !!(recording.meetingId && recording.meetingId.includes('_I_'))
       });
     }
     
@@ -250,11 +278,12 @@ async function processRecording(recordingId, hostEmail, eventData) {
     await logWebhookEvent('store_meeting', 'info', { meetingId: recording.meetingId || recordingId });
     await storeMeetingData({
       meetingId: recording.meetingId || recordingId,
-      meetingInstanceId: recording.meetingInstanceId,
+      meetingInstanceId: recording.meetingId, // Use meetingId as it contains the instance ID
       startTime: recording.timeRecorded || new Date().toISOString(),
       host: hostEmail,
       participants: recording.participants || [],
-      recordingUrl: recording.downloadUrl,
+      recordingUrl: recording.playbackUrl || recording.downloadUrl,
+      recordingPassword: recording.password,
       recordingData,
       transcript,
       duration: recording.durationSeconds
