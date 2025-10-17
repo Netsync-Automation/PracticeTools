@@ -157,6 +157,14 @@ async function processRecording(recordingId, hostEmail, eventData) {
     const recording = await recordingResponse.json();
     await logWebhookEvent('recording_fetched', 'success', { recordingId, meetingId: recording.meetingId, hostEmail });
     
+    // Debug: Log the full recording structure for transcript debugging
+    await logWebhookEvent('recording_structure_debug', 'info', {
+      recordingId,
+      hasTemporaryDirectDownloadLinks: !!recording.temporaryDirectDownloadLinks,
+      temporaryLinksKeys: recording.temporaryDirectDownloadLinks ? Object.keys(recording.temporaryDirectDownloadLinks) : [],
+      transcriptLinkExists: !!recording.temporaryDirectDownloadLinks?.transcriptDownloadLink
+    });
+    
     // Download recording file
     let recordingData = null;
     if (recording.downloadUrl) {
@@ -176,6 +184,14 @@ async function processRecording(recordingId, hostEmail, eventData) {
     
     // Get transcript using direct download link or API
     let transcript = '';
+    
+    // Debug logging for transcript detection
+    await logWebhookEvent('transcript_debug', 'info', {
+      recordingId,
+      hasTemporaryLinks: !!recording.temporaryDirectDownloadLinks,
+      hasTranscriptLink: !!recording.temporaryDirectDownloadLinks?.transcriptDownloadLink,
+      transcriptLinkLength: recording.temporaryDirectDownloadLinks?.transcriptDownloadLink?.length || 0
+    });
     
     // Method 1: Try direct transcript download link first
     const directTranscriptUrl = recording.temporaryDirectDownloadLinks?.transcriptDownloadLink;

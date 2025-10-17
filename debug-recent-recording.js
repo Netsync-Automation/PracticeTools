@@ -24,7 +24,7 @@ async function debugRecentRecording() {
 
     try {
         // Get the most recent recording
-        const recordingId = '965b45a3dbae43c2800363b5efcdf423'; // From logs
+        const recordingId = 'fd5584b6a0a7455c91c8b086d56a8c98'; // From logs - newest recording
         
         console.log('Fetching recording details...');
         const recordingResponse = await fetch(`https://webexapis.com/v1/recordings/${recordingId}`, {

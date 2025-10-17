@@ -25986,6 +25986,47 @@
         "lib/meeting-storage.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760716439864,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-17T15:53:59.864Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "debug-recent-recording.js",
+        "test-direct-transcript.js"
+      ]
+    },
+    {
+      "id": 1760716440658,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-17T15:54:00.658Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "debug-recent-recording.js",
+        "pending-changes.json",
+        "test-direct-transcript.js"
+      ]
+    },
+    {
+      "id": 1760716441426,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-17T15:54:01.426Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "debug-recent-recording.js",
+        "pending-changes.json",
+        "test-direct-transcript.js"
+      ]
     }
   ],
   "breaking": [
@@ -83995,6 +84036,90 @@
         "check-webhook-logs.js",
         "lib/meeting-storage.js",
         "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760716439939,
+      "description": "Enhanced debug recent-recording with specific functionality improvements",
+      "details": {
+        "file": "debug-recent-recording.js"
+      },
+      "timestamp": "2025-10-17T15:53:59.939Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "debug-recent-recording.js",
+        "pending-changes.json",
+        "test-direct-transcript.js"
+      ]
+    },
+    {
+      "id": 1760716440021,
+      "description": "Enhanced test direct-transcript with specific functionality improvements",
+      "details": {
+        "file": "test-direct-transcript.js"
+      },
+      "timestamp": "2025-10-17T15:54:00.021Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "debug-recent-recording.js",
+        "pending-changes.json",
+        "test-direct-transcript.js"
+      ]
+    },
+    {
+      "id": 1760716440740,
+      "description": "Enhanced debug recent-recording with specific functionality improvements",
+      "details": {
+        "file": "debug-recent-recording.js"
+      },
+      "timestamp": "2025-10-17T15:54:00.740Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "debug-recent-recording.js",
+        "pending-changes.json",
+        "test-direct-transcript.js"
+      ]
+    },
+    {
+      "id": 1760716440835,
+      "description": "Enhanced test direct-transcript with specific functionality improvements",
+      "details": {
+        "file": "test-direct-transcript.js"
+      },
+      "timestamp": "2025-10-17T15:54:00.835Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "debug-recent-recording.js",
+        "pending-changes.json",
+        "test-direct-transcript.js"
+      ]
+    },
+    {
+      "id": 1760716441523,
+      "description": "Enhanced debug recent-recording with specific functionality improvements",
+      "details": {
+        "file": "debug-recent-recording.js"
+      },
+      "timestamp": "2025-10-17T15:54:01.523Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "debug-recent-recording.js",
+        "pending-changes.json",
+        "test-direct-transcript.js"
+      ]
+    },
+    {
+      "id": 1760716441619,
+      "description": "Enhanced test direct-transcript with specific functionality improvements",
+      "details": {
+        "file": "test-direct-transcript.js"
+      },
+      "timestamp": "2025-10-17T15:54:01.619Z",
+      "files": [
+        "app/api/webex-meetings/webhook/route.js",
+        "debug-recent-recording.js",
+        "pending-changes.json",
+        "test-direct-transcript.js"
       ]
     }
   ]
