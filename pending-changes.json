@@ -25769,6 +25769,90 @@
         "pending-changes.json",
         "test-webex-people.js"
       ]
+    },
+    {
+      "id": 1760677243870,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-17T05:00:43.870Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677244863,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-17T05:00:44.863Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677245656,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-17T05:00:45.656Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677250004,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-17T05:00:50.004Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677251012,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-17T05:00:51.012Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677251708,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-17T05:00:51.708Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -83112,6 +83196,173 @@
         "check-tables.js",
         "pending-changes.json",
         "test-webex-people.js"
+      ]
+    },
+    {
+      "id": 1760677243791,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-17T05:00:43.791Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js"
+      ]
+    },
+    {
+      "id": 1760677243980,
+      "description": "Enhanced webex token-manager with specific functionality improvements",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-17T05:00:43.980Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677244795,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-17T05:00:44.795Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677244947,
+      "description": "Enhanced webex token-manager with specific functionality improvements",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-17T05:00:44.947Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677245576,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-17T05:00:45.576Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677245737,
+      "description": "Enhanced webex token-manager with specific functionality improvements",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-17T05:00:45.737Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677249938,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-17T05:00:49.938Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677250102,
+      "description": "Enhanced webex token-manager with specific functionality improvements",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-17T05:00:50.102Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677250892,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-17T05:00:50.892Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677251084,
+      "description": "Enhanced webex token-manager with specific functionality improvements",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-17T05:00:51.084Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677251642,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-17T05:00:51.642Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760677251817,
+      "description": "Enhanced webex token-manager with specific functionality improvements",
+      "details": {
+        "file": "lib/webex-token-manager.js"
+      },
+      "timestamp": "2025-10-17T05:00:51.817Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/validate/route.js",
+        "lib/webex-token-manager.js",
+        "pending-changes.json"
       ]
     }
   ]

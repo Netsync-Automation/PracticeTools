@@ -6,6 +6,30 @@ export const dynamic = 'force-dynamic';
 
 const ssmClient = new SSMClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 
+// Function to validate token scopes by calling Webex API
+async function validateTokenScopes(accessToken) {
+  try {
+    const response = await fetch('https://webexapis.com/v1/people/me', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.status === 200) {
+      return { valid: true, hasRequiredScopes: true };
+    } else if (response.status === 403) {
+      return { valid: true, hasRequiredScopes: false, error: 'Missing spark:people_read scope' };
+    } else if (response.status === 401) {
+      return { valid: false, error: 'Token expired or invalid' };
+    } else {
+      return { valid: false, error: `API returned ${response.status}` };
+    }
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+}
+
 async function getSSMParameter(name) {
   try {
     const command = new GetParameterCommand({
@@ -24,15 +48,16 @@ export async function GET(request) {
     const env = getEnvironment();
     const prefix = env === 'prod' ? '/PracticeTools' : `/PracticeTools/${env}`;
     
-    const [clientId, clientSecret, nextAuthUrl] = await Promise.all([
+    const [clientId, clientSecret, nextAuthUrl, accessToken] = await Promise.all([
       getSSMParameter(`${prefix}/WEBEX_MEETINGS_CLIENT_ID`),
       getSSMParameter(`${prefix}/WEBEX_MEETINGS_CLIENT_SECRET`),
-      getSSMParameter(`${prefix}/NEXTAUTH_URL`)
+      getSSMParameter(`${prefix}/NEXTAUTH_URL`),
+      getSSMParameter(`${prefix}/WEBEX_MEETINGS_ACCESS_TOKEN`)
     ]);
     
     const baseUrl = nextAuthUrl || new URL(request.url).origin.replace('http://', 'https://');
     const redirectUri = `${baseUrl}/api/webex-meetings/callback`;
-    const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read';
+    const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read spark:people_read';
     
     const validation = {
       environment: env,
@@ -42,8 +67,23 @@ export async function GET(request) {
       clientIdPresent: !!clientId,
       clientSecretPresent: !!clientSecret,
       clientIdLength: clientId ? clientId.length : 0,
+      accessTokenPresent: !!accessToken,
       issues: []
     };
+    
+    // Validate actual token scopes if token exists
+    if (accessToken) {
+      const tokenValidation = await validateTokenScopes(accessToken);
+      validation.tokenValidation = tokenValidation;
+      
+      if (!tokenValidation.valid) {
+        validation.issues.push(`Access token issue: ${tokenValidation.error}`);
+      } else if (!tokenValidation.hasRequiredScopes) {
+        validation.issues.push('Access token missing required scopes - need to re-authorize');
+      }
+    } else {
+      validation.issues.push('No access token found - need to authorize Webex first');
+    }
     
     // Check for common issues
     if (!clientId) {
@@ -60,6 +100,10 @@ export async function GET(request) {
     
     if (!baseUrl.startsWith('https://')) {
       validation.issues.push('Base URL must use HTTPS for OAuth');
+    }
+    
+    if (!accessToken) {
+      validation.issues.push('Access token not found in SSM');
     }
     
     // Test OAuth URL construction

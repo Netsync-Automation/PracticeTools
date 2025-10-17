@@ -3226,7 +3226,7 @@ export default function SettingsPage() {
                                 return;
                               }
                               
-                              alert(`Configuration Valid!\n\nEnvironment: ${validation.environment}\nRedirect URI: ${validation.redirectUri}\nScopes: ${validation.scopes}\n\nProceeding to authorization...`);
+                              alert(`Configuration Valid!\n\nEnvironment: ${validation.environment}\nRedirect URI: ${validation.redirectUri}\nScopes: spark:recordings_read meeting:recordings_read meeting:transcripts_read spark:people_read\n\nProceeding to authorization...`);
                               
                               const redirectUri = validation.redirectUri;
                               // Updated with spark:people_read scope - v2
@@ -3261,7 +3261,7 @@ export default function SettingsPage() {
                               message += `Environment: ${validation.environment}\n`;
                               message += `Base URL: ${validation.baseUrl}\n`;
                               message += `Redirect URI: ${validation.redirectUri}\n`;
-                              message += `Scopes: ${validation.scopes}\n`;
+                              message += `Scopes: spark:recordings_read meeting:recordings_read meeting:transcripts_read spark:people_read\n`;
                               message += `Client ID Present: ${validation.clientIdPresent}\n`;
                               message += `Client Secret Present: ${validation.clientSecretPresent}\n`;
                               
