@@ -22,6 +22,23 @@ async function getMonitoredHosts() {
   }
 }
 
+async function getHostEmailFromUserId(hostUserId, accessToken) {
+  try {
+    const response = await fetch(`https://webexapis.com/v1/people/${hostUserId}`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    
+    if (response.ok) {
+      const person = await response.json();
+      return person.emails?.[0] || null;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching host email:', error);
+    return null;
+  }
+}
+
 async function logWebhookEvent(event, status, details) {
   try {
     await createWebexLogsTable();
@@ -54,9 +71,25 @@ export async function POST(request) {
     }
     
     const { resource, event, data, id, name, targetUrl, created, actorId } = payload;
-    const hostEmail = data?.hostEmail;
+    const hostUserId = data?.hostUserId;
     
-    await logWebhookEvent('processing', 'info', { resource, event, hostEmail, id });
+    await logWebhookEvent('processing', 'info', { resource, event, hostUserId, id });
+    
+    if (!hostUserId) {
+      await logWebhookEvent('filtered', 'info', { reason: 'No hostUserId in webhook data', data });
+      return NextResponse.json({ success: true, message: 'No hostUserId found' });
+    }
+    
+    // Get access token to lookup host email
+    const accessToken = await getValidAccessToken();
+    if (!accessToken) {
+      await logWebhookEvent('token_error', 'error', { hostUserId });
+      return NextResponse.json({ error: 'No access token' }, { status: 500 });
+    }
+    
+    // Lookup host email from hostUserId
+    const hostEmail = await getHostEmailFromUserId(hostUserId, accessToken);
+    await logWebhookEvent('host_lookup', 'info', { hostUserId, hostEmail });
     
     const monitoredHosts = await getMonitoredHosts();
     if (!hostEmail || !monitoredHosts.includes(hostEmail)) {
@@ -103,7 +136,7 @@ async function processRecording(recordingId, hostEmail, eventData) {
       throw new Error(`Failed to fetch recording: ${recordingResponse.status}`);
     }
     const recording = await recordingResponse.json();
-    await logWebhookEvent('recording_fetched', 'success', { recordingId, meetingId: recording.meetingId });
+    await logWebhookEvent('recording_fetched', 'success', { recordingId, meetingId: recording.meetingId, hostEmail });
     
     // Download recording file
     let recordingData = null;

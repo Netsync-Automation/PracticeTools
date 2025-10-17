@@ -2980,7 +2980,7 @@ export default function SettingsPage() {
                     <h4 className="text-sm font-medium text-blue-900 mb-3">Integration Setup Instructions</h4>
                     <div className="space-y-2 text-sm text-blue-800">
                       <p><strong>1. Create Integration App:</strong> Go to <a href="https://developer.webex.com/my-apps" target="_blank" className="underline">developer.webex.com/my-apps</a></p>
-                      <p><strong>2. Required Scopes:</strong> <code className="bg-blue-100 px-1 rounded">spark:recordings_read</code>, <code className="bg-blue-100 px-1 rounded">meeting:recordings_read</code>, <code className="bg-blue-100 px-1 rounded">meeting:transcripts_read</code></p>
+                      <p><strong>2. Required Scopes:</strong> <code className="bg-blue-100 px-1 rounded">spark:recordings_read</code>, <code className="bg-blue-100 px-1 rounded">meeting:recordings_read</code>, <code className="bg-blue-100 px-1 rounded">meeting:transcripts_read</code>, <code className="bg-blue-100 px-1 rounded">spark:people_read</code></p>
                       <p><strong>3. Redirect URI:</strong> <code className="bg-blue-100 px-2 py-1 rounded text-xs">{typeof window !== 'undefined' ? window.location.origin.replace('http://', 'https://') : 'https://your-domain.com'}/api/webex-meetings/callback</code></p>
                       <p><strong>4. After saving settings, click "Authorize Webex" to complete OAuth flow</strong></p>
                     </div>
@@ -3229,7 +3229,7 @@ export default function SettingsPage() {
                               alert(`Configuration Valid!\n\nEnvironment: ${validation.environment}\nRedirect URI: ${validation.redirectUri}\nScopes: ${validation.scopes}\n\nProceeding to authorization...`);
                               
                               const redirectUri = validation.redirectUri;
-                              const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read';
+                              const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read spark:people_read';
                               const authUrl = `https://webexapis.com/v1/authorize?client_id=${settings.webexClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
                               window.open(authUrl, '_blank');
                             } catch (error) {
