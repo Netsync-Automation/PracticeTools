@@ -3218,23 +3218,17 @@ export default function SettingsPage() {
                         <button
                           onClick={async () => {
                             try {
+                              // Get redirect URI from validation endpoint (for URL construction only)
                               const response = await fetch('/api/webex-meetings/validate');
                               const validation = await response.json();
                               
-                              if (validation.issues && validation.issues.length > 0) {
-                                alert(`Configuration Issues Found:\n\n${validation.issues.join('\n')}\n\nPlease fix these issues before authorizing.`);
-                                return;
-                              }
-                              
-                              alert(`Configuration Valid!\n\nEnvironment: ${validation.environment}\nRedirect URI: ${validation.redirectUri}\nScopes: spark:recordings_read meeting:recordings_read meeting:transcripts_read spark:people_read\n\nProceeding to authorization...`);
-                              
                               const redirectUri = validation.redirectUri;
-                              // Updated with spark:people_read scope - v2
                               const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read spark:people_read';
                               const authUrl = `https://webexapis.com/v1/authorize?client_id=${settings.webexClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+                              
                               window.open(authUrl, '_blank');
                             } catch (error) {
-                              alert('Validation failed: ' + error.message);
+                              alert('Authorization failed: ' + error.message);
                             }
                           }}
                           disabled={!settings.webexClientId || !settings.webexClientSecret}

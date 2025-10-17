@@ -79,7 +79,8 @@ export async function GET(request) {
       if (!tokenValidation.valid) {
         validation.issues.push(`Access token issue: ${tokenValidation.error}`);
       } else if (!tokenValidation.hasRequiredScopes) {
-        validation.issues.push('Access token missing required scopes - need to re-authorize');
+        validation.issues.push('Access token missing required scopes - will be fixed by re-authorization');
+        validation.allowReauthorization = true;
       }
     } else {
       validation.issues.push('No access token found - need to authorize Webex first');
