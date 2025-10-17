@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { getTableName } from '../../../../lib/dynamodb';
-import { storeMeetingData } from '../../../../lib/meeting-storage';
+import { storeMeetingData, updateMeetingTranscript } from '../../../../lib/meeting-storage';
 import { getValidAccessToken } from '../../../../lib/webex-token-manager';
 import { createWebexLogsTable } from '../../../../lib/create-tables';
+import { uploadRecordingToS3 } from '../../../../lib/s3-storage';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,38 +78,40 @@ export async function POST(request) {
     }
     
     const { resource, event, data, id, name, targetUrl, created, actorId } = payload;
-    const hostUserId = data?.hostUserId;
     
-    await logWebhookEvent('processing', 'info', { resource, event, hostUserId, id });
-    
-    if (!hostUserId) {
-      await logWebhookEvent('filtered', 'info', { reason: 'No hostUserId in webhook data', data });
-      return NextResponse.json({ success: true, message: 'No hostUserId found' });
-    }
-    
-    // Get access token to lookup host email
-    const accessToken = await getValidAccessToken();
-    if (!accessToken) {
-      await logWebhookEvent('token_error', 'error', { hostUserId });
-      return NextResponse.json({ error: 'No access token' }, { status: 500 });
-    }
-    
-    // Lookup host email from hostUserId
-    const hostEmail = await getHostEmailFromUserId(hostUserId, accessToken);
-    await logWebhookEvent('host_lookup', 'info', { hostUserId, hostEmail });
-    
-    const monitoredHosts = await getMonitoredHosts();
-    if (!hostEmail || !monitoredHosts.includes(hostEmail)) {
-      await logWebhookEvent('filtered', 'info', { reason: 'Host not monitored', hostEmail, monitoredHosts });
-      return NextResponse.json({ success: true, message: 'Host not monitored' });
-    }
+    await logWebhookEvent('processing', 'info', { resource, event, dataId: data?.id, id });
     
     if (resource === 'recordings' && event === 'created') {
+      const hostUserId = data?.hostUserId;
+      
+      if (!hostUserId) {
+        await logWebhookEvent('filtered', 'info', { reason: 'No hostUserId in recording webhook', data });
+        return NextResponse.json({ success: true, message: 'No hostUserId found' });
+      }
+      
+      // Get access token to lookup host email
+      const accessToken = await getValidAccessToken();
+      if (!accessToken) {
+        await logWebhookEvent('token_error', 'error', { hostUserId });
+        return NextResponse.json({ error: 'No access token' }, { status: 500 });
+      }
+      
+      // Lookup host email from hostUserId
+      const hostEmail = await getHostEmailFromUserId(hostUserId, accessToken);
+      await logWebhookEvent('host_lookup', 'info', { hostUserId, hostEmail });
+      
+      const monitoredHosts = await getMonitoredHosts();
+      if (!hostEmail || !monitoredHosts.includes(hostEmail)) {
+        await logWebhookEvent('filtered', 'info', { reason: 'Host not monitored', hostEmail, monitoredHosts });
+        return NextResponse.json({ success: true, message: 'Host not monitored' });
+      }
+      
       await logWebhookEvent('processing_recording', 'info', { recordingId: data.id, hostEmail });
       await processRecording(data.id, hostEmail, data);
     } else if (resource === 'meetingTranscripts' && event === 'created') {
-      await logWebhookEvent('processing_transcript', 'info', { transcriptId: data.id, hostEmail });
-      // Transcript processing handled in recording processing
+      // Transcript webhooks don't have hostUserId, process directly
+      await logWebhookEvent('processing_transcript', 'info', { transcriptId: data.id });
+      await processTranscript(data.id, data);
     } else {
       await logWebhookEvent('unsupported_event', 'warning', { resource, event });
     }
@@ -157,151 +160,37 @@ async function processRecording(recordingId, hostEmail, eventData) {
     const recording = await recordingResponse.json();
     await logWebhookEvent('recording_fetched', 'success', { recordingId, meetingId: recording.meetingId, hostEmail });
     
-    // Debug: Log the full recording structure for transcript debugging
-    await logWebhookEvent('recording_structure_debug', 'info', {
-      recordingId,
-      hasTemporaryDirectDownloadLinks: !!recording.temporaryDirectDownloadLinks,
-      temporaryLinksKeys: recording.temporaryDirectDownloadLinks ? Object.keys(recording.temporaryDirectDownloadLinks) : [],
-      transcriptLinkExists: !!recording.temporaryDirectDownloadLinks?.transcriptDownloadLink
-    });
-    
-    // Download recording file
-    let recordingData = null;
-    if (recording.downloadUrl) {
+    // Download recording file and upload to S3
+    let s3Key = null;
+    const recordingDownloadUrl = recording.temporaryDirectDownloadLinks?.recordingDownloadLink;
+    if (recordingDownloadUrl) {
       await logWebhookEvent('download_recording', 'info', { recordingId });
-      const downloadResponse = await fetch(recording.downloadUrl, {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
-      });
+      const downloadResponse = await fetch(recordingDownloadUrl);
       
       if (downloadResponse.ok) {
         const buffer = await downloadResponse.arrayBuffer();
-        recordingData = Buffer.from(buffer).toString('base64');
-        await logWebhookEvent('recording_downloaded', 'success', { recordingId, size: buffer.byteLength });
+        const filename = `${recording.topic || 'recording'}-${recordingId}.mp4`;
+        
+        // Upload to S3
+        s3Key = await uploadRecordingToS3(recordingId, Buffer.from(buffer), filename);
+        await logWebhookEvent('recording_uploaded_s3', 'success', { recordingId, s3Key, size: buffer.byteLength });
       } else {
         await logWebhookEvent('download_error', 'error', { recordingId, status: downloadResponse.status });
       }
     }
     
-    // Get transcript using direct download link or API
-    let transcript = '';
-    
-    // Debug logging for transcript detection
-    await logWebhookEvent('transcript_debug', 'info', {
-      recordingId,
-      hasTemporaryLinks: !!recording.temporaryDirectDownloadLinks,
-      hasTranscriptLink: !!recording.temporaryDirectDownloadLinks?.transcriptDownloadLink,
-      transcriptLinkLength: recording.temporaryDirectDownloadLinks?.transcriptDownloadLink?.length || 0
-    });
-    
-    // Method 1: Try direct transcript download link first
-    const directTranscriptUrl = recording.temporaryDirectDownloadLinks?.transcriptDownloadLink;
-    if (directTranscriptUrl) {
-      try {
-        await logWebhookEvent('fetch_direct_transcript', 'info', { recordingId, directTranscriptUrl });
-        const directResponse = await fetch(directTranscriptUrl);
-        
-        if (directResponse.ok) {
-          transcript = await directResponse.text();
-          await logWebhookEvent('direct_transcript_downloaded', 'success', { 
-            recordingId, 
-            transcriptLength: transcript.length 
-          });
-        } else {
-          await logWebhookEvent('direct_transcript_failed', 'warning', { 
-            recordingId, 
-            status: directResponse.status 
-          });
-        }
-      } catch (error) {
-        await logWebhookEvent('direct_transcript_error', 'warning', { recordingId, error: error.message });
-      }
-    }
-    
-    // Method 2: If no direct link or direct download failed, try API method
-    if (!transcript && recording.meetingId && recording.meetingId.includes('_I_')) {
-      try {
-        const endedInstanceId = recording.meetingId;
-        await logWebhookEvent('fetch_transcript_api', 'info', { endedInstanceId });
-        const transcriptResponse = await fetch(`https://webexapis.com/v1/meetingTranscripts?meetingId=${endedInstanceId}`, {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-        
-        if (transcriptResponse.ok) {
-          const transcriptData = await transcriptResponse.json();
-          await logWebhookEvent('transcript_list_fetched', 'info', { 
-            endedInstanceId, 
-            transcriptCount: transcriptData.items?.length || 0 
-          });
-          
-          if (transcriptData.items?.length > 0) {
-            const transcriptItem = transcriptData.items[0];
-            const downloadUrl = transcriptItem.vttDownloadLink || transcriptItem.txtDownloadLink;
-            
-            if (downloadUrl) {
-              const transcriptDetailResponse = await fetch(downloadUrl, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-              });
-              
-              if (transcriptDetailResponse.ok) {
-                transcript = await transcriptDetailResponse.text();
-                await logWebhookEvent('api_transcript_downloaded', 'success', { 
-                  endedInstanceId, 
-                  transcriptLength: transcript.length,
-                  downloadUrl 
-                });
-              } else {
-                await logWebhookEvent('api_transcript_download_failed', 'warning', { 
-                  endedInstanceId, 
-                  status: transcriptDetailResponse.status 
-                });
-              }
-            } else {
-              await logWebhookEvent('no_transcript_download_links', 'warning', { 
-                endedInstanceId,
-                transcriptItem 
-              });
-            }
-          } else {
-            await logWebhookEvent('no_transcripts_available', 'info', { 
-              endedInstanceId,
-              reason: 'No transcripts found for ended meeting instance'
-            });
-          }
-        } else {
-          const errorText = await transcriptResponse.text();
-          await logWebhookEvent('transcript_api_failed', 'warning', { 
-            endedInstanceId, 
-            status: transcriptResponse.status,
-            error: errorText 
-          });
-        }
-      } catch (error) {
-        await logWebhookEvent('transcript_api_error', 'warning', { endedInstanceId: recording.meetingId, error: error.message });
-      }
-    }
-    
-    // Log final transcript status
-    if (!transcript) {
-      await logWebhookEvent('no_transcript_found', 'info', { 
-        recordingId,
-        meetingId: recording.meetingId,
-        hasDirectLink: !!directTranscriptUrl,
-        hasEndedInstanceId: !!(recording.meetingId && recording.meetingId.includes('_I_'))
-      });
-    }
-    
-    // Store meeting data
+    // Store meeting data (without transcript)
     await logWebhookEvent('store_meeting', 'info', { meetingId: recording.meetingId || recordingId });
     await storeMeetingData({
       meetingId: recording.meetingId || recordingId,
-      meetingInstanceId: recording.meetingId, // Use meetingId as it contains the instance ID
+      meetingInstanceId: recording.meetingId,
       startTime: recording.timeRecorded || new Date().toISOString(),
       host: hostEmail,
       participants: recording.participants || [],
       recordingUrl: recording.playbackUrl || recording.downloadUrl,
       recordingPassword: recording.password,
-      recordingData,
-      transcript,
+      s3Key,
+      transcript: '', // Empty - will be updated by transcript webhook
       duration: recording.durationSeconds
     });
     
@@ -313,5 +202,145 @@ async function processRecording(recordingId, hostEmail, eventData) {
   } catch (error) {
     await logWebhookEvent('processing_error', 'error', { recordingId, error: error.message, stack: error.stack });
     console.error('Error processing recording:', error);
+  }
+}
+
+async function processTranscript(transcriptId, eventData) {
+  try {
+    await logWebhookEvent('transcript_webhook_start', 'info', { transcriptId, eventData });
+    
+    const accessToken = await getValidAccessToken();
+    if (!accessToken) {
+      await logWebhookEvent('token_error_transcript', 'error', { transcriptId });
+      throw new Error('No Webex access token');
+    }
+    
+    // Get transcript details to find meetingId
+    await logWebhookEvent('fetch_transcript_details', 'info', { transcriptId, url: `https://webexapis.com/v1/meetingTranscripts/${transcriptId}` });
+    const transcriptResponse = await fetch(`https://webexapis.com/v1/meetingTranscripts/${transcriptId}`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    
+    if (!transcriptResponse.ok) {
+      const errorText = await transcriptResponse.text();
+      await logWebhookEvent('fetch_transcript_error', 'error', { transcriptId, status: transcriptResponse.status, error: errorText });
+      throw new Error(`Failed to fetch transcript: ${transcriptResponse.status}`);
+    }
+    
+    const transcriptData = await transcriptResponse.json();
+    const endedInstanceId = transcriptData.meetingId;
+    
+    await logWebhookEvent('transcript_details_received', 'info', { 
+      transcriptId, 
+      endedInstanceId, 
+      transcriptDataKeys: Object.keys(transcriptData),
+      fullTranscriptData: transcriptData 
+    });
+    
+    // Use ended meeting instance ID to get transcripts (working method)
+    let transcript = '';
+    if (endedInstanceId && endedInstanceId.includes('_I_')) {
+      await logWebhookEvent('fetching_transcript_list', 'info', { endedInstanceId, url: `https://webexapis.com/v1/meetingTranscripts?meetingId=${endedInstanceId}` });
+      
+      const transcriptListResponse = await fetch(`https://webexapis.com/v1/meetingTranscripts?meetingId=${endedInstanceId}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      });
+      
+      if (transcriptListResponse.ok) {
+        const transcriptListData = await transcriptListResponse.json();
+        await logWebhookEvent('transcript_list_received', 'info', { 
+          endedInstanceId, 
+          itemCount: transcriptListData.items?.length || 0,
+          transcriptListData 
+        });
+        
+        if (transcriptListData.items?.length > 0) {
+          const transcriptItem = transcriptListData.items[0];
+          const downloadUrl = transcriptItem.vttDownloadLink || transcriptItem.txtDownloadLink;
+          
+          await logWebhookEvent('transcript_download_attempt', 'info', { 
+            transcriptId, 
+            downloadUrl, 
+            hasVtt: !!transcriptItem.vttDownloadLink,
+            hasTxt: !!transcriptItem.txtDownloadLink,
+            transcriptItem 
+          });
+          
+          if (downloadUrl) {
+            const downloadResponse = await fetch(downloadUrl, {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            
+            if (downloadResponse.ok) {
+              transcript = await downloadResponse.text();
+              await logWebhookEvent('transcript_downloaded', 'success', { 
+                transcriptId, 
+                transcriptLength: transcript.length,
+                transcriptPreview: transcript.substring(0, 200) 
+              });
+            } else {
+              const downloadError = await downloadResponse.text();
+              await logWebhookEvent('transcript_download_failed', 'error', { 
+                transcriptId, 
+                status: downloadResponse.status,
+                error: downloadError 
+              });
+            }
+          } else {
+            await logWebhookEvent('no_download_url', 'warning', { transcriptId, transcriptItem });
+          }
+        } else {
+          await logWebhookEvent('no_transcript_items', 'warning', { endedInstanceId, transcriptListData });
+        }
+      } else {
+        const listError = await transcriptListResponse.text();
+        await logWebhookEvent('transcript_list_failed', 'error', { 
+          endedInstanceId, 
+          status: transcriptListResponse.status,
+          error: listError 
+        });
+      }
+    } else {
+      await logWebhookEvent('invalid_instance_id', 'warning', { 
+        transcriptId, 
+        endedInstanceId, 
+        hasInstanceId: !!endedInstanceId,
+        containsI: endedInstanceId?.includes('_I_') 
+      });
+    }
+    
+    // Update existing meeting record with transcript
+    if (transcript && endedInstanceId) {
+      await logWebhookEvent('updating_meeting_transcript', 'info', { meetingId: endedInstanceId, transcriptId, transcriptLength: transcript.length });
+      
+      try {
+        await updateMeetingTranscript(endedInstanceId, transcript);
+        await logWebhookEvent('transcript_updated', 'success', { meetingId: endedInstanceId, transcriptId });
+        console.log(`Updated transcript for meeting ${endedInstanceId}`);
+      } catch (updateError) {
+        await logWebhookEvent('transcript_update_db_error', 'error', { 
+          meetingId: endedInstanceId, 
+          transcriptId, 
+          error: updateError.message,
+          stack: updateError.stack 
+        });
+      }
+    } else {
+      await logWebhookEvent('transcript_update_skipped', 'warning', { 
+        meetingId: endedInstanceId, 
+        transcriptId, 
+        hasTranscript: !!transcript,
+        hasEndedInstanceId: !!endedInstanceId,
+        transcriptLength: transcript?.length || 0 
+      });
+    }
+  } catch (error) {
+    await logWebhookEvent('transcript_processing_error', 'error', { 
+      transcriptId, 
+      error: error.message, 
+      stack: error.stack,
+      errorName: error.name 
+    });
+    console.error('Error processing transcript:', error);
   }
 }
