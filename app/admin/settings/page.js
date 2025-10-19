@@ -3217,7 +3217,9 @@ export default function SettingsPage() {
                         
                         <button
                           onClick={() => {
+                            console.log('[OAUTH] Authorize Webex button clicked');
                             if (!settings.webexClientId) {
+                              console.log('[OAUTH] Missing Client ID, cannot proceed');
                               alert('Please save Client ID first');
                               return;
                             }
@@ -3226,6 +3228,14 @@ export default function SettingsPage() {
                             const redirectUri = `${baseUrl}/api/webex-meetings/callback`;
                             const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read meeting:admin_transcripts_read spark:people_read';
                             const oauthUrl = `https://webexapis.com/v1/authorize?client_id=${settings.webexClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&prompt=consent`;
+                            
+                            console.log(`[OAUTH] Constructing OAuth URL with:`);
+                            console.log(`[OAUTH] - BaseURL: ${baseUrl}`);
+                            console.log(`[OAUTH] - RedirectURI: ${redirectUri}`);
+                            console.log(`[OAUTH] - ClientID: ${settings.webexClientId ? settings.webexClientId.substring(0, 10) + '...' : 'missing'}`);
+                            console.log(`[OAUTH] - Scopes: ${scopes}`);
+                            console.log(`[OAUTH] - Full OAuth URL: ${oauthUrl}`);
+                            console.log(`[OAUTH] Redirecting to Webex authorization...`);
                             
                             window.location.href = oauthUrl;
                           }}
@@ -3246,15 +3256,16 @@ export default function SettingsPage() {
                         <button
                           onClick={async () => {
                             try {
-                              console.log('🔍 Starting validation...');
+                              console.log('[OAUTH] Starting validation...');
                               const response = await fetch('/api/webex-meetings/validate');
                               
                               if (!response.ok) {
+                                console.error(`[OAUTH] Validation request failed: HTTP ${response.status}: ${response.statusText}`);
                                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                               }
                               
                               const validation = await response.json();
-                              console.log('📋 Validation data:', validation);
+                              console.log('[OAUTH] Validation response received:', validation);
                               
                               let message = `Webex OAuth Configuration Validation\n\n`;
                               message += `Environment: ${validation.environment}\n`;
@@ -3269,18 +3280,21 @@ export default function SettingsPage() {
                               }
                               
                               if (validation.issues && validation.issues.length > 0) {
+                                console.log('[OAUTH] Validation issues found:', validation.issues);
                                 message += `\nIssues Found:\n${validation.issues.map(issue => `• ${issue}`).join('\n')}`;
                               } else {
+                                console.log('[OAUTH] No validation issues found');
                                 message += `\n✅ Configuration appears valid!`;
                               }
                               
                               if (validation.oauthUrl) {
+                                console.log(`[OAUTH] OAuth URL generated: ${validation.oauthUrl}`);
                                 message += `\n\nOAuth URL (first 100 chars):\n${validation.oauthUrl.substring(0, 100)}...`;
                               }
                               
                               alert(message);
                             } catch (error) {
-                              console.error('💥 Validation error:', error);
+                              console.error('[OAUTH] Validation error:', error);
                               alert('Validation failed: ' + error.message + '\n\nPlease check the browser console for more details.');
                             }
                           }}

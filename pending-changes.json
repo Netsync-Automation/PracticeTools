@@ -26368,6 +26368,131 @@
         "app/admin/settings/page.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760901366086,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-19T19:16:06.086Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/validate/route.js"
+      ]
+    },
+    {
+      "id": 1760901366164,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/callback/route.js"
+      },
+      "timestamp": "2025-10-19T19:16:06.164Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760901366248,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-19T19:16:06.248Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760901366954,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-19T19:16:06.954Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760901367042,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/callback/route.js"
+      },
+      "timestamp": "2025-10-19T19:16:07.042Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760901367127,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-19T19:16:07.127Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760901367638,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-19T19:16:07.638Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760901367719,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/callback/route.js"
+      },
+      "timestamp": "2025-10-19T19:16:07.719Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760901367799,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-19T19:16:07.799Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/webex-meetings/callback/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
