@@ -3218,17 +3218,18 @@ export default function SettingsPage() {
                         <button
                           onClick={async () => {
                             try {
-                              // Get redirect URI from validation endpoint (for URL construction only)
                               const response = await fetch('/api/webex-meetings/validate');
-                              const validation = await response.json();
+                              const data = await response.json();
                               
-                              const redirectUri = validation.redirectUri;
-                              const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read meeting:admin_transcripts_read spark:people_read';
-                              const authUrl = `https://webexapis.com/v1/authorize?client_id=${settings.webexClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
-                              
-                              window.open(authUrl, '_blank');
+                              if (data.oauthUrl) {
+                                console.log('Redirecting to OAuth URL:', data.oauthUrl);
+                                window.location.href = data.oauthUrl;
+                              } else {
+                                alert('Failed to get authorization URL: ' + (data.error || 'Configuration invalid'));
+                              }
                             } catch (error) {
-                              alert('Authorization failed: ' + error.message);
+                              console.error('Error:', error);
+                              alert('Failed to initiate authorization: ' + error.message);
                             }
                           }}
                           disabled={!settings.webexClientId || !settings.webexClientSecret}
