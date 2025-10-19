@@ -3347,6 +3347,75 @@ export default function SettingsPage() {
                         
                         <button
                           onClick={async () => {
+                            if (!confirm('This will permanently delete the transcript webhook. The recording webhook will remain unchanged. Continue?')) {
+                              return;
+                            }
+                            try {
+                              const response = await fetch('/api/webex-meetings/webhooks', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'delete-transcript' })
+                              });
+                              const data = await response.json();
+                              if (data.success) {
+                                alert('Transcript webhook deleted successfully!');
+                              } else {
+                                alert('Failed to delete transcript webhook: ' + (data.error || 'Unknown error'));
+                              }
+                            } catch (error) {
+                              alert('Error deleting transcript webhook: ' + error.message);
+                            }
+                          }}
+                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Delete Transcript Webhook
+                        </button>
+                        
+                        <button
+                          onClick={async () => {
+                            if (!confirm('This will delete and recreate only the transcript webhook. The recording webhook will remain unchanged. Continue?')) {
+                              return;
+                            }
+                            try {
+                              const response = await fetch('/api/webex-meetings/webhooks', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'recreate-transcript' })
+                              });
+                              const data = await response.json();
+                              if (data.success) {
+                                const results = data.results || [];
+                                const deleteResult = results.find(r => r.action === 'delete');
+                                const createResult = results.find(r => r.action === 'create');
+                                
+                                let message = 'Transcript webhook recreated successfully!\n\n';
+                                if (deleteResult) {
+                                  message += `Delete: ${deleteResult.success ? 'Success' : 'Failed'}\n`;
+                                }
+                                if (createResult) {
+                                  message += `Create: ${createResult.success ? 'Success' : 'Failed'}\n`;
+                                }
+                                alert(message);
+                              } else {
+                                alert('Failed to recreate transcript webhook: ' + (data.error || 'Unknown error'));
+                              }
+                            } catch (error) {
+                              alert('Error recreating transcript webhook: ' + error.message);
+                            }
+                          }}
+                          className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Recreate Transcript Webhook
+                        </button>
+                        
+                        <button
+                          onClick={async () => {
                             try {
                               const response = await fetch('/api/webex-meetings/validate-webhooks');
                               const validation = await response.json();

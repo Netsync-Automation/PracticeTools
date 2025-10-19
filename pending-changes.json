@@ -26068,6 +26068,233 @@
         "lib/meeting-storage.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760890869544,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-19T16:21:09.544Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js"
+      ]
+    },
+    {
+      "id": 1760890869844,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:09.844Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890869925,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhooks/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:09.925Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890870009,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-10-19T16:21:10.009Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890871676,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-19T16:21:11.676Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890871926,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:11.926Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890872016,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhooks/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:12.016Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890872099,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-10-19T16:21:12.099Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890873319,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-19T16:21:13.319Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890873562,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhook/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:13.562Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890873646,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/webhooks/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:13.646Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890873729,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/practice-information/page.js"
+      },
+      "timestamp": "2025-10-19T16:21:13.729Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -84244,6 +84471,234 @@
         "app/api/webex-meetings/webhook/route.js",
         "app/company-education/scoop/page.js",
         "lib/meeting-storage.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890869620,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/practice-boards/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:09.620Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890869762,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:09.762Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890870093,
+      "description": "Enhanced check transcript-logs with specific functionality improvements",
+      "details": {
+        "file": "check-transcript-logs.js"
+      },
+      "timestamp": "2025-10-19T16:21:10.093Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890870181,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-19T16:21:10.181Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890871759,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/practice-boards/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:11.759Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890871839,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:11.839Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890872182,
+      "description": "Enhanced check transcript-logs with specific functionality improvements",
+      "details": {
+        "file": "check-transcript-logs.js"
+      },
+      "timestamp": "2025-10-19T16:21:12.182Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890872263,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-19T16:21:12.263Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890873399,
+      "description": "Enhanced assignment dropdowns to prioritize practice-specific leaders (managers and principals) at top of list",
+      "details": {
+        "file": "app/api/practice-boards/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:13.399Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890873482,
+      "description": "Enhanced route with specific functionality improvements",
+      "details": {
+        "file": "app/api/webex-meetings/validate/route.js"
+      },
+      "timestamp": "2025-10-19T16:21:13.482Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890873814,
+      "description": "Enhanced check transcript-logs with specific functionality improvements",
+      "details": {
+        "file": "check-transcript-logs.js"
+      },
+      "timestamp": "2025-10-19T16:21:13.814Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760890873902,
+      "description": "Enhanced dynamodb with specific functionality improvements",
+      "details": {
+        "file": "lib/dynamodb.js"
+      },
+      "timestamp": "2025-10-19T16:21:13.902Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "app/api/practice-boards/route.js",
+        "app/api/webex-meetings/validate/route.js",
+        "app/api/webex-meetings/webhook/route.js",
+        "app/api/webex-meetings/webhooks/route.js",
+        "app/practice-information/page.js",
+        "check-transcript-logs.js",
+        "lib/dynamodb.js",
         "pending-changes.json"
       ]
     }

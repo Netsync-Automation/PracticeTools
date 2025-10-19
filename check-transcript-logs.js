@@ -7,53 +7,44 @@ const docClient = DynamoDBDocumentClient.from(client);
 async function checkTranscriptLogs() {
     try {
         const result = await docClient.send(new ScanCommand({
-            TableName: 'PracticeTools-dev-webex_logs'
+            TableName: 'PracticeTools-dev-webex_logs',
+            FilterExpression: 'contains(#event, :transcript) OR contains(#event, :meetingTranscripts)',
+            ExpressionAttributeNames: {
+                '#event': 'event'
+            },
+            ExpressionAttributeValues: {
+                ':transcript': 'transcript',
+                ':meetingTranscripts': 'meetingTranscripts'
+            }
         }));
 
         console.log('Transcript-related webhook events:');
         console.log('='.repeat(50));
         
-        const transcriptLogs = (result.Items || [])
-            .filter(log => log.event && (
-                log.event.includes('transcript') || 
-                log.event.includes('no_ended_instance_id') ||
-                (log.details && JSON.stringify(log.details).includes('transcript'))
-            ))
+        const logs = (result.Items || [])
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        if (transcriptLogs.length === 0) {
-            console.log('No transcript-related logs found.');
-            
-            // Check the most recent recording processing
-            const recentLogs = (result.Items || [])
-                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                .slice(0, 10);
-                
-            console.log('\nMost recent recording details:');
-            const recentRecording = recentLogs.find(log => log.event === 'recording_fetched');
-            if (recentRecording && recentRecording.details) {
-                console.log(`Meeting ID: ${recentRecording.details.meetingId}`);
-                console.log(`Recording ID: ${recentRecording.details.recordingId}`);
-                console.log(`Host: ${recentRecording.details.hostEmail}`);
-                
-                // Check if this meeting ID has ended instance format
-                if (recentRecording.details.meetingId && recentRecording.details.meetingId.includes('_I_')) {
-                    console.log('✓ Meeting ID has ended instance format');
-                } else {
-                    console.log('✗ Meeting ID does NOT have ended instance format');
-                }
-            }
-            
+        if (logs.length === 0) {
+            console.log('❌ NO TRANSCRIPT WEBHOOK EVENTS FOUND');
+            console.log('');
+            console.log('This confirms that transcript webhooks are not being received.');
+            console.log('Possible causes:');
+            console.log('1. Webex is not generating transcript webhooks for recent meetings');
+            console.log('2. Transcripts are not being created for the meetings');
+            console.log('3. There may be a delay in transcript processing');
+            console.log('4. The webhook URL might not be reachable from Webex');
             return;
         }
 
-        transcriptLogs.forEach((log, index) => {
+        logs.forEach((log, index) => {
             console.log(`\n${index + 1}. [${log.timestamp}] ${log.event} - ${log.status}`);
             
             if (log.details && typeof log.details === 'object') {
-                Object.keys(log.details).forEach(key => {
-                    console.log(`   ${key}: ${JSON.stringify(log.details[key])}`);
-                });
+                if (log.details.transcriptId) console.log(`   Transcript ID: ${log.details.transcriptId}`);
+                if (log.details.meetingId) console.log(`   Meeting ID: ${log.details.meetingId}`);
+                if (log.details.endedInstanceId) console.log(`   Ended Instance ID: ${log.details.endedInstanceId}`);
+                if (log.details.error) console.log(`   Error: ${log.details.error}`);
+                if (log.details.transcriptLength !== undefined) console.log(`   Transcript Length: ${log.details.transcriptLength}`);
             }
         });
 

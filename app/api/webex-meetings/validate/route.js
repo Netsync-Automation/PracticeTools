@@ -6,28 +6,57 @@ export const dynamic = 'force-dynamic';
 
 const ssmClient = new SSMClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 
-// Function to validate token scopes by calling Webex API
+// Function to validate token scopes by testing all required APIs
 async function validateTokenScopes(accessToken) {
-  try {
-    const response = await fetch('https://webexapis.com/v1/people/me', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+  const scopeTests = [
+    { name: 'spark:people_read', url: 'https://webexapis.com/v1/people/me' },
+    { name: 'spark:recordings_read', url: 'https://webexapis.com/v1/recordings?max=1' },
+    { name: 'meeting:recordings_read', url: 'https://webexapis.com/v1/recordings?max=1' },
+    { name: 'meeting:transcripts_read', url: 'https://webexapis.com/v1/meetingTranscripts?max=1' },
+    { name: 'meeting:admin_transcripts_read', url: 'https://webexapis.com/v1/admin/meetingTranscripts?max=1' }
+  ];
+  
+  const results = { valid: true, hasRequiredScopes: true, scopeResults: [], missingScopes: [] };
+  
+  for (const test of scopeTests) {
+    try {
+      const response = await fetch(test.url, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const scopeResult = {
+        scope: test.name,
+        status: response.status,
+        success: response.ok
+      };
+      
+      if (response.status === 401) {
+        results.valid = false;
+        scopeResult.error = 'Token expired or invalid';
+      } else if (response.status === 403) {
+        results.hasRequiredScopes = false;
+        results.missingScopes.push(test.name);
+        scopeResult.error = 'Missing required scope or insufficient permissions';
+      } else if (!response.ok) {
+        scopeResult.error = `API returned ${response.status}`;
       }
-    });
-    
-    if (response.status === 200) {
-      return { valid: true, hasRequiredScopes: true };
-    } else if (response.status === 403) {
-      return { valid: true, hasRequiredScopes: false, error: 'Missing spark:people_read scope' };
-    } else if (response.status === 401) {
-      return { valid: false, error: 'Token expired or invalid' };
-    } else {
-      return { valid: false, error: `API returned ${response.status}` };
+      
+      results.scopeResults.push(scopeResult);
+    } catch (error) {
+      results.valid = false;
+      results.scopeResults.push({
+        scope: test.name,
+        status: 'error',
+        success: false,
+        error: error.message
+      });
     }
-  } catch (error) {
-    return { valid: false, error: error.message };
   }
+  
+  return results;
 }
 
 async function getSSMParameter(name) {
@@ -77,9 +106,10 @@ export async function GET(request) {
       validation.tokenValidation = tokenValidation;
       
       if (!tokenValidation.valid) {
-        validation.issues.push(`Access token issue: ${tokenValidation.error}`);
+        validation.issues.push('Access token is invalid or expired');
       } else if (!tokenValidation.hasRequiredScopes) {
-        validation.issues.push('Access token missing required scopes (spark:people_read and/or meeting:admin_transcripts_read) - will be fixed by re-authorization');
+        const missingScopes = tokenValidation.missingScopes.join(', ');
+        validation.issues.push(`Access token missing required scopes: ${missingScopes}`);
         validation.allowReauthorization = true;
       }
     } else {

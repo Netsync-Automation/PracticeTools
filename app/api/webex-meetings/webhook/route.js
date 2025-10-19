@@ -61,15 +61,27 @@ async function logWebhookEvent(event, status, details) {
 }
 
 export async function POST(request) {
-  console.log('[WEBHOOK] Starting webhook processing');
+  const startTime = Date.now();
+  const requestId = `${startTime}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  console.log(`[WEBHOOK-${requestId}] Starting webhook processing`);
+  console.log(`[WEBHOOK-${requestId}] Request headers:`, Object.fromEntries(request.headers.entries()));
+  console.log(`[WEBHOOK-${requestId}] Request method: ${request.method}`);
+  console.log(`[WEBHOOK-${requestId}] Request URL: ${request.url}`);
+  
   try {
-    console.log('[WEBHOOK] Parsing request body');
+    console.log(`[WEBHOOK-${requestId}] Parsing request body`);
     const payload = await request.json();
-    console.log('[WEBHOOK] Payload received:', JSON.stringify(payload, null, 2));
+    console.log(`[WEBHOOK-${requestId}] Payload received:`, JSON.stringify(payload, null, 2));
     
-    console.log('[WEBHOOK] Logging webhook event');
-    await logWebhookEvent('received', 'info', { payload });
-    console.log('[WEBHOOK] Event logged successfully');
+    console.log(`[WEBHOOK-${requestId}] Logging webhook event`);
+    await logWebhookEvent('received', 'info', { 
+      payload, 
+      requestId, 
+      headers: Object.fromEntries(request.headers.entries()),
+      timestamp: new Date().toISOString()
+    });
+    console.log(`[WEBHOOK-${requestId}] Event logged successfully`);
     
     // Handle Webex webhook challenge (required for webhook verification)
     if (payload.challenge) {
@@ -108,7 +120,7 @@ export async function POST(request) {
       
       await logWebhookEvent('processing_recording', 'info', { recordingId: data.id, hostEmail });
       await processRecording(data.id, hostEmail, data);
-    } else if (resource === 'meetingTranscripts' && event === 'created') {
+    } else if ((resource === 'meeting_transcripts' || resource === 'meetingTranscripts') && (event === 'updated' || event === 'created')) {
       // Transcript webhooks don't have hostUserId, process directly
       await logWebhookEvent('processing_transcript', 'info', { transcriptId: data.id });
       await processTranscript(data.id, data);
@@ -116,26 +128,52 @@ export async function POST(request) {
       await logWebhookEvent('unsupported_event', 'warning', { resource, event });
     }
     
-    await logWebhookEvent('completed', 'success', { resource, event });
+    await logWebhookEvent('completed', 'success', { resource, event, requestId, processingTime: Date.now() - startTime });
+    console.log(`[WEBHOOK-${requestId}] Processing completed in ${Date.now() - startTime}ms`);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[WEBHOOK] Critical error:', error);
-    console.error('[WEBHOOK] Error stack:', error.stack);
-    console.error('[WEBHOOK] Error name:', error.name);
-    console.error('[WEBHOOK] Error message:', error.message);
+    console.error(`[WEBHOOK-${requestId}] Critical error:`, error);
+    console.error(`[WEBHOOK-${requestId}] Error stack:`, error.stack);
+    console.error(`[WEBHOOK-${requestId}] Error name:`, error.name);
+    console.error(`[WEBHOOK-${requestId}] Error message:`, error.message);
     
     try {
-      await logWebhookEvent('error', 'error', { error: error.message, stack: error.stack });
+      await logWebhookEvent('error', 'error', { 
+        error: error.message, 
+        stack: error.stack, 
+        requestId,
+        processingTime: Date.now() - startTime
+      });
     } catch (logError) {
-      console.error('[WEBHOOK] Failed to log error:', logError);
+      console.error(`[WEBHOOK-${requestId}] Failed to log error:`, logError);
     }
     
     return NextResponse.json({ 
       error: 'Webhook processing failed', 
       details: error.message,
-      type: error.name 
+      type: error.name,
+      requestId
     }, { status: 500 });
   }
+}
+
+// Add GET handler to log any GET requests (shouldn't happen but good for debugging)
+export async function GET(request) {
+  const requestId = `GET-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  console.log(`[WEBHOOK-${requestId}] Unexpected GET request to webhook endpoint`);
+  console.log(`[WEBHOOK-${requestId}] Headers:`, Object.fromEntries(request.headers.entries()));
+  
+  try {
+    await logWebhookEvent('unexpected_get', 'warning', { 
+      requestId,
+      headers: Object.fromEntries(request.headers.entries()),
+      url: request.url
+    });
+  } catch (error) {
+    console.error(`[WEBHOOK-${requestId}] Failed to log GET request:`, error);
+  }
+  
+  return NextResponse.json({ error: 'Webhook endpoint expects POST requests' }, { status: 405 });
 }
 
 async function processRecording(recordingId, hostEmail, eventData) {

@@ -6,13 +6,17 @@ import { validateUserSession } from '../../../lib/auth-check.js';
 // DSR: Helper function to infer practices from practiceId
 function inferPracticesFromId(practiceId) {
   const practiceMap = {
-    'audiovisual-collaboration-contactcenter-iot-physicalsecurity': ['Collaboration'],
+    'audiovisual-collaboration-contactcenter-iot-physicalsecurity': ['Audio Visual', 'Collaboration'],
+    'audiovisual': ['Audio Visual'],
     'collaboration': ['Collaboration'],
     'security': ['Security'],
     'datacenter': ['Data Center'],
     'networking': ['Networking'],
     'cloud': ['Cloud'],
-    'wireless': ['Wireless']
+    'wireless': ['Wireless'],
+    'contactcenter': ['Contact Center'],
+    'iot': ['IoT'],
+    'physicalsecurity': ['Physical Security']
   };
   
   // Direct match
@@ -25,6 +29,16 @@ function inferPracticesFromId(practiceId) {
   for (const [key, value] of Object.entries(practiceMap)) {
     if (practiceId.includes(key) || key.includes(practiceId)) {
       practices.push(...value);
+    }
+  }
+  
+  // If no matches found, try to parse the practiceId directly
+  if (practices.length === 0) {
+    const parts = practiceId.split('-');
+    for (const part of parts) {
+      if (practiceMap[part]) {
+        practices.push(...practiceMap[part]);
+      }
     }
   }
   
@@ -56,15 +70,13 @@ export async function GET(request) {
       const boardData = await db.getSetting(boardKey);
       
       if (!boardData) {
-        // Get database-stored columns or use defaults
-        const boardColumns = await db.getBoardColumns(practiceId);
-        const columns = boardColumns.map(col => ({
-          id: col.id,
-          title: col.title,
-          cards: [],
-          createdBy: 'system',
-          createdAt: new Date().toISOString()
-        }));
+        // Return default columns if no board exists
+        const columns = [
+          { id: 'backlog', title: 'Backlog', cards: [], createdBy: 'system', createdAt: new Date().toISOString() },
+          { id: 'in-progress', title: 'In Progress', cards: [], createdBy: 'system', createdAt: new Date().toISOString() },
+          { id: 'review', title: 'Review', cards: [], createdBy: 'system', createdAt: new Date().toISOString() },
+          { id: 'done', title: 'Done', cards: [], createdBy: 'system', createdAt: new Date().toISOString() }
+        ];
         
         const response = { columns };
         setCached(cacheKey, response, 30000); // Cache for 30 seconds
@@ -90,12 +102,7 @@ export async function GET(request) {
       return NextResponse.json(response);
     } else {
       // Get all practice boards
-      try {
-        const boards = await db.getAllPracticeBoards();
-        return NextResponse.json({ boards });
-      } catch (error) {
-        return NextResponse.json({ boards: [], error: error.message });
-      }
+      return NextResponse.json({ boards: [] });
     }
   } catch (error) {
     console.error('Error fetching practice board:', error);
@@ -152,13 +159,51 @@ export async function POST(request) {
       if (existingData) {
         const boardData = JSON.parse(existingData);
         console.log('[PRACTICE-BOARDS-DEBUG] Board practices:', boardData.practices);
-        const canEdit = boardData.practices && user.practices && 
-          boardData.practices.some(practice => user.practices.includes(practice));
+        console.log('[PRACTICE-BOARDS-DEBUG] User practices:', user.practices);
+        console.log('[PRACTICE-BOARDS-DEBUG] User role:', user.role);
+        
+        // DSR: Enhanced permission check for practice principals and managers
+        let canEdit = false;
+        
+        if (boardData.practices && user.practices) {
+          // Check for direct practice match
+          canEdit = boardData.practices.some(practice => user.practices.includes(practice));
+          
+          // DSR: Additional check for practice principals - they can edit boards for their practice
+          if (!canEdit && (user.role === 'practice_principal' || user.role === 'practice_manager')) {
+            // Check if user's practice matches any board practice (case-insensitive)
+            canEdit = boardData.practices.some(boardPractice => 
+              user.practices.some(userPractice => 
+                boardPractice.toLowerCase().replace(/[^a-z]/g, '') === userPractice.toLowerCase().replace(/[^a-z]/g, '')
+              )
+            );
+          }
+          
+          // DSR: Fallback - if board practices is empty or undefined, infer from practiceId
+          if (!canEdit && (!boardData.practices || boardData.practices.length === 0)) {
+            const inferredPractices = inferPracticesFromId(practiceId);
+            console.log('[PRACTICE-BOARDS-DEBUG] Inferred practices from ID:', inferredPractices);
+            canEdit = inferredPractices.some(practice => 
+              user.practices.some(userPractice => 
+                practice.toLowerCase().replace(/[^a-z]/g, '') === userPractice.toLowerCase().replace(/[^a-z]/g, '')
+              )
+            );
+          }
+        }
+        
         console.log('[PRACTICE-BOARDS-DEBUG] Can edit board:', canEdit);
         
         if (!canEdit) {
           console.log('[PRACTICE-BOARDS-DEBUG] User cannot edit this board - insufficient permissions');
-          return NextResponse.json({ error: 'You can only edit boards for your assigned practices' }, { status: 403 });
+          return NextResponse.json({ 
+            error: 'You can only edit boards for your assigned practices',
+            debug: {
+              userPractices: user.practices,
+              boardPractices: boardData.practices,
+              userRole: user.role,
+              practiceId: practiceId
+            }
+          }, { status: 403 });
         }
       }
     }
@@ -187,6 +232,7 @@ export async function POST(request) {
       if (!boardData.practices || !Array.isArray(boardData.practices)) {
         // Infer practices from practiceId if missing
         boardData.practices = inferPracticesFromId(practiceId);
+        console.log('[PRACTICE-BOARDS-DEBUG] Inferred practices for new board:', boardData.practices);
       }
     } else {
       // DSR: New board - ensure practices field is set
