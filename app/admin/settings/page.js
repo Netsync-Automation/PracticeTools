@@ -3216,7 +3216,11 @@ export default function SettingsPage() {
                         </button>
                         
                         <button
-                          onClick={() => {
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('[OAUTH] ===== FRONTEND CLICK HANDLER EXECUTED =====');
                             console.log('[OAUTH] Authorize Webex button clicked');
                             if (!settings.webexClientId) {
                               console.log('[OAUTH] Missing Client ID, cannot proceed');
@@ -3235,9 +3239,20 @@ export default function SettingsPage() {
                             console.log(`[OAUTH] - ClientID: ${settings.webexClientId ? settings.webexClientId.substring(0, 10) + '...' : 'missing'}`);
                             console.log(`[OAUTH] - Scopes: ${scopes}`);
                             console.log(`[OAUTH] - Full OAuth URL: ${oauthUrl}`);
+                            console.log(`[OAUTH] ===== CRITICAL SCOPE DEBUG =====`);
+                            console.log(`[OAUTH] REQUIRED SCOPE: meeting:admin_transcripts_read`);
+                            console.log(`[OAUTH] ALL REQUIRED SCOPES: ${scopes}`);
+                            console.log(`[OAUTH] OAuth URL contains admin scope: ${oauthUrl.includes('meeting%3Aadmin_transcripts_read')}`);
+                            console.log(`[OAUTH] OAuth URL contains admin scope (decoded): ${oauthUrl.includes('meeting:admin_transcripts_read')}`);
+                            console.log(`[OAUTH] WEBEX INTEGRATION CHECK:`);
+                            console.log(`[OAUTH] - Ensure your Webex integration app at developer.webex.com includes 'meeting:admin_transcripts_read' scope`);
+                            console.log(`[OAUTH] - This scope requires admin privileges in your Webex org`);
+                            console.log(`[OAUTH] - The user authorizing must have admin rights`);
+                            console.log(`[OAUTH] ===== END SCOPE DEBUG =====`);
                             console.log(`[OAUTH] Redirecting to Webex authorization...`);
+                            console.log(`[OAUTH] TEMPORARY: Opening in new tab for troubleshooting`);
                             
-                            window.location.href = oauthUrl;
+                            window.open(oauthUrl, '_blank');
                           }}
                           disabled={!settings.webexClientId}
                           className={`px-4 py-2 rounded-md flex items-center gap-2 ${

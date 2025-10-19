@@ -131,18 +131,40 @@ export async function GET(request) {
     console.log(`[OAUTH] Token storage results - AccessToken: ${accessTokenStored ? 'stored' : 'failed'}, RefreshToken: ${refreshTokenStored ? 'stored' : 'failed'}`);
     
     if (tokenData.scope) {
-      console.log(`[OAUTH] Granted scopes from Webex: ${tokenData.scope}`);
+      console.log(`[OAUTH] ===== COMPREHENSIVE SCOPE ANALYSIS =====`);
+      console.log(`[OAUTH] Raw scope string from Webex: '${tokenData.scope}'`);
+      
       const requiredScopes = ['spark:recordings_read', 'meeting:recordings_read', 'meeting:transcripts_read', 'meeting:admin_transcripts_read', 'spark:people_read'];
       const grantedScopes = tokenData.scope.split(' ');
       const missingScopes = requiredScopes.filter(scope => !grantedScopes.includes(scope));
       
+      console.log(`[OAUTH] Required scopes (${requiredScopes.length}): ${requiredScopes.join(', ')}`);
+      console.log(`[OAUTH] Granted scopes (${grantedScopes.length}): ${grantedScopes.join(', ')}`);
+      console.log(`[OAUTH] Missing scopes (${missingScopes.length}): ${missingScopes.join(', ') || 'none'}`);
+      
+      // Individual scope analysis
+      requiredScopes.forEach(reqScope => {
+        const granted = grantedScopes.includes(reqScope);
+        console.log(`[OAUTH] SCOPE: ${reqScope} = ${granted ? 'GRANTED ✓' : 'MISSING ✗'}`);
+      });
+      
+      // Special focus on admin transcript scope
+      const hasAdminScope = grantedScopes.includes('meeting:admin_transcripts_read');
+      console.log(`[OAUTH] ===== ADMIN TRANSCRIPT SCOPE FOCUS =====`);
+      console.log(`[OAUTH] Admin transcript scope granted: ${hasAdminScope}`);
+      console.log(`[OAUTH] Raw scope contains 'admin': ${tokenData.scope.includes('admin')}`);
+      console.log(`[OAUTH] Raw scope contains 'transcript': ${tokenData.scope.includes('transcript')}`);
+      console.log(`[OAUTH] Raw scope contains 'meeting:admin': ${tokenData.scope.includes('meeting:admin')}`);
+      console.log(`[OAUTH] ===== END SCOPE ANALYSIS =====`);
+      
       if (missingScopes.length > 0) {
-        console.log(`[OAUTH] WARNING: Missing required scopes: ${missingScopes.join(', ')}`);
+        console.log(`[OAUTH] ❌ CRITICAL: ${missingScopes.length} required scopes were NOT granted`);
+        missingScopes.forEach(scope => console.log(`[OAUTH] ❌ MISSING: ${scope}`));
       } else {
-        console.log('[OAUTH] All required scopes were granted');
+        console.log('[OAUTH] ✅ SUCCESS: All required scopes were granted');
       }
     } else {
-      console.log('[OAUTH] WARNING: No scope information returned from Webex');
+      console.log('[OAUTH] ❌ CRITICAL: No scope information returned from Webex');
     }
     
     console.log('[OAUTH] OAuth flow completed successfully');

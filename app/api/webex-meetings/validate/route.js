@@ -172,6 +172,17 @@ export async function GET(request) {
     if (clientId) {
       validation.oauthUrl = `https://webexapis.com/v1/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&prompt=consent`;
       console.log(`[OAUTH] Generated OAuth URL: ${validation.oauthUrl}`);
+      
+      // Debug OAuth URL scope inclusion
+      console.log(`[OAUTH] ===== OAUTH URL SCOPE ANALYSIS =====`);
+      const requiredScopes = ['spark:recordings_read', 'meeting:recordings_read', 'meeting:transcripts_read', 'meeting:admin_transcripts_read', 'spark:people_read'];
+      requiredScopes.forEach(scope => {
+        const encodedScope = encodeURIComponent(scope);
+        const inUrl = validation.oauthUrl.includes(encodedScope);
+        console.log(`[OAUTH] OAuth URL includes ${scope}: ${inUrl}`);
+      });
+      console.log(`[OAUTH] OAuth URL includes admin scope (encoded): ${validation.oauthUrl.includes('meeting%3Aadmin_transcripts_read')}`);
+      console.log(`[OAUTH] ===== END OAUTH URL ANALYSIS =====`);
     } else {
       console.log('[OAUTH] Cannot generate OAuth URL - missing client ID');
     }
