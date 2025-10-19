@@ -3216,29 +3216,26 @@ export default function SettingsPage() {
                         </button>
                         
                         <button
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/webex-meetings/validate');
-                              const data = await response.json();
-                              
-                              if (data.oauthUrl) {
-                                console.log('Redirecting to OAuth URL:', data.oauthUrl);
-                                window.location.href = data.oauthUrl;
-                              } else {
-                                alert('Failed to get authorization URL: ' + (data.error || 'Configuration invalid'));
-                              }
-                            } catch (error) {
-                              console.error('Error:', error);
-                              alert('Failed to initiate authorization: ' + error.message);
+                          onClick={() => {
+                            if (!settings.webexClientId) {
+                              alert('Please save Client ID first');
+                              return;
                             }
+                            
+                            const baseUrl = window.location.origin.replace('http://', 'https://');
+                            const redirectUri = `${baseUrl}/api/webex-meetings/callback`;
+                            const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read meeting:admin_transcripts_read spark:people_read';
+                            const oauthUrl = `https://webexapis.com/v1/authorize?client_id=${settings.webexClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&prompt=consent`;
+                            
+                            window.location.href = oauthUrl;
                           }}
-                          disabled={!settings.webexClientId || !settings.webexClientSecret}
+                          disabled={!settings.webexClientId}
                           className={`px-4 py-2 rounded-md flex items-center gap-2 ${
                             !settings.webexClientId || !settings.webexClientSecret
                               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                               : 'bg-green-600 text-white hover:bg-green-700'
                           }`}
-                          title={!settings.webexClientId || !settings.webexClientSecret ? 'Save Client ID and Secret first' : 'Validate & Authorize with Webex'}
+                          title={!settings.webexClientId ? 'Save Client ID first' : 'Authorize with Webex'}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -3249,8 +3246,15 @@ export default function SettingsPage() {
                         <button
                           onClick={async () => {
                             try {
+                              console.log('🔍 Starting validation...');
                               const response = await fetch('/api/webex-meetings/validate');
+                              
+                              if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                              }
+                              
                               const validation = await response.json();
+                              console.log('📋 Validation data:', validation);
                               
                               let message = `Webex OAuth Configuration Validation\n\n`;
                               message += `Environment: ${validation.environment}\n`;
@@ -3276,7 +3280,8 @@ export default function SettingsPage() {
                               
                               alert(message);
                             } catch (error) {
-                              alert('Validation failed: ' + error.message);
+                              console.error('💥 Validation error:', error);
+                              alert('Validation failed: ' + error.message + '\n\nPlease check the browser console for more details.');
                             }
                           }}
                           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
