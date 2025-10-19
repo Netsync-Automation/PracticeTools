@@ -3231,7 +3231,16 @@ export default function SettingsPage() {
                             const baseUrl = window.location.origin.replace('http://', 'https://');
                             const redirectUri = `${baseUrl}/api/webex-meetings/callback`;
                             const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read meeting:admin_transcripts_read spark:people_read';
-                            const oauthUrl = `https://webexapis.com/v1/authorize?client_id=${settings.webexClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&prompt=consent`;
+                            
+                            // Construct OAuth URL with proper encoding
+                            const params = new URLSearchParams({
+                              client_id: settings.webexClientId,
+                              response_type: 'code',
+                              redirect_uri: redirectUri,
+                              scope: scopes,
+                              prompt: 'consent'
+                            });
+                            const oauthUrl = `https://webexapis.com/v1/authorize?${params.toString()}`;
                             
                             console.log(`[OAUTH] Constructing OAuth URL with:`);
                             console.log(`[OAUTH] - BaseURL: ${baseUrl}`);

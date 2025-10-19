@@ -11,7 +11,11 @@ async function getSSMParameter(name) {
       WithDecryption: true
     });
     const response = await ssmClient.send(command);
-    return response.Parameter?.Value;
+    return {
+      value: response.Parameter?.Value,
+      lastModified: response.Parameter?.LastModifiedDate,
+      version: response.Parameter?.Version
+    };
   } catch (error) {
     console.error(`Error getting ${name}:`, error.message);
     return null;
@@ -72,16 +76,34 @@ async function main() {
   
   // Get access token from SSM
   console.log('📡 Retrieving access token from SSM...');
-  const accessToken = await getSSMParameter('/PracticeTools/dev/WEBEX_MEETINGS_ACCESS_TOKEN');
+  const tokenData = await getSSMParameter('/PracticeTools/dev/WEBEX_MEETINGS_ACCESS_TOKEN');
   
-  if (!accessToken) {
+  if (!tokenData || !tokenData.value) {
     console.log('❌ No access token found in SSM parameter: /PracticeTools/dev/WEBEX_MEETINGS_ACCESS_TOKEN');
     console.log('   This confirms we need to run OAuth to get a token with the admin scope.');
     process.exit(1);
   }
   
+  const accessToken = tokenData.value;
   console.log(`✅ Access token found (${accessToken.length} characters)`);
   console.log(`   Token preview: ${accessToken.substring(0, 20)}...`);
+  console.log(`   Last modified: ${tokenData.lastModified}`);
+  console.log(`   Version: ${tokenData.version}`);
+  
+  // Compare with OAuth flow time (16:02:04 UTC)
+  const oauthTime = new Date('2025-10-19T21:02:04.000Z');
+  const tokenTime = new Date(tokenData.lastModified);
+  const timeDiff = Math.abs(tokenTime - oauthTime) / 1000; // seconds
+  
+  console.log(`   OAuth flow time: ${oauthTime.toISOString()}`);
+  console.log(`   Token update time: ${tokenTime.toISOString()}`);
+  console.log(`   Time difference: ${timeDiff} seconds`);
+  
+  if (timeDiff < 60) {
+    console.log('   ✅ Token appears to be from recent OAuth flow');
+  } else {
+    console.log('   ⚠️  Token may be older than the OAuth flow');
+  }
   
   // Test all required scopes
   const results = await testTokenScopes(accessToken);

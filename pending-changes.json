@@ -26493,6 +26493,45 @@
         "app/api/webex-meetings/validate/route.js",
         "pending-changes.json"
       ]
+    },
+    {
+      "id": 1760910922076,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "check-webex-token-scopes.js"
+      },
+      "timestamp": "2025-10-19T21:55:22.076Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "check-webex-token-scopes.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760910922746,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "check-webex-token-scopes.js"
+      },
+      "timestamp": "2025-10-19T21:55:22.746Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "check-webex-token-scopes.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760910923278,
+      "description": "Updated WebEx configuration to use practice-specific bots with SSM parameter storage",
+      "details": {
+        "file": "check-webex-token-scopes.js"
+      },
+      "timestamp": "2025-10-19T21:55:23.278Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "check-webex-token-scopes.js",
+        "pending-changes.json"
+      ]
     }
   ],
   "breaking": [
@@ -85300,6 +85339,44 @@
         "app/admin/settings/page.js",
         "app/api/webex-meetings/callback/route.js",
         "app/api/webex-meetings/validate/route.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760910921977,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-19T21:55:21.977Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "check-webex-token-scopes.js"
+      ]
+    },
+    {
+      "id": 1760910922655,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-19T21:55:22.655Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "check-webex-token-scopes.js",
+        "pending-changes.json"
+      ]
+    },
+    {
+      "id": 1760910923188,
+      "description": "Enhanced page with specific functionality improvements",
+      "details": {
+        "file": "app/admin/settings/page.js"
+      },
+      "timestamp": "2025-10-19T21:55:23.188Z",
+      "files": [
+        "app/admin/settings/page.js",
+        "check-webex-token-scopes.js",
         "pending-changes.json"
       ]
     }
