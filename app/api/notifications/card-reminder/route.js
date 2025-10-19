@@ -1,4 +1,4 @@
-import { getCardFollowers } from '../../../../lib/dynamodb.js';
+import { db } from '../../../../lib/dynamodb.js';
 import { scheduleReminder } from '../../../../lib/scheduler.js';
 import { sendCardReminder } from '../../../../lib/notifications.js';
 
@@ -42,7 +42,7 @@ export async function POST(request) {
 
     // Get followers and assigned users
     const cardKey = `${practiceId}_${columnId}_${cardId}`;
-    const followers = await getCardFollowers(cardKey);
+    const followers = await db.getCardFollowers(cardKey);
     const assignedUsers = cardData.assignedTo || [];
     const allUsers = [...new Set([...followers, ...assignedUsers])];
     
