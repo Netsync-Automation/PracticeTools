@@ -83,18 +83,22 @@ export default function SettingsPage() {
   const [ssmEnvironment, setSSMEnvironment] = useState('');
   const [loadingSSM, setLoadingSSM] = useState(false);
   
-  // Webex Meetings settings state
-  const [webexMeetingsSettings, setWebexMeetingsSettings] = useState({
-    webexClientId: '',
-    webexClientSecret: '',
-    webexSiteUrl: '',
-    webexEnabled: false
+  // Webex Meetings Integration state
+  const [webexMeetingsEnabled, setWebexMeetingsEnabled] = useState(false);
+  const [webexMeetingsSites, setWebexMeetingsSites] = useState([]);
+  const [showAddSite, setShowAddSite] = useState(false);
+  const [editingSiteIndex, setEditingSiteIndex] = useState(null);
+  const [newSite, setNewSite] = useState({
+    siteUrl: '',
+    accessToken: '',
+    refreshToken: '',
+    recordingHosts: ['']
   });
-  const [webexHosts, setWebexHosts] = useState([]);
-  const [newHostEmail, setNewHostEmail] = useState('');
-  const [addingHost, setAddingHost] = useState(false);
-  const [showYamlModal, setShowYamlModal] = useState(null);
-  const [webhookUrl, setWebhookUrl] = useState('');
+  const [savingWebexMeetings, setSavingWebexMeetings] = useState(false);
+  const [showWebhookModal, setShowWebhookModal] = useState(false);
+  const [webhookAction, setWebhookAction] = useState('');
+  const [webhookResults, setWebhookResults] = useState([]);
+  const [processingWebhooks, setProcessingWebhooks] = useState(false);
 
   
   // CSRF token management
@@ -445,31 +449,19 @@ export default function SettingsPage() {
         }
       }
       
-      // Load Webex Meetings settings
+      // Load company education settings
       if (activeTab === 'company-edu') {
         try {
-          const [settingsResponse, hostsResponse] = await Promise.all([
-            fetch('/api/settings/webex-meetings?t=' + Date.now()),
-            fetch('/api/webex-meetings/hosts?t=' + Date.now())
-          ]);
-          
-          const settingsData = await settingsResponse.json();
-          const hostsData = await hostsResponse.json();
-          
-          setSettings(prev => ({
-            ...prev,
-            webexClientId: settingsData.webexClientId || '',
-            webexClientSecret: settingsData.webexClientSecret ? '••••••••' : '',
-            webexSiteUrl: settingsData.webexSiteUrl || '',
-            webexEnabled: settingsData.webexEnabled || false
-          }));
-          
-          setWebexHosts(hostsData.hosts || []);
-          setWebhookUrl(`${window.location.origin}/api/webex-meetings/webhook`);
+          const response = await fetch('/api/settings/webex-meetings?t=' + Date.now());
+          const data = await response.json();
+          setWebexMeetingsEnabled(data.enabled || false);
+          setWebexMeetingsSites(data.sites || []);
         } catch (error) {
           console.error('Error loading Webex Meetings settings:', error);
         }
       }
+      
+
 
       };
       loadData();
@@ -2941,266 +2933,163 @@ export default function SettingsPage() {
 
                 {/* Webex Meetings Integration Section */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Webex Meetings Integration</h3>
-                        <p className="text-sm text-gray-600">Configure Webex Meetings for educational sessions and training</p>
-                      </div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setShowYamlModal('dev')}
-                        className="px-3 py-1.5 bg-orange-600 text-white rounded text-xs hover:bg-orange-700 flex items-center gap-1"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        Dev YAML
-                      </button>
-                      <button
-                        onClick={() => setShowYamlModal('prod')}
-                        className="px-3 py-1.5 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex items-center gap-1"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        Prod YAML
-                      </button>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900">Webex Meetings Integration</h3>
+                      <p className="text-sm text-gray-600">Configure Webex Meetings sites and recording hosts</p>
                     </div>
-                  </div>
-                  
-                  {/* Configuration Instructions */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <h4 className="text-sm font-medium text-blue-900 mb-3">Integration Setup Instructions</h4>
-                    <div className="space-y-2 text-sm text-blue-800">
-                      <p><strong>1. Create Integration App:</strong> Go to <a href="https://developer.webex.com/my-apps" target="_blank" className="underline">developer.webex.com/my-apps</a></p>
-                      <p><strong>2. Required Scopes:</strong> <code className="bg-blue-100 px-1 rounded">spark:recordings_read</code>, <code className="bg-blue-100 px-1 rounded">meeting:recordings_read</code>, <code className="bg-blue-100 px-1 rounded">meeting:transcripts_read</code>, <code className="bg-blue-100 px-1 rounded">meeting:admin_transcripts_read</code>, <code className="bg-blue-100 px-1 rounded">spark:people_read</code></p>
-                      <p><strong>3. Redirect URI:</strong> <code className="bg-blue-100 px-2 py-1 rounded text-xs">{typeof window !== 'undefined' ? window.location.origin.replace('http://', 'https://') : 'https://your-domain.com'}/api/webex-meetings/callback</code></p>
-                      <p><strong>4. After saving settings, click "Authorize Webex" to complete OAuth flow</strong></p>
-                    </div>
-                  </div>
-
-                  {/* Integration Form */}
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Client ID</label>
-                        <input
-                          type="text"
-                          value={settings.webexClientId || ''}
-                          onChange={(e) => setSettings({...settings, webexClientId: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Enter Webex Client ID"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Client Secret</label>
-                        <input
-                          type="password"
-                          value={settings.webexClientSecret || ''}
-                          onChange={(e) => setSettings({...settings, webexClientSecret: e.target.value})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Enter Webex Client Secret"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Site URL</label>
-                      <input
-                        type="url"
-                        value={settings.webexSiteUrl || ''}
-                        onChange={(e) => setSettings({...settings, webexSiteUrl: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="https://yourcompany.webex.com"
-                      />
-                    </div>
-
-                    <div className="flex items-center">
+                    <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        id="webexEnabled"
-                        checked={settings.webexEnabled || false}
-                        onChange={(e) => setSettings({...settings, webexEnabled: e.target.checked})}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        checked={webexMeetingsEnabled}
+                        onChange={(e) => setWebexMeetingsEnabled(e.target.checked)}
+                        className="sr-only peer"
                       />
-                      <label htmlFor="webexEnabled" className="ml-2 block text-sm text-gray-900">
-                        Enable Webex Meetings Integration
-                      </label>
-                    </div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <span className="ml-3 text-sm font-medium text-gray-700">
+                        {webexMeetingsEnabled ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </label>
+                  </div>
 
-                    {/* Host Management */}
-                    {/* Webhook Configuration */}
-                    <div className="space-y-4">
-                      <h4 className="text-md font-medium text-gray-900">Webhook Configuration</h4>
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div className="flex items-start gap-3">
-                          <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <div className="flex-1">
-                            <h5 className="text-sm font-medium text-blue-900 mb-2">Webex Webhook URL</h5>
-                            <p className="text-sm text-blue-800 mb-3">Use this URL when configuring webhooks in your Webex integration:</p>
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                value={webhookUrl}
-                                readOnly
-                                className="flex-1 px-3 py-2 border border-blue-300 rounded-md bg-white text-gray-800 text-sm font-mono"
-                              />
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(webhookUrl);
-                                  alert('Webhook URL copied!');
-                                }}
-                                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-                              >
-                                Copy
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-md font-medium text-gray-900">Recording Hosts</h4>
-                        <span className="text-sm text-gray-500">{webexHosts.length} host{webexHosts.length !== 1 ? 's' : ''}</span>
-                      </div>
-                      
-                      {/* Add Host Form */}
-                      <div className="flex gap-2">
-                        <input
-                          type="email"
-                          value={newHostEmail}
-                          onChange={(e) => setNewHostEmail(e.target.value)}
-                          placeholder="Enter host email address"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        />
-                        <button
-                          onClick={async () => {
-                            if (!newHostEmail.trim()) return;
-                            setAddingHost(true);
-                            try {
-                              const response = await fetch('/api/webex-meetings/hosts', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ email: newHostEmail.trim() })
+                  {webexMeetingsEnabled && (
+                    <div className="space-y-6">
+                      {/* Site URLs List */}
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-md font-semibold text-gray-900">Configured Sites</h4>
+                          <button
+                            onClick={() => {
+                              setEditingSiteIndex(null);
+                              setNewSite({
+                                siteUrl: '',
+                                accessToken: '',
+                                refreshToken: '',
+                                recordingHosts: ['']
                               });
-                              if (response.ok) {
-                                const data = await response.json();
-                                setWebexHosts(data.hosts);
-                                setNewHostEmail('');
-                              }
-                            } catch (error) {
-                              console.error('Error adding host:', error);
-                            } finally {
-                              setAddingHost(false);
-                            }
-                          }}
-                          disabled={!newHostEmail.trim() || addingHost}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm flex items-center gap-1"
-                        >
-                          {addingHost ? (
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                          ) : (
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              setShowAddSite(true);
+                            }}
+                            className="btn-primary flex items-center gap-2 text-sm"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                          )}
-                          Add
-                        </button>
-                      </div>
-                      
-                      {/* Hosts List */}
-                      {webexHosts.length > 0 ? (
-                        <div className="space-y-2 max-h-48 overflow-y-auto">
-                          {webexHosts.map((host, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                  </svg>
-                                </div>
-                                <span className="text-sm font-medium text-gray-900">{host.email}</span>
-                              </div>
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    const response = await fetch('/api/webex-meetings/hosts', {
-                                      method: 'DELETE',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ email: host.email })
-                                    });
-                                    if (response.ok) {
-                                      const data = await response.json();
-                                      setWebexHosts(data.hosts);
-                                    }
-                                  } catch (error) {
-                                    console.error('Error removing host:', error);
-                                  }
-                                }}
-                                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-                                title="Remove host"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
-                          ))}
+                            Add Site URL
+                          </button>
                         </div>
-                      ) : (
-                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                          <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <p className="text-sm">No hosts configured</p>
-                          <p className="text-xs text-gray-400">Add host email addresses to pull recordings from</p>
-                        </div>
-                      )}
-                    </div>
 
-                    <div className="pt-4 border-t border-gray-200">
-                      <div className="flex gap-3">
+                        {webexMeetingsSites.length === 0 ? (
+                          <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                            <svg className="w-8 h-8 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <h4 className="text-sm font-medium text-gray-900 mb-1">No sites configured</h4>
+                            <p className="text-sm text-gray-600">Add your first Webex Meetings site to get started</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {webexMeetingsSites.map((site, index) => (
+                              <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <h5 className="font-medium text-gray-900 mb-2">{site.siteUrl}</h5>
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium text-gray-600">Access Token:</span>
+                                        <span className="text-xs text-gray-500 font-mono">••••••••</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium text-gray-600">Refresh Token:</span>
+                                        <span className="text-xs text-gray-500 font-mono">••••••••</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-xs font-medium text-gray-600">Recording Hosts:</span>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {site.recordingHosts.map((host, hostIndex) => (
+                                            <span key={hostIndex} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                                              {host}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => {
+                                        setEditingSiteIndex(index);
+                                        setNewSite({
+                                          siteUrl: site.siteUrl,
+                                          accessToken: '',
+                                          refreshToken: '',
+                                          recordingHosts: [...site.recordingHosts]
+                                        });
+                                        setShowAddSite(true);
+                                      }}
+                                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded"
+                                      title="Edit Site"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const updatedSites = webexMeetingsSites.filter((_, i) => i !== index);
+                                        setWebexMeetingsSites(updatedSites);
+                                      }}
+                                      className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded"
+                                      title="Remove Site"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="pt-4 border-t border-gray-200 flex gap-3">
                         <button
                           onClick={async () => {
-                            setSaving(prev => ({...prev, webexMeetings: true}));
+                            setSavingWebexMeetings(true);
                             try {
                               const response = await fetch('/api/settings/webex-meetings', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                  webexClientId: settings.webexClientId,
-                                  webexClientSecret: settings.webexClientSecret,
-                                  webexSiteUrl: settings.webexSiteUrl,
-                                  webexEnabled: settings.webexEnabled
+                                  enabled: webexMeetingsEnabled,
+                                  sites: webexMeetingsSites
                                 })
                               });
                               
                               if (response.ok) {
                                 alert('Webex Meetings settings saved successfully!');
                               } else {
-                                alert('Failed to save Webex Meetings settings');
+                                const errorData = await response.json();
+                                alert('Failed to save settings: ' + (errorData.error || 'Unknown error'));
                               }
                             } catch (error) {
+                              console.error('Error saving Webex Meetings settings:', error);
                               alert('Error saving Webex Meetings settings');
                             } finally {
-                              setSaving(prev => ({...prev, webexMeetings: false}));
+                              setSavingWebexMeetings(false);
                             }
                           }}
-                          disabled={saving.webexMeetings}
-                          className={`${saving.webexMeetings ? 'btn-disabled' : 'btn-primary'} flex items-center gap-2`}
+                          disabled={savingWebexMeetings}
+                          className={`${savingWebexMeetings ? 'btn-disabled' : 'btn-primary'} flex items-center gap-2`}
                         >
-                          {saving.webexMeetings ? (
+                          {savingWebexMeetings ? (
                             <>
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                               Saving...
@@ -3215,412 +3104,360 @@ export default function SettingsPage() {
                           )}
                         </button>
                         
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('[OAUTH] ===== FRONTEND CLICK HANDLER EXECUTED =====');
-                            console.log('[OAUTH] Authorize Webex button clicked');
-                            if (!settings.webexClientId) {
-                              console.log('[OAUTH] Missing Client ID, cannot proceed');
-                              alert('Please save Client ID first');
-                              return;
-                            }
-                            
-                            const baseUrl = window.location.origin.replace('http://', 'https://');
-                            const redirectUri = `${baseUrl}/api/webex-meetings/callback`;
-                            const scopes = 'spark:recordings_read meeting:recordings_read meeting:transcripts_read meeting:admin_transcripts_read spark:people_read';
-                            
-                            // Construct OAuth URL with proper encoding
-                            const params = new URLSearchParams({
-                              client_id: settings.webexClientId,
-                              response_type: 'code',
-                              redirect_uri: redirectUri,
-                              scope: scopes,
-                              prompt: 'consent'
-                            });
-                            const oauthUrl = `https://webexapis.com/v1/authorize?${params.toString()}`;
-                            
-                            console.log(`[OAUTH] Constructing OAuth URL with:`);
-                            console.log(`[OAUTH] - BaseURL: ${baseUrl}`);
-                            console.log(`[OAUTH] - RedirectURI: ${redirectUri}`);
-                            console.log(`[OAUTH] - ClientID: ${settings.webexClientId ? settings.webexClientId.substring(0, 10) + '...' : 'missing'}`);
-                            console.log(`[OAUTH] - Scopes: ${scopes}`);
-                            console.log(`[OAUTH] - Full OAuth URL: ${oauthUrl}`);
-                            console.log(`[OAUTH] ===== CRITICAL SCOPE DEBUG =====`);
-                            console.log(`[OAUTH] REQUIRED SCOPE: meeting:admin_transcripts_read`);
-                            console.log(`[OAUTH] ALL REQUIRED SCOPES: ${scopes}`);
-                            console.log(`[OAUTH] OAuth URL contains admin scope: ${oauthUrl.includes('meeting%3Aadmin_transcripts_read')}`);
-                            console.log(`[OAUTH] OAuth URL contains admin scope (decoded): ${oauthUrl.includes('meeting:admin_transcripts_read')}`);
-                            console.log(`[OAUTH] WEBEX INTEGRATION CHECK:`);
-                            console.log(`[OAUTH] - Ensure your Webex integration app at developer.webex.com includes 'meeting:admin_transcripts_read' scope`);
-                            console.log(`[OAUTH] - This scope requires admin privileges in your Webex org`);
-                            console.log(`[OAUTH] - The user authorizing must have admin rights`);
-                            console.log(`[OAUTH] ===== END SCOPE DEBUG =====`);
-                            console.log(`[OAUTH] Redirecting to Webex authorization...`);
-                            console.log(`[OAUTH] TEMPORARY: Opening in new tab for troubleshooting`);
-                            
-                            window.open(oauthUrl, '_blank');
-                          }}
-                          disabled={!settings.webexClientId}
-                          className={`px-4 py-2 rounded-md flex items-center gap-2 ${
-                            !settings.webexClientId || !settings.webexClientSecret
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-green-600 text-white hover:bg-green-700'
-                          }`}
-                          title={!settings.webexClientId ? 'Save Client ID first' : 'Authorize with Webex'}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Authorize Webex
-                        </button>
-                        
-                        <button
-                          onClick={async () => {
-                            try {
-                              console.log('[OAUTH] Starting validation...');
-                              const response = await fetch('/api/webex-meetings/validate');
-                              
-                              if (!response.ok) {
-                                console.error(`[OAUTH] Validation request failed: HTTP ${response.status}: ${response.statusText}`);
-                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                              }
-                              
-                              const validation = await response.json();
-                              console.log('[OAUTH] Validation response received:', validation);
-                              
-                              let message = `Webex OAuth Configuration Validation\n\n`;
-                              message += `Environment: ${validation.environment}\n`;
-                              message += `Base URL: ${validation.baseUrl}\n`;
-                              message += `Redirect URI: ${validation.redirectUri}\n`;
-                              message += `Scopes: spark:recordings_read meeting:recordings_read meeting:transcripts_read meeting:admin_transcripts_read spark:people_read\n`;
-                              message += `Client ID Present: ${validation.clientIdPresent}\n`;
-                              message += `Client Secret Present: ${validation.clientSecretPresent}\n`;
-                              
-                              if (validation.clientIdPresent) {
-                                message += `Client ID Length: ${validation.clientIdLength} chars\n`;
-                              }
-                              
-                              if (validation.issues && validation.issues.length > 0) {
-                                console.log('[OAUTH] Validation issues found:', validation.issues);
-                                message += `\nIssues Found:\n${validation.issues.map(issue => `• ${issue}`).join('\n')}`;
-                              } else {
-                                console.log('[OAUTH] No validation issues found');
-                                message += `\n✅ Configuration appears valid!`;
-                              }
-                              
-                              if (validation.oauthUrl) {
-                                console.log(`[OAUTH] OAuth URL generated: ${validation.oauthUrl}`);
-                                message += `\n\nOAuth URL (first 100 chars):\n${validation.oauthUrl.substring(0, 100)}...`;
-                              }
-                              
-                              alert(message);
-                            } catch (error) {
-                              console.error('[OAUTH] Validation error:', error);
-                              alert('Validation failed: ' + error.message + '\n\nPlease check the browser console for more details.');
-                            }
-                          }}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Validate Config
-                        </button>
-                        
-                        {webexHosts.length > 0 && (
+                        {webexMeetingsEnabled && webexMeetingsSites.length > 0 && (
                           <button
-                            onClick={async () => {
-                              try {
-                                let totalRecordings = 0;
-                                let results = [];
-                                
-                                for (const host of webexHosts) {
-                                  try {
-                                    const response = await fetch('/api/webex-meetings/recordings?hostEmail=' + host.email);
-                                    const data = await response.json();
-                                    const count = data.items?.length || 0;
-                                    totalRecordings += count;
-                                    results.push(`${host.email}: ${count} recordings`);
-                                  } catch (error) {
-                                    results.push(`${host.email}: Error - ${error.message}`);
-                                  }
-                                }
-                                
-                                alert(`Test Results for ${webexHosts.length} hosts:\n\n${results.join('\n')}\n\nTotal recordings found: ${totalRecordings}`);
-                              } catch (error) {
-                                alert('Test failed: ' + error.message);
-                              }
-                            }}
-                            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2"
+                            onClick={() => setShowWebhookModal(true)}
+                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            Test API
+                            Manage Webhooks
                           </button>
                         )}
-                        
-                        <button
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/webex-meetings/webhooks', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'create' })
-                              });
-                              const data = await response.json();
-                              if (data.success) {
-                                alert('Webhooks created successfully!');
-                              } else {
-                                alert('Failed to create webhooks: ' + (data.error || 'Unknown error'));
-                              }
-                            } catch (error) {
-                              alert('Error creating webhooks: ' + error.message);
-                            }
-                          }}
-                          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.828 4.828A4 4 0 015.5 4H9v1H5.5a3 3 0 00-2.121.879L4.828 4.828zM9 9H4a1 1 0 000 2v3a1 1 0 001 1h3V9z" />
-                          </svg>
-                          Setup Webhooks
-                        </button>
-                        
-                        <button
-                          onClick={async () => {
-                            if (!confirm('This will permanently delete the transcript webhook. The recording webhook will remain unchanged. Continue?')) {
-                              return;
-                            }
-                            try {
-                              const response = await fetch('/api/webex-meetings/webhooks', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'delete-transcript' })
-                              });
-                              const data = await response.json();
-                              if (data.success) {
-                                alert('Transcript webhook deleted successfully!');
-                              } else {
-                                alert('Failed to delete transcript webhook: ' + (data.error || 'Unknown error'));
-                              }
-                            } catch (error) {
-                              alert('Error deleting transcript webhook: ' + error.message);
-                            }
-                          }}
-                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Delete Transcript Webhook
-                        </button>
-                        
-                        <button
-                          onClick={async () => {
-                            if (!confirm('This will delete and recreate only the transcript webhook. The recording webhook will remain unchanged. Continue?')) {
-                              return;
-                            }
-                            try {
-                              const response = await fetch('/api/webex-meetings/webhooks', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'recreate-transcript' })
-                              });
-                              const data = await response.json();
-                              if (data.success) {
-                                const results = data.results || [];
-                                const deleteResult = results.find(r => r.action === 'delete');
-                                const createResult = results.find(r => r.action === 'create');
-                                
-                                let message = 'Transcript webhook recreated successfully!\n\n';
-                                if (deleteResult) {
-                                  message += `Delete: ${deleteResult.success ? 'Success' : 'Failed'}\n`;
-                                }
-                                if (createResult) {
-                                  message += `Create: ${createResult.success ? 'Success' : 'Failed'}\n`;
-                                }
-                                alert(message);
-                              } else {
-                                alert('Failed to recreate transcript webhook: ' + (data.error || 'Unknown error'));
-                              }
-                            } catch (error) {
-                              alert('Error recreating transcript webhook: ' + error.message);
-                            }
-                          }}
-                          className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Recreate Transcript Webhook
-                        </button>
-                        
-                        <button
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/webex-meetings/validate-webhooks');
-                              const validation = await response.json();
-                              
-                              let message = `Webhook Validation Results\n\n`;
-                              message += `Total Webhooks: ${validation.totalWebhooks}\n`;
-                              message += `Valid Configuration: ${validation.isValid ? 'Yes' : 'No'}\n\n`;
-                              
-                              if (validation.recordingsWebhook) {
-                                message += `Recordings Webhook:\n`;
-                                message += `  ID: ${validation.recordingsWebhook.id}\n`;
-                                message += `  Name: ${validation.recordingsWebhook.name}\n`;
-                                message += `  Status: ${validation.recordingsWebhook.status}\n`;
-                                message += `  Target: ${validation.recordingsWebhook.targetUrl}\n\n`;
-                              } else {
-                                message += `Recordings Webhook: Not found\n\n`;
-                              }
-                              
-                              if (validation.transcriptsWebhook) {
-                                message += `Transcripts Webhook:\n`;
-                                message += `  ID: ${validation.transcriptsWebhook.id}\n`;
-                                message += `  Name: ${validation.transcriptsWebhook.name}\n`;
-                                message += `  Status: ${validation.transcriptsWebhook.status}\n`;
-                                message += `  Target: ${validation.transcriptsWebhook.targetUrl}\n\n`;
-                              } else {
-                                message += `Transcripts Webhook: Not found\n\n`;
-                              }
-                              
-                              if (validation.allWebhooks && validation.allWebhooks.length > 0) {
-                                message += `All Webhooks (${validation.allWebhooks.length}):\n`;
-                                validation.allWebhooks.forEach((webhook, i) => {
-                                  message += `${i + 1}. ${webhook.name} (${webhook.resource}/${webhook.event}) - ${webhook.status}\n`;
-                                });
-                              }
-                              
-                              alert(message);
-                            } catch (error) {
-                              alert('Webhook validation failed: ' + error.message);
-                            }
-                          }}
-                          className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          Validate Webhooks
-                        </button>
-                        
-                        <button
-                          onClick={async () => {
-                            try {
-                              const response = await fetch('/api/webex-meetings/logs?limit=20');
-                              const data = await response.json();
-                              
-                              if (data.logs && data.logs.length > 0) {
-                                let message = `Recent Webhook Events (${data.logs.length}):\n\n`;
-                                data.logs.forEach((log, i) => {
-                                  const timestamp = new Date(log.timestamp).toLocaleString();
-                                  message += `${i + 1}. [${timestamp}] ${log.event} - ${log.status}\n`;
-                                  if (log.details && typeof log.details === 'object') {
-                                    if (log.details.recordingId) message += `   Recording: ${log.details.recordingId}\n`;
-                                    if (log.details.hostEmail) message += `   Host: ${log.details.hostEmail}\n`;
-                                    if (log.details.error) message += `   Error: ${log.details.error}\n`;
-                                  }
-                                  message += `\n`;
-                                });
-                                alert(message);
-                              } else {
-                                alert('No webhook events found. This could mean:\n\n• Webhooks haven\'t been set up yet\n• No recordings have been processed\n• Webhook events are not being received');
-                              }
-                            } catch (error) {
-                              alert('Failed to fetch webhook logs: ' + error.message);
-                            }
-                          }}
-                          className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                          </svg>
-                          View Logs
-                        </button>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* YAML Modal */}
-            {showYamlModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg max-w-6xl w-full max-h-[80vh] overflow-y-auto">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {showYamlModal === 'dev' ? 'Development' : 'Production'} YAML Environment Variables
-                      </h3>
-                      <button
-                        onClick={() => setShowYamlModal(null)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                    
-                    <div className="bg-gray-900 rounded-lg p-4 mb-4">
-                      <pre className="text-green-400 text-sm font-mono whitespace-pre-wrap">
-{showYamlModal === 'dev' 
-  ? `    - name: WEBEX_MEETINGS_CLIENT_ID
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_CLIENT_ID
-    - name: WEBEX_MEETINGS_CLIENT_SECRET
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_CLIENT_SECRET
-    - name: WEBEX_MEETINGS_ACCESS_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_ACCESS_TOKEN
-    - name: WEBEX_MEETINGS_REFRESH_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_REFRESH_TOKEN`
-  : `    - name: WEBEX_MEETINGS_CLIENT_ID
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_MEETINGS_CLIENT_ID
-    - name: WEBEX_MEETINGS_CLIENT_SECRET
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_MEETINGS_CLIENT_SECRET
-    - name: WEBEX_MEETINGS_ACCESS_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_MEETINGS_ACCESS_TOKEN
-    - name: WEBEX_MEETINGS_REFRESH_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_MEETINGS_REFRESH_TOKEN`}
-                      </pre>
-                    </div>
-                    
-                    <div className="flex justify-end gap-3">
-                      <button
-                        onClick={() => setShowYamlModal(null)}
-                        className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => {
-                          const yamlContent = showYamlModal === 'dev' 
-                            ? `    - name: WEBEX_MEETINGS_CLIENT_ID\n      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_CLIENT_ID\n    - name: WEBEX_MEETINGS_CLIENT_SECRET\n      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_CLIENT_SECRET\n    - name: WEBEX_MEETINGS_ACCESS_TOKEN\n      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_ACCESS_TOKEN\n    - name: WEBEX_MEETINGS_REFRESH_TOKEN\n      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_REFRESH_TOKEN`
-                            : `    - name: WEBEX_MEETINGS_CLIENT_ID\n      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_MEETINGS_CLIENT_ID\n    - name: WEBEX_MEETINGS_CLIENT_SECRET\n      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_MEETINGS_CLIENT_SECRET\n    - name: WEBEX_MEETINGS_ACCESS_TOKEN\n      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_MEETINGS_ACCESS_TOKEN\n    - name: WEBEX_MEETINGS_REFRESH_TOKEN\n      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/WEBEX_MEETINGS_REFRESH_TOKEN`;
-                          navigator.clipboard.writeText(yamlContent);
-                          alert(`${showYamlModal === 'dev' ? 'Dev' : 'Prod'} YAML copied to clipboard!`);
-                          setShowYamlModal(null);
-                        }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        Copy to Clipboard
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+
 
 
           </div>
         </div>
+        
+        {/* Webhook Management Modal */}
+        {showWebhookModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-lg w-full">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Webhook Management
+                </h3>
+                
+                <p className="text-sm text-gray-600 mb-6">
+                  Manage Webex Meetings webhooks for recordings and transcripts. These webhooks notify the system when new recordings and transcripts are available.
+                </p>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={async () => {
+                      setProcessingWebhooks(true);
+                      setWebhookAction('create');
+                      try {
+                        const response = await fetch('/api/webexmeetings/settings/webhookmgmt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ action: 'create' })
+                        });
+                        const data = await response.json();
+                        setWebhookResults(data.results || []);
+                        
+                        const successCount = data.results?.filter(r => r.status === 'created').length || 0;
+                        const errorCount = data.results?.filter(r => r.status === 'error').length || 0;
+                        
+                        if (successCount > 0) {
+                          alert(`✅ Successfully created webhooks for ${successCount} site(s)!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
+                        } else {
+                          alert('❌ Failed to create webhooks. Check your site configurations.');
+                        }
+                      } catch (error) {
+                        alert('❌ Error creating webhooks');
+                      } finally {
+                        setProcessingWebhooks(false);
+                      }
+                    }}
+                    disabled={processingWebhooks}
+                    className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    {processingWebhooks && webhookAction === 'create' ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Creating Webhooks...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Create Webhooks
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={async () => {
+                      setProcessingWebhooks(true);
+                      setWebhookAction('validate');
+                      try {
+                        const response = await fetch('/api/webexmeetings/settings/webhookmgmt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ action: 'validate' })
+                        });
+                        const data = await response.json();
+                        setWebhookResults(data.results || []);
+                        
+                        const validCount = data.results?.filter(r => r.status === 'valid').length || 0;
+                        const invalidCount = data.results?.filter(r => r.status === 'invalid').length || 0;
+                        const noWebhooksCount = data.results?.filter(r => !r.hasWebhooks).length || 0;
+                        
+                        let message = `🔍 Webhook Validation Results:\n\n`;
+                        message += `✅ Valid: ${validCount}\n`;
+                        message += `❌ Invalid: ${invalidCount}\n`;
+                        message += `⚠️ No webhooks: ${noWebhooksCount}`;
+                        
+                        alert(message);
+                      } catch (error) {
+                        alert('❌ Error validating webhooks');
+                      } finally {
+                        setProcessingWebhooks(false);
+                      }
+                    }}
+                    disabled={processingWebhooks}
+                    className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    {processingWebhooks && webhookAction === 'validate' ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Validating Webhooks...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Validate Webhooks
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={async () => {
+                      if (!confirm('⚠️ Are you sure you want to delete all webhooks? This will stop automatic recording and transcript processing.')) {
+                        return;
+                      }
+                      
+                      setProcessingWebhooks(true);
+                      setWebhookAction('delete');
+                      try {
+                        const response = await fetch('/api/webexmeetings/settings/webhookmgmt', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ action: 'delete' })
+                        });
+                        const data = await response.json();
+                        setWebhookResults(data.results || []);
+                        
+                        const deletedCount = data.results?.filter(r => r.status === 'deleted').length || 0;
+                        const errorCount = data.results?.filter(r => r.status === 'error').length || 0;
+                        
+                        if (deletedCount > 0) {
+                          alert(`🗑️ Successfully deleted webhooks for ${deletedCount} site(s)!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
+                        } else {
+                          alert('❌ Failed to delete webhooks.');
+                        }
+                      } catch (error) {
+                        alert('❌ Error deleting webhooks');
+                      } finally {
+                        setProcessingWebhooks(false);
+                      }
+                    }}
+                    disabled={processingWebhooks}
+                    className="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    {processingWebhooks && webhookAction === 'delete' ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Deleting Webhooks...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Delete Webhooks
+                      </>
+                    )}
+                  </button>
+                </div>
+                
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Webhook URLs:</h4>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    <div>Recordings: <code className="bg-white px-1 rounded">{typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/webhooks/webexmeetings/recordings</code></div>
+                    <div>Transcripts: <code className="bg-white px-1 rounded">{typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/webhooks/webexmeetings/transcripts</code></div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowWebhookModal(false);
+                      setWebhookResults([]);
+                      setWebhookAction('');
+                    }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Add Site Modal */}
+        {showAddSite && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold mb-4">{editingSiteIndex !== null ? 'Edit Webex Meetings Site' : 'Add Webex Meetings Site'}</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Site URL *</label>
+                    <input
+                      type="url"
+                      value={newSite.siteUrl}
+                      onChange={(e) => setNewSite({...newSite, siteUrl: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://company.webex.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Access Token {editingSiteIndex !== null ? '(leave blank to keep current)' : '*'}</label>
+                    <input
+                      type="password"
+                      value={newSite.accessToken}
+                      onChange={(e) => setNewSite({...newSite, accessToken: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={editingSiteIndex !== null ? "Leave blank to keep current token" : "Enter access token"}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Refresh Token {editingSiteIndex !== null ? '(leave blank to keep current)' : '*'}</label>
+                    <input
+                      type="password"
+                      value={newSite.refreshToken}
+                      onChange={(e) => setNewSite({...newSite, refreshToken: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={editingSiteIndex !== null ? "Leave blank to keep current token" : "Enter refresh token"}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Recording Hosts *</label>
+                    <div className="space-y-2">
+                      {newSite.recordingHosts.map((host, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={host}
+                            onChange={(e) => {
+                              const updatedHosts = [...newSite.recordingHosts];
+                              updatedHosts[index] = e.target.value;
+                              setNewSite({...newSite, recordingHosts: updatedHosts});
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Recording host email"
+                          />
+                          {newSite.recordingHosts.length > 1 && (
+                            <button
+                              onClick={() => {
+                                const updatedHosts = newSite.recordingHosts.filter((_, i) => i !== index);
+                                setNewSite({...newSite, recordingHosts: updatedHosts});
+                              }}
+                              className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => {
+                          setNewSite({...newSite, recordingHosts: [...newSite.recordingHosts, '']});
+                        }}
+                        className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-md text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                      >
+                        + Add Recording Host
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowAddSite(false);
+                      setEditingSiteIndex(null);
+                    }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (editingSiteIndex !== null) {
+                        // Edit mode - validate required fields except tokens if blank
+                        if (!newSite.siteUrl || newSite.recordingHosts.some(host => !host.trim())) {
+                          alert('Please fill in all required fields');
+                          return;
+                        }
+                        
+                        const filteredHosts = newSite.recordingHosts.filter(host => host.trim());
+                        const updatedSites = [...webexMeetingsSites];
+                        const existingSite = updatedSites[editingSiteIndex];
+                        
+                        updatedSites[editingSiteIndex] = {
+                          siteUrl: newSite.siteUrl,
+                          accessToken: newSite.accessToken || existingSite.accessToken,
+                          refreshToken: newSite.refreshToken || existingSite.refreshToken,
+                          recordingHosts: filteredHosts
+                        };
+                        
+                        setWebexMeetingsSites(updatedSites);
+                      } else {
+                        // Add mode - validate all required fields
+                        if (!newSite.siteUrl || !newSite.accessToken || !newSite.refreshToken || newSite.recordingHosts.some(host => !host.trim())) {
+                          alert('Please fill in all required fields');
+                          return;
+                        }
+                        
+                        const filteredHosts = newSite.recordingHosts.filter(host => host.trim());
+                        setWebexMeetingsSites([...webexMeetingsSites, {...newSite, recordingHosts: filteredHosts}]);
+                      }
+                      
+                      setShowAddSite(false);
+                      setEditingSiteIndex(null);
+                      setNewSite({
+                        siteUrl: '',
+                        accessToken: '',
+                        refreshToken: '',
+                        recordingHosts: ['']
+                      });
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    {editingSiteIndex !== null ? 'Update Site' : 'Add Site'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Add WebEx Bot Modal - Step Wizard */}
         {showAddBot && (

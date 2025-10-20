@@ -1,89 +1,26 @@
 import { NextResponse } from 'next/server';
-import { SSMClient, GetParameterCommand, PutParameterCommand } from '@aws-sdk/client-ssm';
-import { DynamoDBClient, GetItemCommand, PutItemCommand, CreateTableCommand, DescribeTableCommand } from '@aws-sdk/client-dynamodb';
 import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 
-export const dynamic = 'force-dynamic';
-
-const ssmClient = new SSMClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
-const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
-
-async function getSSMParameter(name) {
-  try {
-    const command = new GetParameterCommand({
-      Name: name,
-      WithDecryption: true
-    });
-    const response = await ssmClient.send(command);
-    return response.Parameter?.Value;
-  } catch (error) {
-    return null;
-  }
-}
-
-async function putSSMParameter(name, value) {
-  try {
-    const command = new PutParameterCommand({
-      Name: name,
-      Value: value,
-      Type: 'String',
-      Overwrite: true
-    });
-    await ssmClient.send(command);
-    return true;
-  } catch (error) {
-    console.error(`Error setting SSM parameter ${name}:`, error);
-    return false;
-  }
-}
-
-async function ensureTableExists(tableName) {
-  try {
-    await dynamoClient.send(new DescribeTableCommand({ TableName: tableName }));
-  } catch (error) {
-    if (error.name === 'ResourceNotFoundException') {
-      await dynamoClient.send(new CreateTableCommand({
-        TableName: tableName,
-        KeySchema: [{ AttributeName: 'setting_key', KeyType: 'HASH' }],
-        AttributeDefinitions: [{ AttributeName: 'setting_key', AttributeType: 'S' }],
-        BillingMode: 'PAY_PER_REQUEST'
-      }));
-    }
-  }
-}
+const client = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(client);
 
 export async function GET() {
   try {
-    const env = getEnvironment();
-    const prefix = env === 'prod' ? '/PracticeTools' : `/PracticeTools/${env}`;
+    const tableName = getTableName('Settings');
+    const environment = getEnvironment();
     
-    // Get SSM parameters
-    const clientId = await getSSMParameter(`${prefix}/WEBEX_MEETINGS_CLIENT_ID`);
-    
-    // Get database settings
-    const tableName = getTableName('settings');
-    await ensureTableExists(tableName);
-    
-    const getCommand = new GetItemCommand({
+    const command = new GetCommand({
       TableName: tableName,
-      Key: { setting_key: { S: 'webex_meetings' } }
+      Key: { id: `${environment}_webex_meetings` }
     });
     
-    let dbSettings = {};
-    try {
-      const response = await dynamoClient.send(getCommand);
-      if (response.Item) {
-        dbSettings = JSON.parse(response.Item.setting_value.S);
-      }
-    } catch (error) {
-      console.log('No existing webex meetings settings found');
-    }
+    const result = await docClient.send(command);
     
     return NextResponse.json({
-      webexClientId: clientId || '',
-      webexClientSecret: clientId ? 'STORED_IN_SSM' : '',
-      webexSiteUrl: dbSettings.webexSiteUrl || '',
-      webexEnabled: dbSettings.webexEnabled || false
+      enabled: result.Item?.enabled || false,
+      sites: result.Item?.sites || []
     });
   } catch (error) {
     console.error('Error loading Webex Meetings settings:', error);
@@ -93,34 +30,43 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const { webexClientId, webexClientSecret, webexSiteUrl, webexEnabled } = await request.json();
+    const { enabled, sites } = await request.json();
+    const tableName = getTableName('Settings');
+    const environment = getEnvironment();
     
-    const env = getEnvironment();
-    const prefix = env === 'prod' ? '/PracticeTools' : `/PracticeTools/${env}`;
-    
-    // Store sensitive data in SSM
-    const ssmUpdates = [];
-    if (webexClientId) {
-      ssmUpdates.push(putSSMParameter(`${prefix}/WEBEX_MEETINGS_CLIENT_ID`, webexClientId));
-    }
-    if (webexClientSecret && webexClientSecret !== '••••••••') {
-      ssmUpdates.push(putSSMParameter(`${prefix}/WEBEX_MEETINGS_CLIENT_SECRET`, webexClientSecret));
+    // Validate input
+    if (typeof enabled !== 'boolean') {
+      return NextResponse.json({ error: 'Invalid enabled value' }, { status: 400 });
     }
     
-    // Store non-sensitive data in database
-    const tableName = getTableName('settings');
-    await ensureTableExists(tableName);
+    if (!Array.isArray(sites)) {
+      return NextResponse.json({ error: 'Sites must be an array' }, { status: 400 });
+    }
     
-    const putCommand = new PutItemCommand({
+    // Validate each site
+    for (const site of sites) {
+      if (!site.siteUrl || !site.accessToken || !site.refreshToken || !Array.isArray(site.recordingHosts)) {
+        return NextResponse.json({ error: 'Invalid site configuration' }, { status: 400 });
+      }
+      
+      if (site.recordingHosts.length === 0) {
+        return NextResponse.json({ error: 'At least one recording host is required per site' }, { status: 400 });
+      }
+    }
+    
+    const command = new PutCommand({
       TableName: tableName,
       Item: {
-        setting_key: { S: 'webex_meetings' },
-        setting_value: { S: JSON.stringify({ webexSiteUrl, webexEnabled }) },
-        updated_at: { S: new Date().toISOString() }
+        id: `${environment}_webex_meetings`,
+        setting_key: 'webex_meetings',
+        environment,
+        enabled,
+        sites,
+        updated_at: new Date().toISOString()
       }
     });
     
-    await Promise.all([...ssmUpdates, dynamoClient.send(putCommand)]);
+    await docClient.send(command);
     
     return NextResponse.json({ success: true });
   } catch (error) {
