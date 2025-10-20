@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { getSSMParameter } from '../../../../lib/ssm.js';
+import { getSSMParameter } from '../../../../lib/ssm-helper.js';
 
 export async function POST(request) {
   try {

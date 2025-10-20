@@ -99,7 +99,7 @@ export async function POST(request) {
 
     // Send SSE notification for transcript update
     try {
-      const { notifyWebexRecordingsUpdate } = await import('../../sse/webex-meetings/route.js');
+      const { notifyWebexRecordingsUpdate } = await import('../../../sse/webex-meetings/route.js');
       notifyWebexRecordingsUpdate({
         type: 'transcript_updated',
         recordingId: recording.id,
