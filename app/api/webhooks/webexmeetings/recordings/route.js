@@ -91,6 +91,18 @@ export async function POST(request) {
     });
     await docClient.send(putCommand);
 
+    // Send SSE notification for new recording
+    try {
+      const { notifyWebexRecordingsUpdate } = await import('../../sse/webex-meetings/route.js');
+      notifyWebexRecordingsUpdate({
+        type: 'recording_added',
+        recording: recordingData,
+        timestamp: Date.now()
+      });
+    } catch (sseError) {
+      console.error('Failed to send SSE notification for new recording:', sseError);
+    }
+
     // Try to get transcript immediately
     try {
       const transcriptResponse = await fetch(
@@ -148,6 +160,18 @@ async function processTranscript(transcript, recording, accessToken) {
       }
     });
     await docClient.send(updateCommand);
+
+    // Send SSE notification for transcript update
+    try {
+      const { notifyWebexRecordingsUpdate } = await import('../../sse/webex-meetings/route.js');
+      notifyWebexRecordingsUpdate({
+        type: 'transcript_updated',
+        recordingId: recording.id,
+        timestamp: Date.now()
+      });
+    } catch (sseError) {
+      console.error('Failed to send SSE notification for transcript update:', sseError);
+    }
   } catch (error) {
     console.error('WebexMeetings transcript processing error:', error);
   }

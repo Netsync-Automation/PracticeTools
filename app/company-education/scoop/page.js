@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import SidebarLayout from '../../../components/SidebarLayout';
 import Navbar from '../../../components/Navbar';
@@ -8,6 +9,59 @@ import AccessCheck from '../../../components/AccessCheck';
 
 export default function ScoopPage() {
   const { user, loading, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState('approve-recordings');
+  const [recordings, setRecordings] = useState([]);
+  const [loadingRecordings, setLoadingRecordings] = useState(true);
+
+  useEffect(() => {
+    fetchRecordings();
+    setupSSE();
+  }, []);
+
+  const fetchRecordings = async () => {
+    try {
+      const response = await fetch('/api/webexmeetings/recordings');
+      if (response.ok) {
+        const data = await response.json();
+        setRecordings(data.recordings || []);
+      }
+    } catch (error) {
+      console.error('Error fetching recordings:', error);
+    } finally {
+      setLoadingRecordings(false);
+    }
+  };
+
+  const setupSSE = () => {
+    const eventSource = new EventSource('/api/sse/webex-meetings');
+    
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'webex_recordings_updated') {
+          fetchRecordings();
+        }
+      } catch (error) {
+        console.error('Error parsing SSE data:', error);
+      }
+    };
+
+    return () => eventSource.close();
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString();
+  };
+
+  const handleDownload = (s3Url, filename) => {
+    const link = document.createElement('a');
+    link.href = s3Url;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (loading) {
     return (
@@ -29,17 +83,102 @@ export default function ScoopPage() {
               { label: 'SCOOP' }
             ]} />
             
-            <div className="flex items-center justify-center min-h-96">
-              <div className="text-center">
-                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">Coming Soon</h1>
-                <p className="text-xl text-gray-600">SCOOP functionality is under development</p>
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">SCOOP</h1>
+              
+              {/* Tab Navigation */}
+              <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-8">
+                  <button
+                    onClick={() => setActiveTab('approve-recordings')}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === 'approve-recordings'
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    Approve Recordings
+                  </button>
+                </nav>
               </div>
             </div>
+
+            {/* Tab Content */}
+            {activeTab === 'approve-recordings' && (
+              <div className="bg-white shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    WebEx Meeting Recordings
+                  </h3>
+                  
+                  {loadingRecordings ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : recordings.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No recordings found</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Meeting ID
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Host
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Start Date/Time
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Transcript
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Recording
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {recordings.map((recording) => (
+                            <tr key={recording.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {recording.meetingId}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {recording.hostUserId}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {formatDate(recording.createTime)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  recording.transcriptStatus === 'available'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {recording.transcriptStatus}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <button
+                                  onClick={() => handleDownload(recording.s3Url, `${recording.topic || 'recording'}.mp4`)}
+                                  className="text-blue-600 hover:text-blue-900 font-medium"
+                                >
+                                  Download MP4
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </SidebarLayout>
       </div>

@@ -97,6 +97,18 @@ export async function POST(request) {
     });
     await docClient.send(putCommand);
 
+    // Send SSE notification for transcript update
+    try {
+      const { notifyWebexRecordingsUpdate } = await import('../../sse/webex-meetings/route.js');
+      notifyWebexRecordingsUpdate({
+        type: 'transcript_updated',
+        recordingId: recording.id,
+        timestamp: Date.now()
+      });
+    } catch (sseError) {
+      console.error('Failed to send SSE notification for transcript update:', sseError);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('WebexMeetings transcript webhook error:', error);

@@ -108,9 +108,9 @@ run:
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_WAN_OPTICAL_ROOM_ID_1
     - name: WEBEX_WAN_OPTICAL_ROOM_NAME
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_WAN_OPTICAL_ROOM_NAME
-    - name: WEBEX_MEETINGS_ACCESS_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_ACCESS_TOKEN
-    - name: WEBEX_MEETINGS_REFRESH_TOKEN
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/WEBEX_MEETINGS_REFRESH_TOKEN
+    - name: NETSYNC_WEBEX_MEETINGS_ACCESS_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/NETSYNC_WEBEX_MEETINGS_ACCESS_TOKEN
+    - name: NETSYNC_WEBEX_MEETINGS_REFRESH_TOKEN
+      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/dev/NETSYNC_WEBEX_MEETINGS_REFRESH_TOKEN
 
       
