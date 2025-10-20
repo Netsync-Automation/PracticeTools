@@ -10,31 +10,53 @@ async function getWebexMeetingsConfig() {
   const tableName = getTableName('Settings');
   const command = new GetCommand({
     TableName: tableName,
-    Key: { id: 'webex-meetings' }
+    Key: { setting_key: 'webex-meetings' }
   });
   const result = await docClient.send(command);
-  return result.Item;
+  return result.Item?.setting_value ? JSON.parse(result.Item.setting_value) : null;
 }
 
 async function saveWebexMeetingsConfig(config) {
   const tableName = getTableName('Settings');
   const command = new PutCommand({
     TableName: tableName,
-    Item: { ...config, id: 'webex-meetings', updated_at: new Date().toISOString() }
+    Item: {
+      setting_key: 'webex-meetings',
+      setting_value: JSON.stringify(config),
+      updated_at: new Date().toISOString()
+    }
   });
   await docClient.send(command);
 }
 
 export async function POST(request) {
   try {
-    const { action } = await request.json();
-    const config = await getWebexMeetingsConfig();
+    console.log('Webhook management request received');
+    
+    let action;
+    try {
+      const body = await request.json();
+      action = body.action;
+      console.log('Action:', action);
+    } catch (jsonError) {
+      console.error('JSON parsing error:', jsonError);
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
+    }
+    
+    let config;
+    try {
+      config = await getWebexMeetingsConfig();
+      console.log('Config loaded:', !!config);
+    } catch (configError) {
+      console.error('Config loading error:', configError);
+      return NextResponse.json({ error: 'Failed to load WebEx configuration' }, { status: 500 });
+    }
     
     if (!config?.enabled || !config.sites?.length) {
       return NextResponse.json({ error: 'WebexMeetings not configured' }, { status: 400 });
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://your-domain.com';
+    const baseUrl = process.env.NEXTAUTH_URL || `https://${request.headers.get('host')}`;
     const results = [];
 
     for (const site of config.sites) {
@@ -133,7 +155,14 @@ export async function POST(request) {
     await saveWebexMeetingsConfig(config);
     return NextResponse.json({ results });
   } catch (error) {
-    console.error('Webhook management error:', error);
-    return NextResponse.json({ error: 'Operation failed' }, { status: 500 });
+    console.error('Webhook management error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    return NextResponse.json({ 
+      error: 'Operation failed', 
+      details: error.message 
+    }, { status: 500 });
   }
 }

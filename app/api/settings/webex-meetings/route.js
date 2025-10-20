@@ -16,7 +16,7 @@ export async function GET() {
     
     const command = new GetCommand({
       TableName: tableName,
-      Key: { setting_key: `${environment}_webex_meetings` }
+      Key: { setting_key: 'webex-meetings' }
     });
     
     const result = await docClient.send(command);
@@ -102,12 +102,11 @@ export async function POST(request) {
     const command = new PutCommand({
       TableName: tableName,
       Item: {
-        setting_key: `${environment}_webex_meetings`,
+        setting_key: 'webex-meetings',
         setting_value: JSON.stringify({
           enabled,
           sites: sitesWithoutTokens
         }),
-        environment,
         updated_at: new Date().toISOString()
       }
     });
