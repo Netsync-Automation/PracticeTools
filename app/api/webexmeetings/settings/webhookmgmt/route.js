@@ -258,18 +258,29 @@ export async function POST(request) {
           validationResults.push(validateTranscripts.ok);
         }
 
-        const hasWebhooks = !!(site.recordingsWebhookId || site.transcriptsWebhookId);
+        const hasRecordingsWebhook = !!site.recordingsWebhookId;
+        const hasTranscriptsWebhook = !!site.transcriptsWebhookId;
+        const hasWebhooks = hasRecordingsWebhook || hasTranscriptsWebhook;
+        const hasBothWebhooks = hasRecordingsWebhook && hasTranscriptsWebhook;
         const isValid = validationResults.every(r => r);
+        
         console.log('🔧 [WEBHOOK-MGMT] Validation results for', site.siteUrl, ':', {
           validationResults,
+          hasRecordingsWebhook,
+          hasTranscriptsWebhook,
           hasWebhooks,
+          hasBothWebhooks,
           isValid
         });
         
         results.push({ 
           site: site.siteName || site.siteUrl, 
           status: isValid ? 'valid' : 'invalid',
-          hasWebhooks
+          hasWebhooks,
+          hasBothWebhooks,
+          recordingsWebhook: hasRecordingsWebhook ? 'active' : 'missing',
+          transcriptsWebhook: hasTranscriptsWebhook ? 'active' : 'missing',
+          webhookCount: (hasRecordingsWebhook ? 1 : 0) + (hasTranscriptsWebhook ? 1 : 0)
         });
       }
     }

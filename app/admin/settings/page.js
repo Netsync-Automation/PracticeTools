@@ -102,10 +102,13 @@ export default function SettingsPage() {
   const [showApiModal, setShowApiModal] = useState(false);
   const [showApiManagementModal, setShowApiManagementModal] = useState(false);
   const [showApiLogsModal, setShowApiLogsModal] = useState(false);
+  const [showWebhookLogsModal, setShowWebhookLogsModal] = useState(false);
   const [apiResults, setApiResults] = useState([]);
   const [apiLogs, setApiLogs] = useState([]);
+  const [webhookLogs, setWebhookLogs] = useState([]);
   const [validatingApi, setValidatingApi] = useState(false);
   const [loadingApiLogs, setLoadingApiLogs] = useState(false);
+  const [loadingWebhookLogs, setLoadingWebhookLogs] = useState(false);
 
   
   // CSRF token management
@@ -3572,17 +3575,40 @@ export default function SettingsPage() {
                         const validCount = data.results?.filter(r => r.status === 'valid').length || 0;
                         const invalidCount = data.results?.filter(r => r.status === 'invalid').length || 0;
                         const noWebhooksCount = data.results?.filter(r => !r.hasWebhooks).length || 0;
+                        const totalWebhooks = data.results?.reduce((sum, r) => sum + (r.webhookCount || 0), 0) || 0;
+                        const sitesWithBothWebhooks = data.results?.filter(r => r.hasBothWebhooks).length || 0;
+                        const sitesWithPartialWebhooks = data.results?.filter(r => r.hasWebhooks && !r.hasBothWebhooks).length || 0;
                         
                         console.log('🔧 [FRONTEND-WEBHOOK] Validation summary:', {
                           validCount,
                           invalidCount,
-                          noWebhooksCount
+                          noWebhooksCount,
+                          totalWebhooks,
+                          sitesWithBothWebhooks,
+                          sitesWithPartialWebhooks
                         });
                         
                         let message = `🔍 Webhook Validation Results:\n\n`;
-                        message += `✅ Valid: ${validCount}\n`;
-                        message += `❌ Invalid: ${invalidCount}\n`;
-                        message += `⚠️ No webhooks: ${noWebhooksCount}`;
+                        message += `📊 Total Webhooks: ${totalWebhooks} (Expected: ${data.results?.length * 2 || 0})\n`;
+                        message += `✅ Sites with Both Webhooks: ${sitesWithBothWebhooks}\n`;
+                        message += `⚠️ Sites with Partial Webhooks: ${sitesWithPartialWebhooks}\n`;
+                        message += `❌ Sites with No Webhooks: ${noWebhooksCount}\n\n`;
+                        
+                        // Add detailed breakdown
+                        if (data.results?.length > 0) {
+                          message += `Detailed Breakdown:\n`;
+                          data.results.forEach(result => {
+                            message += `• ${result.site}: `;
+                            if (result.hasBothWebhooks) {
+                              message += `✅ Complete (2/2 webhooks)`;
+                            } else if (result.hasWebhooks) {
+                              message += `⚠️ Partial (${result.webhookCount}/2 webhooks)`;
+                            } else {
+                              message += `❌ None (0/2 webhooks)`;
+                            }
+                            message += `\n`;
+                          });
+                        }
                         
                         alert(message);
                       } catch (error) {
@@ -3683,12 +3709,142 @@ export default function SettingsPage() {
                 
                 <div className="flex justify-end gap-3 mt-6">
                   <button
+                    onClick={async () => {
+                      console.log('📊 [FRONTEND-WEBHOOK] View Logs button clicked');
+                      setLoadingWebhookLogs(true);
+                      try {
+                        const response = await fetch('/api/webexmeetings/settings/webhooklogs');
+                        const data = await response.json();
+                        console.log('📊 [FRONTEND-WEBHOOK] Webhook logs response:', data);
+                        setWebhookLogs(data.logs || []);
+                        setShowWebhookLogsModal(true);
+                      } catch (error) {
+                        console.error('📊 [FRONTEND-WEBHOOK] Error fetching webhook logs:', error);
+                        alert('❌ Error fetching webhook logs');
+                      } finally {
+                        setLoadingWebhookLogs(false);
+                      }
+                    }}
+                    disabled={loadingWebhookLogs}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {loadingWebhookLogs ? 'Loading...' : 'View Logs'}
+                  </button>
+                  <button
                     onClick={() => {
                       console.log('🔧 [FRONTEND-WEBHOOK] Closing webhook modal');
                       setShowWebhookModal(false);
                       setWebhookResults([]);
                       setWebhookAction('');
                     }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Webhook Logs Modal */}
+        {showWebhookLogsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Webhook Processing Logs</h3>
+                  <button
+                    onClick={() => setShowWebhookLogsModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <div className="overflow-y-auto max-h-[60vh]">
+                  {webhookLogs.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      No webhook logs found
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {webhookLogs.map((log) => (
+                        <div key={log.id} className={`p-4 rounded-lg border ${
+                          log.status === 'success' ? 'bg-green-50 border-green-200' :
+                          log.status === 'error' ? 'bg-red-50 border-red-200' :
+                          'bg-yellow-50 border-yellow-200'
+                        }`}>
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 text-xs rounded ${
+                                log.status === 'success' ? 'bg-green-100 text-green-800' :
+                                log.status === 'error' ? 'bg-red-100 text-red-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {log.status.toUpperCase()}
+                              </span>
+                              <span className="text-sm font-medium text-gray-900">
+                                {log.webhookType === 'recordings' ? '🎥 Recording' : '📝 Transcript'}
+                              </span>
+                            </div>
+                            <span className="text-xs text-gray-500">
+                              {new Date(log.timestamp).toLocaleString()}
+                            </span>
+                          </div>
+                          
+                          <div className="text-sm text-gray-700 mb-2">
+                            <strong>Site:</strong> {log.siteUrl}
+                          </div>
+                          
+                          {log.meetingId && (
+                            <div className="text-sm text-gray-700 mb-2">
+                              <strong>Meeting ID:</strong> {log.meetingId}
+                            </div>
+                          )}
+                          
+                          <div className="text-sm text-gray-700 mb-2">
+                            <strong>Message:</strong> {log.message}
+                          </div>
+                          
+                          {log.error && (
+                            <div className="text-sm text-red-600 mb-2">
+                              <strong>Error:</strong> {log.error}
+                            </div>
+                          )}
+                          
+                          {log.processingDetails && (
+                            <div className="text-xs text-gray-600 mt-2 p-2 bg-gray-50 rounded">
+                              <strong>Processing Details:</strong>
+                              <div className="mt-1">
+                                {typeof log.processingDetails === 'string' 
+                                  ? log.processingDetails 
+                                  : JSON.stringify(log.processingDetails, null, 2)
+                                }
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="flex gap-4 mt-2 text-xs text-gray-600">
+                            {log.databaseAction && (
+                              <span>DB: {log.databaseAction}</span>
+                            )}
+                            {log.s3Upload !== undefined && (
+                              <span>S3: {log.s3Upload ? '✅' : '❌'}</span>
+                            )}
+                            {log.sseNotification !== undefined && (
+                              <span>SSE: {log.sseNotification ? '✅' : '❌'}</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={() => setShowWebhookLogsModal(false)}
                     className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     Close

@@ -8,6 +8,25 @@ const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 
+async function logWebhookActivity(logData) {
+  try {
+    const tableName = getTableName('WebexMeetingsWebhookLogs');
+    const logEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toISOString(),
+      ...logData
+    };
+    
+    const command = new PutCommand({
+      TableName: tableName,
+      Item: logEntry
+    });
+    await docClient.send(command);
+  } catch (error) {
+    console.error('Failed to log webhook activity:', error);
+  }
+}
+
 async function getWebexMeetingsConfig() {
   const tableName = getTableName('Settings');
   console.log('📝 [TRANSCRIPTS-WEBHOOK] Loading config from table:', tableName);
@@ -27,13 +46,27 @@ export async function POST(request) {
   console.log('📝 [TRANSCRIPTS-WEBHOOK] Request headers:', Object.fromEntries(request.headers.entries()));
   console.log('📝 [TRANSCRIPTS-WEBHOOK] Request method:', request.method);
   console.log('📝 [TRANSCRIPTS-WEBHOOK] Request URL:', request.url);
+  
+  let webhookData = null;
   try {
     const webhook = await request.json();
     console.log('📝 [TRANSCRIPTS-WEBHOOK] Parsed webhook data:', JSON.stringify(webhook, null, 2));
     const { data } = webhook;
+    webhookData = data;
     
     if (!data || webhook.resource !== 'meetingTranscripts') {
       console.error('📝 [TRANSCRIPTS-WEBHOOK] Invalid webhook data:', { data: !!data, resource: webhook.resource });
+      await logWebhookActivity({
+        webhookType: 'transcripts',
+        siteUrl: data?.siteUrl || 'unknown',
+        meetingId: data?.meetingId || 'unknown',
+        status: 'error',
+        message: 'Invalid webhook data received',
+        error: `Missing data or incorrect resource type: ${webhook.resource}`,
+        databaseAction: 'none',
+        s3Upload: false,
+        sseNotification: false
+      });
       return NextResponse.json({ error: 'Invalid webhook data' }, { status: 400 });
     }
     
@@ -46,6 +79,16 @@ export async function POST(request) {
     
     if (!config?.enabled || !config.sites?.length) {
       console.warn('📝 [TRANSCRIPTS-WEBHOOK] WebexMeetings not configured or disabled');
+      await logWebhookActivity({
+        webhookType: 'transcripts',
+        siteUrl: 'unknown',
+        meetingId: data.meetingId,
+        status: 'warning',
+        message: 'WebexMeetings integration not configured or disabled',
+        databaseAction: 'none',
+        s3Upload: false,
+        sseNotification: false
+      });
       return NextResponse.json({ message: 'WebexMeetings not configured' }, { status: 200 });
     }
 
@@ -71,6 +114,17 @@ export async function POST(request) {
         recordingFound: !!recording, 
         expectedInstanceId: data.meetingInstanceId,
         actualInstanceId: recording?.meetingInstanceId 
+      });
+      await logWebhookActivity({
+        webhookType: 'transcripts',
+        siteUrl: recording?.siteUrl || 'unknown',
+        meetingId: data.meetingId,
+        status: 'warning',
+        message: 'No matching recording found for transcript',
+        processingDetails: `Expected instance ID: ${data.meetingInstanceId}, Found: ${recording?.meetingInstanceId}`,
+        databaseAction: 'none',
+        s3Upload: false,
+        sseNotification: false
       });
       return NextResponse.json({ message: 'No matching recording found' }, { status: 200 });
     }
@@ -136,12 +190,35 @@ export async function POST(request) {
     }
 
     console.log('📝 [TRANSCRIPTS-WEBHOOK] Processing completed successfully');
+    await logWebhookActivity({
+      webhookType: 'transcripts',
+      siteUrl: recording.siteUrl,
+      meetingId: data.meetingId,
+      status: 'success',
+      message: 'Transcript processed successfully',
+      processingDetails: `Downloaded and uploaded to S3: ${transcriptS3Key}`,
+      databaseAction: 'updated',
+      s3Upload: true,
+      sseNotification: true
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('📝 [TRANSCRIPTS-WEBHOOK] Processing failed:', {
       message: error.message,
       stack: error.stack,
       name: error.name
+    });
+    await logWebhookActivity({
+      webhookType: 'transcripts',
+      siteUrl: webhookData?.siteUrl || 'unknown',
+      meetingId: webhookData?.meetingId || 'unknown',
+      status: 'error',
+      message: 'Transcript processing failed',
+      error: error.message,
+      processingDetails: error.stack,
+      databaseAction: 'none',
+      s3Upload: false,
+      sseNotification: false
     });
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
   }
