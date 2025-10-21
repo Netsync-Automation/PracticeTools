@@ -10,12 +10,16 @@ const s3Client = new S3Client({ region: process.env.AWS_DEFAULT_REGION || 'us-ea
 
 async function getWebexMeetingsConfig() {
   const tableName = getTableName('Settings');
+  console.log('🎥 [RECORDINGS-WEBHOOK] Loading config from table:', tableName);
   const command = new GetCommand({
     TableName: tableName,
-    Key: { id: 'webex-meetings' }
+    Key: { setting_key: 'webex-meetings' }
   });
   const result = await docClient.send(command);
-  return result.Item;
+  console.log('🎥 [RECORDINGS-WEBHOOK] Raw config result:', result.Item);
+  const config = result.Item?.setting_value ? JSON.parse(result.Item.setting_value) : null;
+  console.log('🎥 [RECORDINGS-WEBHOOK] Parsed config:', config);
+  return config;
 }
 
 async function downloadRecording(downloadUrl, accessToken) {
@@ -37,36 +41,58 @@ async function uploadToS3(buffer, key) {
 }
 
 export async function POST(request) {
+  console.log('🎥 [RECORDINGS-WEBHOOK] Received webhook request');
+  console.log('🎥 [RECORDINGS-WEBHOOK] Request headers:', Object.fromEntries(request.headers.entries()));
+  console.log('🎥 [RECORDINGS-WEBHOOK] Request method:', request.method);
+  console.log('🎥 [RECORDINGS-WEBHOOK] Request URL:', request.url);
   try {
     const webhook = await request.json();
+    console.log('🎥 [RECORDINGS-WEBHOOK] Parsed webhook data:', JSON.stringify(webhook, null, 2));
     const { data } = webhook;
     
     if (!data || webhook.resource !== 'recordings') {
+      console.error('🎥 [RECORDINGS-WEBHOOK] Invalid webhook data:', { data: !!data, resource: webhook.resource });
       return NextResponse.json({ error: 'Invalid webhook data' }, { status: 400 });
     }
+    
+    console.log('🎥 [RECORDINGS-WEBHOOK] Valid recordings webhook received for:', data.id);
 
     // Get WebexMeetings configuration
+    console.log('🎥 [RECORDINGS-WEBHOOK] Loading WebEx configuration...');
     const config = await getWebexMeetingsConfig();
+    console.log('🎥 [RECORDINGS-WEBHOOK] Config loaded:', { enabled: config?.enabled, sitesCount: config?.sites?.length });
+    
     if (!config?.enabled || !config.sites?.length) {
+      console.warn('🎥 [RECORDINGS-WEBHOOK] WebexMeetings not configured or disabled');
       return NextResponse.json({ message: 'WebexMeetings not configured' }, { status: 200 });
     }
 
     // Find matching site configuration
+    console.log('🎥 [RECORDINGS-WEBHOOK] Looking for matching site:', { siteUrl: data.siteUrl, hostUserId: data.hostUserId });
+    console.log('🎥 [RECORDINGS-WEBHOOK] Available sites:', config.sites.map(s => ({ siteUrl: s.siteUrl, hosts: s.recordingHosts })));
+    
     const matchingSite = config.sites.find(site => 
       data.siteUrl === site.siteUrl && 
       site.recordingHosts.includes(data.hostUserId)
     );
 
     if (!matchingSite) {
+      console.warn('🎥 [RECORDINGS-WEBHOOK] No matching site/host found');
       return NextResponse.json({ message: 'Recording not from configured host/site' }, { status: 200 });
     }
+    
+    console.log('🎥 [RECORDINGS-WEBHOOK] Found matching site:', matchingSite.siteUrl);
 
     // Download recording
+    console.log('🎥 [RECORDINGS-WEBHOOK] Downloading recording from:', data.downloadUrl);
     const recordingBuffer = await downloadRecording(data.downloadUrl, matchingSite.accessToken);
+    console.log('🎥 [RECORDINGS-WEBHOOK] Recording downloaded, size:', recordingBuffer.byteLength, 'bytes');
     
     // Upload to S3
     const s3Key = `webexmeetings-recordings/${data.id}.mp4`;
+    console.log('🎥 [RECORDINGS-WEBHOOK] Uploading to S3:', s3Key);
     await uploadToS3(recordingBuffer, s3Key);
+    console.log('🎥 [RECORDINGS-WEBHOOK] S3 upload completed');
 
     // Store in DynamoDB
     const tableName = getTableName('WebexMeetingsRecordings');
@@ -90,6 +116,7 @@ export async function POST(request) {
       Item: recordingData
     });
     await docClient.send(putCommand);
+    console.log('🎥 [RECORDINGS-WEBHOOK] Recording data saved to DynamoDB');
 
     // Send SSE notification for new recording
     try {
@@ -121,9 +148,14 @@ export async function POST(request) {
       console.log('Transcript not immediately available:', error.message);
     }
 
+    console.log('🎥 [RECORDINGS-WEBHOOK] Processing completed successfully');
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('WebexMeetings recording webhook error:', error);
+    console.error('🎥 [RECORDINGS-WEBHOOK] Processing failed:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
   }
 }

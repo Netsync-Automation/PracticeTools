@@ -10,26 +10,42 @@ const s3Client = new S3Client({ region: process.env.AWS_DEFAULT_REGION || 'us-ea
 
 async function getWebexMeetingsConfig() {
   const tableName = getTableName('Settings');
+  console.log('📝 [TRANSCRIPTS-WEBHOOK] Loading config from table:', tableName);
   const command = new GetCommand({
     TableName: tableName,
-    Key: { id: 'webex-meetings' }
+    Key: { setting_key: 'webex-meetings' }
   });
   const result = await docClient.send(command);
-  return result.Item;
+  console.log('📝 [TRANSCRIPTS-WEBHOOK] Raw config result:', result.Item);
+  const config = result.Item?.setting_value ? JSON.parse(result.Item.setting_value) : null;
+  console.log('📝 [TRANSCRIPTS-WEBHOOK] Parsed config:', config);
+  return config;
 }
 
 export async function POST(request) {
+  console.log('📝 [TRANSCRIPTS-WEBHOOK] Received webhook request');
+  console.log('📝 [TRANSCRIPTS-WEBHOOK] Request headers:', Object.fromEntries(request.headers.entries()));
+  console.log('📝 [TRANSCRIPTS-WEBHOOK] Request method:', request.method);
+  console.log('📝 [TRANSCRIPTS-WEBHOOK] Request URL:', request.url);
   try {
     const webhook = await request.json();
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Parsed webhook data:', JSON.stringify(webhook, null, 2));
     const { data } = webhook;
     
     if (!data || webhook.resource !== 'meetingTranscripts') {
+      console.error('📝 [TRANSCRIPTS-WEBHOOK] Invalid webhook data:', { data: !!data, resource: webhook.resource });
       return NextResponse.json({ error: 'Invalid webhook data' }, { status: 400 });
     }
+    
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Valid transcript webhook received for:', data.id);
 
     // Get WebexMeetings configuration
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Loading WebEx configuration...');
     const config = await getWebexMeetingsConfig();
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Config loaded:', { enabled: config?.enabled, sitesCount: config?.sites?.length });
+    
     if (!config?.enabled || !config.sites?.length) {
+      console.warn('📝 [TRANSCRIPTS-WEBHOOK] WebexMeetings not configured or disabled');
       return NextResponse.json({ message: 'WebexMeetings not configured' }, { status: 200 });
     }
 
@@ -51,8 +67,15 @@ export async function POST(request) {
     }
 
     if (!recording || recording.meetingInstanceId !== data.meetingInstanceId) {
+      console.warn('📝 [TRANSCRIPTS-WEBHOOK] No matching recording found:', { 
+        recordingFound: !!recording, 
+        expectedInstanceId: data.meetingInstanceId,
+        actualInstanceId: recording?.meetingInstanceId 
+      });
       return NextResponse.json({ message: 'No matching recording found' }, { status: 200 });
     }
+    
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Found matching recording:', recording.id);
 
     // Find matching site configuration
     const matchingSite = config.sites.find(site => site.siteUrl === recording.siteUrl);
@@ -61,9 +84,11 @@ export async function POST(request) {
     }
 
     // Download transcript
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Downloading transcript from:', data.downloadUrl);
     const transcriptResponse = await fetch(data.downloadUrl, {
       headers: { 'Authorization': `Bearer ${matchingSite.accessToken}` }
     });
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Transcript download response:', transcriptResponse.status);
     
     if (!transcriptResponse.ok) {
       throw new Error('Failed to download transcript');
@@ -96,6 +121,7 @@ export async function POST(request) {
       Item: updatedRecording
     });
     await docClient.send(putCommand);
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Recording updated with transcript info');
 
     // Send SSE notification for transcript update
     try {
@@ -109,9 +135,14 @@ export async function POST(request) {
       console.error('Failed to send SSE notification for transcript update:', sseError);
     }
 
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Processing completed successfully');
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('WebexMeetings transcript webhook error:', error);
+    console.error('📝 [TRANSCRIPTS-WEBHOOK] Processing failed:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
   }
 }

@@ -3106,7 +3106,15 @@ export default function SettingsPage() {
                         
                         {webexMeetingsEnabled && webexMeetingsSites.length > 0 && (
                           <button
-                            onClick={() => setShowWebhookModal(true)}
+                            onClick={() => {
+                              console.log('🔧 [FRONTEND-WEBHOOK] Manage Webhooks button clicked');
+                              console.log('🔧 [FRONTEND-WEBHOOK] Current state:', {
+                                webexMeetingsEnabled,
+                                sitesCount: webexMeetingsSites.length,
+                                sites: webexMeetingsSites.map(s => ({ siteUrl: s.siteUrl, hasAccessToken: !!s.accessToken }))
+                              });
+                              setShowWebhookModal(true);
+                            }}
                             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3137,10 +3145,11 @@ export default function SettingsPage() {
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 616 0z" />
                   </svg>
                   Webhook Management
                 </h3>
+                {console.log('🔧 [FRONTEND-WEBHOOK] Webhook modal opened')}
                 
                 <p className="text-sm text-gray-600 mb-6">
                   Manage Webex Meetings webhooks for recordings and transcripts. These webhooks notify the system when new recordings and transcripts are available.
@@ -3149,28 +3158,58 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <button
                     onClick={async () => {
+                      console.log('🔧 [FRONTEND-WEBHOOK] Create webhooks button clicked');
+                      console.log('🔧 [FRONTEND-WEBHOOK] Current webex meetings sites:', webexMeetingsSites);
+                      console.log('🔧 [FRONTEND-WEBHOOK] Webex meetings enabled:', webexMeetingsEnabled);
+                      
                       setProcessingWebhooks(true);
                       setWebhookAction('create');
                       try {
+                        console.log('🔧 [FRONTEND-WEBHOOK] Sending create webhook request...');
+                        const requestPayload = { action: 'create' };
+                        console.log('🔧 [FRONTEND-WEBHOOK] Request payload:', requestPayload);
+                        
                         const response = await fetch('/api/webexmeetings/settings/webhookmgmt', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ action: 'create' })
+                          body: JSON.stringify(requestPayload)
                         });
+                        
+                        console.log('🔧 [FRONTEND-WEBHOOK] Response status:', response.status);
+                        console.log('🔧 [FRONTEND-WEBHOOK] Response headers:', Object.fromEntries(response.headers.entries()));
+                        console.log('🔧 [FRONTEND-WEBHOOK] Response ok:', response.ok);
+                        
                         const data = await response.json();
+                        console.log('🔧 [FRONTEND-WEBHOOK] Response data:', data);
+                        
                         setWebhookResults(data.results || []);
                         
                         const successCount = data.results?.filter(r => r.status === 'created').length || 0;
                         const errorCount = data.results?.filter(r => r.status === 'error').length || 0;
                         
+                        console.log('🔧 [FRONTEND-WEBHOOK] Results summary:', {
+                          successCount,
+                          errorCount,
+                          totalResults: data.results?.length || 0,
+                          results: data.results
+                        });
+                        
                         if (successCount > 0) {
+                          console.log('🔧 [FRONTEND-WEBHOOK] Success - showing success alert');
                           alert(`✅ Successfully created webhooks for ${successCount} site(s)!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
                         } else {
+                          console.log('🔧 [FRONTEND-WEBHOOK] No successes - showing failure alert');
                           alert('❌ Failed to create webhooks. Check your site configurations.');
                         }
                       } catch (error) {
+                        console.error('🔧 [FRONTEND-WEBHOOK] Error creating webhooks:', {
+                          message: error.message,
+                          stack: error.stack,
+                          name: error.name
+                        });
                         alert('❌ Error creating webhooks');
                       } finally {
+                        console.log('🔧 [FRONTEND-WEBHOOK] Finished webhook creation process');
                         setProcessingWebhooks(false);
                       }
                     }}
@@ -3194,20 +3233,32 @@ export default function SettingsPage() {
                   
                   <button
                     onClick={async () => {
+                      console.log('🔧 [FRONTEND-WEBHOOK] Validate webhooks button clicked');
                       setProcessingWebhooks(true);
                       setWebhookAction('validate');
                       try {
+                        console.log('🔧 [FRONTEND-WEBHOOK] Sending validate webhook request...');
                         const response = await fetch('/api/webexmeetings/settings/webhookmgmt', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ action: 'validate' })
                         });
+                        
+                        console.log('🔧 [FRONTEND-WEBHOOK] Validate response status:', response.status);
                         const data = await response.json();
+                        console.log('🔧 [FRONTEND-WEBHOOK] Validate response data:', data);
+                        
                         setWebhookResults(data.results || []);
                         
                         const validCount = data.results?.filter(r => r.status === 'valid').length || 0;
                         const invalidCount = data.results?.filter(r => r.status === 'invalid').length || 0;
                         const noWebhooksCount = data.results?.filter(r => !r.hasWebhooks).length || 0;
+                        
+                        console.log('🔧 [FRONTEND-WEBHOOK] Validation summary:', {
+                          validCount,
+                          invalidCount,
+                          noWebhooksCount
+                        });
                         
                         let message = `🔍 Webhook Validation Results:\n\n`;
                         message += `✅ Valid: ${validCount}\n`;
@@ -3216,6 +3267,7 @@ export default function SettingsPage() {
                         
                         alert(message);
                       } catch (error) {
+                        console.error('🔧 [FRONTEND-WEBHOOK] Error validating webhooks:', error);
                         alert('❌ Error validating webhooks');
                       } finally {
                         setProcessingWebhooks(false);
@@ -3241,23 +3293,35 @@ export default function SettingsPage() {
                   
                   <button
                     onClick={async () => {
+                      console.log('🔧 [FRONTEND-WEBHOOK] Delete webhooks button clicked');
                       if (!confirm('⚠️ Are you sure you want to delete all webhooks? This will stop automatic recording and transcript processing.')) {
+                        console.log('🔧 [FRONTEND-WEBHOOK] User cancelled delete operation');
                         return;
                       }
                       
                       setProcessingWebhooks(true);
                       setWebhookAction('delete');
                       try {
+                        console.log('🔧 [FRONTEND-WEBHOOK] Sending delete webhook request...');
                         const response = await fetch('/api/webexmeetings/settings/webhookmgmt', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ action: 'delete' })
                         });
+                        
+                        console.log('🔧 [FRONTEND-WEBHOOK] Delete response status:', response.status);
                         const data = await response.json();
+                        console.log('🔧 [FRONTEND-WEBHOOK] Delete response data:', data);
+                        
                         setWebhookResults(data.results || []);
                         
                         const deletedCount = data.results?.filter(r => r.status === 'deleted').length || 0;
                         const errorCount = data.results?.filter(r => r.status === 'error').length || 0;
+                        
+                        console.log('🔧 [FRONTEND-WEBHOOK] Delete summary:', {
+                          deletedCount,
+                          errorCount
+                        });
                         
                         if (deletedCount > 0) {
                           alert(`🗑️ Successfully deleted webhooks for ${deletedCount} site(s)!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
@@ -3265,6 +3329,7 @@ export default function SettingsPage() {
                           alert('❌ Failed to delete webhooks.');
                         }
                       } catch (error) {
+                        console.error('🔧 [FRONTEND-WEBHOOK] Error deleting webhooks:', error);
                         alert('❌ Error deleting webhooks');
                       } finally {
                         setProcessingWebhooks(false);
@@ -3300,6 +3365,7 @@ export default function SettingsPage() {
                 <div className="flex justify-end gap-3 mt-6">
                   <button
                     onClick={() => {
+                      console.log('🔧 [FRONTEND-WEBHOOK] Closing webhook modal');
                       setShowWebhookModal(false);
                       setWebhookResults([]);
                       setWebhookAction('');
