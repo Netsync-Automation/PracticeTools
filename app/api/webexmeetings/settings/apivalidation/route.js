@@ -19,8 +19,8 @@ async function getWebexMeetingsConfig() {
 }
 
 const REQUIRED_SCOPES = [
-  'spark:webhooks_read',
-  'spark:webhooks_write', 
+  'spark-compliance:webhooks_read',
+  'spark-compliance:webhooks_write',
   'meeting:recordings_read',
   'meeting:transcripts_read',
   'meeting:admin_transcripts_read'
@@ -28,39 +28,38 @@ const REQUIRED_SCOPES = [
 
 const API_TESTS = [
   {
-    name: 'Token Info',
-    endpoint: 'https://webexapis.com/v1/people/me',
-    method: 'GET',
-    requiredScopes: [],
-    description: 'Validates token and gets user info'
-  },
-  {
-    name: 'Webhooks List',
+    name: 'Webhooks Read',
     endpoint: 'https://webexapis.com/v1/webhooks',
     method: 'GET', 
-    requiredScopes: ['spark:webhooks_read'],
-    description: 'Lists existing webhooks'
+    requiredScopes: ['spark-compliance:webhooks_read'],
+    description: 'Tests webhook listing used in validation'
+  },
+  {
+    name: 'Webhooks Write',
+    endpoint: 'https://webexapis.com/v1/webhooks',
+    method: 'POST',
+    requiredScopes: ['spark-compliance:webhooks_write'],
+    description: 'Tests webhook creation capability',
+    testPayload: {
+      name: 'API Validation Test',
+      targetUrl: 'https://example.com/webhook',
+      resource: 'recordings',
+      event: 'created'
+    }
   },
   {
     name: 'Recordings Access',
     endpoint: 'https://webexapis.com/v1/recordings',
     method: 'GET',
     requiredScopes: ['meeting:recordings_read'],
-    description: 'Tests recordings API access'
+    description: 'Tests recordings API access as documented at https://developer.webex.com/meeting/docs/api/v1/recordings/list-recordings'
   },
   {
-    name: 'Admin Transcripts Access',
-    endpoint: 'https://webexapis.com/v1/admin/meetingTranscripts',
-    method: 'GET',
-    requiredScopes: ['meeting:admin_transcripts_read'],
-    description: 'Tests admin transcripts API access'
-  },
-  {
-    name: 'Meeting Transcripts Access',
+    name: 'Meeting Transcripts',
     endpoint: 'https://webexapis.com/v1/meetingTranscripts',
     method: 'GET',
-    requiredScopes: ['meeting:transcripts_read'],
-    description: 'Tests meeting transcripts API used after webhook notifications'
+    requiredScopes: ['meeting:transcripts_read', 'meeting:admin_transcripts_read'],
+    description: 'Tests transcript access used in transcript processing'
   }
 ];
 
@@ -104,47 +103,39 @@ export async function POST(request) {
 
       for (const test of API_TESTS) {
         try {
-          let testEndpoint = test.endpoint;
-          
-          // For site-specific endpoints, use the site URL
-          if (test.name === 'Meeting Transcripts Access') {
-            testEndpoint = `${site.siteUrl}/v1/meetingTranscripts`;
-          }
-          
-          const response = await fetch(testEndpoint, {
+          let fetchOptions = {
             method: test.method,
             headers: {
               'Authorization': `Bearer ${accessToken}`,
               'Content-Type': 'application/json'
             }
-          });
+          };
+          
+          // For webhook write test, include test payload
+          if (test.method === 'POST' && test.testPayload) {
+            fetchOptions.body = JSON.stringify(test.testPayload);
+          }
+          
+          const response = await fetch(test.endpoint, fetchOptions);
 
           const testResult = {
             name: test.name,
-            endpoint: testEndpoint,
-            status: response.ok ? 'success' : 'error',
+            endpoint: test.endpoint,
+            status: (response.ok || (test.method === 'POST' && response.status === 409)) ? 'success' : 'error',
             statusCode: response.status,
             description: test.description,
             requiredScopes: test.requiredScopes
           };
 
-          if (!response.ok) {
+          if (!response.ok && !(test.method === 'POST' && response.status === 409)) {
             const errorData = await response.json().catch(() => ({}));
             testResult.error = errorData.message || `HTTP ${response.status}`;
             
             if (response.status === 403 || response.status === 401) {
               siteResult.scopes.missing.push(...test.requiredScopes);
             }
-          } else {
-            if (test.name === 'Token Info') {
-              const data = await response.json();
-              siteResult.actualScopes = data.scopes || [];
-              
-              const actualScopes = data.scopes || [];
-              siteResult.scopes.missing = REQUIRED_SCOPES.filter(scope => 
-                !actualScopes.includes(scope)
-              );
-            }
+          } else if (test.method === 'POST' && response.status === 409) {
+            testResult.note = 'Webhook already exists (scope validated)';
           }
 
           siteResult.tests.push(testResult);
@@ -161,12 +152,16 @@ export async function POST(request) {
       }
 
       const hasErrors = siteResult.tests.some(t => t.status === 'error');
-      const hasMissingScopes = siteResult.scopes.missing.length > 0;
       
-      if (hasErrors || hasMissingScopes) {
+      if (hasErrors) {
         siteResult.status = 'error';
-        siteResult.error = hasErrors ? 'API tests failed' : 'Missing required scopes';
+        siteResult.error = 'API tests failed';
       }
+      
+      // Determine missing scopes based on failed API tests
+      siteResult.scopes.missing = siteResult.tests
+        .filter(t => t.status === 'error' && (t.statusCode === 403 || t.statusCode === 401))
+        .flatMap(t => t.requiredScopes);
 
       results.push(siteResult);
     }

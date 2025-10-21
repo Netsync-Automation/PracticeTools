@@ -100,8 +100,12 @@ export default function SettingsPage() {
   const [webhookResults, setWebhookResults] = useState([]);
   const [processingWebhooks, setProcessingWebhooks] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
+  const [showApiManagementModal, setShowApiManagementModal] = useState(false);
+  const [showApiLogsModal, setShowApiLogsModal] = useState(false);
   const [apiResults, setApiResults] = useState([]);
+  const [apiLogs, setApiLogs] = useState([]);
   const [validatingApi, setValidatingApi] = useState(false);
+  const [loadingApiLogs, setLoadingApiLogs] = useState(false);
 
   
   // CSRF token management
@@ -3108,7 +3112,8 @@ export default function SettingsPage() {
                         </button>
                         
                         {webexMeetingsEnabled && webexMeetingsSites.length > 0 && (
-                          <button
+                          <>
+                            <button
                             onClick={() => {
                               console.log('🔧 [FRONTEND-WEBHOOK] Manage Webhooks button clicked');
                               console.log('🔧 [FRONTEND-WEBHOOK] Current state:', {
@@ -3125,43 +3130,20 @@ export default function SettingsPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             Manage Webhooks
-                          </button>,
+                          </button>
                           
                           <button
-                            onClick={async () => {
-                              setValidatingApi(true);
-                              try {
-                                const response = await fetch('/api/webexmeetings/settings/apivalidation', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' }
-                                });
-                                
-                                const data = await response.json();
-                                setApiResults(data.results || []);
-                                setShowApiModal(true);
-                              } catch (error) {
-                                alert('❌ Error validating API access');
-                              } finally {
-                                setValidatingApi(false);
-                              }
+                            onClick={() => {
+                              setShowApiManagementModal(true);
                             }}
-                            disabled={validatingApi}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
                           >
-                            {validatingApi ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                Validating...
-                              </>
-                            ) : (
-                              <>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Manage API
-                              </>
-                            )}
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Manage API
                           </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -3175,6 +3157,108 @@ export default function SettingsPage() {
 
           </div>
         </div>
+        
+        {/* API Management Modal */}
+        {showApiManagementModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    API Management
+                  </h3>
+                  <button
+                    onClick={() => setShowApiManagementModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <p className="text-sm text-gray-600 mb-6">
+                  Manage and validate Webex Meetings API access and view detailed logs.
+                </p>
+                
+                <div className="space-y-4">
+                  <button
+                    onClick={async () => {
+                      setValidatingApi(true);
+                      try {
+                        const response = await fetch('/api/webexmeetings/settings/apivalidation', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' }
+                        });
+                        
+                        const data = await response.json();
+                        setApiResults(data.results || []);
+                        setShowApiManagementModal(false);
+                        setShowApiModal(true);
+                      } catch (error) {
+                        alert('❌ Error validating API access');
+                      } finally {
+                        setValidatingApi(false);
+                      }
+                    }}
+                    disabled={validatingApi}
+                    className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    {validatingApi ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Validating APIs...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Validate APIs
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={async () => {
+                      setLoadingApiLogs(true);
+                      try {
+                        const response = await fetch('/api/webexmeetings/settings/apilogs');
+                        const data = await response.json();
+                        setApiLogs(data.logs || []);
+                        setShowApiManagementModal(false);
+                        setShowApiLogsModal(true);
+                      } catch (error) {
+                        alert('❌ Error loading API logs');
+                      } finally {
+                        setLoadingApiLogs(false);
+                      }
+                    }}
+                    disabled={loadingApiLogs}
+                    className="w-full px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    {loadingApiLogs ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Loading Logs...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        View Logs
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* API Validation Modal */}
         {showApiModal && (
@@ -3281,6 +3365,90 @@ export default function SettingsPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* API Logs Modal */}
+        {showApiLogsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    API Error Logs
+                  </h3>
+                  <button
+                    onClick={() => setShowApiLogsModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                {apiLogs.length === 0 ? (
+                  <div className="text-center py-8">
+                    <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">No API errors found</h4>
+                    <p className="text-gray-600">All API validations are working correctly.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {apiLogs.map((log, index) => (
+                      <div key={index} className="border border-red-200 bg-red-50 rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h4 className="font-semibold text-red-900">{log.site || 'Unknown Site'}</h4>
+                          </div>
+                          <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-sm font-medium text-red-900">Error:</span>
+                            <p className="text-sm text-red-800 mt-1">{log.error}</p>
+                          </div>
+                          
+                          {log.endpoint && (
+                            <div>
+                              <span className="text-sm font-medium text-red-900">Endpoint:</span>
+                              <p className="text-sm text-red-700 font-mono mt-1">{log.endpoint}</p>
+                            </div>
+                          )}
+                          
+                          {log.statusCode && (
+                            <div>
+                              <span className="text-sm font-medium text-red-900">Status Code:</span>
+                              <span className="text-sm text-red-800 ml-2">{log.statusCode}</span>
+                            </div>
+                          )}
+                          
+                          {log.details && (
+                            <div>
+                              <span className="text-sm font-medium text-red-900">Details:</span>
+                              <pre className="text-xs text-red-700 bg-red-100 p-2 rounded mt-1 overflow-x-auto">
+                                {JSON.stringify(log.details, null, 2)}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
