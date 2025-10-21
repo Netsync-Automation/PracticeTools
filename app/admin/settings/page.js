@@ -109,6 +109,8 @@ export default function SettingsPage() {
   const [validatingApi, setValidatingApi] = useState(false);
   const [loadingApiLogs, setLoadingApiLogs] = useState(false);
   const [loadingWebhookLogs, setLoadingWebhookLogs] = useState(false);
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [validationResults, setValidationResults] = useState([]);
 
   
   // CSRF token management
@@ -3572,45 +3574,9 @@ export default function SettingsPage() {
                         
                         setWebhookResults(data.results || []);
                         
-                        const validCount = data.results?.filter(r => r.status === 'valid').length || 0;
-                        const invalidCount = data.results?.filter(r => r.status === 'invalid').length || 0;
-                        const noWebhooksCount = data.results?.filter(r => !r.hasWebhooks).length || 0;
-                        const totalWebhooks = data.results?.reduce((sum, r) => sum + (r.webhookCount || 0), 0) || 0;
-                        const sitesWithBothWebhooks = data.results?.filter(r => r.hasBothWebhooks).length || 0;
-                        const sitesWithPartialWebhooks = data.results?.filter(r => r.hasWebhooks && !r.hasBothWebhooks).length || 0;
-                        
-                        console.log('🔧 [FRONTEND-WEBHOOK] Validation summary:', {
-                          validCount,
-                          invalidCount,
-                          noWebhooksCount,
-                          totalWebhooks,
-                          sitesWithBothWebhooks,
-                          sitesWithPartialWebhooks
-                        });
-                        
-                        let message = `🔍 Webhook Validation Results:\n\n`;
-                        message += `📊 Total Webhooks: ${totalWebhooks} (Expected: ${data.results?.length * 2 || 0})\n`;
-                        message += `✅ Sites with Both Webhooks: ${sitesWithBothWebhooks}\n`;
-                        message += `⚠️ Sites with Partial Webhooks: ${sitesWithPartialWebhooks}\n`;
-                        message += `❌ Sites with No Webhooks: ${noWebhooksCount}\n\n`;
-                        
-                        // Add detailed breakdown
-                        if (data.results?.length > 0) {
-                          message += `Detailed Breakdown:\n`;
-                          data.results.forEach(result => {
-                            message += `• ${result.site}: `;
-                            if (result.hasBothWebhooks) {
-                              message += `✅ Complete (2/2 webhooks)`;
-                            } else if (result.hasWebhooks) {
-                              message += `⚠️ Partial (${result.webhookCount}/2 webhooks)`;
-                            } else {
-                              message += `❌ None (0/2 webhooks)`;
-                            }
-                            message += `\n`;
-                          });
-                        }
-                        
-                        alert(message);
+                        console.log('🔧 [FRONTEND-WEBHOOK] Validation response data:', data);
+                        setValidationResults(data.results || []);
+                        setShowValidationModal(true);
                       } catch (error) {
                         console.error('🔧 [FRONTEND-WEBHOOK] Error validating webhooks:', error);
                         alert('❌ Error validating webhooks');
@@ -3845,6 +3811,184 @@ export default function SettingsPage() {
                 <div className="flex justify-end mt-6">
                   <button
                     onClick={() => setShowWebhookLogsModal(false)}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Webhook Validation Results Modal */}
+        {showValidationModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Webhook Validation Results
+                  </h3>
+                  <button
+                    onClick={() => setShowValidationModal(false)}
+                    className="text-gray-400 hover:text-gray-600 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-green-800">Complete Setup</span>
+                    </div>
+                    <div className="text-2xl font-bold text-green-900 mt-1">
+                      {validationResults.filter(r => r.hasBothWebhooks).length}
+                    </div>
+                    <div className="text-xs text-green-600">Sites with both webhooks</div>
+                  </div>
+                  
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-yellow-800">Partial Setup</span>
+                    </div>
+                    <div className="text-2xl font-bold text-yellow-900 mt-1">
+                      {validationResults.filter(r => r.hasWebhooks && !r.hasBothWebhooks).length}
+                    </div>
+                    <div className="text-xs text-yellow-600">Sites missing webhooks</div>
+                  </div>
+                  
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-red-800">No Setup</span>
+                    </div>
+                    <div className="text-2xl font-bold text-red-900 mt-1">
+                      {validationResults.filter(r => !r.hasWebhooks).length}
+                    </div>
+                    <div className="text-xs text-red-600">Sites without webhooks</div>
+                  </div>
+                </div>
+                
+                {/* Detailed Results */}
+                <div className="overflow-y-auto max-h-[50vh]">
+                  <div className="space-y-4">
+                    {validationResults.map((result, index) => (
+                      <div key={index} className={`border rounded-lg p-4 ${
+                        result.hasBothWebhooks ? 'border-green-200 bg-green-50' :
+                        result.hasWebhooks ? 'border-yellow-200 bg-yellow-50' :
+                        'border-red-200 bg-red-50'
+                      }`}>
+                        <div className="flex justify-between items-start mb-3">
+                          <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                            <span className={`w-3 h-3 rounded-full ${
+                              result.hasBothWebhooks ? 'bg-green-500' :
+                              result.hasWebhooks ? 'bg-yellow-500' :
+                              'bg-red-500'
+                            }`}></span>
+                            {result.site}
+                          </h4>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            result.hasBothWebhooks ? 'bg-green-100 text-green-800' :
+                            result.hasWebhooks ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {result.hasBothWebhooks ? 'Complete' : result.hasWebhooks ? 'Partial' : 'Missing'}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* WebEx Registration */}
+                          <div className="space-y-2">
+                            <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              WebEx Registration
+                            </h5>
+                            <div className="space-y-1 text-sm">
+                              <div className="flex items-center gap-2">
+                                {result.webhookDetails?.recordings ? (
+                                  <span className="text-green-600">✓</span>
+                                ) : (
+                                  <span className="text-red-600">✗</span>
+                                )}
+                                <span>Recordings Webhook</span>
+                                {result.webhookDetails?.recordings && (
+                                  <span className="text-xs text-gray-500">({result.webhookDetails.recordings.status})</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {result.webhookDetails?.transcripts ? (
+                                  <span className="text-green-600">✓</span>
+                                ) : (
+                                  <span className="text-red-600">✗</span>
+                                )}
+                                <span>Transcripts Webhook</span>
+                                {result.webhookDetails?.transcripts && (
+                                  <span className="text-xs text-gray-500">({result.webhookDetails.transcripts.status})</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* System Health */}
+                          <div className="space-y-2">
+                            <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              System Health
+                            </h5>
+                            <div className="space-y-1 text-sm">
+                              <div className="flex items-center gap-2">
+                                {result.connectivity?.[0]?.reachable ? (
+                                  <span className="text-green-600">✓</span>
+                                ) : (
+                                  <span className="text-red-600">✗</span>
+                                )}
+                                <span>Endpoint Connectivity</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-blue-600">📊</span>
+                                <span>Total WebEx Webhooks: {result.totalWebhooksInWebEx || 0}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Action Recommendations */}
+                        {!result.hasBothWebhooks && (
+                          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                            <h6 className="text-sm font-medium text-blue-800 mb-1">Recommended Actions:</h6>
+                            <ul className="text-xs text-blue-700 space-y-1">
+                              {!result.webhookDetails?.recordings && (
+                                <li>• Create recordings webhook using "Create Webhooks" button</li>
+                              )}
+                              {!result.webhookDetails?.transcripts && (
+                                <li>• Create transcripts webhook using "Create Webhooks" button</li>
+                              )}
+                              {!result.connectivity?.[0]?.reachable && (
+                                <li>• Check network connectivity and firewall settings</li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={() => setShowValidationModal(false)}
                     className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     Close

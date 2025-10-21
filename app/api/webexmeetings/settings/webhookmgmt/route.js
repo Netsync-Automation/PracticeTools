@@ -230,57 +230,96 @@ export async function POST(request) {
 
       } else if (action === 'validate') {
         console.log('🔧 [WEBHOOK-MGMT] Validating webhooks for:', site.siteUrl);
-        const validationResults = [];
-
-        if (site.recordingsWebhookId) {
-          console.log('🔧 [WEBHOOK-MGMT] Validating recordings webhook:', site.recordingsWebhookId);
-          const validateRecordings = await fetch(`https://webexapis.com/v1/webhooks/${site.recordingsWebhookId}`, {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
+        
+        // Get all webhooks from WebEx to verify configuration
+        const allWebhooksResponse = await fetch('https://webexapis.com/v1/webhooks', {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        
+        if (!allWebhooksResponse.ok) {
+          results.push({
+            site: site.siteName || site.siteUrl,
+            status: 'error',
+            error: `Failed to fetch webhooks: ${allWebhooksResponse.status}`,
+            hasWebhooks: false,
+            webhookCount: 0
           });
-          console.log('🔧 [WEBHOOK-MGMT] Recordings validation response:', validateRecordings.status);
-          if (validateRecordings.ok) {
-            const recordingsData = await validateRecordings.json();
-            console.log('🔧 [WEBHOOK-MGMT] Recordings webhook data:', recordingsData);
-          }
-          validationResults.push(validateRecordings.ok);
+          continue;
         }
-
-        if (site.transcriptsWebhookId) {
-          console.log('🔧 [WEBHOOK-MGMT] Validating transcripts webhook:', site.transcriptsWebhookId);
-          const validateTranscripts = await fetch(`https://webexapis.com/v1/webhooks/${site.transcriptsWebhookId}`, {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
+        
+        const allWebhooksData = await allWebhooksResponse.json();
+        const allWebhooks = allWebhooksData.items || [];
+        
+        // Find our webhooks by URL (more reliable than stored IDs)
+        const recordingsWebhook = allWebhooks.find(w => 
+          w.targetUrl === `${baseUrl}/api/webhooks/webexmeetings/recordings` &&
+          w.resource === 'recordings'
+        );
+        
+        const transcriptsWebhook = allWebhooks.find(w => 
+          w.targetUrl === `${baseUrl}/api/webhooks/webexmeetings/transcripts` &&
+          w.resource === 'meetingTranscripts'
+        );
+        
+        // Test connectivity to our endpoints
+        const connectivityTests = [];
+        try {
+          const testResponse = await fetch(`${baseUrl}/api/webhooks/webexmeetings/test`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ test: 'validation-connectivity', site: site.siteUrl })
           });
-          console.log('🔧 [WEBHOOK-MGMT] Transcripts validation response:', validateTranscripts.status);
-          if (validateTranscripts.ok) {
-            const transcriptsData = await validateTranscripts.json();
-            console.log('🔧 [WEBHOOK-MGMT] Transcripts webhook data:', transcriptsData);
-          }
-          validationResults.push(validateTranscripts.ok);
+          connectivityTests.push({ endpoint: 'test', reachable: testResponse.ok });
+        } catch (error) {
+          connectivityTests.push({ endpoint: 'test', reachable: false, error: error.message });
         }
-
-        const hasRecordingsWebhook = !!site.recordingsWebhookId;
-        const hasTranscriptsWebhook = !!site.transcriptsWebhookId;
+        
+        const hasRecordingsWebhook = !!recordingsWebhook;
+        const hasTranscriptsWebhook = !!transcriptsWebhook;
         const hasWebhooks = hasRecordingsWebhook || hasTranscriptsWebhook;
         const hasBothWebhooks = hasRecordingsWebhook && hasTranscriptsWebhook;
-        const isValid = validationResults.every(r => r);
         
-        console.log('🔧 [WEBHOOK-MGMT] Validation results for', site.siteUrl, ':', {
-          validationResults,
+        // Update stored webhook IDs if they've changed
+        if (recordingsWebhook && site.recordingsWebhookId !== recordingsWebhook.id) {
+          site.recordingsWebhookId = recordingsWebhook.id;
+        }
+        if (transcriptsWebhook && site.transcriptsWebhookId !== transcriptsWebhook.id) {
+          site.transcriptsWebhookId = transcriptsWebhook.id;
+        }
+        
+        console.log('🔧 [WEBHOOK-MGMT] Detailed validation for', site.siteUrl, ':', {
+          totalWebhooksInWebEx: allWebhooks.length,
           hasRecordingsWebhook,
           hasTranscriptsWebhook,
-          hasWebhooks,
-          hasBothWebhooks,
-          isValid
+          recordingsWebhookStatus: recordingsWebhook?.status,
+          transcriptsWebhookStatus: transcriptsWebhook?.status,
+          connectivityTests
         });
         
         results.push({ 
           site: site.siteName || site.siteUrl, 
-          status: isValid ? 'valid' : 'invalid',
+          status: hasBothWebhooks ? 'valid' : (hasWebhooks ? 'partial' : 'invalid'),
           hasWebhooks,
           hasBothWebhooks,
           recordingsWebhook: hasRecordingsWebhook ? 'active' : 'missing',
           transcriptsWebhook: hasTranscriptsWebhook ? 'active' : 'missing',
-          webhookCount: (hasRecordingsWebhook ? 1 : 0) + (hasTranscriptsWebhook ? 1 : 0)
+          webhookCount: (hasRecordingsWebhook ? 1 : 0) + (hasTranscriptsWebhook ? 1 : 0),
+          webhookDetails: {
+            recordings: recordingsWebhook ? {
+              id: recordingsWebhook.id,
+              status: recordingsWebhook.status,
+              targetUrl: recordingsWebhook.targetUrl,
+              created: recordingsWebhook.created
+            } : null,
+            transcripts: transcriptsWebhook ? {
+              id: transcriptsWebhook.id,
+              status: transcriptsWebhook.status,
+              targetUrl: transcriptsWebhook.targetUrl,
+              created: transcriptsWebhook.created
+            } : null
+          },
+          connectivity: connectivityTests,
+          totalWebhooksInWebEx: allWebhooks.length
         });
       }
     }
