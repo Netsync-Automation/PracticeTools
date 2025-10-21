@@ -99,6 +99,9 @@ export default function SettingsPage() {
   const [webhookAction, setWebhookAction] = useState('');
   const [webhookResults, setWebhookResults] = useState([]);
   const [processingWebhooks, setProcessingWebhooks] = useState(false);
+  const [showApiModal, setShowApiModal] = useState(false);
+  const [apiResults, setApiResults] = useState([]);
+  const [validatingApi, setValidatingApi] = useState(false);
 
   
   // CSRF token management
@@ -3122,6 +3125,42 @@ export default function SettingsPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                             Manage Webhooks
+                          </button>,
+                          
+                          <button
+                            onClick={async () => {
+                              setValidatingApi(true);
+                              try {
+                                const response = await fetch('/api/webexmeetings/settings/apivalidation', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' }
+                                });
+                                
+                                const data = await response.json();
+                                setApiResults(data.results || []);
+                                setShowApiModal(true);
+                              } catch (error) {
+                                alert('❌ Error validating API access');
+                              } finally {
+                                setValidatingApi(false);
+                              }
+                            }}
+                            disabled={validatingApi}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                          >
+                            {validatingApi ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Validating...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Manage API
+                              </>
+                            )}
                           </button>
                         )}
                       </div>
@@ -3136,6 +3175,116 @@ export default function SettingsPage() {
 
           </div>
         </div>
+        
+        {/* API Validation Modal */}
+        {showApiModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    WebEx API Validation Results
+                  </h3>
+                  <button
+                    onClick={() => setShowApiModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="space-y-6">
+                  {apiResults.map((result, index) => (
+                    <div key={index} className={`border rounded-lg p-4 ${
+                      result.status === 'error' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'
+                    }`}>
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-semibold text-lg">{result.site}</h4>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          result.status === 'error' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {result.status === 'error' ? '❌ Failed' : '✅ Passed'}
+                        </span>
+                      </div>
+                      
+                      {result.error && (
+                        <div className="mb-4 p-3 bg-red-100 border border-red-200 rounded text-red-800 text-sm">
+                          <strong>Error:</strong> {result.error}
+                        </div>
+                      )}
+                      
+                      {result.scopes && (
+                        <div className="mb-4">
+                          <h5 className="font-medium mb-2">Required Scopes:</h5>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {result.scopes.required.map(scope => (
+                              <span key={scope} className={`px-2 py-1 text-xs rounded ${
+                                result.scopes.missing.includes(scope)
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {scope} {result.scopes.missing.includes(scope) ? '❌' : '✅'}
+                              </span>
+                            ))}
+                          </div>
+                          {result.scopes.missing.length > 0 && (
+                            <p className="text-red-600 text-sm">
+                              Missing scopes: {result.scopes.missing.join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div>
+                        <h5 className="font-medium mb-2">API Tests:</h5>
+                        <div className="space-y-2">
+                          {result.tests.map((test, testIndex) => (
+                            <div key={testIndex} className={`p-3 rounded border ${
+                              test.status === 'error' 
+                                ? 'border-red-200 bg-red-50' 
+                                : 'border-green-200 bg-green-50'
+                            }`}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-medium">{test.name}</span>
+                                <span className={`text-sm ${
+                                  test.status === 'error' ? 'text-red-600' : 'text-green-600'
+                                }`}>
+                                  {test.status === 'error' ? '❌' : '✅'} {test.statusCode}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600 mb-1">{test.description}</p>
+                              <p className="text-xs text-gray-500">{test.endpoint}</p>
+                              {test.error && (
+                                <p className="text-sm text-red-600 mt-1">Error: {test.error}</p>
+                              )}
+                              {test.requiredScopes.length > 0 && (
+                                <div className="mt-1">
+                                  <span className="text-xs text-gray-500">Scopes: </span>
+                                  {test.requiredScopes.map(scope => (
+                                    <span key={scope} className="text-xs bg-gray-100 px-1 rounded mr-1">
+                                      {scope}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Webhook Management Modal */}
         {showWebhookModal && (
@@ -3199,7 +3348,9 @@ export default function SettingsPage() {
                           alert(`✅ Successfully created webhooks for ${successCount} site(s)!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
                         } else {
                           console.log('🔧 [FRONTEND-WEBHOOK] No successes - showing failure alert');
-                          alert('❌ Failed to create webhooks. Check your site configurations.');
+                          const errorDetails = data.results?.filter(r => r.status === 'error').map(r => `${r.site}: ${r.error}`).join('\n') || 'Unknown error';
+                          console.log('🔧 [FRONTEND-WEBHOOK] Error details:', errorDetails);
+                          alert(`❌ Failed to create webhooks:\n\n${errorDetails}`);
                         }
                       } catch (error) {
                         console.error('🔧 [FRONTEND-WEBHOOK] Error creating webhooks:', {

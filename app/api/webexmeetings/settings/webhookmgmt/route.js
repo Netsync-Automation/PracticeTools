@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getTableName } from '../../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { getSecureParameter } from '../../../../../lib/ssm-config';
+import { getEnvironment } from '../../../../../lib/dynamodb';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -79,15 +81,48 @@ export async function POST(request) {
     
     for (const site of config.sites) {
       console.log('🔧 [WEBHOOK-MGMT] Processing site:', site.siteUrl);
+      
+      // Get tokens from SSM using correct naming pattern
+      const env = getEnvironment();
+      const siteName = site.siteUrl.split('.')[0].toUpperCase(); // Extract first part before first dot
+      const basePath = env === 'prod' ? '/PracticeTools' : '/PracticeTools/dev';
+      const accessTokenParam = `${basePath}/${siteName}_WEBEX_MEETINGS_ACCESS_TOKEN`;
+      const refreshTokenParam = `${basePath}/${siteName}_WEBEX_MEETINGS_REFRESH_TOKEN`;
+      
+      console.log('🔧 [WEBHOOK-MGMT] Loading tokens from SSM:', {
+        siteName,
+        env,
+        basePath,
+        accessTokenParam,
+        refreshTokenParam
+      });
+      
+      const accessToken = await getSecureParameter(accessTokenParam);
+      const refreshToken = await getSecureParameter(refreshTokenParam);
+      
       console.log('🔧 [WEBHOOK-MGMT] Site details:', {
         siteUrl: site.siteUrl,
         siteName: site.siteName,
-        hasAccessToken: !!site.accessToken,
-        accessTokenLength: site.accessToken?.length,
+        hasAccessToken: !!accessToken,
+        accessTokenLength: accessToken?.length,
+        hasRefreshToken: !!refreshToken,
         recordingHosts: site.recordingHosts,
         existingRecordingsWebhookId: site.recordingsWebhookId,
         existingTranscriptsWebhookId: site.transcriptsWebhookId
       });
+      
+      if (!accessToken) {
+        console.error('🔧 [WEBHOOK-MGMT] No access token found in SSM for:', site.siteUrl);
+        results.push({ site: site.siteName || site.siteUrl, status: 'error', error: `Access token not found in SSM: ${accessTokenParam}` });
+        continue;
+      }
+      
+      if (!refreshToken) {
+        console.warn('🔧 [WEBHOOK-MGMT] No refresh token found in SSM for:', site.siteUrl);
+        console.warn('🔧 [WEBHOOK-MGMT] Refresh token parameter:', refreshTokenParam);
+      }
+      
+      console.log('🔧 [WEBHOOK-MGMT] Successfully loaded tokens from SSM for:', site.siteUrl);
       
       if (action === 'create') {
         console.log('🔧 [WEBHOOK-MGMT] Creating webhooks for:', site.siteUrl);
@@ -103,7 +138,7 @@ export async function POST(request) {
         const recordingsWebhook = await fetch('https://webexapis.com/v1/webhooks', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${site.accessToken}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(recordingsPayload)
@@ -120,7 +155,7 @@ export async function POST(request) {
         const transcriptsWebhook = await fetch('https://webexapis.com/v1/webhooks', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${site.accessToken}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(transcriptsPayload)
@@ -166,7 +201,7 @@ export async function POST(request) {
           console.log('🔧 [WEBHOOK-MGMT] Deleting recordings webhook:', site.recordingsWebhookId);
           const deleteRecordings = await fetch(`https://webexapis.com/v1/webhooks/${site.recordingsWebhookId}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${site.accessToken}` }
+            headers: { 'Authorization': `Bearer ${accessToken}` }
           });
           console.log('🔧 [WEBHOOK-MGMT] Delete recordings response:', deleteRecordings.status);
           deleteResults.push(deleteRecordings.ok);
@@ -176,7 +211,7 @@ export async function POST(request) {
           console.log('🔧 [WEBHOOK-MGMT] Deleting transcripts webhook:', site.transcriptsWebhookId);
           const deleteTranscripts = await fetch(`https://webexapis.com/v1/webhooks/${site.transcriptsWebhookId}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${site.accessToken}` }
+            headers: { 'Authorization': `Bearer ${accessToken}` }
           });
           console.log('🔧 [WEBHOOK-MGMT] Delete transcripts response:', deleteTranscripts.status);
           deleteResults.push(deleteTranscripts.ok);
@@ -200,7 +235,7 @@ export async function POST(request) {
         if (site.recordingsWebhookId) {
           console.log('🔧 [WEBHOOK-MGMT] Validating recordings webhook:', site.recordingsWebhookId);
           const validateRecordings = await fetch(`https://webexapis.com/v1/webhooks/${site.recordingsWebhookId}`, {
-            headers: { 'Authorization': `Bearer ${site.accessToken}` }
+            headers: { 'Authorization': `Bearer ${accessToken}` }
           });
           console.log('🔧 [WEBHOOK-MGMT] Recordings validation response:', validateRecordings.status);
           if (validateRecordings.ok) {
@@ -213,7 +248,7 @@ export async function POST(request) {
         if (site.transcriptsWebhookId) {
           console.log('🔧 [WEBHOOK-MGMT] Validating transcripts webhook:', site.transcriptsWebhookId);
           const validateTranscripts = await fetch(`https://webexapis.com/v1/webhooks/${site.transcriptsWebhookId}`, {
-            headers: { 'Authorization': `Bearer ${site.accessToken}` }
+            headers: { 'Authorization': `Bearer ${accessToken}` }
           });
           console.log('🔧 [WEBHOOK-MGMT] Transcripts validation response:', validateTranscripts.status);
           if (validateTranscripts.ok) {
