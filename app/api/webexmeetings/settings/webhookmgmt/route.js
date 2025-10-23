@@ -127,12 +127,12 @@ export async function POST(request) {
       if (action === 'create') {
         console.log('🔧 [WEBHOOK-MGMT] Creating webhooks for:', site.siteUrl);
         
+        // Create webhooks for Webex Meetings without filters
         const recordingsPayload = {
           name: `PracticeTools Recordings - ${site.siteName || site.siteUrl}`,
           targetUrl: `${baseUrl}/api/webhooks/webexmeetings/recordings`,
           resource: 'recordings',
-          event: 'created',
-          filter: `hostEmail=${site.recordingHosts.join(',')}`
+          event: 'created'
         };
         console.log('🔧 [WEBHOOK-MGMT] Recordings webhook payload:', recordingsPayload);
         
@@ -149,8 +149,7 @@ export async function POST(request) {
           name: `PracticeTools Transcripts - ${site.siteName || site.siteUrl}`,
           targetUrl: `${baseUrl}/api/webhooks/webexmeetings/transcripts`,
           resource: 'meetingTranscripts',
-          event: 'created',
-          filter: `hostEmail=${site.recordingHosts.join(',')}`
+          event: 'created'
         };
         console.log('🔧 [WEBHOOK-MGMT] Transcripts webhook payload:', transcriptsPayload);
         
