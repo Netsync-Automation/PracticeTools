@@ -3148,6 +3148,8 @@ export default function SettingsPage() {
                             </svg>
                             Manage API
                           </button>
+                          
+
                           </>
                         )}
                       </div>
@@ -3459,6 +3461,120 @@ export default function SettingsPage() {
           </div>
         )}
         
+        {/* Webhook Logs Modal */}
+        {showWebhookLogsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+            <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Webhook Activity Logs
+                  </h3>
+                  <button
+                    onClick={() => setShowWebhookLogsModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                {webhookLogs.length === 0 ? (
+                  <div className="text-center py-8">
+                    <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">No webhook activity found</h4>
+                    <p className="text-gray-600">Webhook logs will appear here when recordings or transcripts are processed.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {webhookLogs.map((log, index) => (
+                      <div key={index} className={`border rounded-lg p-4 ${
+                        log.status === 'error' ? 'border-red-200 bg-red-50' : 
+                        log.status === 'warning' ? 'border-yellow-200 bg-yellow-50' :
+                        'border-green-200 bg-green-50'
+                      }`}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <svg className={`w-5 h-5 ${
+                              log.status === 'error' ? 'text-red-600' : 
+                              log.status === 'warning' ? 'text-yellow-600' :
+                              'text-green-600'
+                            }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
+                                log.status === 'error' ? "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" :
+                                log.status === 'warning' ? "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" :
+                                "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              } />
+                            </svg>
+                            <h4 className={`font-semibold ${
+                              log.status === 'error' ? 'text-red-900' : 
+                              log.status === 'warning' ? 'text-yellow-900' :
+                              'text-green-900'
+                            }`}>
+                              {log.webhookType === 'recordings' ? '🎥 Recording' : '📝 Transcript'} - {log.siteUrl}
+                            </h4>
+                          </div>
+                          <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <span className={`text-sm font-medium ${
+                              log.status === 'error' ? 'text-red-900' : 
+                              log.status === 'warning' ? 'text-yellow-900' :
+                              'text-green-900'
+                            }`}>Message:</span>
+                            <p className={`text-sm mt-1 ${
+                              log.status === 'error' ? 'text-red-800' : 
+                              log.status === 'warning' ? 'text-yellow-800' :
+                              'text-green-800'
+                            }`}>{log.message}</p>
+                          </div>
+                          
+                          {log.meetingId && (
+                            <div>
+                              <span className="text-sm font-medium text-gray-700">Meeting ID:</span>
+                              <span className="text-sm text-gray-600 ml-2 font-mono">{log.meetingId}</span>
+                            </div>
+                          )}
+                          
+                          {log.error && (
+                            <div>
+                              <span className="text-sm font-medium text-red-900">Error:</span>
+                              <p className="text-sm text-red-800 mt-1">{log.error}</p>
+                            </div>
+                          )}
+                          
+                          {log.processingDetails && (
+                            <div>
+                              <span className="text-sm font-medium text-gray-700">Details:</span>
+                              <p className="text-sm text-gray-600 mt-1">{log.processingDetails}</p>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <span>DB: {log.databaseAction || 'none'}</span>
+                            <span>S3: {log.s3Upload ? '✅' : '❌'}</span>
+                            <span>SSE: {log.sseNotification ? '✅' : '❌'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Webhook Management Modal */}
         {showWebhookModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -3467,7 +3583,7 @@ export default function SettingsPage() {
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 616 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 6 16 0z" />
                   </svg>
                   Webhook Management
                 </h3>
@@ -3676,17 +3792,14 @@ export default function SettingsPage() {
                 <div className="flex justify-end gap-3 mt-6">
                   <button
                     onClick={async () => {
-                      console.log('📊 [FRONTEND-WEBHOOK] View Logs button clicked');
                       setLoadingWebhookLogs(true);
                       try {
                         const response = await fetch('/api/webexmeetings/settings/webhooklogs');
                         const data = await response.json();
-                        console.log('📊 [FRONTEND-WEBHOOK] Webhook logs response:', data);
                         setWebhookLogs(data.logs || []);
                         setShowWebhookLogsModal(true);
                       } catch (error) {
-                        console.error('📊 [FRONTEND-WEBHOOK] Error fetching webhook logs:', error);
-                        alert('❌ Error fetching webhook logs');
+                        alert('❌ Error loading webhook logs');
                       } finally {
                         setLoadingWebhookLogs(false);
                       }
@@ -3713,113 +3826,6 @@ export default function SettingsPage() {
           </div>
         )}
         
-        {/* Webhook Logs Modal */}
-        {showWebhookLogsModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Webhook Processing Logs</h3>
-                  <button
-                    onClick={() => setShowWebhookLogsModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
-                </div>
-                
-                <div className="overflow-y-auto max-h-[60vh]">
-                  {webhookLogs.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      No webhook logs found
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {webhookLogs.map((log) => (
-                        <div key={log.id} className={`p-4 rounded-lg border ${
-                          log.status === 'success' ? 'bg-green-50 border-green-200' :
-                          log.status === 'error' ? 'bg-red-50 border-red-200' :
-                          'bg-yellow-50 border-yellow-200'
-                        }`}>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className={`px-2 py-1 text-xs rounded ${
-                                log.status === 'success' ? 'bg-green-100 text-green-800' :
-                                log.status === 'error' ? 'bg-red-100 text-red-800' :
-                                'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {log.status.toUpperCase()}
-                              </span>
-                              <span className="text-sm font-medium text-gray-900">
-                                {log.webhookType === 'recordings' ? '🎥 Recording' : '📝 Transcript'}
-                              </span>
-                            </div>
-                            <span className="text-xs text-gray-500">
-                              {new Date(log.timestamp).toLocaleString()}
-                            </span>
-                          </div>
-                          
-                          <div className="text-sm text-gray-700 mb-2">
-                            <strong>Site:</strong> {log.siteUrl}
-                          </div>
-                          
-                          {log.meetingId && (
-                            <div className="text-sm text-gray-700 mb-2">
-                              <strong>Meeting ID:</strong> {log.meetingId}
-                            </div>
-                          )}
-                          
-                          <div className="text-sm text-gray-700 mb-2">
-                            <strong>Message:</strong> {log.message}
-                          </div>
-                          
-                          {log.error && (
-                            <div className="text-sm text-red-600 mb-2">
-                              <strong>Error:</strong> {log.error}
-                            </div>
-                          )}
-                          
-                          {log.processingDetails && (
-                            <div className="text-xs text-gray-600 mt-2 p-2 bg-gray-50 rounded">
-                              <strong>Processing Details:</strong>
-                              <div className="mt-1">
-                                {typeof log.processingDetails === 'string' 
-                                  ? log.processingDetails 
-                                  : JSON.stringify(log.processingDetails, null, 2)
-                                }
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="flex gap-4 mt-2 text-xs text-gray-600">
-                            {log.databaseAction && (
-                              <span>DB: {log.databaseAction}</span>
-                            )}
-                            {log.s3Upload !== undefined && (
-                              <span>S3: {log.s3Upload ? '✅' : '❌'}</span>
-                            )}
-                            {log.sseNotification !== undefined && (
-                              <span>SSE: {log.sseNotification ? '✅' : '❌'}</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={() => setShowWebhookLogsModal(false)}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
         
         {/* Webhook Validation Results Modal */}
         {showValidationModal && (

@@ -131,7 +131,8 @@ export async function POST(request) {
           name: `PracticeTools Recordings - ${site.siteName || site.siteUrl}`,
           targetUrl: `${baseUrl}/api/webhooks/webexmeetings/recordings`,
           resource: 'recordings',
-          event: 'created'
+          event: 'created',
+          filter: `hostEmail=${site.recordingHosts.join(',')}`
         };
         console.log('🔧 [WEBHOOK-MGMT] Recordings webhook payload:', recordingsPayload);
         
@@ -148,7 +149,8 @@ export async function POST(request) {
           name: `PracticeTools Transcripts - ${site.siteName || site.siteUrl}`,
           targetUrl: `${baseUrl}/api/webhooks/webexmeetings/transcripts`,
           resource: 'meetingTranscripts',
-          event: 'created'
+          event: 'created',
+          filter: `hostEmail=${site.recordingHosts.join(',')}`
         };
         console.log('🔧 [WEBHOOK-MGMT] Transcripts webhook payload:', transcriptsPayload);
         
@@ -253,12 +255,14 @@ export async function POST(request) {
         // Find our webhooks by URL (more reliable than stored IDs)
         const recordingsWebhook = allWebhooks.find(w => 
           w.targetUrl === `${baseUrl}/api/webhooks/webexmeetings/recordings` &&
-          w.resource === 'recordings'
+          w.resource === 'recordings' &&
+          w.name.includes(site.siteName || site.siteUrl)
         );
         
         const transcriptsWebhook = allWebhooks.find(w => 
           w.targetUrl === `${baseUrl}/api/webhooks/webexmeetings/transcripts` &&
-          w.resource === 'meetingTranscripts'
+          w.resource === 'meetingTranscripts' &&
+          w.name.includes(site.siteName || site.siteUrl)
         );
         
         // Test connectivity to our endpoints
@@ -319,7 +323,19 @@ export async function POST(request) {
             } : null
           },
           connectivity: connectivityTests,
-          totalWebhooksInWebEx: allWebhooks.length
+          totalWebhooksInWebEx: allWebhooks.length,
+          allWebhooksForSite: allWebhooks.filter(w => 
+            w.name.includes(site.siteName || site.siteUrl) ||
+            w.targetUrl.includes(baseUrl)
+          ).map(w => ({
+            id: w.id,
+            name: w.name,
+            resource: w.resource,
+            event: w.event,
+            targetUrl: w.targetUrl,
+            status: w.status,
+            filter: w.filter
+          }))
         });
       }
     }

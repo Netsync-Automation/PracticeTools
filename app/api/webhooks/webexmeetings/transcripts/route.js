@@ -137,10 +137,19 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Site configuration not found' }, { status: 200 });
     }
 
+    // Get valid access token for the site
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Getting valid access token for site:', matchingSite.siteUrl);
+    const { getValidAccessToken } = await import('../../../../../lib/webex-token-manager.js');
+    const validAccessToken = await getValidAccessToken(matchingSite.siteUrl);
+    
+    if (!validAccessToken) {
+      throw new Error(`No valid access token available for site: ${matchingSite.siteUrl}`);
+    }
+
     // Download transcript
     console.log('📝 [TRANSCRIPTS-WEBHOOK] Downloading transcript from:', data.downloadUrl);
     const transcriptResponse = await fetch(data.downloadUrl, {
-      headers: { 'Authorization': `Bearer ${matchingSite.accessToken}` }
+      headers: { 'Authorization': `Bearer ${validAccessToken}` }
     });
     console.log('📝 [TRANSCRIPTS-WEBHOOK] Transcript download response:', transcriptResponse.status);
     

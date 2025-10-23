@@ -111,13 +111,28 @@ export async function POST(request) {
     }
 
     // Find matching site configuration
-    console.log('🎥 [RECORDINGS-WEBHOOK] Looking for matching site:', { siteUrl: data.siteUrl, hostUserId: data.hostUserId });
+    console.log('🎥 [RECORDINGS-WEBHOOK] Looking for matching site:', { 
+      siteUrl: data.siteUrl, 
+      hostUserId: data.hostUserId,
+      hostEmail: data.hostEmail,
+      creatorId: data.creatorId
+    });
     console.log('🎥 [RECORDINGS-WEBHOOK] Available sites:', config.sites.map(s => ({ siteUrl: s.siteUrl, hosts: s.recordingHosts })));
     
-    const matchingSite = config.sites.find(site => 
-      data.siteUrl === site.siteUrl && 
-      site.recordingHosts.includes(data.hostUserId)
-    );
+    const matchingSite = config.sites.find(site => {
+      if (data.siteUrl !== site.siteUrl) return false;
+      
+      // Check multiple possible host identifiers
+      const hostIdentifiers = [
+        data.hostUserId,
+        data.hostEmail,
+        data.creatorId
+      ].filter(Boolean);
+      
+      return hostIdentifiers.some(identifier => 
+        site.recordingHosts.includes(identifier)
+      );
+    });
 
     if (!matchingSite) {
       console.warn('🎥 [RECORDINGS-WEBHOOK] No matching site/host found');
@@ -127,7 +142,7 @@ export async function POST(request) {
         meetingId: data.meetingId,
         status: 'warning',
         message: 'Recording not from configured host/site',
-        processingDetails: `Host ${data.hostUserId} not in configured recording hosts`,
+        processingDetails: `Host identifiers [${[data.hostUserId, data.hostEmail, data.creatorId].filter(Boolean).join(', ')}] not in configured recording hosts [${config.sites.find(s => s.siteUrl === data.siteUrl)?.recordingHosts?.join(', ') || 'none'}]`,
         databaseAction: 'none',
         s3Upload: false,
         sseNotification: false
@@ -137,9 +152,18 @@ export async function POST(request) {
     
     console.log('🎥 [RECORDINGS-WEBHOOK] Found matching site:', matchingSite.siteUrl);
 
+    // Get valid access token for the site
+    console.log('🎥 [RECORDINGS-WEBHOOK] Getting valid access token for site:', matchingSite.siteUrl);
+    const { getValidAccessToken } = await import('../../../../../lib/webex-token-manager.js');
+    const validAccessToken = await getValidAccessToken(matchingSite.siteUrl);
+    
+    if (!validAccessToken) {
+      throw new Error(`No valid access token available for site: ${matchingSite.siteUrl}`);
+    }
+    
     // Download recording
     console.log('🎥 [RECORDINGS-WEBHOOK] Downloading recording from:', data.downloadUrl);
-    const recordingBuffer = await downloadRecording(data.downloadUrl, matchingSite.accessToken);
+    const recordingBuffer = await downloadRecording(data.downloadUrl, validAccessToken);
     console.log('🎥 [RECORDINGS-WEBHOOK] Recording downloaded, size:', recordingBuffer.byteLength, 'bytes');
     
     // Upload to S3
@@ -187,15 +211,15 @@ export async function POST(request) {
     // Try to get transcript immediately
     try {
       const transcriptResponse = await fetch(
-        `${data.siteUrl}/v1/meetingTranscripts?meetingId=${data.meetingId}`,
-        { headers: { 'Authorization': `Bearer ${matchingSite.accessToken}` } }
+        `https://webexapis.com/v1/meetingTranscripts?meetingId=${data.meetingId}`,
+        { headers: { 'Authorization': `Bearer ${validAccessToken}` } }
       );
       
       if (transcriptResponse.ok) {
         const transcripts = await transcriptResponse.json();
         if (transcripts.items?.length > 0) {
           const transcript = transcripts.items[0];
-          await processTranscript(transcript, recordingData, matchingSite.accessToken);
+          await processTranscript(transcript, recordingData, validAccessToken);
         }
       }
     } catch (error) {
