@@ -3065,7 +3065,7 @@ export default function SettingsPage() {
                                         <div className="flex flex-wrap gap-1 mt-1">
                                           {site.recordingHosts.map((host, hostIndex) => (
                                             <span key={hostIndex} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                                              {host}
+                                              {typeof host === 'string' ? host : host.email}
                                             </span>
                                           ))}
                                         </div>
