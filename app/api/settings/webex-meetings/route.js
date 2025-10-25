@@ -3,7 +3,7 @@ import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { notifyWebexMeetingsUpdate } from '../../sse/webex-meetings/route.js';
-import { storeWebexTokens, getWebexTokens } from '../../../../lib/ssm.js';
+import { storeWebexTokens, getWebexTokens, storeWebexCredentials, getWebexCredentials } from '../../../../lib/ssm.js';
 import { getValidAccessToken } from '../../../../lib/webex-token-manager.js';
 
 const client = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
@@ -24,23 +24,28 @@ export async function GET() {
     if (result.Item?.setting_value) {
       const parsedData = JSON.parse(result.Item.setting_value);
       
-      // Load valid tokens for each site (auto-refresh if needed)
+      // Load valid tokens and credentials for each site
       const sitesWithTokens = await Promise.all(
         (parsedData.sites || []).map(async (site) => {
           try {
             const validAccessToken = await getValidAccessToken(site.siteUrl);
             const tokens = await getWebexTokens(site.siteUrl);
+            const credentials = await getWebexCredentials(site.siteUrl);
             return {
               ...site,
               accessToken: validAccessToken,
-              refreshToken: tokens?.refreshToken || ''
+              refreshToken: tokens?.refreshToken || '',
+              clientId: credentials?.clientId || '',
+              clientSecret: credentials?.clientSecret || ''
             };
           } catch (error) {
             console.error(`Failed to get valid token for ${site.siteUrl}:`, error);
             return {
               ...site,
               accessToken: '',
-              refreshToken: ''
+              refreshToken: '',
+              clientId: '',
+              clientSecret: ''
             };
           }
         })
@@ -80,23 +85,31 @@ export async function POST(request) {
     // Validate each site
     for (const site of sites) {
       if (!site.siteUrl || !site.accessToken || !site.refreshToken || !Array.isArray(site.recordingHosts)) {
-        return NextResponse.json({ error: 'Invalid site configuration' }, { status: 400 });
+        return NextResponse.json({ error: 'Invalid site configuration - missing required fields' }, { status: 400 });
       }
       
       if (site.recordingHosts.length === 0) {
         return NextResponse.json({ error: 'At least one recording host is required per site' }, { status: 400 });
       }
+      
+      if (!site.clientId || !site.clientSecret) {
+        return NextResponse.json({ error: 'Client ID and Client Secret are required for service apps' }, { status: 400 });
+      }
     }
     
-    // Store tokens in SSM for each site
+    // Store tokens and credentials in SSM for each site
     await Promise.all(
-      sites.map(site => storeWebexTokens(site.siteUrl, site.accessToken, site.refreshToken))
+      sites.map(async (site) => {
+        await storeWebexTokens(site.siteUrl, site.accessToken, site.refreshToken);
+        await storeWebexCredentials(site.siteUrl, site.clientId, site.clientSecret);
+      })
     );
     
-    // Store configuration in DynamoDB (without tokens)
+    // Store configuration in DynamoDB (without sensitive data)
     const sitesWithoutTokens = sites.map(site => ({
       siteUrl: site.siteUrl,
-      recordingHosts: site.recordingHosts
+      recordingHosts: site.recordingHosts,
+      siteName: site.siteName || site.siteUrl.split('.')[0]
     }));
     
     const command = new PutCommand({

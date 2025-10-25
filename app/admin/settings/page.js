@@ -92,6 +92,8 @@ export default function SettingsPage() {
     siteUrl: '',
     accessToken: '',
     refreshToken: '',
+    clientId: '',
+    clientSecret: '',
     recordingHosts: ['']
   });
   const [savingWebexMeetings, setSavingWebexMeetings] = useState(false);
@@ -2982,6 +2984,8 @@ export default function SettingsPage() {
                                 siteUrl: '',
                                 accessToken: '',
                                 refreshToken: '',
+                                clientId: '',
+                                clientSecret: '',
                                 recordingHosts: ['']
                               });
                               setShowAddSite(true);
@@ -3019,6 +3023,14 @@ export default function SettingsPage() {
                                         <span className="text-xs font-medium text-gray-600">Refresh Token:</span>
                                         <span className="text-xs text-gray-500 font-mono">••••••••</span>
                                       </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium text-gray-600">Client ID:</span>
+                                        <span className="text-xs text-gray-500 font-mono">••••••••</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium text-gray-600">Client Secret:</span>
+                                        <span className="text-xs text-gray-500 font-mono">••••••••</span>
+                                      </div>
                                       <div>
                                         <span className="text-xs font-medium text-gray-600">Recording Hosts:</span>
                                         <div className="flex flex-wrap gap-1 mt-1">
@@ -3039,6 +3051,8 @@ export default function SettingsPage() {
                                           siteUrl: site.siteUrl,
                                           accessToken: '',
                                           refreshToken: '',
+                                          clientId: '',
+                                          clientSecret: '',
                                           recordingHosts: [...site.recordingHosts]
                                         });
                                         setShowAddSite(true);
@@ -4047,6 +4061,28 @@ export default function SettingsPage() {
                   </div>
                   
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Client ID {editingSiteIndex !== null ? '(leave blank to keep current)' : '*'}</label>
+                    <input
+                      type="password"
+                      value={newSite.clientId}
+                      onChange={(e) => setNewSite({...newSite, clientId: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={editingSiteIndex !== null ? "Leave blank to keep current client ID" : "Enter client ID"}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Client Secret {editingSiteIndex !== null ? '(leave blank to keep current)' : '*'}</label>
+                    <input
+                      type="password"
+                      value={newSite.clientSecret}
+                      onChange={(e) => setNewSite({...newSite, clientSecret: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={editingSiteIndex !== null ? "Leave blank to keep current client secret" : "Enter client secret"}
+                    />
+                  </div>
+                  
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Recording Hosts *</label>
                     <div className="space-y-2">
                       {newSite.recordingHosts.map((host, index) => (
@@ -4094,6 +4130,14 @@ export default function SettingsPage() {
                     onClick={() => {
                       setShowAddSite(false);
                       setEditingSiteIndex(null);
+                      setNewSite({
+                        siteUrl: '',
+                        accessToken: '',
+                        refreshToken: '',
+                        clientId: '',
+                        clientSecret: '',
+                        recordingHosts: ['']
+                      });
                     }}
                     className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
                   >
@@ -4116,13 +4160,15 @@ export default function SettingsPage() {
                           siteUrl: newSite.siteUrl,
                           accessToken: newSite.accessToken || existingSite.accessToken,
                           refreshToken: newSite.refreshToken || existingSite.refreshToken,
+                          clientId: newSite.clientId || existingSite.clientId,
+                          clientSecret: newSite.clientSecret || existingSite.clientSecret,
                           recordingHosts: filteredHosts
                         };
                         
                         setWebexMeetingsSites(updatedSites);
                       } else {
                         // Add mode - validate all required fields
-                        if (!newSite.siteUrl || !newSite.accessToken || !newSite.refreshToken || newSite.recordingHosts.some(host => !host.trim())) {
+                        if (!newSite.siteUrl || !newSite.accessToken || !newSite.refreshToken || !newSite.clientId || !newSite.clientSecret || newSite.recordingHosts.some(host => !host.trim())) {
                           alert('Please fill in all required fields');
                           return;
                         }
@@ -4137,6 +4183,8 @@ export default function SettingsPage() {
                         siteUrl: '',
                         accessToken: '',
                         refreshToken: '',
+                        clientId: '',
+                        clientSecret: '',
                         recordingHosts: ['']
                       });
                     }}

@@ -40,31 +40,36 @@ async function saveWebexMeetingsConfig(config) {
 
 export async function POST(request) {
   try {
-    console.log('🔧 [WEBHOOK-MGMT] Webhook management request received');
-    console.log('🔧 [WEBHOOK-MGMT] Request headers:', Object.fromEntries(request.headers.entries()));
+    // Validate request origin and method
+    const origin = request.headers.get('origin');
+    const referer = request.headers.get('referer');
+    const expectedOrigin = process.env.NEXTAUTH_URL;
+    
+    if (origin && expectedOrigin && !origin.includes(expectedOrigin.replace(/https?:\/\//, ''))) {
+      return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+    }
     
     let action;
     try {
       const body = await request.json();
-      action = body.action;
-      console.log('🔧 [WEBHOOK-MGMT] Action:', action);
-      console.log('🔧 [WEBHOOK-MGMT] Full request body:', JSON.stringify(body, null, 2));
+      action = body.action?.trim();
+      
+      // Validate action parameter
+      if (!action || !['create', 'delete', 'validate'].includes(action)) {
+        return NextResponse.json({ error: 'Invalid action parameter' }, { status: 400 });
+      }
     } catch (jsonError) {
-      console.error('🔧 [WEBHOOK-MGMT] JSON parsing error:', jsonError);
       return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 });
     }
     
     let config;
     try {
       config = await getWebexMeetingsConfig();
-      console.log('🔧 [WEBHOOK-MGMT] Config loaded:', !!config);
-      console.log('🔧 [WEBHOOK-MGMT] Config details:', {
-        enabled: config?.enabled,
-        sitesCount: config?.sites?.length,
-        sites: config?.sites?.map(s => ({ siteUrl: s.siteUrl, hasAccessToken: !!s.accessToken, recordingHostsCount: s.recordingHosts?.length }))
-      });
+      if (!config) {
+        return NextResponse.json({ error: 'WebEx configuration not found' }, { status: 404 });
+      }
     } catch (configError) {
-      console.error('🔧 [WEBHOOK-MGMT] Config loading error:', configError);
+      console.error('🔧 [WEBHOOK-MGMT] Config loading error:', configError.message);
       return NextResponse.json({ error: 'Failed to load WebEx configuration' }, { status: 500 });
     }
     
@@ -73,7 +78,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'WebexMeetings not configured' }, { status: 400 });
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL || `https://${request.headers.get('host')}`;
+    // Get NEXTAUTH_URL from SSM
+    const nextAuthUrl = await getSecureParameter(
+      getEnvironment() === 'prod' ? '/PracticeTools/NEXTAUTH_URL' : '/PracticeTools/dev/NEXTAUTH_URL'
+    );
+    const baseUrl = nextAuthUrl || process.env.NEXTAUTH_URL || `https://${request.headers.get('host')}`;
     console.log('🔧 [WEBHOOK-MGMT] Base URL for webhooks:', baseUrl);
     const results = [];
 
@@ -84,15 +93,17 @@ export async function POST(request) {
       
       // Get tokens from SSM using correct naming pattern
       const env = getEnvironment();
-      const siteName = site.siteUrl.split('.')[0].toUpperCase(); // Extract first part before first dot
-      const basePath = env === 'prod' ? '/PracticeTools' : '/PracticeTools/dev';
-      const accessTokenParam = `${basePath}/${siteName}_WEBEX_MEETINGS_ACCESS_TOKEN`;
-      const refreshTokenParam = `${basePath}/${siteName}_WEBEX_MEETINGS_REFRESH_TOKEN`;
+      const siteName = site.siteUrl.replace(/^https?:\/\//, '').split('.')[0].toUpperCase(); // Extract first part before first dot
+      const accessTokenParam = env === 'prod' 
+        ? `/PracticeTools/${siteName}_WEBEX_MEETINGS_ACCESS_TOKEN`
+        : `/PracticeTools/dev/${siteName}_WEBEX_MEETINGS_ACCESS_TOKEN`;
+      const refreshTokenParam = env === 'prod'
+        ? `/PracticeTools/${siteName}_WEBEX_MEETINGS_REFRESH_TOKEN`
+        : `/PracticeTools/dev/${siteName}_WEBEX_MEETINGS_REFRESH_TOKEN`;
       
       console.log('🔧 [WEBHOOK-MGMT] Loading tokens from SSM:', {
         siteName,
         env,
-        basePath,
         accessTokenParam,
         refreshTokenParam
       });
@@ -127,48 +138,75 @@ export async function POST(request) {
       if (action === 'create') {
         console.log('🔧 [WEBHOOK-MGMT] Creating webhooks for:', site.siteUrl);
         
-        // Create webhooks for Webex Meetings without filters
+        // Create webhooks for Webex Meetings with org ownership and site URL
         const recordingsPayload = {
           name: `PracticeTools Recordings - ${site.siteName || site.siteUrl}`,
           targetUrl: `${baseUrl}/api/webhooks/webexmeetings/recordings`,
           resource: 'recordings',
-          event: 'created'
+          event: 'created',
+          ownedBy: 'org',
+          siteUrl: site.siteUrl
         };
         console.log('🔧 [WEBHOOK-MGMT] Recordings webhook payload:', recordingsPayload);
         
-        const recordingsWebhook = await fetch('https://webexapis.com/v1/webhooks', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(recordingsPayload)
-        });
+        let recordingsWebhook, transcriptsWebhook;
+        try {
+          console.log('🔧 [WEBHOOK-MGMT] Creating recordings webhook with payload:', JSON.stringify(recordingsPayload, null, 2));
+          recordingsWebhook = await fetch('https://webexapis.com/v1/webhooks', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(recordingsPayload)
+          });
+          console.log('🔧 [WEBHOOK-MGMT] Recordings webhook response status:', recordingsWebhook.status);
+        } catch (fetchError) {
+          console.error('🔧 [WEBHOOK-MGMT] Network error creating recordings webhook:', fetchError);
+          results.push({ site: site.siteName || site.siteUrl, status: 'error', error: `Network error creating recordings webhook: ${fetchError.message}` });
+          continue;
+        }
 
         const transcriptsPayload = {
           name: `PracticeTools Transcripts - ${site.siteName || site.siteUrl}`,
           targetUrl: `${baseUrl}/api/webhooks/webexmeetings/transcripts`,
           resource: 'meetingTranscripts',
-          event: 'created'
+          event: 'created',
+          ownedBy: 'org',
+          siteUrl: site.siteUrl
         };
-        console.log('🔧 [WEBHOOK-MGMT] Transcripts webhook payload:', transcriptsPayload);
         
-        const transcriptsWebhook = await fetch('https://webexapis.com/v1/webhooks', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(transcriptsPayload)
-        });
+        try {
+          console.log('🔧 [WEBHOOK-MGMT] Creating transcripts webhook with payload:', JSON.stringify(transcriptsPayload, null, 2));
+          transcriptsWebhook = await fetch('https://webexapis.com/v1/webhooks', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(transcriptsPayload)
+          });
+          console.log('🔧 [WEBHOOK-MGMT] Transcripts webhook response status:', transcriptsWebhook.status);
+        } catch (fetchError) {
+          console.error('🔧 [WEBHOOK-MGMT] Network error creating transcripts webhook:', fetchError);
+          results.push({ site: site.siteName || site.siteUrl, status: 'error', error: `Network error creating transcripts webhook: ${fetchError.message}` });
+          continue;
+        }
 
         console.log('🔧 [WEBHOOK-MGMT] Recordings webhook status:', recordingsWebhook.status);
         console.log('🔧 [WEBHOOK-MGMT] Recordings webhook headers:', Object.fromEntries(recordingsWebhook.headers.entries()));
         console.log('🔧 [WEBHOOK-MGMT] Transcripts webhook status:', transcriptsWebhook.status);
         console.log('🔧 [WEBHOOK-MGMT] Transcripts webhook headers:', Object.fromEntries(transcriptsWebhook.headers.entries()));
         
-        const recordingsResult = await recordingsWebhook.json();
-        const transcriptsResult = await transcriptsWebhook.json();
+        let recordingsResult, transcriptsResult;
+        try {
+          recordingsResult = await recordingsWebhook.json();
+          transcriptsResult = await transcriptsWebhook.json();
+        } catch (parseError) {
+          console.error('🔧 [WEBHOOK-MGMT] Error parsing webhook responses:', parseError);
+          results.push({ site: site.siteName || site.siteUrl, status: 'error', error: `Failed to parse webhook response: ${parseError.message}` });
+          continue;
+        }
         
         console.log('🔧 [WEBHOOK-MGMT] Recordings result:', JSON.stringify(recordingsResult, null, 2));
         console.log('🔧 [WEBHOOK-MGMT] Transcripts result:', JSON.stringify(transcriptsResult, null, 2));
@@ -181,17 +219,34 @@ export async function POST(request) {
             recordingsWebhookId: recordingsResult.id,
             transcriptsWebhookId: transcriptsResult.id
           });
-          results.push({ site: site.siteName || site.siteUrl, status: 'created' });
+          results.push({ 
+            site: site.siteName || site.siteUrl, 
+            status: 'created',
+            recordingsWebhookId: recordingsResult.id,
+            transcriptsWebhookId: transcriptsResult.id
+          });
         } else {
-          const errorMsg = recordingsResult.message || transcriptsResult.message || 'Unknown error';
+          const recordingsError = !recordingsWebhook.ok ? (recordingsResult.message || recordingsResult.errors?.[0]?.description || `HTTP ${recordingsWebhook.status}`) : null;
+          const transcriptsError = !transcriptsWebhook.ok ? (transcriptsResult.message || transcriptsResult.errors?.[0]?.description || `HTTP ${transcriptsWebhook.status}`) : null;
+          const errorMsg = recordingsError || transcriptsError || 'Unknown error';
+          
           console.error('🔧 [WEBHOOK-MGMT] Webhook creation failed for', site.siteUrl, ':', {
             recordingsOk: recordingsWebhook.ok,
             transcriptsOk: transcriptsWebhook.ok,
-            recordingsError: recordingsResult,
-            transcriptsError: transcriptsResult,
-            errorMsg
+            recordingsError,
+            transcriptsError,
+            recordingsResult,
+            transcriptsResult
           });
-          results.push({ site: site.siteName || site.siteUrl, status: 'error', error: errorMsg });
+          results.push({ 
+            site: site.siteName || site.siteUrl, 
+            status: 'error', 
+            error: errorMsg,
+            details: {
+              recordings: { ok: recordingsWebhook.ok, error: recordingsError },
+              transcripts: { ok: transcriptsWebhook.ok, error: transcriptsError }
+            }
+          });
         }
 
       } else if (action === 'delete') {
@@ -199,23 +254,29 @@ export async function POST(request) {
         const deleteResults = [];
         
         if (site.recordingsWebhookId) {
-          console.log('🔧 [WEBHOOK-MGMT] Deleting recordings webhook:', site.recordingsWebhookId);
-          const deleteRecordings = await fetch(`https://webexapis.com/v1/webhooks/${site.recordingsWebhookId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-          });
-          console.log('🔧 [WEBHOOK-MGMT] Delete recordings response:', deleteRecordings.status);
-          deleteResults.push(deleteRecordings.ok);
+          try {
+            const deleteRecordings = await fetch(`https://webexapis.com/v1/webhooks/${site.recordingsWebhookId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            deleteResults.push(deleteRecordings.ok);
+          } catch (error) {
+            console.error('Error deleting recordings webhook:', error.message);
+            deleteResults.push(false);
+          }
         }
 
         if (site.transcriptsWebhookId) {
-          console.log('🔧 [WEBHOOK-MGMT] Deleting transcripts webhook:', site.transcriptsWebhookId);
-          const deleteTranscripts = await fetch(`https://webexapis.com/v1/webhooks/${site.transcriptsWebhookId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${accessToken}` }
-          });
-          console.log('🔧 [WEBHOOK-MGMT] Delete transcripts response:', deleteTranscripts.status);
-          deleteResults.push(deleteTranscripts.ok);
+          try {
+            const deleteTranscripts = await fetch(`https://webexapis.com/v1/webhooks/${site.transcriptsWebhookId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            deleteResults.push(deleteTranscripts.ok);
+          } catch (error) {
+            console.error('Error deleting transcripts webhook:', error.message);
+            deleteResults.push(false);
+          }
         }
 
         console.log('🔧 [WEBHOOK-MGMT] Delete results:', deleteResults);
@@ -233,9 +294,21 @@ export async function POST(request) {
         console.log('🔧 [WEBHOOK-MGMT] Validating webhooks for:', site.siteUrl);
         
         // Get all webhooks from WebEx to verify configuration
-        const allWebhooksResponse = await fetch('https://webexapis.com/v1/webhooks', {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
+        let allWebhooksResponse;
+        try {
+          allWebhooksResponse = await fetch('https://webexapis.com/v1/webhooks', {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          });
+        } catch (error) {
+          results.push({
+            site: site.siteName || site.siteUrl,
+            status: 'error',
+            error: 'Network error fetching webhooks',
+            hasWebhooks: false,
+            webhookCount: 0
+          });
+          continue;
+        }
         
         if (!allWebhooksResponse.ok) {
           results.push({
@@ -251,17 +324,17 @@ export async function POST(request) {
         const allWebhooksData = await allWebhooksResponse.json();
         const allWebhooks = allWebhooksData.items || [];
         
-        // Find our webhooks by URL (more reliable than stored IDs)
+        // Find our webhooks by URL and siteUrl (more reliable than stored IDs)
         const recordingsWebhook = allWebhooks.find(w => 
           w.targetUrl === `${baseUrl}/api/webhooks/webexmeetings/recordings` &&
           w.resource === 'recordings' &&
-          w.name.includes(site.siteName || site.siteUrl)
+          (w.siteUrl === site.siteUrl || w.name.includes(site.siteName || site.siteUrl))
         );
         
         const transcriptsWebhook = allWebhooks.find(w => 
           w.targetUrl === `${baseUrl}/api/webhooks/webexmeetings/transcripts` &&
           w.resource === 'meetingTranscripts' &&
-          w.name.includes(site.siteName || site.siteUrl)
+          (w.siteUrl === site.siteUrl || w.name.includes(site.siteName || site.siteUrl))
         );
         
         // Test connectivity to our endpoints
@@ -312,20 +385,25 @@ export async function POST(request) {
               id: recordingsWebhook.id,
               status: recordingsWebhook.status,
               targetUrl: recordingsWebhook.targetUrl,
-              created: recordingsWebhook.created
+              created: recordingsWebhook.created,
+              siteUrl: recordingsWebhook.siteUrl,
+              ownedBy: recordingsWebhook.ownedBy
             } : null,
             transcripts: transcriptsWebhook ? {
               id: transcriptsWebhook.id,
               status: transcriptsWebhook.status,
               targetUrl: transcriptsWebhook.targetUrl,
-              created: transcriptsWebhook.created
+              created: transcriptsWebhook.created,
+              siteUrl: transcriptsWebhook.siteUrl,
+              ownedBy: transcriptsWebhook.ownedBy
             } : null
           },
           connectivity: connectivityTests,
           totalWebhooksInWebEx: allWebhooks.length,
           allWebhooksForSite: allWebhooks.filter(w => 
             w.name.includes(site.siteName || site.siteUrl) ||
-            w.targetUrl.includes(baseUrl)
+            w.targetUrl.includes(baseUrl) ||
+            w.siteUrl === site.siteUrl
           ).map(w => ({
             id: w.id,
             name: w.name,
@@ -333,18 +411,15 @@ export async function POST(request) {
             event: w.event,
             targetUrl: w.targetUrl,
             status: w.status,
-            filter: w.filter
+            filter: w.filter,
+            siteUrl: w.siteUrl,
+            ownedBy: w.ownedBy
           }))
         });
       }
     }
 
-    console.log('🔧 [WEBHOOK-MGMT] Final results:', JSON.stringify(results, null, 2));
-    console.log('🔧 [WEBHOOK-MGMT] Saving updated config...');
-    console.log('🔧 [WEBHOOK-MGMT] Config to save:', JSON.stringify(config, null, 2));
     await saveWebexMeetingsConfig(config);
-    console.log('🔧 [WEBHOOK-MGMT] Config saved successfully');
-    console.log('🔧 [WEBHOOK-MGMT] Returning results to frontend');
     return NextResponse.json({ results });
   } catch (error) {
     console.error('🔧 [WEBHOOK-MGMT] Webhook management error:', {

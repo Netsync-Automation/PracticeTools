@@ -459,6 +459,7 @@ class CommitBuilder {
           'meetingstorage': 'Enhanced meeting-storage Service with improved functionality and error handling',
           'webextoken-manager': 'Enhanced webex-token-manager Service with improved functionality and error handling',
           'ssm': 'Enhanced ssm Service with improved functionality and error handling',
+          'webexmeetings-utils': 'Enhanced webex-meetings-utils Service with improved functionality and error handling',
     };
     
     // Check for pattern matches
