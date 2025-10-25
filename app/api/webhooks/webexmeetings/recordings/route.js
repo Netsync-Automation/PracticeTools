@@ -122,15 +122,9 @@ export async function POST(request) {
     const matchingSite = config.sites.find(site => {
       if (data.siteUrl !== site.siteUrl) return false;
       
-      // Check multiple possible host identifiers
-      const hostIdentifiers = [
-        data.hostUserId,
-        data.hostEmail,
-        data.creatorId
-      ].filter(Boolean);
-      
-      return hostIdentifiers.some(identifier => 
-        site.recordingHosts.includes(identifier)
+      // Check if hostUserId matches any configured recording host user IDs
+      return data.hostUserId && site.recordingHosts.some(host => 
+        host.userId === data.hostUserId
       );
     });
 
@@ -142,7 +136,7 @@ export async function POST(request) {
         meetingId: data.meetingId,
         status: 'warning',
         message: 'Recording not from configured host/site',
-        processingDetails: `Host identifiers [${[data.hostUserId, data.hostEmail, data.creatorId].filter(Boolean).join(', ')}] not in configured recording hosts [${config.sites.find(s => s.siteUrl === data.siteUrl)?.recordingHosts?.join(', ') || 'none'}]`,
+        processingDetails: `Host identifiers [${[data.hostUserId, data.hostEmail, data.creatorId].filter(Boolean).join(', ')}] not in configured recording hosts [${config.sites.find(s => s.siteUrl === data.siteUrl)?.recordingHosts?.map(h => `${h.email}(${h.userId || 'no-id'})`).join(', ') || 'none'}]`,
         databaseAction: 'none',
         s3Upload: false,
         sseNotification: false
@@ -153,9 +147,9 @@ export async function POST(request) {
     console.log('🎥 [RECORDINGS-WEBHOOK] Found matching site:', matchingSite.siteUrl);
 
     // Get valid access token for the site
-    console.log('🎥 [RECORDINGS-WEBHOOK] Getting valid access token for site:', matchingSite.siteUrl);
+    console.log('🎥 [RECORDINGS-WEBHOOK] Getting valid access token for site:', data.siteUrl);
     const { getValidAccessToken } = await import('../../../../../lib/webex-token-manager.js');
-    const validAccessToken = await getValidAccessToken(matchingSite.siteUrl);
+    const validAccessToken = await getValidAccessToken(data.siteUrl);
     
     if (!validAccessToken) {
       throw new Error(`No valid access token available for site: ${matchingSite.siteUrl}`);

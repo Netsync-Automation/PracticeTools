@@ -2961,7 +2961,36 @@ export default function SettingsPage() {
                       <input
                         type="checkbox"
                         checked={webexMeetingsEnabled}
-                        onChange={(e) => setWebexMeetingsEnabled(e.target.checked)}
+                        onChange={async (e) => {
+                          const newEnabled = e.target.checked;
+                          setWebexMeetingsEnabled(newEnabled);
+                          
+                          // Auto-save toggle change
+                          console.log('🔧 [TOGGLE-SAVE] Webex Meetings toggle changed to:', newEnabled);
+                          setSavingWebexMeetings(true);
+                          try {
+                            const response = await fetch('/api/settings/webex-meetings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                enabled: newEnabled,
+                                sites: webexMeetingsSites
+                              })
+                            });
+                            
+                            if (response.ok) {
+                              console.log('✅ [TOGGLE-SAVE] Toggle auto-saved successfully');
+                            } else {
+                              const errorData = await response.json();
+                              alert('Failed to save toggle: ' + (errorData.error || 'Unknown error'));
+                            }
+                          } catch (error) {
+                            console.error('🔧 [TOGGLE-SAVE] Error auto-saving toggle:', error);
+                            alert('Error saving toggle');
+                          } finally {
+                            setSavingWebexMeetings(false);
+                          }
+                        }}
                         className="sr-only peer"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -3084,52 +3113,8 @@ export default function SettingsPage() {
                         )}
                       </div>
 
-                      {/* Action Buttons */}
+                      {/* Management Buttons */}
                       <div className="pt-4 border-t border-gray-200 flex gap-3">
-                        <button
-                          onClick={async () => {
-                            setSavingWebexMeetings(true);
-                            try {
-                              const response = await fetch('/api/settings/webex-meetings', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  enabled: webexMeetingsEnabled,
-                                  sites: webexMeetingsSites
-                                })
-                              });
-                              
-                              if (response.ok) {
-                                alert('Webex Meetings settings saved successfully!');
-                              } else {
-                                const errorData = await response.json();
-                                alert('Failed to save settings: ' + (errorData.error || 'Unknown error'));
-                              }
-                            } catch (error) {
-                              console.error('Error saving Webex Meetings settings:', error);
-                              alert('Error saving Webex Meetings settings');
-                            } finally {
-                              setSavingWebexMeetings(false);
-                            }
-                          }}
-                          disabled={savingWebexMeetings}
-                          className={`${savingWebexMeetings ? 'btn-disabled' : 'btn-primary'} flex items-center gap-2`}
-                        >
-                          {savingWebexMeetings ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              Save Settings
-                            </>
-                          )}
-                        </button>
-                        
                         {webexMeetingsEnabled && webexMeetingsSites.length > 0 && (
                           <>
                             <button
@@ -4145,16 +4130,26 @@ export default function SettingsPage() {
                   </button>
                   <button
                     onClick={() => {
+                      console.log('🔧 [MODAL-SAVE] Starting site modal save operation');
+                      console.log('🔧 [MODAL-SAVE] Edit mode:', editingSiteIndex !== null);
+                      console.log('🔧 [MODAL-SAVE] Site data:', newSite);
+                      console.log('🔧 [MODAL-SAVE] Recording hosts:', newSite.recordingHosts);
+                      
                       if (editingSiteIndex !== null) {
+                        console.log('🔧 [MODAL-SAVE] Edit mode - validating fields');
                         // Edit mode - validate required fields except tokens if blank
                         if (!newSite.siteUrl || newSite.recordingHosts.some(host => !host.trim())) {
+                          console.log('❌ [MODAL-SAVE] Validation failed - missing required fields');
                           alert('Please fill in all required fields');
                           return;
                         }
                         
                         const filteredHosts = newSite.recordingHosts.filter(host => host.trim());
+                        console.log('🔧 [MODAL-SAVE] Filtered hosts:', filteredHosts);
+                        
                         const updatedSites = [...webexMeetingsSites];
                         const existingSite = updatedSites[editingSiteIndex];
+                        console.log('🔧 [MODAL-SAVE] Existing site:', existingSite);
                         
                         updatedSites[editingSiteIndex] = {
                           siteUrl: newSite.siteUrl,
@@ -4165,18 +4160,106 @@ export default function SettingsPage() {
                           recordingHosts: filteredHosts
                         };
                         
+                        console.log('🔧 [MODAL-SAVE] Updated site data:', updatedSites[editingSiteIndex]);
                         setWebexMeetingsSites(updatedSites);
+                        console.log('✅ [MODAL-SAVE] Site updated in state');
+                        
+                        // Auto-save updated site
+                        setTimeout(async () => {
+                          console.log('🔧 [AUTO-SAVE] Starting automatic backend save for updated site');
+                          setSavingWebexMeetings(true);
+                          try {
+                            const requestPayload = {
+                              enabled: webexMeetingsEnabled,
+                              sites: updatedSites
+                            };
+                            
+                            console.log('🔧 [AUTO-SAVE] Request payload:', requestPayload);
+                            
+                            const response = await fetch('/api/settings/webex-meetings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(requestPayload)
+                            });
+                            
+                            console.log('🔧 [AUTO-SAVE] Response status:', response.status);
+                            
+                            if (response.ok) {
+                              const responseData = await response.json();
+                              console.log('🔧 [AUTO-SAVE] Success response:', responseData);
+                              console.log('✅ [AUTO-SAVE] Updated site auto-saved successfully!');
+                            } else {
+                              const errorData = await response.json();
+                              console.log('🔧 [AUTO-SAVE] Error response:', errorData);
+                              alert('Failed to auto-save updated site: ' + (errorData.error || 'Unknown error'));
+                            }
+                          } catch (error) {
+                            console.error('🔧 [AUTO-SAVE] Exception during auto-save:', error);
+                            alert('Error auto-saving updated site');
+                          } finally {
+                            console.log('🔧 [AUTO-SAVE] Auto-save operation completed');
+                            setSavingWebexMeetings(false);
+                          }
+                        }, 100);
                       } else {
+                        console.log('🔧 [MODAL-SAVE] Add mode - validating all fields');
                         // Add mode - validate all required fields
                         if (!newSite.siteUrl || !newSite.accessToken || !newSite.refreshToken || !newSite.clientId || !newSite.clientSecret || newSite.recordingHosts.some(host => !host.trim())) {
+                          console.log('❌ [MODAL-SAVE] Validation failed - missing required fields');
                           alert('Please fill in all required fields');
                           return;
                         }
                         
                         const filteredHosts = newSite.recordingHosts.filter(host => host.trim());
-                        setWebexMeetingsSites([...webexMeetingsSites, {...newSite, recordingHosts: filteredHosts}]);
+                        console.log('🔧 [MODAL-SAVE] Filtered hosts:', filteredHosts);
+                        
+                        const newSiteData = {...newSite, recordingHosts: filteredHosts};
+                        console.log('🔧 [MODAL-SAVE] New site data:', newSiteData);
+                        
+                        const updatedSites = [...webexMeetingsSites, newSiteData];
+                        setWebexMeetingsSites(updatedSites);
+                        console.log('✅ [MODAL-SAVE] Site added to state');
+                        
+                        // Auto-save new site
+                        setTimeout(async () => {
+                          console.log('🔧 [AUTO-SAVE] Starting automatic backend save for new site');
+                          setSavingWebexMeetings(true);
+                          try {
+                            const requestPayload = {
+                              enabled: webexMeetingsEnabled,
+                              sites: updatedSites
+                            };
+                            
+                            console.log('🔧 [AUTO-SAVE] Request payload:', requestPayload);
+                            
+                            const response = await fetch('/api/settings/webex-meetings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(requestPayload)
+                            });
+                            
+                            console.log('🔧 [AUTO-SAVE] Response status:', response.status);
+                            
+                            if (response.ok) {
+                              const responseData = await response.json();
+                              console.log('🔧 [AUTO-SAVE] Success response:', responseData);
+                              console.log('✅ [AUTO-SAVE] New site auto-saved successfully!');
+                            } else {
+                              const errorData = await response.json();
+                              console.log('🔧 [AUTO-SAVE] Error response:', errorData);
+                              alert('Failed to auto-save new site: ' + (errorData.error || 'Unknown error'));
+                            }
+                          } catch (error) {
+                            console.error('🔧 [AUTO-SAVE] Exception during auto-save:', error);
+                            alert('Error auto-saving new site');
+                          } finally {
+                            console.log('🔧 [AUTO-SAVE] Auto-save operation completed');
+                            setSavingWebexMeetings(false);
+                          }
+                        }, 100);
                       }
                       
+                      console.log('🔧 [MODAL-SAVE] Closing modal and resetting form');
                       setShowAddSite(false);
                       setEditingSiteIndex(null);
                       setNewSite({
@@ -4187,6 +4270,7 @@ export default function SettingsPage() {
                         clientSecret: '',
                         recordingHosts: ['']
                       });
+                      console.log('✅ [MODAL-SAVE] Modal save operation completed');
                     }}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   >

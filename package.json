@@ -17,7 +17,13 @@
     "version-sync": "node version-sync.js",
     "push-to-prod": "node push-to-prod.js",
     "env-sync": "node startup-env-sync.js",
-    "dsr": "node dsr.js"
+    "dsr": "node dsr.js",
+    "test-webhooks": "node test-webhooks-dev.js",
+    "simulate-webhooks": "node simulate-webhook-events.js",
+    "test-tokens": "node test-token-manager.js",
+    "resolve-user": "node resolve-webex-user.js",
+    "check-config": "node check-webex-config.js",
+    "test-people-api": "node test-people-api.js"
   },
   "dependencies": {
     "@aws-sdk/client-apprunner": "^3.876.0",
