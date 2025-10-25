@@ -9,8 +9,7 @@ if (typeof global.sseClients === 'undefined') {
 }
 const clients = global.sseClients;
 
-// Debug logging
-console.log(`SSE clients Map status: ${clients.size} channels, keys: [${Array.from(clients.keys()).join(', ')}]`);
+
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);

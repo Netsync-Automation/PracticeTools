@@ -23,8 +23,7 @@ run:
       value: production
     - name: ENVIRONMENT
       value: prod
-    - name: DEBUG
-      value: "*"
+
     - name: NODE_OPTIONS
       value: "--trace-warnings --trace-uncaught"
 

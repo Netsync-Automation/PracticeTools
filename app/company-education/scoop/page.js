@@ -148,7 +148,7 @@ export default function ScoopPage() {
                                 {recording.meetingId}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {recording.hostUserId}
+                                {recording.hostEmail || recording.hostUserId}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {formatDate(recording.createTime)}
@@ -164,7 +164,7 @@ export default function ScoopPage() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <button
-                                  onClick={() => handleDownload(recording.s3Url, `${recording.topic || 'recording'}.mp4`)}
+                                  onClick={() => handleDownload(recording.downloadUrl || recording.s3Url, `${recording.topic || 'recording'}.mp4`)}
                                   className="text-blue-600 hover:text-blue-900 font-medium"
                                 >
                                   Download MP4

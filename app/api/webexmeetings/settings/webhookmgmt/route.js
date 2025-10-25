@@ -118,8 +118,8 @@ export async function POST(request) {
         accessTokenLength: accessToken?.length,
         hasRefreshToken: !!refreshToken,
         recordingHosts: site.recordingHosts,
-        existingRecordingsWebhookId: site.recordingsWebhookId,
-        existingTranscriptsWebhookId: site.transcriptsWebhookId
+        existingRecordingWebhookId: site.recordingWebhookId,
+        existingTranscriptWebhookId: site.transcriptWebhookId
       });
       
       if (!accessToken) {
@@ -213,17 +213,17 @@ export async function POST(request) {
 
         if (recordingsWebhook.ok && transcriptsWebhook.ok) {
           console.log('🔧 [WEBHOOK-MGMT] Both webhooks created successfully for:', site.siteUrl);
-          site.recordingsWebhookId = recordingsResult.id;
-          site.transcriptsWebhookId = transcriptsResult.id;
+          site.recordingWebhookId = recordingsResult.id;
+          site.transcriptWebhookId = transcriptsResult.id;
           console.log('🔧 [WEBHOOK-MGMT] Assigned webhook IDs:', {
-            recordingsWebhookId: recordingsResult.id,
-            transcriptsWebhookId: transcriptsResult.id
+            recordingWebhookId: recordingsResult.id,
+            transcriptWebhookId: transcriptsResult.id
           });
           results.push({ 
             site: site.siteName || site.siteUrl, 
             status: 'created',
-            recordingsWebhookId: recordingsResult.id,
-            transcriptsWebhookId: transcriptsResult.id
+            recordingWebhookId: recordingsResult.id,
+            transcriptWebhookId: transcriptsResult.id
           });
         } else {
           const recordingsError = !recordingsWebhook.ok ? (recordingsResult.message || recordingsResult.errors?.[0]?.description || `HTTP ${recordingsWebhook.status}`) : null;
@@ -253,9 +253,9 @@ export async function POST(request) {
         console.log('🔧 [WEBHOOK-MGMT] Deleting webhooks for:', site.siteUrl);
         const deleteResults = [];
         
-        if (site.recordingsWebhookId) {
+        if (site.recordingWebhookId) {
           try {
-            const deleteRecordings = await fetch(`https://webexapis.com/v1/webhooks/${site.recordingsWebhookId}`, {
+            const deleteRecordings = await fetch(`https://webexapis.com/v1/webhooks/${site.recordingWebhookId}`, {
               method: 'DELETE',
               headers: { 'Authorization': `Bearer ${accessToken}` }
             });
@@ -266,9 +266,9 @@ export async function POST(request) {
           }
         }
 
-        if (site.transcriptsWebhookId) {
+        if (site.transcriptWebhookId) {
           try {
-            const deleteTranscripts = await fetch(`https://webexapis.com/v1/webhooks/${site.transcriptsWebhookId}`, {
+            const deleteTranscripts = await fetch(`https://webexapis.com/v1/webhooks/${site.transcriptWebhookId}`, {
               method: 'DELETE',
               headers: { 'Authorization': `Bearer ${accessToken}` }
             });
@@ -281,8 +281,8 @@ export async function POST(request) {
 
         console.log('🔧 [WEBHOOK-MGMT] Delete results:', deleteResults);
         if (deleteResults.every(r => r)) {
-          delete site.recordingsWebhookId;
-          delete site.transcriptsWebhookId;
+          delete site.recordingWebhookId;
+          delete site.transcriptWebhookId;
           console.log('🔧 [WEBHOOK-MGMT] Successfully deleted all webhooks for:', site.siteUrl);
           results.push({ site: site.siteName || site.siteUrl, status: 'deleted' });
         } else {
@@ -356,11 +356,11 @@ export async function POST(request) {
         const hasBothWebhooks = hasRecordingsWebhook && hasTranscriptsWebhook;
         
         // Update stored webhook IDs if they've changed
-        if (recordingsWebhook && site.recordingsWebhookId !== recordingsWebhook.id) {
-          site.recordingsWebhookId = recordingsWebhook.id;
+        if (recordingsWebhook && site.recordingWebhookId !== recordingsWebhook.id) {
+          site.recordingWebhookId = recordingsWebhook.id;
         }
-        if (transcriptsWebhook && site.transcriptsWebhookId !== transcriptsWebhook.id) {
-          site.transcriptsWebhookId = transcriptsWebhook.id;
+        if (transcriptsWebhook && site.transcriptWebhookId !== transcriptsWebhook.id) {
+          site.transcriptWebhookId = transcriptsWebhook.id;
         }
         
         console.log('🔧 [WEBHOOK-MGMT] Detailed validation for', site.siteUrl, ':', {

@@ -18,7 +18,19 @@ export async function GET(request) {
       
       controller.enqueue(new TextEncoder().encode(data));
 
+      // Send keepalive every 30 seconds
+      const keepalive = setInterval(() => {
+        try {
+          const ping = `data: ${JSON.stringify({ type: 'ping', timestamp: Date.now() })}\n\n`;
+          controller.enqueue(new TextEncoder().encode(ping));
+        } catch (error) {
+          clearInterval(keepalive);
+          clients.delete(clientId);
+        }
+      }, 30000);
+
       request.signal.addEventListener('abort', () => {
+        clearInterval(keepalive);
         clients.delete(clientId);
         try {
           controller.close();

@@ -220,16 +220,20 @@ export async function POST(request) {
 
     // Store in DynamoDB
     const tableName = getTableName('WebexMeetingsRecordings');
+    // hostEmail was already resolved above from configured recording hosts
+    
     const recordingData = {
       id: data.id,
       meetingId: data.meetingId,
       meetingInstanceId: data.meetingInstanceId,
       hostUserId: data.hostUserId,
+      hostEmail: hostEmail,
       siteUrl: data.siteUrl,
-      topic: data.topic || 'Untitled Meeting',
+      topic: recordingDetails.topic || data.topic || 'Untitled Meeting',
       createTime: data.createTime,
       s3Key,
       s3Url: `https://${process.env.S3_BUCKET}.s3.amazonaws.com/${s3Key}`,
+      downloadUrl: `/api/webexmeetings/recordings/${data.id}/download`,
       status: 'processing',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
