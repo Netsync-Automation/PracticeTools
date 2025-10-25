@@ -3063,11 +3063,14 @@ export default function SettingsPage() {
                                       <div>
                                         <span className="text-xs font-medium text-gray-600">Recording Hosts:</span>
                                         <div className="flex flex-wrap gap-1 mt-1">
-                                          {site.recordingHosts.map((host, hostIndex) => (
-                                            <span key={hostIndex} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                                              {typeof host === 'string' ? host : host.email}
-                                            </span>
-                                          ))}
+                                          {site.recordingHosts.map((host, hostIndex) => {
+                                            const hostEmail = typeof host === 'string' ? host : host?.email || '[object Object]';
+                                            return (
+                                              <span key={hostIndex} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                                                {hostEmail}
+                                              </span>
+                                            );
+                                          })}
                                         </div>
                                       </div>
                                     </div>
@@ -3082,7 +3085,7 @@ export default function SettingsPage() {
                                           refreshToken: '',
                                           clientId: '',
                                           clientSecret: '',
-                                          recordingHosts: [...site.recordingHosts]
+                                          recordingHosts: site.recordingHosts.map(host => typeof host === 'string' ? host : host.email || '')
                                         });
                                         setShowAddSite(true);
                                       }}
@@ -4138,13 +4141,19 @@ export default function SettingsPage() {
                       if (editingSiteIndex !== null) {
                         console.log('🔧 [MODAL-SAVE] Edit mode - validating fields');
                         // Edit mode - validate required fields except tokens if blank
-                        if (!newSite.siteUrl || newSite.recordingHosts.some(host => !host.trim())) {
+                        if (!newSite.siteUrl || newSite.recordingHosts.some(host => {
+                          const hostEmail = typeof host === 'string' ? host : host?.email || '';
+                          return !hostEmail.trim();
+                        })) {
                           console.log('❌ [MODAL-SAVE] Validation failed - missing required fields');
                           alert('Please fill in all required fields');
                           return;
                         }
                         
-                        const filteredHosts = newSite.recordingHosts.filter(host => host.trim());
+                        const filteredHosts = newSite.recordingHosts.filter(host => {
+                          const hostEmail = typeof host === 'string' ? host : host?.email || '';
+                          return hostEmail.trim();
+                        }).map(host => typeof host === 'string' ? host : host.email);
                         console.log('🔧 [MODAL-SAVE] Filtered hosts:', filteredHosts);
                         
                         const updatedSites = [...webexMeetingsSites];
@@ -4204,13 +4213,19 @@ export default function SettingsPage() {
                       } else {
                         console.log('🔧 [MODAL-SAVE] Add mode - validating all fields');
                         // Add mode - validate all required fields
-                        if (!newSite.siteUrl || !newSite.accessToken || !newSite.refreshToken || !newSite.clientId || !newSite.clientSecret || newSite.recordingHosts.some(host => !host.trim())) {
+                        if (!newSite.siteUrl || !newSite.accessToken || !newSite.refreshToken || !newSite.clientId || !newSite.clientSecret || newSite.recordingHosts.some(host => {
+                          const hostEmail = typeof host === 'string' ? host : host?.email || '';
+                          return !hostEmail.trim();
+                        })) {
                           console.log('❌ [MODAL-SAVE] Validation failed - missing required fields');
                           alert('Please fill in all required fields');
                           return;
                         }
                         
-                        const filteredHosts = newSite.recordingHosts.filter(host => host.trim());
+                        const filteredHosts = newSite.recordingHosts.filter(host => {
+                          const hostEmail = typeof host === 'string' ? host : host?.email || '';
+                          return hostEmail.trim();
+                        }).map(host => typeof host === 'string' ? host : host.email);
                         console.log('🔧 [MODAL-SAVE] Filtered hosts:', filteredHosts);
                         
                         const newSiteData = {...newSite, recordingHosts: filteredHosts};
