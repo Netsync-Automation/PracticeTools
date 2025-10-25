@@ -155,9 +155,61 @@ export async function POST(request) {
       throw new Error(`No valid access token available for site: ${matchingSite.siteUrl}`);
     }
     
+    // Fetch recording details from Webex API to get download URL
+    // Need to specify hostEmail parameter for admin access to recordings
+    let hostEmail = data.hostEmail || matchingSite.recordingHosts.find(h => h.userId === data.hostUserId)?.email;
+    
+    console.log('🎥 [RECORDINGS-WEBHOOK] Available webhook fields:', Object.keys(data));
+    console.log('🎥 [RECORDINGS-WEBHOOK] Host identification:', {
+      webhookHostEmail: data.hostEmail,
+      webhookHostUserId: data.hostUserId,
+      resolvedHostEmail: hostEmail
+    });
+    
+    let recordingResponse;
+    
+    if (hostEmail) {
+      // Try with hostEmail parameter first
+      console.log('🎥 [RECORDINGS-WEBHOOK] Fetching recording details for ID:', data.id, 'with hostEmail:', hostEmail);
+      recordingResponse = await fetch(`https://webexapis.com/v1/recordings/${data.id}?hostEmail=${encodeURIComponent(hostEmail)}`, {
+        headers: { 'Authorization': `Bearer ${validAccessToken}` }
+      });
+    } else {
+      // Fallback: try each configured recording host email until one works
+      console.log('🎥 [RECORDINGS-WEBHOOK] No hostEmail available, trying each configured host...');
+      
+      for (const host of matchingSite.recordingHosts) {
+        console.log('🎥 [RECORDINGS-WEBHOOK] Trying hostEmail:', host.email);
+        recordingResponse = await fetch(`https://webexapis.com/v1/recordings/${data.id}?hostEmail=${encodeURIComponent(host.email)}`, {
+          headers: { 'Authorization': `Bearer ${validAccessToken}` }
+        });
+        
+        if (recordingResponse.ok) {
+          hostEmail = host.email;
+          console.log('🎥 [RECORDINGS-WEBHOOK] Success with hostEmail:', hostEmail);
+          break;
+        } else {
+          console.log('🎥 [RECORDINGS-WEBHOOK] Failed with hostEmail:', host.email, 'Status:', recordingResponse.status);
+        }
+      }
+    }
+    
+    if (!recordingResponse.ok) {
+      const errorText = await recordingResponse.text();
+      throw new Error(`Failed to fetch recording details with all available hostEmails. Last attempt status: ${recordingResponse.status} ${recordingResponse.statusText}. Error: ${errorText}`);
+    }
+    
+    const recordingDetails = await recordingResponse.json();
+    console.log('🎥 [RECORDINGS-WEBHOOK] Recording details:', JSON.stringify(recordingDetails, null, 2));
+    
+    const downloadUrl = recordingDetails.temporaryDirectDownloadLinks?.recordingDownloadLink || recordingDetails.downloadUrl;
+    if (!downloadUrl) {
+      throw new Error('No download URL found in recording details');
+    }
+    
     // Download recording
-    console.log('🎥 [RECORDINGS-WEBHOOK] Downloading recording from:', data.downloadUrl);
-    const recordingBuffer = await downloadRecording(data.downloadUrl, validAccessToken);
+    console.log('🎥 [RECORDINGS-WEBHOOK] Downloading recording from:', downloadUrl);
+    const recordingBuffer = await downloadRecording(downloadUrl, validAccessToken);
     console.log('🎥 [RECORDINGS-WEBHOOK] Recording downloaded, size:', recordingBuffer.byteLength, 'bytes');
     
     // Upload to S3
