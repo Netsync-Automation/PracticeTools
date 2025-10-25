@@ -172,12 +172,15 @@ export async function POST(request) {
           targetUrl: `${baseUrl}/api/webhooks/webexmeetings/transcripts`,
           resource: 'meetingTranscripts',
           event: 'created',
-          ownedBy: 'org',
-          siteUrl: site.siteUrl
+          ownedBy: 'org'
         };
         
         try {
           console.log('🔧 [WEBHOOK-MGMT] Creating transcripts webhook with payload:', JSON.stringify(transcriptsPayload, null, 2));
+          console.log('🔧 [WEBHOOK-MGMT] Request headers:', {
+            'Authorization': `Bearer ${accessToken.substring(0, 20)}...`,
+            'Content-Type': 'application/json'
+          });
           transcriptsWebhook = await fetch('https://webexapis.com/v1/webhooks', {
             method: 'POST',
             headers: {
@@ -187,6 +190,7 @@ export async function POST(request) {
             body: JSON.stringify(transcriptsPayload)
           });
           console.log('🔧 [WEBHOOK-MGMT] Transcripts webhook response status:', transcriptsWebhook.status);
+          console.log('🔧 [WEBHOOK-MGMT] Transcripts webhook response headers:', Object.fromEntries(transcriptsWebhook.headers.entries()));
         } catch (fetchError) {
           console.error('🔧 [WEBHOOK-MGMT] Network error creating transcripts webhook:', fetchError);
           results.push({ site: site.siteName || site.siteUrl, status: 'error', error: `Network error creating transcripts webhook: ${fetchError.message}` });

@@ -104,8 +104,18 @@ export async function POST(request) {
       const result = await docClient.send(getCommand);
       recording = result.Item;
     } catch (error) {
-      // Try to find by scanning for meetingInstanceId if direct lookup fails
-      console.log('Recording not found by meetingId, transcript may be orphaned');
+      console.log('📝 [TRANSCRIPTS-WEBHOOK] Recording not found by meetingId, transcript may be orphaned');
+      await logWebhookActivity({
+        webhookType: 'transcripts',
+        siteUrl: 'unknown',
+        meetingId: data.meetingId,
+        status: 'warning',
+        message: 'No matching recording found for transcript',
+        processingDetails: 'Recording lookup failed',
+        databaseAction: 'none',
+        s3Upload: false,
+        sseNotification: false
+      });
       return NextResponse.json({ message: 'No matching recording found' }, { status: 200 });
     }
 
@@ -130,11 +140,34 @@ export async function POST(request) {
     }
     
     console.log('📝 [TRANSCRIPTS-WEBHOOK] Found matching recording:', recording.id);
+    console.log('📝 [TRANSCRIPTS-WEBHOOK] Recording host:', recording.hostUserId, recording.hostEmail);
 
-    // Find matching site configuration
-    const matchingSite = config.sites.find(site => site.siteUrl === recording.siteUrl);
-    if (!matchingSite) {
-      return NextResponse.json({ message: 'Site configuration not found' }, { status: 200 });
+    // Check if this recording is from a configured host (filter at processing level)
+    let matchingSite = null;
+    let isConfiguredHost = false;
+    
+    for (const site of config.sites) {
+      if (site.recordingHosts.some(host => host.userId === recording.hostUserId)) {
+        matchingSite = site;
+        isConfiguredHost = true;
+        break;
+      }
+    }
+    
+    if (!isConfiguredHost) {
+      console.log('📝 [TRANSCRIPTS-WEBHOOK] Skipping transcript - not from configured host:', recording.hostUserId);
+      await logWebhookActivity({
+        webhookType: 'transcripts',
+        siteUrl: recording.siteUrl,
+        meetingId: data.meetingId,
+        status: 'skipped',
+        message: 'Transcript not from configured recording host',
+        processingDetails: `Host ${recording.hostUserId} not in configured hosts`,
+        databaseAction: 'none',
+        s3Upload: false,
+        sseNotification: false
+      });
+      return NextResponse.json({ message: 'Transcript skipped - not from configured host' }, { status: 200 });
     }
 
     // Get valid access token for the site
