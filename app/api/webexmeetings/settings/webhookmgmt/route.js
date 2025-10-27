@@ -203,7 +203,7 @@ export async function POST(request) {
           targetUrl: `${baseUrl}/api/webhooks/webexmeetings/recordings`,
           resource: 'recordings',
           event: 'created',
-          ownedBy: 'creator'
+          ownedBy: 'org'
         };
         console.log('🔧 [WEBHOOK-MGMT] Recordings webhook payload:', recordingsPayload);
         
@@ -230,7 +230,7 @@ export async function POST(request) {
           targetUrl: `${baseUrl}/api/webhooks/webexmeetings/transcripts`,
           resource: 'meetingTranscripts',
           event: 'created',
-          ownedBy: 'creator'
+          ownedBy: 'org'
         };
         
         try {
