@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getTableName } from '../../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
-import { getSecureParameter } from '../../../../../lib/ssm-config';
+import { getSecureParameter, setSecureParameter } from '../../../../../lib/ssm-config';
 import { getEnvironment } from '../../../../../lib/dynamodb';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
@@ -108,8 +108,67 @@ export async function POST(request) {
         refreshTokenParam
       });
       
-      const accessToken = await getSecureParameter(accessTokenParam);
+      let accessToken = await getSecureParameter(accessTokenParam);
       const refreshToken = await getSecureParameter(refreshTokenParam);
+      
+      // Get client credentials for token refresh
+      const clientIdParam = env === 'prod' 
+        ? `/PracticeTools/${siteName}_WEBEX_MEETINGS_CLIENT_ID`
+        : `/PracticeTools/dev/${siteName}_WEBEX_MEETINGS_CLIENT_ID`;
+      const clientSecretParam = env === 'prod'
+        ? `/PracticeTools/${siteName}_WEBEX_MEETINGS_CLIENT_SECRET`
+        : `/PracticeTools/dev/${siteName}_WEBEX_MEETINGS_CLIENT_SECRET`;
+      
+      const clientId = await getSecureParameter(clientIdParam);
+      const clientSecret = await getSecureParameter(clientSecretParam);
+      
+      // Test if access token is valid, refresh if needed
+      if (accessToken && refreshToken && clientId && clientSecret) {
+        console.log('🔧 [WEBHOOK-MGMT] Testing access token validity for:', site.siteUrl);
+        const testResponse = await fetch('https://webexapis.com/v1/people/me', {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        
+        if (!testResponse.ok) {
+          console.log('🔧 [WEBHOOK-MGMT] Access token invalid, refreshing for:', site.siteUrl);
+          try {
+            const refreshResponse = await fetch('https://webexapis.com/v1/access_token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                grant_type: 'refresh_token',
+                client_id: clientId,
+                client_secret: clientSecret,
+                refresh_token: refreshToken
+              })
+            });
+            
+            if (refreshResponse.ok) {
+              const tokenData = await refreshResponse.json();
+              accessToken = tokenData.access_token;
+              
+              // Save new tokens to SSM
+              await setSecureParameter(accessTokenParam, accessToken);
+              if (tokenData.refresh_token) {
+                await setSecureParameter(refreshTokenParam, tokenData.refresh_token);
+              }
+              
+              console.log('🔧 [WEBHOOK-MGMT] Successfully refreshed access token for:', site.siteUrl);
+            } else {
+              const errorData = await refreshResponse.json();
+              console.error('🔧 [WEBHOOK-MGMT] Token refresh failed for:', site.siteUrl, errorData);
+              results.push({ site: site.siteName || site.siteUrl, status: 'error', error: 'Token refresh failed' });
+              continue;
+            }
+          } catch (refreshError) {
+            console.error('🔧 [WEBHOOK-MGMT] Token refresh error for:', site.siteUrl, refreshError);
+            results.push({ site: site.siteName || site.siteUrl, status: 'error', error: 'Token refresh error' });
+            continue;
+          }
+        } else {
+          console.log('🔧 [WEBHOOK-MGMT] Access token is valid for:', site.siteUrl);
+        }
+      }
       
       console.log('🔧 [WEBHOOK-MGMT] Site details:', {
         siteUrl: site.siteUrl,
