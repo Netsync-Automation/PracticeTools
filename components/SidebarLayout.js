@@ -148,7 +148,7 @@ const menuItems = [
       {
         id: 'settings',
         name: 'Settings',
-        href: '/admin/settings',
+        href: '/admin/settings/general-settings',
         description: 'Configure application settings'
       }
     ]

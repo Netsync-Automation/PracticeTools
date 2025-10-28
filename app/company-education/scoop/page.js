@@ -15,7 +15,8 @@ export default function ScoopPage() {
 
   useEffect(() => {
     fetchRecordings();
-    setupSSE();
+    const cleanup = setupSSE();
+    return cleanup;
   }, []);
 
   const fetchRecordings = async () => {
