@@ -110,5 +110,3 @@ run:
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/NETSYNC_WEBEX_MEETINGS_CLIENT_ID
     - name: NETSYNC_WEBEX_MEETINGS_CLIENT_SECRET
       value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/NETSYNC_WEBEX_MEETINGS_CLIENT_SECRET
-    - name: CRON_SECRET
-      value-from: arn:aws:ssm:us-east-1:501399536130:parameter/PracticeTools/CRON_SECRET

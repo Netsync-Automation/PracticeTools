@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-apprunner": "^3.876.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.919.0",
     "@aws-sdk/client-dynamodb": "^3.888.0",
     "@aws-sdk/client-s3": "^3.450.0",
     "@aws-sdk/client-ssm": "^3.876.0",
@@ -48,6 +49,7 @@
     "googleapis": "^159.0.0",
     "httpntlm": "^1.8.13",
     "js-yaml": "^4.1.0",
+    "jsonwebtoken": "^9.0.2",
     "libphonenumber-js": "^1.10.51",
     "microsoft-graph": "^3.11.20",
     "next": "^14.2.32",
@@ -58,8 +60,7 @@
     "readline-sync": "^1.4.10",
     "saml2-js": "^4.0.4",
     "sharp": "^0.33.0",
-    "uuid": "^9.0.1",
-    "jsonwebtoken": "^9.0.2"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@semantic-release/commit-analyzer": "^11.1.0",

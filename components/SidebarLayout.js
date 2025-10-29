@@ -130,10 +130,16 @@ const menuItems = [
     description: 'Training and educational resources',
     submenu: [
       {
-        id: 'scoop',
-        name: 'SCOOP',
-        href: '/company-education/scoop',
-        description: 'SCOOP training and data management'
+        id: 'chatnpt',
+        name: 'ChatNPT',
+        href: '/company-education/chatnpt',
+        description: 'ChatNPT AI assistant'
+      },
+      {
+        id: 'webex-recordings',
+        name: 'WebEx Recordings',
+        href: '/company-education/webex-recordings',
+        description: 'WebEx meeting recordings and transcripts'
       }
     ]
   },

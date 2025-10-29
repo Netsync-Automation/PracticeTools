@@ -1,8 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/transcript-retry",
-      "schedule": "*/5 * * * *"
-    }
-  ]
-}
+{}

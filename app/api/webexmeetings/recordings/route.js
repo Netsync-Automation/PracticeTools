@@ -27,6 +27,8 @@ export async function GET() {
       transcriptStatus: item.transcriptText ? 'available' : 'pending',
       transcriptS3Url: item.transcriptS3Url || null,
       status: item.status,
+      approved: item.approved || false,
+      approvedAt: item.approvedAt || null,
       created_at: item.created_at,
       updated_at: item.updated_at
     }));
