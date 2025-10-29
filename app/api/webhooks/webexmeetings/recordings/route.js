@@ -234,7 +234,8 @@ export async function POST(request) {
       s3Key,
       s3Url: `https://${process.env.S3_BUCKET}.s3.amazonaws.com/${s3Key}`,
       downloadUrl: `/api/webexmeetings/recordings/${data.id}/download`,
-      status: 'processing',
+      status: 'available',
+      transcriptRetryCount: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -260,20 +261,11 @@ export async function POST(request) {
 
     // Try to get transcript immediately
     try {
-      const transcriptResponse = await fetch(
-        `https://webexapis.com/v1/meetingTranscripts?meetingId=${data.meetingId}`,
-        { headers: { 'Authorization': `Bearer ${validAccessToken}` } }
-      );
-      
-      if (transcriptResponse.ok) {
-        const transcripts = await transcriptResponse.json();
-        if (transcripts.items?.length > 0) {
-          const transcript = transcripts.items[0];
-          await processTranscript(transcript, recordingData, validAccessToken);
-        }
-      }
+      await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webexmeetings/recordings/${data.id}/transcript`, {
+        method: 'POST'
+      });
     } catch (error) {
-      console.log('Transcript not immediately available:', error.message);
+      console.log('Transcript fetch initiated:', error.message);
     }
 
     console.log('🎥 [RECORDINGS-WEBHOOK] Processing completed successfully');

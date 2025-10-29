@@ -24,7 +24,7 @@ export async function GET() {
       createTime: item.createTime,
       s3Url: item.s3Url,
       downloadUrl: item.downloadUrl,
-      transcriptStatus: item.transcriptId ? 'available' : 'pending',
+      transcriptStatus: item.transcriptText ? 'available' : 'pending',
       transcriptS3Url: item.transcriptS3Url || null,
       status: item.status,
       created_at: item.created_at,

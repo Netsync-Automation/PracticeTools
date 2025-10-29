@@ -12,6 +12,8 @@ export default function ScoopPage() {
   const [activeTab, setActiveTab] = useState('approve-recordings');
   const [recordings, setRecordings] = useState([]);
   const [loadingRecordings, setLoadingRecordings] = useState(true);
+  const [selectedTranscript, setSelectedTranscript] = useState(null);
+  const [showTranscriptModal, setShowTranscriptModal] = useState(false);
 
   useEffect(() => {
     fetchRecordings();
@@ -62,6 +64,19 @@ export default function ScoopPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleViewTranscript = async (recordingId) => {
+    try {
+      const response = await fetch(`/api/webexmeetings/recordings/${recordingId}/transcript`);
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedTranscript(data);
+        setShowTranscriptModal(true);
+      }
+    } catch (error) {
+      console.error('Error fetching transcript:', error);
+    }
   };
 
   if (loading) {
@@ -155,13 +170,22 @@ export default function ScoopPage() {
                                 {formatDate(recording.createTime)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  recording.transcriptStatus === 'available'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                  {recording.transcriptStatus}
-                                </span>
+                                {recording.transcriptStatus === 'available' ? (
+                                  <button
+                                    onClick={() => handleViewTranscript(recording.id)}
+                                    className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer"
+                                  >
+                                    Available
+                                  </button>
+                                ) : (
+                                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    recording.transcriptStatus === 'No Transcript'
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-yellow-100 text-yellow-800'
+                                  }`}>
+                                    {recording.transcriptStatus || 'pending'}
+                                  </span>
+                                )}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <button
@@ -183,6 +207,27 @@ export default function ScoopPage() {
           </div>
         </SidebarLayout>
       </div>
+
+      {showTranscriptModal && selectedTranscript && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowTranscriptModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">{selectedTranscript.topic}</h3>
+              <button
+                onClick={() => setShowTranscriptModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto flex-1">
+              <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{selectedTranscript.transcript}</pre>
+            </div>
+          </div>
+        </div>
+      )}
     </AccessCheck>
   );
 }

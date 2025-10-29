@@ -329,7 +329,7 @@ export default function CompanyEduPage() {
                 </h3>
                 
                 <p className="text-sm text-gray-600 mb-6">
-                  Manage Webex Meetings webhooks for recordings and transcripts. These webhooks notify the system when new recordings and transcripts are available.
+                  Manage Webex Meetings webhook for recordings. This webhook notifies the system when new recordings are available. Transcripts are automatically fetched via scheduled retry system.
                 </p>
                 
                 <div className="space-y-4">
@@ -351,10 +351,10 @@ export default function CompanyEduPage() {
                         const errorCount = data.results?.filter(r => r.status === 'error').length || 0;
                         
                         if (successCount > 0) {
-                          alert(`✅ Successfully created webhooks for ${successCount} site(s)!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
+                          alert(`✅ Successfully created webhook for ${successCount} site(s)!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
                         } else {
                           const errorDetails = data.results?.filter(r => r.status === 'error').map(r => `${r.site}: ${r.error}`).join('\\n') || 'Unknown error';
-                          alert(`❌ Failed to create webhooks:\\n\\n${errorDetails}`);
+                          alert(`❌ Failed to create webhook:\\n\\n${errorDetails}`);
                         }
                       } catch (error) {
                         alert('❌ Error creating webhooks');
@@ -368,14 +368,14 @@ export default function CompanyEduPage() {
                     {processingWebhooks && webhookAction === 'create' ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Creating Webhooks...
+                        Creating Webhook...
                       </>
                     ) : (
                       <>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        Create Webhooks
+                        Create Webhook
                       </>
                     )}
                   </button>
@@ -407,21 +407,21 @@ export default function CompanyEduPage() {
                     {processingWebhooks && webhookAction === 'validate' ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Validating Webhooks...
+                        Validating Webhook...
                       </>
                     ) : (
                       <>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Validate Webhooks
+                        Validate Webhook
                       </>
                     )}
                   </button>
                   
                   <button
                     onClick={async () => {
-                      if (!confirm('⚠️ Are you sure you want to delete all webhooks? This will stop automatic recording and transcript processing.')) {
+                      if (!confirm('⚠️ Are you sure you want to delete the webhook? This will stop automatic recording processing.')) {
                         return;
                       }
                       
@@ -441,9 +441,9 @@ export default function CompanyEduPage() {
                         const errorCount = data.results?.filter(r => r.status === 'error').length || 0;
                         
                         if (deletedCount > 0) {
-                          alert(`🗑️ Successfully deleted webhooks for ${deletedCount} site(s)!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
+                          alert(`🗑️ Successfully deleted webhook for ${deletedCount} site(s)!${errorCount > 0 ? ` (${errorCount} failed)` : ''}`);
                         } else {
-                          alert('❌ Failed to delete webhooks.');
+                          alert('❌ Failed to delete webhook.');
                         }
                       } catch (error) {
                         alert('❌ Error deleting webhooks');
@@ -457,24 +457,23 @@ export default function CompanyEduPage() {
                     {processingWebhooks && webhookAction === 'delete' ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Deleting Webhooks...
+                        Deleting Webhook...
                       </>
                     ) : (
                       <>
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        Delete Webhooks
+                        Delete Webhook
                       </>
                     )}
                   </button>
                 </div>
                 
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Webhook URLs:</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Webhook URL:</h4>
                   <div className="space-y-1 text-xs text-gray-600">
                     <div>Recordings: <code className="bg-white px-1 rounded">{typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/webhooks/webexmeetings/recordings</code></div>
-                    <div>Transcripts: <code className="bg-white px-1 rounded">{typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/webhooks/webexmeetings/transcripts</code></div>
                   </div>
                 </div>
                 
@@ -830,34 +829,23 @@ export default function CompanyEduPage() {
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-green-800">Complete Setup</span>
+                      <span className="text-sm font-medium text-green-800">Active</span>
                     </div>
                     <div className="text-2xl font-bold text-green-900 mt-1">
-                      {validationResults.filter(r => r.hasBothWebhooks).length}
+                      {validationResults.filter(r => r.hasWebhooks).length}
                     </div>
-                    <div className="text-xs text-green-600">Sites with both webhooks</div>
-                  </div>
-                  
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-yellow-800">Partial Setup</span>
-                    </div>
-                    <div className="text-2xl font-bold text-yellow-900 mt-1">
-                      {validationResults.filter(r => r.hasWebhooks && !r.hasBothWebhooks).length}
-                    </div>
-                    <div className="text-xs text-yellow-600">Sites missing webhooks</div>
+                    <div className="text-xs text-green-600">Sites with webhook</div>
                   </div>
                   
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-red-800">No Setup</span>
+                      <span className="text-sm font-medium text-red-800">Inactive</span>
                     </div>
                     <div className="text-2xl font-bold text-red-900 mt-1">
                       {validationResults.filter(r => !r.hasWebhooks).length}
                     </div>
-                    <div className="text-xs text-red-600">Sites without webhooks</div>
+                    <div className="text-xs text-red-600">Sites without webhook</div>
                   </div>
                 </div>
                 
@@ -865,95 +853,62 @@ export default function CompanyEduPage() {
                   <div className="space-y-4">
                     {validationResults.map((result, index) => (
                       <div key={index} className={`border rounded-lg p-4 ${
-                        result.hasBothWebhooks ? 'border-green-200 bg-green-50' :
-                        result.hasWebhooks ? 'border-yellow-200 bg-yellow-50' :
-                        'border-red-200 bg-red-50'
+                        result.hasWebhooks ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
                       }`}>
                         <div className="flex justify-between items-start mb-3">
                           <h4 className="font-semibold text-gray-900 flex items-center gap-2">
                             <span className={`w-3 h-3 rounded-full ${
-                              result.hasBothWebhooks ? 'bg-green-500' :
-                              result.hasWebhooks ? 'bg-yellow-500' :
-                              'bg-red-500'
+                              result.hasWebhooks ? 'bg-green-500' : 'bg-red-500'
                             }`}></span>
                             {result.site}
                           </h4>
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            result.hasBothWebhooks ? 'bg-green-100 text-green-800' :
-                            result.hasWebhooks ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
+                            result.hasWebhooks ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`}>
-                            {result.hasBothWebhooks ? 'Complete' : result.hasWebhooks ? 'Partial' : 'Missing'}
+                            {result.hasWebhooks ? 'Active' : 'Missing'}
                           </span>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              WebEx Registration
-                            </h5>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex items-center gap-2">
-                                {result.webhookDetails?.recordings ? (
-                                  <span className="text-green-600">✓</span>
-                                ) : (
-                                  <span className="text-red-600">✗</span>
-                                )}
-                                <span>Recordings Webhook</span>
-                                {result.webhookDetails?.recordings && (
-                                  <span className="text-xs text-gray-500">({result.webhookDetails.recordings.status})</span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {result.webhookDetails?.transcripts ? (
-                                  <span className="text-green-600">✓</span>
-                                ) : (
-                                  <span className="text-red-600">✗</span>
-                                )}
-                                <span>Transcripts Webhook</span>
-                                {result.webhookDetails?.transcripts && (
-                                  <span className="text-xs text-gray-500">({result.webhookDetails.transcripts.status})</span>
-                                )}
-                              </div>
+                        <div className="space-y-2">
+                          <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Webhook Status
+                          </h5>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex items-center gap-2">
+                              {result.webhookDetails?.recordings ? (
+                                <span className="text-green-600">✓</span>
+                              ) : (
+                                <span className="text-red-600">✗</span>
+                              )}
+                              <span>Recordings Webhook</span>
+                              {result.webhookDetails?.recordings && (
+                                <span className="text-xs text-gray-500">({result.webhookDetails.recordings.status})</span>
+                              )}
                             </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <h5 className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                              </svg>
-                              System Health
-                            </h5>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex items-center gap-2">
-                                {result.connectivity?.[0]?.reachable ? (
-                                  <span className="text-green-600">✓</span>
-                                ) : (
-                                  <span className="text-red-600">✗</span>
-                                )}
-                                <span>Endpoint Connectivity</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-blue-600">📊</span>
-                                <span>Total WebEx Webhooks: {result.totalWebhooksInWebEx || 0}</span>
-                              </div>
+                            <div className="flex items-center gap-2">
+                              {result.connectivity?.[0]?.reachable ? (
+                                <span className="text-green-600">✓</span>
+                              ) : (
+                                <span className="text-red-600">✗</span>
+                              )}
+                              <span>Endpoint Connectivity</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-600">📊</span>
+                              <span>Total WebEx Webhooks: {result.totalWebhooksInWebEx || 0}</span>
                             </div>
                           </div>
                         </div>
                         
-                        {!result.hasBothWebhooks && (
+                        {!result.hasWebhooks && (
                           <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
                             <h6 className="text-sm font-medium text-blue-800 mb-1">Recommended Actions:</h6>
                             <ul className="text-xs text-blue-700 space-y-1">
                               {!result.webhookDetails?.recordings && (
-                                <li>• Create recordings webhook using "Create Webhooks" button</li>
-                              )}
-                              {!result.webhookDetails?.transcripts && (
-                                <li>• Create transcripts webhook using "Create Webhooks" button</li>
+                                <li>• Create recordings webhook using "Create Webhook" button</li>
                               )}
                               {!result.connectivity?.[0]?.reachable && (
                                 <li>• Check network connectivity and firewall settings</li>
