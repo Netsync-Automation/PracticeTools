@@ -177,8 +177,7 @@ export async function POST(request) {
         accessTokenLength: accessToken?.length,
         hasRefreshToken: !!refreshToken,
         recordingHosts: site.recordingHosts,
-        existingRecordingWebhookId: site.recordingWebhookId,
-        existingTranscriptWebhookId: site.transcriptWebhookId
+        existingRecordingWebhookId: site.recordingWebhookId
       });
       
       if (!accessToken) {
@@ -193,6 +192,32 @@ export async function POST(request) {
       }
       
       console.log('🔧 [WEBHOOK-MGMT] Successfully loaded tokens from SSM for:', site.siteUrl);
+      
+      // Load monitored rooms from SSM if not already in site object
+      if (!site.monitoredRooms) {
+        const monitoredRooms = [];
+        let roomIndex = 1;
+        while (true) {
+          const roomNameParam = env === 'prod'
+            ? `/PracticeTools/${siteName}_WEBEX_MESSAGING_ROOM_NAME_${roomIndex}`
+            : `/PracticeTools/dev/${siteName}_WEBEX_MESSAGING_ROOM_NAME_${roomIndex}`;
+          const roomIdParam = env === 'prod'
+            ? `/PracticeTools/${siteName}_WEBEX_MESSAGING_ROOM_ID_${roomIndex}`
+            : `/PracticeTools/dev/${siteName}_WEBEX_MESSAGING_ROOM_ID_${roomIndex}`;
+          
+          const roomName = await getSecureParameter(roomNameParam);
+          const roomId = await getSecureParameter(roomIdParam);
+          
+          if (!roomName || !roomId) break;
+          
+          monitoredRooms.push({ title: roomName, id: roomId });
+          roomIndex++;
+        }
+        if (monitoredRooms.length > 0) {
+          site.monitoredRooms = monitoredRooms;
+          console.log('🔧 [WEBHOOK-MGMT] Loaded monitored rooms from SSM:', monitoredRooms.length);
+        }
+      }
       
       if (action === 'create') {
         console.log('🔧 [WEBHOOK-MGMT] Creating webhooks for:', site.siteUrl);
@@ -214,41 +239,51 @@ export async function POST(request) {
         if (site.monitoredRooms && site.monitoredRooms.length > 0) {
           console.log('🔧 [WEBHOOK-MGMT] Creating messaging webhooks for', site.monitoredRooms.length, 'rooms');
           
-          for (const room of site.monitoredRooms) {
-            // Skip if webhook already exists for this room
-            if (messagingWebhookIds.find(w => w.roomId === room.id)) {
-              console.log('🔧 [WEBHOOK-MGMT] Messaging webhook already exists for room:', room.title);
-              continue;
-            }
-            
-            const messagingPayload = {
-              name: `PracticeTools Messages - ${room.title}`,
-              targetUrl: `${baseUrl}/api/webhooks/webexmessaging/messages`,
-              resource: 'messages',
-              event: 'created',
-              filter: `roomId=${room.id}`
-            };
-            
-            try {
-              const messagingWebhook = await fetch('https://webexapis.com/v1/webhooks', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${accessToken}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(messagingPayload)
-              });
-              
-              if (messagingWebhook.ok) {
-                const messagingResult = await messagingWebhook.json();
-                messagingWebhookIds.push({ roomId: room.id, webhookId: messagingResult.id });
-                console.log('🔧 [WEBHOOK-MGMT] Created messaging webhook for room:', room.title);
-              } else {
-                const error = await messagingWebhook.json();
-                console.error('🔧 [WEBHOOK-MGMT] Failed to create messaging webhook for room:', room.title, error);
+          // Get bot token for messaging webhooks
+          const botTokenParam = env === 'prod'
+            ? `/PracticeTools/${siteName}_WEBEX_MESSAGING_BOT_TOKEN_1`
+            : `/PracticeTools/dev/${siteName}_WEBEX_MESSAGING_BOT_TOKEN_1`;
+          const botToken = await getSecureParameter(botTokenParam);
+          
+          if (!botToken) {
+            console.error('🔧 [WEBHOOK-MGMT] No bot token found, skipping messaging webhooks');
+          } else {
+            for (const room of site.monitoredRooms) {
+              // Skip if webhook already exists for this room
+              if (messagingWebhookIds.find(w => w.roomId === room.id)) {
+                console.log('🔧 [WEBHOOK-MGMT] Messaging webhook already exists for room:', room.title);
+                continue;
               }
-            } catch (error) {
-              console.error('🔧 [WEBHOOK-MGMT] Error creating messaging webhook:', error);
+              
+              const messagingPayload = {
+                name: `PracticeTools Messages - ${room.title}`,
+                targetUrl: `${baseUrl}/api/webhooks/webexmessaging/messages`,
+                resource: 'messages',
+                event: 'created',
+                filter: `roomId=${room.id}`
+              };
+              
+              try {
+                const messagingWebhook = await fetch('https://webexapis.com/v1/webhooks', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${botToken}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(messagingPayload)
+                });
+                
+                if (messagingWebhook.ok) {
+                  const messagingResult = await messagingWebhook.json();
+                  messagingWebhookIds.push({ roomId: room.id, webhookId: messagingResult.id });
+                  console.log('🔧 [WEBHOOK-MGMT] Created messaging webhook for room:', room.title);
+                } else {
+                  const error = await messagingWebhook.json();
+                  console.error('🔧 [WEBHOOK-MGMT] Failed to create messaging webhook for room:', room.title, error);
+                }
+              } catch (error) {
+                console.error('🔧 [WEBHOOK-MGMT] Error creating messaging webhook:', error);
+              }
             }
           }
         }
@@ -362,15 +397,22 @@ export async function POST(request) {
         }
         
         if (site.messagingWebhookIds && site.messagingWebhookIds.length > 0) {
-          for (const webhook of site.messagingWebhookIds) {
-            try {
-              const deleteMessaging = await fetch(`https://webexapis.com/v1/webhooks/${webhook.webhookId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-              });
-              if (deleteMessaging.ok) messagingDeleteCount++;
-            } catch (error) {
-              console.error('Error deleting messaging webhook:', error.message);
+          const botTokenParam = env === 'prod'
+            ? `/PracticeTools/${siteName}_WEBEX_MESSAGING_BOT_TOKEN_1`
+            : `/PracticeTools/dev/${siteName}_WEBEX_MESSAGING_BOT_TOKEN_1`;
+          const botToken = await getSecureParameter(botTokenParam);
+          
+          if (botToken) {
+            for (const webhook of site.messagingWebhookIds) {
+              try {
+                const deleteMessaging = await fetch(`https://webexapis.com/v1/webhooks/${webhook.webhookId}`, {
+                  method: 'DELETE',
+                  headers: { 'Authorization': `Bearer ${botToken}` }
+                });
+                if (deleteMessaging.ok) messagingDeleteCount++;
+              } catch (error) {
+                console.error('Error deleting messaging webhook:', error.message);
+              }
             }
           }
         }
@@ -378,7 +420,6 @@ export async function POST(request) {
         console.log('🔧 [WEBHOOK-MGMT] Delete result:', { deleteSuccess, messagingDeleteCount });
         if (deleteSuccess || messagingDeleteCount > 0) {
           delete site.recordingWebhookId;
-          delete site.transcriptWebhookId;
           delete site.messagingWebhookIds;
           console.log('🔧 [WEBHOOK-MGMT] Successfully deleted webhooks for:', site.siteUrl);
           results.push({ site: site.siteName || site.siteUrl, status: 'deleted', messagingDeleteCount });
@@ -390,7 +431,7 @@ export async function POST(request) {
       } else if (action === 'validate') {
         console.log('🔧 [WEBHOOK-MGMT] Validating webhooks for:', site.siteUrl);
         
-        // Get all webhooks from WebEx to verify configuration
+        // Get all webhooks from Meetings token
         let allWebhooksResponse;
         try {
           allWebhooksResponse = await fetch('https://webexapis.com/v1/webhooks', {
@@ -421,18 +462,37 @@ export async function POST(request) {
         const allWebhooksData = await allWebhooksResponse.json();
         const allWebhooks = allWebhooksData.items || [];
         
-        // Find recordings webhook by URL and siteUrl
+        // Find recordings webhook
         const recordingsWebhook = allWebhooks.find(w => 
           w.targetUrl === `${baseUrl}/api/webhooks/webexmeetings/recordings` &&
           w.resource === 'recordings' &&
           (w.siteUrl === site.siteUrl || w.name.includes(site.siteName || site.siteUrl))
         );
         
-        const messagingWebhooks = allWebhooks.filter(w =>
-          w.targetUrl === `${baseUrl}/api/webhooks/webexmessaging/messages` &&
-          w.resource === 'messages' &&
-          w.event === 'created'
-        );
+        // Get messaging webhooks using bot token
+        let messagingWebhooks = [];
+        const botTokenParam = env === 'prod'
+          ? `/PracticeTools/${siteName}_WEBEX_MESSAGING_BOT_TOKEN_1`
+          : `/PracticeTools/dev/${siteName}_WEBEX_MESSAGING_BOT_TOKEN_1`;
+        const botToken = await getSecureParameter(botTokenParam);
+        
+        if (botToken) {
+          try {
+            const botWebhooksResponse = await fetch('https://webexapis.com/v1/webhooks', {
+              headers: { 'Authorization': `Bearer ${botToken}` }
+            });
+            if (botWebhooksResponse.ok) {
+              const botWebhooksData = await botWebhooksResponse.json();
+              messagingWebhooks = (botWebhooksData.items || []).filter(w =>
+                w.targetUrl === `${baseUrl}/api/webhooks/webexmessaging/messages` &&
+                w.resource === 'messages' &&
+                w.event === 'created'
+              );
+            }
+          } catch (error) {
+            console.error('Error fetching bot webhooks:', error);
+          }
+        }
         
         // Test connectivity to our endpoint
         const connectivityTests = [];

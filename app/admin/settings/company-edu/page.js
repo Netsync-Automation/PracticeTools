@@ -396,7 +396,7 @@ export default function CompanyEduPage() {
                 </h3>
                 
                 <p className="text-sm text-gray-600 mb-6">
-                  Manage Webex Meetings webhook for recordings. This webhook notifies the system when new recordings are available. Transcripts are automatically fetched via scheduled retry system.
+                  Manage Webex webhooks for recordings and messages. Recordings webhook notifies when new recordings are available. Messaging webhooks notify when messages are posted to monitored rooms.
                 </p>
                 
                 <div className="space-y-4">
@@ -538,9 +538,10 @@ export default function CompanyEduPage() {
                 </div>
                 
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Webhook URL:</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Webhook URLs:</h4>
                   <div className="space-y-1 text-xs text-gray-600">
                     <div>Recordings: <code className="bg-white px-1 rounded">{typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/webhooks/webexmeetings/recordings</code></div>
+                    <div>Messages: <code className="bg-white px-1 rounded">{typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/webhooks/webexmessaging/messages</code></div>
                   </div>
                 </div>
                 
@@ -1039,7 +1040,7 @@ export default function CompanyEduPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                     <h4 className="text-lg font-medium text-gray-900 mb-2">No webhook activity found</h4>
-                    <p className="text-gray-600">Webhook logs will appear here when recordings or transcripts are processed.</p>
+                    <p className="text-gray-600">Webhook logs will appear here when recordings or messages are processed.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1067,7 +1068,7 @@ export default function CompanyEduPage() {
                               log.status === 'warning' ? 'text-yellow-900' :
                               'text-green-900'
                             }`}>
-                              {log.webhookType === 'recordings' ? '🎥 Recording' : '📝 Transcript'} - {log.siteUrl}
+                              {log.webhookType === 'recordings' ? '🎥 Recording' : '💬 Message'} - {log.siteUrl}
                             </h4>
                           </div>
                           <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
