@@ -91,7 +91,7 @@ export async function POST(request, { params }) {
         await docClient.send(updateCommand);
         
         const { notifyWebexRecordingsUpdate } = await import('../../../../sse/webex-meetings/route.js');
-        notifyWebexRecordingsUpdate({ type: 'transcript_updated', recordingId: id, timestamp: Date.now() });
+        notifyWebexRecordingsUpdate();
         
         return NextResponse.json({ message: 'Max retries reached, transcript not available' });
       }
@@ -143,7 +143,7 @@ export async function POST(request, { params }) {
     await docClient.send(updateCommand);
     
     const { notifyWebexRecordingsUpdate } = await import('../../../../sse/webex-meetings/route.js');
-    notifyWebexRecordingsUpdate({ type: 'transcript_updated', recordingId: id, timestamp: Date.now() });
+    notifyWebexRecordingsUpdate();
     
     return NextResponse.json({ success: true, message: 'Transcript fetched successfully' });
   } catch (error) {

@@ -100,10 +100,9 @@ export function notifyWebexMeetingsUpdate(data) {
   }
 }
 
-export function notifyWebexRecordingsUpdate(data) {
+export function notifyWebexRecordingsUpdate() {
   const message = `data: ${JSON.stringify({
     type: 'webex_recordings_updated',
-    data,
     timestamp: Date.now()
   })}\n\n`;
 

@@ -250,13 +250,17 @@ export async function POST(request) {
     // Send SSE notification for new recording
     try {
       const { notifyWebexRecordingsUpdate } = await import('../../../sse/webex-meetings/route.js');
-      notifyWebexRecordingsUpdate({
-        type: 'recording_added',
-        recording: recordingData,
-        timestamp: Date.now()
-      });
+      notifyWebexRecordingsUpdate();
     } catch (sseError) {
       console.error('Failed to send SSE notification for new recording:', sseError);
+    }
+
+    // Send Webex notification to host for approval
+    try {
+      const { sendRecordingApprovalNotification } = await import('../../../../../lib/webex-recording-notifications.js');
+      await sendRecordingApprovalNotification(recordingData);
+    } catch (notifError) {
+      console.error('Failed to send Webex approval notification:', notifError);
     }
 
     // Try to get transcript immediately
@@ -339,11 +343,7 @@ async function processTranscript(transcript, recording, accessToken) {
     // Send SSE notification for transcript update
     try {
       const { notifyWebexRecordingsUpdate } = await import('../../../sse/webex-meetings/route.js');
-      notifyWebexRecordingsUpdate({
-        type: 'transcript_updated',
-        recordingId: recording.id,
-        timestamp: Date.now()
-      });
+      notifyWebexRecordingsUpdate();
     } catch (sseError) {
       console.error('Failed to send SSE notification for transcript update:', sseError);
     }
