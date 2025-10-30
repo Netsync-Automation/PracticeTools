@@ -261,6 +261,7 @@ export async function POST(request) {
             };
             
             try {
+              console.log('🔧 [WEBHOOK-MGMT] Messaging webhook payload:', JSON.stringify(messagingPayload, null, 2));
               const messagingWebhook = await fetch('https://webexapis.com/v1/webhooks', {
                 method: 'POST',
                 headers: {
@@ -270,16 +271,25 @@ export async function POST(request) {
                 body: JSON.stringify(messagingPayload)
               });
               
+              console.log('🔧 [WEBHOOK-MGMT] Messaging webhook response status:', messagingWebhook.status);
+              
               if (messagingWebhook.ok) {
                 const messagingResult = await messagingWebhook.json();
                 messagingWebhookIds.push({ roomId: room.id, webhookId: messagingResult.id });
-                console.log('🔧 [WEBHOOK-MGMT] Created messaging webhook for room:', room.title);
+                console.log('🔧 [WEBHOOK-MGMT] ✅ Created messaging webhook for room:', room.title, 'ID:', messagingResult.id);
               } else {
-                const error = await messagingWebhook.json();
-                console.error('🔧 [WEBHOOK-MGMT] Failed to create messaging webhook for room:', room.title, error);
+                const errorText = await messagingWebhook.text();
+                console.error('🔧 [WEBHOOK-MGMT] ❌ Failed to create messaging webhook for room:', room.title);
+                console.error('🔧 [WEBHOOK-MGMT] Status:', messagingWebhook.status);
+                console.error('🔧 [WEBHOOK-MGMT] Error response:', errorText);
+                try {
+                  const errorJson = JSON.parse(errorText);
+                  console.error('🔧 [WEBHOOK-MGMT] Error details:', JSON.stringify(errorJson, null, 2));
+                } catch (e) {}
               }
             } catch (error) {
-              console.error('🔧 [WEBHOOK-MGMT] Error creating messaging webhook:', error);
+              console.error('🔧 [WEBHOOK-MGMT] ❌ Exception creating messaging webhook:', error.message);
+              console.error('🔧 [WEBHOOK-MGMT] Stack:', error.stack);
             }
           }
         }
