@@ -31,19 +31,24 @@ async function getSiteUrlFromRoomId(roomId) {
 
 export async function POST(request) {
   try {
+    console.log('📨 [WEBEX-MESSAGING] Webhook received');
     const payload = await request.json();
+    console.log('📨 [WEBEX-MESSAGING] Payload:', JSON.stringify(payload, null, 2));
     const messageId = payload.data?.id;
     const roomId = payload.data?.roomId;
     
     if (!messageId || !roomId) {
+      console.log('📨 [WEBEX-MESSAGING] Missing messageId or roomId, skipping');
       return NextResponse.json({ success: true });
     }
     
+    console.log('📨 [WEBEX-MESSAGING] Processing message:', messageId, 'in room:', roomId);
     const siteUrl = await getSiteUrlFromRoomId(roomId);
     if (!siteUrl) {
       console.log('📨 [WEBEX-MESSAGING] Room not monitored:', roomId);
       return NextResponse.json({ success: true });
     }
+    console.log('📨 [WEBEX-MESSAGING] Found site:', siteUrl);
     
     const accessToken = await getValidAccessToken(siteUrl);
     
@@ -98,6 +103,7 @@ export async function POST(request) {
       }
     }));
     
+    console.log('📨 [WEBEX-MESSAGING] Message saved successfully:', messageId);
     notifyWebexMessagesUpdate();
     
     return NextResponse.json({ success: true });
