@@ -140,6 +140,12 @@ const menuItems = [
         name: 'WebEx Recordings',
         href: '/company-education/webex-recordings',
         description: 'WebEx meeting recordings and transcripts'
+      },
+      {
+        id: 'webex-messages',
+        name: 'WebEx Messages',
+        href: '/company-education/webex-messages',
+        description: 'WebEx messages from monitored rooms'
       }
     ]
   },

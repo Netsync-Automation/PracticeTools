@@ -24,19 +24,33 @@ export async function GET() {
     if (result.Item?.setting_value) {
       const parsedData = JSON.parse(result.Item.setting_value);
       
-      // Load valid tokens and credentials for each site
+      // Load valid tokens, credentials, and monitored rooms for each site
       const sitesWithTokens = await Promise.all(
         (parsedData.sites || []).map(async (site) => {
           try {
             const validAccessToken = await getValidAccessToken(site.siteUrl);
             const tokens = await getWebexTokens(site.siteUrl);
             const credentials = await getWebexCredentials(site.siteUrl);
+            
+            // Load monitored rooms from SSM via API
+            let monitoredRooms = [];
+            try {
+              const roomsResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/webexmessaging/monitored-rooms?siteUrl=${encodeURIComponent(site.siteUrl)}`);
+              if (roomsResponse.ok) {
+                const roomsData = await roomsResponse.json();
+                monitoredRooms = roomsData.rooms || [];
+              }
+            } catch (error) {
+              console.error(`Failed to load monitored rooms for ${site.siteUrl}:`, error);
+            }
+            
             return {
               ...site,
               accessToken: validAccessToken,
               refreshToken: tokens?.refreshToken || '',
               clientId: credentials?.clientId || '',
-              clientSecret: credentials?.clientSecret || ''
+              clientSecret: credentials?.clientSecret || '',
+              monitoredRooms
             };
           } catch (error) {
             console.error(`Failed to get valid token for ${site.siteUrl}:`, error);
@@ -45,7 +59,8 @@ export async function GET() {
               accessToken: '',
               refreshToken: '',
               clientId: '',
-              clientSecret: ''
+              clientSecret: '',
+              monitoredRooms: []
             };
           }
         })
@@ -209,7 +224,9 @@ export async function POST(request) {
         const processedSite = {
           siteUrl: site.siteUrl,
           recordingHosts: resolvedHosts,
-          siteName: site.siteName || site.siteUrl.split('.')[0]
+          siteName: site.siteName || site.siteUrl.split('.')[0],
+          botName: site.botName || '',
+          botEmail: site.botEmail || ''
         };
         
         console.log(`✅ [DEBUG] Site ${siteIndex + 1} processing completed:`, JSON.stringify(processedSite, null, 2));

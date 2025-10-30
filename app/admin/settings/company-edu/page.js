@@ -15,14 +15,23 @@ export default function CompanyEduPage() {
   const [webexMeetingsSites, setWebexMeetingsSites] = useState([]);
   const [showAddSite, setShowAddSite] = useState(false);
   const [editingSiteIndex, setEditingSiteIndex] = useState(null);
+  const [modalTab, setModalTab] = useState('meetings');
   const [newSite, setNewSite] = useState({
     siteUrl: '',
     accessToken: '',
     refreshToken: '',
     clientId: '',
     clientSecret: '',
-    recordingHosts: ['']
+    recordingHosts: [''],
+    botName: '',
+    botEmail: '',
+    botToken: '',
+    monitoredRooms: []
   });
+  const [roomSearch, setRoomSearch] = useState('');
+  const [searchingRooms, setSearchingRooms] = useState(false);
+  const [roomSearchResults, setRoomSearchResults] = useState([]);
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [savingWebexMeetings, setSavingWebexMeetings] = useState(false);
   const [showWebhookModal, setShowWebhookModal] = useState(false);
   const [webhookAction, setWebhookAction] = useState('');
@@ -40,6 +49,9 @@ export default function CompanyEduPage() {
   const [loadingWebhookLogs, setLoadingWebhookLogs] = useState(false);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationResults, setValidationResults] = useState([]);
+  const [hasValidCredentials, setHasValidCredentials] = useState(false);
+  const [checkingCredentials, setCheckingCredentials] = useState(false);
+  const [hasBotToken, setHasBotToken] = useState(false);
 
   const tabs = [
     { id: 'general-settings', name: 'General Settings', href: '/admin/settings/general-settings' },
@@ -72,6 +84,36 @@ export default function CompanyEduPage() {
       loadData();
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    if (showAddSite && modalTab === 'messaging' && editingSiteIndex !== null) {
+      loadBotCredentials();
+    }
+  }, [showAddSite, modalTab, editingSiteIndex]);
+
+  const loadBotCredentials = async () => {
+    try {
+      const siteUrl = editingSiteIndex !== null ? webexMeetingsSites[editingSiteIndex]?.siteUrl : newSite.siteUrl;
+      if (!siteUrl) return;
+      
+      const response = await fetch(`/api/webexmessaging/monitored-rooms?siteUrl=${encodeURIComponent(siteUrl)}`);
+      const data = await response.json();
+      
+      setHasBotToken(!!data.botToken);
+      
+      const site = webexMeetingsSites[editingSiteIndex];
+      setNewSite(prev => ({
+        ...prev,
+        botName: site.botName || '',
+        botEmail: site.botEmail || '',
+        monitoredRooms: data.rooms || []
+      }));
+    } catch (error) {
+      console.error('Error loading bot credentials:', error);
+    }
+  };
+
+
 
   if (loading || !user) {
     return (
@@ -129,8 +171,8 @@ export default function CompanyEduPage() {
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">Webex Meetings Integration</h3>
-                    <p className="text-sm text-gray-600">Configure Webex Meetings sites and recording hosts</p>
+                    <h3 className="text-lg font-semibold text-gray-900">Webex Integration</h3>
+                    <p className="text-sm text-gray-600">Configure Webex Meeting and Messaging Integrations</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -170,94 +212,71 @@ export default function CompanyEduPage() {
 
                 {webexMeetingsEnabled && (
                   <div className="space-y-6">
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-md font-semibold text-gray-900">Configured Sites</h4>
-                        <button
-                          onClick={() => {
-                            setEditingSiteIndex(null);
-                            setNewSite({
-                              siteUrl: '',
-                              accessToken: '',
-                              refreshToken: '',
-                              clientId: '',
-                              clientSecret: '',
-                              recordingHosts: ['']
-                            });
-                            setShowAddSite(true);
-                          }}
-                          className="btn-primary flex items-center gap-2 text-sm"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                          </svg>
-                          Add Site URL
-                        </button>
-                      </div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-md font-semibold text-gray-900">Configured Webex Integrations</h4>
+                      <button
+                        onClick={() => {
+                          setEditingSiteIndex(null);
+                          setModalTab('meetings');
+                          setNewSite({
+                            siteUrl: '',
+                            accessToken: '',
+                            refreshToken: '',
+                            clientId: '',
+                            clientSecret: '',
+                            recordingHosts: [''],
+                            botName: '',
+                            botEmail: '',
+                            botToken: '',
+                            monitoredRooms: []
+                          });
+                          setShowAddSite(true);
+                        }}
+                        className="btn-primary flex items-center gap-2 text-sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Add Webex Integration
+                      </button>
+                    </div>
 
+                    <div>
                       {webexMeetingsSites.length === 0 ? (
                         <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                           <svg className="w-8 h-8 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                           </svg>
                           <h4 className="text-sm font-medium text-gray-900 mb-1">No sites configured</h4>
-                          <p className="text-sm text-gray-600">Add your first Webex Meetings site to get started</p>
+                          <p className="text-sm text-gray-600">Add your first Webex integration to get started</p>
                         </div>
                       ) : (
                         <div className="space-y-4">
                           {webexMeetingsSites.map((site, index) => (
                             <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <h5 className="font-medium text-gray-900 mb-2">{site.siteUrl}</h5>
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium text-gray-600">Access Token:</span>
-                                      <span className="text-xs text-gray-500 font-mono">••••••••</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium text-gray-600">Refresh Token:</span>
-                                      <span className="text-xs text-gray-500 font-mono">••••••••</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium text-gray-600">Client ID:</span>
-                                      <span className="text-xs text-gray-500 font-mono">••••••••</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs font-medium text-gray-600">Client Secret:</span>
-                                      <span className="text-xs text-gray-500 font-mono">••••••••</span>
-                                    </div>
-                                    <div>
-                                      <span className="text-xs font-medium text-gray-600">Recording Hosts:</span>
-                                      <div className="flex flex-wrap gap-1 mt-1">
-                                        {site.recordingHosts.map((host, hostIndex) => {
-                                          const hostEmail = typeof host === 'string' ? host : host?.email || '[object Object]';
-                                          return (
-                                            <span key={hostIndex} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                                              {hostEmail}
-                                            </span>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                              <div className="flex items-start justify-between mb-3">
+                                <h5 className="font-medium text-gray-900">{site.siteUrl}</h5>
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => {
                                       setEditingSiteIndex(index);
+                                      setModalTab('meetings');
                                       setNewSite({
                                         siteUrl: site.siteUrl,
                                         accessToken: '',
                                         refreshToken: '',
                                         clientId: '',
                                         clientSecret: '',
-                                        recordingHosts: site.recordingHosts.map(host => typeof host === 'string' ? host : host.email || '')
+                                        recordingHosts: site.recordingHosts.map(host => typeof host === 'string' ? host : host.email || ''),
+                                        botName: site.botName || '',
+                                        botEmail: site.botEmail || '',
+                                        botToken: '',
+                                        monitoredRooms: site.monitoredRooms || []
                                       });
                                       setShowAddSite(true);
                                     }}
                                     className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded"
-                                    title="Edit Site"
+                                    title="Edit Integration"
                                   >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -269,12 +288,60 @@ export default function CompanyEduPage() {
                                       setWebexMeetingsSites(updatedSites);
                                     }}
                                     className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded"
-                                    title="Remove Site"
+                                    title="Remove Integration"
                                   >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                   </button>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <h6 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                                    <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    Meetings
+                                  </h6>
+                                  <div className="space-y-1">
+                                    <div className="text-xs text-gray-600">Recording Hosts:</div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {site.recordingHosts.map((host, hostIndex) => {
+                                        const hostEmail = typeof host === 'string' ? host : host?.email || '[object Object]';
+                                        return (
+                                          <span key={hostIndex} className="inline-flex px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">
+                                            {hostEmail}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <h6 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                    Messaging
+                                  </h6>
+                                  {(site.botName || site.botEmail) && site.monitoredRooms?.length > 0 ? (
+                                    <div className="space-y-1">
+                                      {site.botName && <div className="text-xs text-gray-600">Bot: {site.botName}</div>}
+                                      <div className="text-xs text-gray-600">Monitored Rooms:</div>
+                                      <div className="flex flex-wrap gap-1">
+                                        {site.monitoredRooms.map((room, roomIndex) => (
+                                          <span key={roomIndex} className="inline-flex px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded">
+                                            {room.title}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs text-gray-500 italic">Not configured</div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -889,6 +956,17 @@ export default function CompanyEduPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-2">
+                              {result.webhookDetails?.messaging?.length > 0 ? (
+                                <span className="text-green-600">✓</span>
+                              ) : (
+                                <span className="text-red-600">✗</span>
+                              )}
+                              <span>Messaging Webhooks</span>
+                              {result.webhookDetails?.messaging?.length > 0 && (
+                                <span className="text-xs text-gray-500">({result.webhookDetails.messaging.length} rooms)</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
                               {result.connectivity?.[0]?.reachable ? (
                                 <span className="text-green-600">✓</span>
                               ) : (
@@ -1052,7 +1130,7 @@ export default function CompanyEduPage() {
             <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold">{editingSiteIndex !== null ? 'Edit' : 'Add'} Webex Meetings Site</h3>
+                  <h3 className="text-lg font-semibold">{editingSiteIndex !== null ? 'Edit' : 'Add'} Webex Integration</h3>
                   <button onClick={() => setShowAddSite(false)} className="text-gray-400 hover:text-gray-600">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1060,6 +1138,32 @@ export default function CompanyEduPage() {
                   </button>
                 </div>
                 
+                <div className="border-b border-gray-200 mb-6">
+                  <nav className="-mb-px flex space-x-8">
+                    <button
+                      onClick={() => setModalTab('meetings')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        modalTab === 'meetings'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Webex Meetings
+                    </button>
+                    <button
+                      onClick={() => setModalTab('messaging')}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                        modalTab === 'messaging'
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Webex Messaging
+                    </button>
+                  </nav>
+                </div>
+                
+                {modalTab === 'meetings' && (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Site URL *</label>
@@ -1165,6 +1269,192 @@ export default function CompanyEduPage() {
                     </button>
                   </div>
                 </div>
+                )}
+                
+                {modalTab === 'messaging' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bot Name</label>
+                    <input
+                      type="text"
+                      value={newSite.botName}
+                      onChange={(e) => setNewSite({...newSite, botName: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="My Webex Bot"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bot Email</label>
+                    <input
+                      type="email"
+                      value={newSite.botEmail}
+                      onChange={(e) => setNewSite({...newSite, botEmail: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="bot@webex.bot"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Bot Access Token * {editingSiteIndex !== null && <span className="text-xs text-gray-500">(leave blank to keep current)</span>}
+                    </label>
+                    <input
+                      type="text"
+                      value={newSite.botToken}
+                      onChange={(e) => setNewSite({...newSite, botToken: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs"
+                      placeholder={editingSiteIndex !== null ? "Leave blank to keep current" : "Enter bot access token"}
+                    />
+                  </div>
+                  
+                  {(newSite.botToken || hasBotToken) && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Add Rooms to Monitor</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={roomSearch}
+                            onChange={async (e) => {
+                              const value = e.target.value;
+                              setRoomSearch(value);
+                              
+                              if (value.trim()) {
+                                setSearchingRooms(true);
+                                setShowRoomDropdown(true);
+                                try {
+                                  const response = await fetch('/api/webexmessaging/rooms', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      siteUrl: newSite.siteUrl,
+                                      botToken: newSite.botToken,
+                                      search: value
+                                    })
+                                  });
+                                  const data = await response.json();
+                                  setRoomSearchResults(data.rooms || []);
+                                } catch (error) {
+                                  console.error('Error searching rooms:', error);
+                                } finally {
+                                  setSearchingRooms(false);
+                                }
+                              } else {
+                                setRoomSearchResults([]);
+                                setShowRoomDropdown(false);
+                              }
+                            }}
+                            onFocus={async () => {
+                              if (!roomSearchResults.length && !roomSearch) {
+                                setSearchingRooms(true);
+                                setShowRoomDropdown(true);
+                                try {
+                                  const response = await fetch('/api/webexmessaging/rooms', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      siteUrl: newSite.siteUrl,
+                                      botToken: newSite.botToken
+                                    })
+                                  });
+                                  const data = await response.json();
+                                  setRoomSearchResults(data.rooms || []);
+                                } catch (error) {
+                                  console.error('Error loading rooms:', error);
+                                } finally {
+                                  setSearchingRooms(false);
+                                }
+                              } else if (roomSearchResults.length) {
+                                setShowRoomDropdown(true);
+                              }
+                            }}
+                            onBlur={() => setTimeout(() => setShowRoomDropdown(false), 200)}
+                            placeholder="Type to search rooms..."
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            {searchingRooms ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            ) : (
+                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                            )}
+                          </div>
+                          
+                          {showRoomDropdown && roomSearchResults.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                              {roomSearchResults
+                                .filter(room => !newSite.monitoredRooms.find(r => r.id === room.id))
+                                .map((room) => (
+                                  <button
+                                    key={room.id}
+                                    onClick={() => {
+                                      setNewSite({
+                                        ...newSite,
+                                        monitoredRooms: [...newSite.monitoredRooms, { id: room.id, title: room.title }]
+                                      });
+                                      setRoomSearch('');
+                                      setShowRoomDropdown(false);
+                                    }}
+                                    className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-blue-50"
+                                  >
+                                    <div className="font-medium text-gray-900">{room.title}</div>
+                                    <div className="text-xs text-gray-500 mt-0.5">{room.type}</div>
+                                  </button>
+                                ))}
+                              {roomSearchResults.every(room => newSite.monitoredRooms.find(r => r.id === room.id)) && (
+                                <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                                  All matching rooms already added
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Monitored Rooms</label>
+                        {newSite.monitoredRooms.length === 0 ? (
+                          <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                            <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            <p className="text-sm text-gray-600">No rooms added yet</p>
+                            <p className="text-xs text-gray-500 mt-1">Search and select rooms above to monitor</p>
+                          </div>
+                        ) : (
+                          <div className="max-h-64 overflow-y-auto space-y-2 p-1">
+                            {newSite.monitoredRooms.map((room, index) => (
+                              <div key={room.id} className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-white rounded-lg border border-blue-200 hover:border-blue-300 transition-all group">
+                                <div className="flex-1 min-w-0">
+                                  <h5 className="font-medium text-gray-900 truncate">{room.title}</h5>
+                                  <p className="text-xs text-gray-500 truncate">{room.id}</p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setNewSite({
+                                      ...newSite,
+                                      monitoredRooms: newSite.monitoredRooms.filter((_, i) => i !== index)
+                                    });
+                                  }}
+                                  className="ml-3 text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                  title="Remove room"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+                )}
                 
                 <div className="flex justify-end gap-3 mt-6">
                   <button
@@ -1196,11 +1486,15 @@ export default function CompanyEduPage() {
                         updatedSites = [...webexMeetingsSites];
                         updatedSites[editingSiteIndex] = {
                           ...updatedSites[editingSiteIndex],
+                          siteUrl: newSite.siteUrl,
                           accessToken: newSite.accessToken || updatedSites[editingSiteIndex].accessToken,
                           refreshToken: newSite.refreshToken || updatedSites[editingSiteIndex].refreshToken,
                           clientId: newSite.clientId || updatedSites[editingSiteIndex].clientId,
                           clientSecret: newSite.clientSecret || updatedSites[editingSiteIndex].clientSecret,
-                          recordingHosts: validHosts
+                          recordingHosts: validHosts,
+                          botName: newSite.botName || '',
+                          botEmail: newSite.botEmail || '',
+                          monitoredRooms: newSite.monitoredRooms || []
                         };
                       } else {
                         updatedSites = [...webexMeetingsSites, {
@@ -1209,12 +1503,32 @@ export default function CompanyEduPage() {
                           refreshToken: newSite.refreshToken,
                           clientId: newSite.clientId,
                           clientSecret: newSite.clientSecret,
-                          recordingHosts: validHosts
+                          recordingHosts: validHosts,
+                          botName: newSite.botName || '',
+                          botEmail: newSite.botEmail || '',
+                          monitoredRooms: newSite.monitoredRooms || []
                         }];
                       }
                       
                       setSavingWebexMeetings(true);
                       try {
+                        // Save bot token and monitored rooms if configured
+                        if (newSite.botToken || (hasBotToken && newSite.monitoredRooms.length > 0)) {
+                          const roomsResponse = await fetch('/api/webexmessaging/monitored-rooms', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              siteUrl: newSite.siteUrl,
+                              botToken: newSite.botToken || undefined,
+                              monitoredRooms: newSite.monitoredRooms || []
+                            })
+                          });
+                          
+                          if (!roomsResponse.ok) {
+                            throw new Error('Failed to save bot configuration');
+                          }
+                        }
+                        
                         const response = await fetch('/api/settings/webex-meetings', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
@@ -1225,7 +1539,9 @@ export default function CompanyEduPage() {
                         });
                         
                         if (response.ok) {
-                          setWebexMeetingsSites(updatedSites);
+                          const refreshResponse = await fetch('/api/settings/webex-meetings?t=' + Date.now());
+                          const refreshData = await refreshResponse.json();
+                          setWebexMeetingsSites(refreshData.sites || []);
                           setShowAddSite(false);
                           alert('Site saved successfully!');
                         } else {
@@ -1233,7 +1549,7 @@ export default function CompanyEduPage() {
                           alert('Failed to save site: ' + (errorData.error || 'Unknown error'));
                         }
                       } catch (error) {
-                        alert('Error saving site');
+                        alert('Error saving site: ' + error.message);
                       } finally {
                         setSavingWebexMeetings(false);
                       }

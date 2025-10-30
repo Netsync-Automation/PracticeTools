@@ -197,6 +197,79 @@ export async function POST(request) {
       if (action === 'create') {
         console.log('🔧 [WEBHOOK-MGMT] Creating webhooks for:', site.siteUrl);
         
+        // Check existing webhooks in Webex first
+        const allWebhooksResponse = await fetch('https://webexapis.com/v1/webhooks', {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        const allWebhooksData = await allWebhooksResponse.json();
+        const allWebhooks = allWebhooksData.items || [];
+        
+        const existingRecordingsWebhook = allWebhooks.find(w => 
+          w.targetUrl === `${baseUrl}/api/webhooks/webexmeetings/recordings` &&
+          w.resource === 'recordings'
+        );
+        
+        // Create webhooks for Webex Messaging if monitored rooms exist
+        const messagingWebhookIds = site.messagingWebhookIds || [];
+        if (site.monitoredRooms && site.monitoredRooms.length > 0) {
+          console.log('🔧 [WEBHOOK-MGMT] Creating messaging webhooks for', site.monitoredRooms.length, 'rooms');
+          
+          for (const room of site.monitoredRooms) {
+            // Skip if webhook already exists for this room
+            if (messagingWebhookIds.find(w => w.roomId === room.id)) {
+              console.log('🔧 [WEBHOOK-MGMT] Messaging webhook already exists for room:', room.title);
+              continue;
+            }
+            
+            const messagingPayload = {
+              name: `PracticeTools Messages - ${room.title}`,
+              targetUrl: `${baseUrl}/api/webhooks/webexmessaging/messages`,
+              resource: 'messages',
+              event: 'created',
+              filter: `roomId=${room.id}`
+            };
+            
+            try {
+              const messagingWebhook = await fetch('https://webexapis.com/v1/webhooks', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${accessToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(messagingPayload)
+              });
+              
+              if (messagingWebhook.ok) {
+                const messagingResult = await messagingWebhook.json();
+                messagingWebhookIds.push({ roomId: room.id, webhookId: messagingResult.id });
+                console.log('🔧 [WEBHOOK-MGMT] Created messaging webhook for room:', room.title);
+              } else {
+                const error = await messagingWebhook.json();
+                console.error('🔧 [WEBHOOK-MGMT] Failed to create messaging webhook for room:', room.title, error);
+              }
+            } catch (error) {
+              console.error('🔧 [WEBHOOK-MGMT] Error creating messaging webhook:', error);
+            }
+          }
+        }
+        
+        // Skip recordings webhook if it already exists in Webex
+        if (existingRecordingsWebhook) {
+          console.log('🔧 [WEBHOOK-MGMT] Recordings webhook already exists in Webex, skipping creation');
+          site.recordingWebhookId = existingRecordingsWebhook.id;
+          if (messagingWebhookIds.length > 0) {
+            site.messagingWebhookIds = messagingWebhookIds;
+          }
+          results.push({ 
+            site: site.siteName || site.siteUrl, 
+            status: 'created',
+            recordingWebhookId: existingRecordingsWebhook.id,
+            messagingWebhookCount: messagingWebhookIds.length,
+            skipped: 'recordings webhook already exists in Webex'
+          });
+          continue;
+        }
+        
         // Create webhook for Webex Meetings recordings
         const recordingsPayload = {
           name: `PracticeTools Recordings - ${site.siteName || site.siteUrl}`,
@@ -242,13 +315,18 @@ export async function POST(request) {
         if (recordingsWebhook.ok) {
           console.log('🔧 [WEBHOOK-MGMT] Webhook created successfully for:', site.siteUrl);
           site.recordingWebhookId = recordingsResult.id;
-          console.log('🔧 [WEBHOOK-MGMT] Assigned webhook ID:', {
-            recordingWebhookId: recordingsResult.id
+          if (messagingWebhookIds.length > 0) {
+            site.messagingWebhookIds = messagingWebhookIds;
+          }
+          console.log('🔧 [WEBHOOK-MGMT] Assigned webhook IDs:', {
+            recordingWebhookId: recordingsResult.id,
+            messagingWebhookIds
           });
           results.push({ 
             site: site.siteName || site.siteUrl, 
             status: 'created',
-            recordingWebhookId: recordingsResult.id
+            recordingWebhookId: recordingsResult.id,
+            messagingWebhookCount: messagingWebhookIds.length
           });
         } else {
           const recordingsError = recordingsResult.message || recordingsResult.errors?.[0]?.description || `HTTP ${recordingsWebhook.status}`;
@@ -266,8 +344,9 @@ export async function POST(request) {
         }
 
       } else if (action === 'delete') {
-        console.log('🔧 [WEBHOOK-MGMT] Deleting webhook for:', site.siteUrl);
+        console.log('🔧 [WEBHOOK-MGMT] Deleting webhooks for:', site.siteUrl);
         let deleteSuccess = false;
+        let messagingDeleteCount = 0;
         
         if (site.recordingWebhookId) {
           try {
@@ -281,15 +360,30 @@ export async function POST(request) {
             deleteSuccess = false;
           }
         }
+        
+        if (site.messagingWebhookIds && site.messagingWebhookIds.length > 0) {
+          for (const webhook of site.messagingWebhookIds) {
+            try {
+              const deleteMessaging = await fetch(`https://webexapis.com/v1/webhooks/${webhook.webhookId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+              });
+              if (deleteMessaging.ok) messagingDeleteCount++;
+            } catch (error) {
+              console.error('Error deleting messaging webhook:', error.message);
+            }
+          }
+        }
 
-        console.log('🔧 [WEBHOOK-MGMT] Delete result:', deleteSuccess);
-        if (deleteSuccess) {
+        console.log('🔧 [WEBHOOK-MGMT] Delete result:', { deleteSuccess, messagingDeleteCount });
+        if (deleteSuccess || messagingDeleteCount > 0) {
           delete site.recordingWebhookId;
           delete site.transcriptWebhookId;
-          console.log('🔧 [WEBHOOK-MGMT] Successfully deleted webhook for:', site.siteUrl);
-          results.push({ site: site.siteName || site.siteUrl, status: 'deleted' });
+          delete site.messagingWebhookIds;
+          console.log('🔧 [WEBHOOK-MGMT] Successfully deleted webhooks for:', site.siteUrl);
+          results.push({ site: site.siteName || site.siteUrl, status: 'deleted', messagingDeleteCount });
         } else {
-          console.error('🔧 [WEBHOOK-MGMT] Failed to delete webhook for:', site.siteUrl);
+          console.error('🔧 [WEBHOOK-MGMT] Failed to delete webhooks for:', site.siteUrl);
           results.push({ site: site.siteName || site.siteUrl, status: 'error' });
         }
 
@@ -334,6 +428,12 @@ export async function POST(request) {
           (w.siteUrl === site.siteUrl || w.name.includes(site.siteName || site.siteUrl))
         );
         
+        const messagingWebhooks = allWebhooks.filter(w =>
+          w.targetUrl === `${baseUrl}/api/webhooks/webexmessaging/messages` &&
+          w.resource === 'messages' &&
+          w.event === 'created'
+        );
+        
         // Test connectivity to our endpoint
         const connectivityTests = [];
         try {
@@ -348,26 +448,35 @@ export async function POST(request) {
         }
         
         const hasRecordingsWebhook = !!recordingsWebhook;
+        const hasMessagingWebhooks = messagingWebhooks.length > 0;
         
-        // Update stored webhook ID if it's changed
         if (recordingsWebhook && site.recordingWebhookId !== recordingsWebhook.id) {
           site.recordingWebhookId = recordingsWebhook.id;
+        }
+        if (hasMessagingWebhooks) {
+          site.messagingWebhookIds = messagingWebhooks.map(w => ({
+            webhookId: w.id,
+            roomId: w.filter?.replace('roomId=', '')
+          }));
         }
         
         console.log('🔧 [WEBHOOK-MGMT] Detailed validation for', site.siteUrl, ':', {
           totalWebhooksInWebEx: allWebhooks.length,
           hasRecordingsWebhook,
+          hasMessagingWebhooks,
+          messagingWebhookCount: messagingWebhooks.length,
           recordingsWebhookStatus: recordingsWebhook?.status,
           connectivityTests
         });
         
         results.push({ 
           site: site.siteName || site.siteUrl, 
-          status: hasRecordingsWebhook ? 'valid' : 'invalid',
-          hasWebhooks: hasRecordingsWebhook,
+          status: (hasRecordingsWebhook || hasMessagingWebhooks) ? 'valid' : 'invalid',
+          hasWebhooks: hasRecordingsWebhook || hasMessagingWebhooks,
           hasBothWebhooks: hasRecordingsWebhook,
           recordingsWebhook: hasRecordingsWebhook ? 'active' : 'missing',
-          webhookCount: hasRecordingsWebhook ? 1 : 0,
+          messagingWebhooks: hasMessagingWebhooks ? 'active' : 'missing',
+          webhookCount: (hasRecordingsWebhook ? 1 : 0) + messagingWebhooks.length,
           webhookDetails: {
             recordings: recordingsWebhook ? {
               id: recordingsWebhook.id,
@@ -376,7 +485,14 @@ export async function POST(request) {
               created: recordingsWebhook.created,
               siteUrl: recordingsWebhook.siteUrl,
               ownedBy: recordingsWebhook.ownedBy
-            } : null
+            } : null,
+            messaging: messagingWebhooks.map(w => ({
+              id: w.id,
+              status: w.status,
+              targetUrl: w.targetUrl,
+              filter: w.filter,
+              created: w.created
+            }))
           },
           connectivity: connectivityTests,
           totalWebhooksInWebEx: allWebhooks.length,
