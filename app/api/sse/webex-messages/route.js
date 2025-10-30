@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 const clients = new Set();
 
 export async function GET() {

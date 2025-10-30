@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getValidAccessToken } from '../../../../../../lib/webex-token-manager.js';
-import { getTableName } from '../../../../../../lib/dynamodb.js';
+import { getValidAccessToken } from '../../../../../lib/webex-token-manager';
+import { getTableName } from '../../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
-import { notifyWebexMessagesUpdate } from '../../../../sse/webex-messages/route.js';
+import { notifyWebexMessagesUpdate } from '../../../sse/webex-messages/route';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
