@@ -3,15 +3,13 @@ import { getTableName } from '../../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { v4 as uuidv4 } from 'uuid';
 import { notifyWebexMessagesUpdate } from '../../../sse/webex-messages/route';
-import { getSitePrefix, getSSMPath } from '../../../../../lib/ssm';
+import { getValidAccessToken } from '../../../../../lib/webex-token-manager';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
-const ssmClient = new SSMClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 
 async function getSiteUrlFromRoomId(roomId) {
   const tableName = getTableName('Settings');
@@ -29,19 +27,6 @@ async function getSiteUrlFromRoomId(roomId) {
     }
   }
   return null;
-}
-
-async function getBotToken(siteUrl) {
-  const sitePrefix = getSitePrefix(siteUrl);
-  const botTokenPath = getSSMPath(`${sitePrefix}_WEBEX_MESSAGING_BOT_TOKEN_1`);
-  
-  try {
-    const result = await ssmClient.send(new GetParameterCommand({ Name: botTokenPath }));
-    return result.Parameter.Value;
-  } catch (error) {
-    console.error(`Failed to get bot token for ${siteUrl}:`, error);
-    throw new Error(`Bot token not found for ${siteUrl}`);
-  }
 }
 
 async function logWebhookActivity(logData) {
@@ -85,23 +70,29 @@ export async function POST(request) {
     }
     console.log('📨 [WEBEX-MESSAGING] Found site:', siteUrl);
     
-    const accessToken = await getBotToken(siteUrl);
-    console.log('📨 [WEBEX-MESSAGING] Got bot token, length:', accessToken?.length);
+    const accessToken = await getValidAccessToken(siteUrl);
+    console.log('📨 [WEBEX-MESSAGING] Got service app token, length:', accessToken?.length);
     
-    const messageResponse = await fetch(`https://webexapis.com/v1/messages/${messageId}`, {
+    const messagesResponse = await fetch(`https://webexapis.com/v1/messages?roomId=${roomId}&max=50`, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     });
     
-    console.log('📨 [WEBEX-MESSAGING] Message fetch status:', messageResponse.status);
-    console.log('📨 [WEBEX-MESSAGING] Fetching message ID:', messageId);
-    if (!messageResponse.ok) {
-      const errorText = await messageResponse.text();
-      console.log('📨 [WEBEX-MESSAGING] Message fetch error:', errorText);
-      console.log('📨 [WEBEX-MESSAGING] Using siteUrl:', siteUrl);
-      throw new Error(`Failed to fetch message: ${messageResponse.status} - ${errorText}`);
+    console.log('📨 [WEBEX-MESSAGING] List messages status:', messagesResponse.status);
+    if (!messagesResponse.ok) {
+      const errorText = await messagesResponse.text();
+      console.log('📨 [WEBEX-MESSAGING] List messages error:', errorText);
+      throw new Error(`Failed to list messages: ${messagesResponse.status} - ${errorText}`);
     }
     
-    const message = await messageResponse.json();
+    const messagesData = await messagesResponse.json();
+    const message = messagesData.items?.find(m => m.id === messageId);
+    
+    if (!message) {
+      console.log('📨 [WEBEX-MESSAGING] Message not found in list:', messageId);
+      throw new Error(`Message ${messageId} not found in room messages`);
+    }
+    
+    console.log('📨 [WEBEX-MESSAGING] Found message in list:', messageId);
     const attachments = [];
     let s3Uploaded = false;
     

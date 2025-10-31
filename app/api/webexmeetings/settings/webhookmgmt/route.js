@@ -322,6 +322,7 @@ export async function POST(request) {
                 };
                 
                 console.error('🔧 [WEBHOOK-MGMT] Creating webhook for room...');
+                console.error('🔧 [WEBHOOK-MGMT] Webhook payload:', JSON.stringify(webhookPayload, null, 2));
                 const webhookResponse = await fetch('https://webexapis.com/v1/webhooks', {
                   method: 'POST',
                   headers: {
