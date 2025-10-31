@@ -23,7 +23,8 @@ export default function WebExRecordingsPage() {
     transcriptStatus: '',
     dateFrom: '',
     dateTo: '',
-    sort: 'newest'
+    sort: 'newest',
+    showDenied: false
   });
 
   const isAdmin = user?.isAdmin || user?.role === 'executive';
@@ -31,13 +32,13 @@ export default function WebExRecordingsPage() {
   
   const unapprovedRecordings = recordings.filter(r => {
     if (r.approved) return false;
+    if (!filters.showDenied && r.denied) return false;
     if (isAdmin) return true;
     return r.hostEmail?.toLowerCase() === userEmail;
   });
   
-  const [activeTab, setActiveTab] = useState(
-    (isAdmin || unapprovedRecordings.length > 0) ? 'approve-recordings' : 'publicly-available'
-  );
+  const canApprove = unapprovedRecordings.length > 0;
+  const [activeTab, setActiveTab] = useState('publicly-available');
 
   useEffect(() => {
     fetchRecordings();
@@ -46,13 +47,10 @@ export default function WebExRecordingsPage() {
   }, []);
   
   useEffect(() => {
-    const canApprove = isAdmin || unapprovedRecordings.length > 0;
-    if (canApprove && unapprovedRecordings.length > 0 && activeTab === 'publicly-available') {
+    if (canApprove && activeTab === 'publicly-available') {
       setActiveTab('approve-recordings');
-    } else if (!canApprove && activeTab === 'approve-recordings') {
-      setActiveTab('publicly-available');
     }
-  }, [user?.isAdmin, user?.role, user?.email, recordings, activeTab]);
+  }, [canApprove]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -178,6 +176,34 @@ export default function WebExRecordingsPage() {
     }
   };
 
+  const handleDeny = async (recordingIds) => {
+    console.log('handleDeny called with:', recordingIds);
+    setApprovingRecordings(true);
+    try {
+      console.log('Sending deny request...');
+      const response = await fetch('/api/webexmeetings/recordings/deny', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordingIds })
+      });
+      
+      console.log('Deny response status:', response.status);
+      const data = await response.json();
+      console.log('Deny response data:', data);
+      
+      if (response.ok) {
+        setSelectedRecordings([]);
+        await fetchRecordings();
+      } else {
+        console.error('Deny failed:', data);
+      }
+    } catch (error) {
+      console.error('Error denying recordings:', error);
+    } finally {
+      setApprovingRecordings(false);
+    }
+  };
+
   const handleDownload = (s3Url, filename) => {
     const link = document.createElement('a');
     link.href = s3Url;
@@ -227,7 +253,7 @@ export default function WebExRecordingsPage() {
               {/* Tab Navigation */}
               <div className="border-b border-gray-200">
                 <nav className="-mb-px flex space-x-8">
-                  {(isAdmin || unapprovedRecordings.length > 0) && (
+                  {canApprove && (
                     <button
                       onClick={() => {
                         setActiveTab('approve-recordings');
@@ -402,7 +428,7 @@ export default function WebExRecordingsPage() {
                     />
                   </div>
                   
-                  <div className="space-y-2">
+  <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Sort By</label>
                     <select
                       value={filters.sort}
@@ -414,6 +440,21 @@ export default function WebExRecordingsPage() {
                       <option value="host">Host</option>
                     </select>
                   </div>
+                  
+                  {activeTab === 'approve-recordings' && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">Show Denied</label>
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={filters.showDenied}
+                          onChange={(e) => setFilters({...filters, showDenied: e.target.checked})}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Include denied recordings</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
                 
 
@@ -498,11 +539,9 @@ export default function WebExRecordingsPage() {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Recording
                             </th>
-                            {activeTab === 'approve-recordings' && (
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Action
-                              </th>
-                            )}
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Action
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -556,18 +595,39 @@ export default function WebExRecordingsPage() {
                                   Download MP4
                                 </button>
                               </td>
-                              {activeTab === 'approve-recordings' && (
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <button
-                                    onClick={() => handleApprove([recording.id])}
-                                    disabled={approvingRecordings || recording.transcriptStatus !== 'available'}
-                                    title={recording.transcriptStatus !== 'available' ? 'Transcript must be available before approval' : ''}
-                                    className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
-                                  >
-                                    Approve
-                                  </button>
-                                </td>
-                              )}
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                {activeTab === 'approve-recordings' ? (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleApprove([recording.id])}
+                                      disabled={approvingRecordings || recording.transcriptStatus !== 'available'}
+                                      title={recording.transcriptStatus !== 'available' ? 'Transcript must be available before approval' : ''}
+                                      className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                                    >
+                                      Approve
+                                    </button>
+                                    {!recording.denied && (
+                                      <button
+                                        onClick={() => handleDeny([recording.id])}
+                                        disabled={approvingRecordings}
+                                        className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                                      >
+                                        Deny
+                                      </button>
+                                    )}
+                                  </div>
+                                ) : (
+                                  (isAdmin || recording.hostEmail?.toLowerCase() === userEmail) && (
+                                    <button
+                                      onClick={() => handleDeny([recording.id])}
+                                      disabled={approvingRecordings}
+                                      className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+                                    >
+                                      Deny
+                                    </button>
+                                  )
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>

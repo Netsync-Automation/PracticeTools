@@ -29,6 +29,8 @@ export async function GET() {
       status: item.status,
       approved: item.approved || false,
       approvedAt: item.approvedAt || null,
+      denied: item.denied || false,
+      deniedAt: item.deniedAt || null,
       created_at: item.created_at,
       updated_at: item.updated_at
     }));

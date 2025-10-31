@@ -72,15 +72,22 @@ export async function POST(request) {
     
     const accessToken = await getValidAccessToken(siteUrl);
     console.log('📨 [WEBEX-MESSAGING] Got service app token, length:', accessToken?.length);
+    console.log('📨 [WEBEX-MESSAGING] Token first 20 chars:', accessToken?.substring(0, 20));
+    console.log('📨 [WEBEX-MESSAGING] Calling List Messages API...');
+    console.log('📨 [WEBEX-MESSAGING] URL:', `https://webexapis.com/v1/messages?roomId=${roomId}&max=50`);
     
     const messagesResponse = await fetch(`https://webexapis.com/v1/messages?roomId=${roomId}&max=50`, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     });
     
     console.log('📨 [WEBEX-MESSAGING] List messages status:', messagesResponse.status);
+    console.log('📨 [WEBEX-MESSAGING] Response headers:', Object.fromEntries(messagesResponse.headers.entries()));
+    
     if (!messagesResponse.ok) {
       const errorText = await messagesResponse.text();
-      console.log('📨 [WEBEX-MESSAGING] List messages error:', errorText);
+      console.log('📨 [WEBEX-MESSAGING] List messages error response:', errorText);
+      console.log('📨 [WEBEX-MESSAGING] Room ID:', roomId);
+      console.log('📨 [WEBEX-MESSAGING] Site URL:', siteUrl);
       throw new Error(`Failed to list messages: ${messagesResponse.status} - ${errorText}`);
     }
     
@@ -143,7 +150,7 @@ export async function POST(request) {
     await logWebhookActivity({
       webhookType: 'messages',
       siteUrl,
-      meetingId: messageId,
+      messageId: messageId,
       status: 'success',
       message: `Message processed from ${message.personEmail}`,
       processingDetails: `Processed in ${Date.now() - startTime}ms. Attachments: ${attachments.length}`,
@@ -159,7 +166,7 @@ export async function POST(request) {
     await logWebhookActivity({
       webhookType: 'messages',
       siteUrl: siteUrl || 'unknown',
-      meetingId: messageId || 'unknown',
+      messageId: messageId || 'unknown',
       status: 'error',
       message: 'Failed to process message webhook',
       error: error.message,
