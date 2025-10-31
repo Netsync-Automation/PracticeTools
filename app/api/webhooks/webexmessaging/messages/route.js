@@ -31,16 +31,16 @@ async function getSiteUrlFromRoomId(roomId) {
   return null;
 }
 
-async function getBotToken(siteUrl) {
+async function getServiceAppToken(siteUrl) {
   const sitePrefix = getSitePrefix(siteUrl);
-  const botTokenPath = getSSMPath(`${sitePrefix}_WEBEX_MESSAGING_BOT_TOKEN_1`);
+  const tokenPath = getSSMPath(`${sitePrefix}_WEBEX_MEETINGS_ACCESS_TOKEN`);
   
   try {
-    const result = await ssmClient.send(new GetParameterCommand({ Name: botTokenPath }));
+    const result = await ssmClient.send(new GetParameterCommand({ Name: tokenPath }));
     return result.Parameter.Value;
   } catch (error) {
-    console.error(`Failed to get bot token for ${siteUrl}:`, error);
-    throw new Error(`Bot token not found for ${siteUrl}`);
+    console.error(`Failed to get service app token for ${siteUrl}:`, error);
+    throw new Error(`Service app token not found for ${siteUrl}`);
   }
 }
 
@@ -85,7 +85,7 @@ export async function POST(request) {
     }
     console.log('📨 [WEBEX-MESSAGING] Found site:', siteUrl);
     
-    const accessToken = await getBotToken(siteUrl);
+    const accessToken = await getServiceAppToken(siteUrl);
     
     const messageResponse = await fetch(`https://webexapis.com/v1/messages/${messageId}`, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
