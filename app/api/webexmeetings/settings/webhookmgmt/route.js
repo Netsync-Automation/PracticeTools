@@ -220,7 +220,9 @@ export async function POST(request) {
       }
       
       if (action === 'create') {
-        console.log('🔧 [WEBHOOK-MGMT] Creating webhooks for:', site.siteUrl);
+        console.error('🔧 [WEBHOOK-MGMT] ===== CREATE ACTION STARTED =====');
+        console.error('🔧 [WEBHOOK-MGMT] Creating webhooks for:', site.siteUrl);
+        console.error('🔧 [WEBHOOK-MGMT] Monitored rooms:', JSON.stringify(site.monitoredRooms));
         
         // Check existing webhooks in Webex first
         const allWebhooksResponse = await fetch('https://webexapis.com/v1/webhooks', {
@@ -236,8 +238,13 @@ export async function POST(request) {
         
         // Create webhooks for Webex Messaging if monitored rooms exist
         const messagingWebhookIds = site.messagingWebhookIds || [];
+        console.error('🔧 [WEBHOOK-MGMT] Checking monitored rooms:', {
+          hasMonitoredRooms: !!site.monitoredRooms,
+          roomCount: site.monitoredRooms?.length || 0,
+          rooms: site.monitoredRooms
+        });
         if (site.monitoredRooms && site.monitoredRooms.length > 0) {
-          console.log('🔧 [WEBHOOK-MGMT] Creating messaging webhooks for', site.monitoredRooms.length, 'rooms');
+          console.error('🔧 [WEBHOOK-MGMT] Creating messaging webhooks for', site.monitoredRooms.length, 'rooms');
           
           // Generate or retrieve shared secret for webhook validation
           if (!site.webhookSecret) {
