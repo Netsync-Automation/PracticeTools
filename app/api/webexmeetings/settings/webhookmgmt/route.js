@@ -277,7 +277,12 @@ export async function POST(request) {
               }
               
               for (const room of site.monitoredRooms) {
-                if (validWebhookIds.find(w => w.roomId === room.id)) continue;
+                console.error('🔧 [WEBHOOK-MGMT] Processing room:', room.title, room.id);
+                
+                if (validWebhookIds.find(w => w.roomId === room.id)) {
+                  console.error('🔧 [WEBHOOK-MGMT] Webhook already exists for room, skipping');
+                  continue;
+                }
                 
                 // Step 2: Add service app user to room using bot token
                 const membershipPayload = {
@@ -285,6 +290,7 @@ export async function POST(request) {
                   personId: serviceAppPersonId
                 };
                 
+                console.error('🔧 [WEBHOOK-MGMT] Adding service app to room...');
                 const membershipResponse = await fetch('https://webexapis.com/v1/memberships', {
                   method: 'POST',
                   headers: {
@@ -294,9 +300,16 @@ export async function POST(request) {
                   body: JSON.stringify(membershipPayload)
                 });
                 
+                console.error('🔧 [WEBHOOK-MGMT] Membership response status:', membershipResponse.status);
                 if (!membershipResponse.ok && membershipResponse.status !== 409) {
-                  console.error('🔧 [WEBHOOK-MGMT] Failed to add service app to room:', room.title);
+                  const errorText = await membershipResponse.text();
+                  console.error('🔧 [WEBHOOK-MGMT] Failed to add service app to room:', room.title, errorText);
                   continue;
+                } else if (membershipResponse.status === 409) {
+                  console.error('🔧 [WEBHOOK-MGMT] Service app already member of room');
+                } else {
+                  const membershipData = await membershipResponse.json();
+                  console.error('🔧 [WEBHOOK-MGMT] Service app added to room, membership ID:', membershipData.id);
                 }
                 
                 // Step 3: Create webhook using service app access token
@@ -308,6 +321,7 @@ export async function POST(request) {
                   filter: `roomId=${room.id}`
                 };
                 
+                console.error('🔧 [WEBHOOK-MGMT] Creating webhook for room...');
                 const webhookResponse = await fetch('https://webexapis.com/v1/webhooks', {
                   method: 'POST',
                   headers: {
@@ -317,27 +331,31 @@ export async function POST(request) {
                   body: JSON.stringify(webhookPayload)
                 });
                 
+                console.error('🔧 [WEBHOOK-MGMT] Webhook response status:', webhookResponse.status);
                 if (webhookResponse.ok) {
                   const webhookResult = await webhookResponse.json();
                   validWebhookIds.push({ roomId: room.id, webhookId: webhookResult.id });
+                  console.error('🔧 [WEBHOOK-MGMT] ✅ Webhook created:', webhookResult.id);
+                } else {
+                  const errorText = await webhookResponse.text();
+                  console.error('🔧 [WEBHOOK-MGMT] ❌ Webhook creation failed:', errorText);
                 }
               }
               
               site.messagingWebhookIds = validWebhookIds;
+              console.error('🔧 [WEBHOOK-MGMT] Final validWebhookIds:', JSON.stringify(validWebhookIds));
             }
           }
         }
         
         // Skip recordings webhook if it already exists in Webex
         if (existingRecordingsWebhook) {
-          console.log('🔧 [WEBHOOK-MGMT] Recordings webhook already exists in Webex, skipping creation');
           site.recordingWebhookId = existingRecordingsWebhook.id;
           results.push({ 
             site: site.siteName || site.siteUrl, 
             status: 'created',
             recordingWebhookId: existingRecordingsWebhook.id,
-            messagingWebhookCount: messagingWebhookIds.length,
-            skipped: 'recordings webhook already exists in Webex'
+            messagingWebhookCount: site.messagingWebhookIds?.length || 0
           });
           continue;
         }

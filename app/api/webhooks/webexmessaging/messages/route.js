@@ -31,16 +31,16 @@ async function getSiteUrlFromRoomId(roomId) {
   return null;
 }
 
-async function getServiceAppToken(siteUrl) {
+async function getBotToken(siteUrl) {
   const sitePrefix = getSitePrefix(siteUrl);
-  const tokenPath = getSSMPath(`${sitePrefix}_WEBEX_MEETINGS_ACCESS_TOKEN`);
+  const botTokenPath = getSSMPath(`${sitePrefix}_WEBEX_MESSAGING_BOT_TOKEN_1`);
   
   try {
-    const result = await ssmClient.send(new GetParameterCommand({ Name: tokenPath }));
+    const result = await ssmClient.send(new GetParameterCommand({ Name: botTokenPath }));
     return result.Parameter.Value;
   } catch (error) {
-    console.error(`Failed to get service app token for ${siteUrl}:`, error);
-    throw new Error(`Service app token not found for ${siteUrl}`);
+    console.error(`Failed to get bot token for ${siteUrl}:`, error);
+    throw new Error(`Bot token not found for ${siteUrl}`);
   }
 }
 
@@ -85,14 +85,20 @@ export async function POST(request) {
     }
     console.log('📨 [WEBEX-MESSAGING] Found site:', siteUrl);
     
-    const accessToken = await getServiceAppToken(siteUrl);
+    const accessToken = await getBotToken(siteUrl);
+    console.log('📨 [WEBEX-MESSAGING] Got bot token, length:', accessToken?.length);
     
     const messageResponse = await fetch(`https://webexapis.com/v1/messages/${messageId}`, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     });
     
+    console.log('📨 [WEBEX-MESSAGING] Message fetch status:', messageResponse.status);
+    console.log('📨 [WEBEX-MESSAGING] Fetching message ID:', messageId);
     if (!messageResponse.ok) {
-      throw new Error(`Failed to fetch message: ${messageResponse.status}`);
+      const errorText = await messageResponse.text();
+      console.log('📨 [WEBEX-MESSAGING] Message fetch error:', errorText);
+      console.log('📨 [WEBEX-MESSAGING] Using siteUrl:', siteUrl);
+      throw new Error(`Failed to fetch message: ${messageResponse.status} - ${errorText}`);
     }
     
     const message = await messageResponse.json();

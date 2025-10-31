@@ -156,55 +156,55 @@ export async function POST(request) {
       const existingData = await db.getSetting(boardKey);
       console.log('[PRACTICE-BOARDS-DEBUG] Existing board data found:', !!existingData);
       
+      // DSR: Determine board practices - either from existing data or infer from practiceId
+      let boardPractices = [];
       if (existingData) {
         const boardData = JSON.parse(existingData);
-        console.log('[PRACTICE-BOARDS-DEBUG] Board practices:', boardData.practices);
-        console.log('[PRACTICE-BOARDS-DEBUG] User practices:', user.practices);
-        console.log('[PRACTICE-BOARDS-DEBUG] User role:', user.role);
+        boardPractices = boardData.practices || [];
+      }
+      
+      // If no practices found, infer from practiceId
+      if (!boardPractices || boardPractices.length === 0) {
+        boardPractices = inferPracticesFromId(practiceId);
+        console.log('[PRACTICE-BOARDS-DEBUG] Inferred practices from ID:', boardPractices);
+      }
+      
+      console.log('[PRACTICE-BOARDS-DEBUG] Board practices:', boardPractices);
+      console.log('[PRACTICE-BOARDS-DEBUG] User practices:', user.practices);
+      console.log('[PRACTICE-BOARDS-DEBUG] User role:', user.role);
+      
+      // DSR: Enhanced permission check for practice principals, managers, and members
+      let canEdit = false;
+      
+      if (boardPractices && user.practices) {
+        // Check for direct practice match
+        canEdit = boardPractices.some(practice => user.practices.includes(practice));
         
-        // DSR: Enhanced permission check for practice principals and managers
-        let canEdit = false;
-        
-        if (boardData.practices && user.practices) {
-          // Check for direct practice match
-          canEdit = boardData.practices.some(practice => user.practices.includes(practice));
-          
-          // DSR: Additional check for practice principals - they can edit boards for their practice
-          if (!canEdit && (user.role === 'practice_principal' || user.role === 'practice_manager')) {
-            // Check if user's practice matches any board practice (case-insensitive)
-            canEdit = boardData.practices.some(boardPractice => 
-              user.practices.some(userPractice => 
-                boardPractice.toLowerCase().replace(/[^a-z]/g, '') === userPractice.toLowerCase().replace(/[^a-z]/g, '')
-              )
-            );
-          }
-          
-          // DSR: Fallback - if board practices is empty or undefined, infer from practiceId
-          if (!canEdit && (!boardData.practices || boardData.practices.length === 0)) {
-            const inferredPractices = inferPracticesFromId(practiceId);
-            console.log('[PRACTICE-BOARDS-DEBUG] Inferred practices from ID:', inferredPractices);
-            canEdit = inferredPractices.some(practice => 
-              user.practices.some(userPractice => 
-                practice.toLowerCase().replace(/[^a-z]/g, '') === userPractice.toLowerCase().replace(/[^a-z]/g, '')
-              )
-            );
-          }
+        // DSR: Additional check for practice users - they can edit boards for their practice
+        if (!canEdit && (user.role === 'practice_principal' || user.role === 'practice_manager' || user.role === 'practice_member')) {
+          // Check if user's practice matches any board practice (case-insensitive)
+          canEdit = boardPractices.some(boardPractice => 
+            user.practices.some(userPractice => 
+              boardPractice.toLowerCase().replace(/[^a-z]/g, '') === userPractice.toLowerCase().replace(/[^a-z]/g, '')
+            )
+          );
         }
-        
-        console.log('[PRACTICE-BOARDS-DEBUG] Can edit board:', canEdit);
-        
-        if (!canEdit) {
-          console.log('[PRACTICE-BOARDS-DEBUG] User cannot edit this board - insufficient permissions');
-          return NextResponse.json({ 
-            error: 'You can only edit boards for your assigned practices',
-            debug: {
-              userPractices: user.practices,
-              boardPractices: boardData.practices,
-              userRole: user.role,
-              practiceId: practiceId
-            }
-          }, { status: 403 });
-        }
+      }
+      
+      console.log('[PRACTICE-BOARDS-DEBUG] Can edit board:', canEdit);
+      
+      if (!canEdit) {
+        console.log('[PRACTICE-BOARDS-DEBUG] User cannot edit this board - insufficient permissions');
+        return NextResponse.json({ 
+          error: 'You can only edit boards for your assigned practices',
+          debug: {
+            userPractices: user.practices,
+            boardPractices: boardPractices,
+            userRole: user.role,
+            practiceId: practiceId,
+            topic: topic
+          }
+        }, { status: 403 });
       }
     }
     
