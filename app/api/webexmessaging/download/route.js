@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { validateUserSession } from '../../../../lib/auth-check';
 
 const s3Client = new S3Client({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 
 export async function GET(request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const userCookie = request.cookies.get('user-session');
+    const validation = await validateUserSession(userCookie);
+    if (!validation.valid) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
