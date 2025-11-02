@@ -65,67 +65,67 @@ export async function POST(request) {
   const trace = [];
   
   try {
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Webhook received`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Webhook received`);
     const payload = await request.json();
     trace.push({ step: 'webhook_received', timestamp: new Date().toISOString(), data: maskSensitiveData(payload) });
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Payload:`, JSON.stringify(payload, null, 2));
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Payload:`, JSON.stringify(payload, null, 2));
     messageId = payload.data?.id;
     const roomId = payload.data?.roomId;
     
     if (!messageId || !roomId) {
-      console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Missing messageId or roomId, skipping`);
+      console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Missing messageId or roomId, skipping`);
       trace.push({ step: 'validation_failed', timestamp: new Date().toISOString(), reason: 'Missing messageId or roomId' });
       return NextResponse.json({ success: true });
     }
     
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Processing messageId=${messageId} roomId=${roomId}`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Processing messageId=${messageId} roomId=${roomId}`);
     trace.push({ step: 'lookup_site', timestamp: new Date().toISOString(), roomId });
     siteUrl = await getSiteUrlFromRoomId(roomId);
     if (!siteUrl) {
-      console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Room not monitored: ${roomId}`);
+      console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Room not monitored: ${roomId}`);
       trace.push({ step: 'room_not_monitored', timestamp: new Date().toISOString(), roomId });
       return NextResponse.json({ success: true });
     }
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Found siteUrl=${siteUrl}`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Found siteUrl=${siteUrl}`);
     trace.push({ step: 'site_found', timestamp: new Date().toISOString(), siteUrl });
     
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Calling getValidAccessToken(${siteUrl})`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Calling getValidAccessToken(${siteUrl})`);
     const accessToken = await getValidAccessToken(siteUrl);
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Token retrieved: length=${accessToken?.length} first50=${accessToken?.substring(0, 50)}`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Token retrieved: length=${accessToken?.length} first50=${accessToken?.substring(0, 50)}`);
     trace.push({ step: 'token_retrieved', timestamp: new Date().toISOString(), tokenLength: accessToken?.length, tokenPreview: maskToken(accessToken) });
     
     const apiUrl = `https://webexapis.com/v1/messages?roomId=${roomId}&max=50`;
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Calling Webex API: ${apiUrl}`);
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Authorization: Bearer ${accessToken?.substring(0, 50)}...`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Calling Webex API: ${apiUrl}`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Authorization: Bearer ${accessToken?.substring(0, 50)}...`);
     trace.push({ step: 'api_call_start', timestamp: new Date().toISOString(), url: apiUrl, method: 'GET', authorization: `Bearer ${maskToken(accessToken)}` });
     
     const messagesResponse = await fetch(apiUrl, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     });
     
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] API response status=${messagesResponse.status}`);
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] API response headers:`, JSON.stringify(Object.fromEntries(messagesResponse.headers.entries())));
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] API response status=${messagesResponse.status}`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] API response headers:`, JSON.stringify(Object.fromEntries(messagesResponse.headers.entries())));
     
     if (!messagesResponse.ok) {
       const errorText = await messagesResponse.text();
-      console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] API ERROR: status=${messagesResponse.status} body=${errorText}`);
+      console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] API ERROR: status=${messagesResponse.status} body=${errorText}`);
       trace.push({ step: 'api_call_failed', timestamp: new Date().toISOString(), status: messagesResponse.status, error: errorText });
       throw new Error(`Failed to list messages: ${messagesResponse.status} - ${errorText}`);
     }
     
     const messagesData = await messagesResponse.json();
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] API returned ${messagesData.items?.length} messages`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] API returned ${messagesData.items?.length} messages`);
     trace.push({ step: 'api_call_success', timestamp: new Date().toISOString(), status: messagesResponse.status, messageCount: messagesData.items?.length });
     
     const message = messagesData.items?.find(m => m.id === messageId);
     
     if (!message) {
-      console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Message ${messageId} not found in list of ${messagesData.items?.length} messages`);
+      console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Message ${messageId} not found in list of ${messagesData.items?.length} messages`);
       trace.push({ step: 'message_not_found', timestamp: new Date().toISOString(), messageId, totalMessages: messagesData.items?.length });
       throw new Error(`Message ${messageId} not found in room messages`);
     }
     
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Found message in list`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Found message in list`);
     trace.push({ step: 'message_found', timestamp: new Date().toISOString(), message: maskSensitiveData(message) });
     const attachments = [];
     let s3Uploaded = false;
@@ -172,7 +172,7 @@ export async function POST(request) {
       }
     }));
     
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] Message saved successfully`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Message saved successfully`);
     trace.push({ step: 'db_save_success', timestamp: new Date().toISOString() });
     notifyWebexMessagesUpdate();
     trace.push({ step: 'sse_notified', timestamp: new Date().toISOString() });
@@ -191,7 +191,7 @@ export async function POST(request) {
       trace: JSON.stringify(trace)
     });
     
-    console.log(`[WEBHOOK-MSG-DEBUG] [${requestId}] SUCCESS - Completed in ${Date.now() - startTime}ms`);
+    console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] SUCCESS - Completed in ${Date.now() - startTime}ms`);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] ERROR:`, error.message);

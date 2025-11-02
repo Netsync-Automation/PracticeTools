@@ -40,16 +40,18 @@ export async function GET() {
     const formattedLogs = logs.map(log => ({
       id: log.id,
       timestamp: log.timestamp,
-      webhookType: log.webhookType, // 'recordings' or 'transcripts'
+      webhookType: log.webhookType,
       siteUrl: log.siteUrl,
       meetingId: log.meetingId,
-      status: log.status, // 'success', 'error', 'warning'
+      messageId: log.messageId,
+      status: log.status,
       message: log.message,
       error: log.error,
       processingDetails: log.processingDetails,
-      databaseAction: log.databaseAction, // 'created', 'updated', 'skipped'
-      s3Upload: log.s3Upload, // true/false
-      sseNotification: log.sseNotification // true/false
+      databaseAction: log.databaseAction,
+      s3Upload: log.s3Upload,
+      sseNotification: log.sseNotification,
+      trace: log.trace
     }));
     
     console.log('📊 [WEBHOOK-LOGS] Returning', formattedLogs.length, 'formatted logs');
