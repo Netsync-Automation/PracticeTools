@@ -132,27 +132,57 @@ export async function POST(request) {
     let s3Uploaded = false;
     
     if (message.files && message.files.length > 0) {
+      console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Processing ${message.files.length} attachments`);
+      trace.push({ step: 'attachment_processing_start', timestamp: new Date().toISOString(), fileCount: message.files.length });
+      
       for (const fileUrl of message.files) {
-        const fileResponse = await fetch(fileUrl, {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
-        });
-        
-        if (fileResponse.ok) {
-          const fileBuffer = await fileResponse.arrayBuffer();
-          const fileName = fileUrl.split('/').pop() || `file-${uuidv4()}`;
-          const s3Key = `webex-messages/${siteUrl}/${roomId}/${messageId}/${fileName}`;
+        try {
+          console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Downloading file: ${fileUrl}`);
+          trace.push({ step: 'file_download_start', timestamp: new Date().toISOString(), fileUrl });
           
-          await s3Client.send(new PutObjectCommand({
-            Bucket: process.env.S3_BUCKET,
-            Key: s3Key,
-            Body: Buffer.from(fileBuffer),
-            ContentType: fileResponse.headers.get('content-type') || 'application/octet-stream'
-          }));
+          const fileResponse = await fetch(fileUrl, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          });
           
-          attachments.push({ fileName, s3Key });
-          s3Uploaded = true;
+          console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] File download status: ${fileResponse.status}`);
+          trace.push({ step: 'file_download_response', timestamp: new Date().toISOString(), status: fileResponse.status });
+          
+          if (fileResponse.ok) {
+            const fileBuffer = await fileResponse.arrayBuffer();
+            const contentDisposition = fileResponse.headers.get('content-disposition');
+            let fileName = `file-${uuidv4()}`;
+            
+            if (contentDisposition) {
+              const match = contentDisposition.match(/filename="?([^"]+)"?/);
+              if (match) fileName = match[1];
+            }
+            
+            const s3Key = `webex-messages/${siteUrl}/${roomId}/${messageId}/${fileName}`;
+            console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Uploading to S3: ${s3Key}`);
+            trace.push({ step: 's3_upload_start', timestamp: new Date().toISOString(), fileName, s3Key, fileSize: fileBuffer.byteLength });
+            
+            await s3Client.send(new PutObjectCommand({
+              Bucket: process.env.S3_BUCKET,
+              Key: s3Key,
+              Body: Buffer.from(fileBuffer),
+              ContentType: fileResponse.headers.get('content-type') || 'application/octet-stream'
+            }));
+            
+            console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] File uploaded successfully: ${fileName}`);
+            trace.push({ step: 's3_upload_success', timestamp: new Date().toISOString(), fileName, s3Key });
+            attachments.push({ fileName, s3Key });
+            s3Uploaded = true;
+          } else {
+            console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] File download failed: ${fileResponse.status}`);
+            trace.push({ step: 'file_download_failed', timestamp: new Date().toISOString(), status: fileResponse.status, fileUrl });
+          }
+        } catch (fileError) {
+          console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Error processing file ${fileUrl}:`, fileError.message);
+          trace.push({ step: 'file_processing_error', timestamp: new Date().toISOString(), error: fileError.message, fileUrl });
         }
       }
+      console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Attachment processing complete: ${attachments.length} uploaded`);
+      trace.push({ step: 'attachment_processing_complete', timestamp: new Date().toISOString(), successCount: attachments.length, totalCount: message.files.length });
     }
     
     const tableName = getTableName('WebexMessages');
