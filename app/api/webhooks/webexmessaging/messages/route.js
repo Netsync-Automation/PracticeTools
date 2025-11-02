@@ -53,7 +53,8 @@ async function logWebhookActivity(logData) {
       }
     }));
   } catch (error) {
-    console.error('Failed to log webhook activity:', error);
+    console.error('[WEBHOOK-LOG-ERROR] Failed to log webhook activity:', error.name, error.message);
+    // Don't throw - logging failure shouldn't break webhook processing
   }
 }
 
