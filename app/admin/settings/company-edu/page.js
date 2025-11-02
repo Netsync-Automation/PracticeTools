@@ -6,6 +6,7 @@ import Navbar from '../../../../components/Navbar';
 import SidebarLayout from '../../../../components/SidebarLayout';
 import Breadcrumb from '../../../../components/Breadcrumb';
 import { useAuth } from '../../../../hooks/useAuth';
+import WebhookTraceViewer from '../../../../components/WebhookTraceViewer';
 
 export default function CompanyEduPage() {
   const router = useRouter();
@@ -41,6 +42,8 @@ export default function CompanyEduPage() {
   const [showApiManagementModal, setShowApiManagementModal] = useState(false);
   const [showApiLogsModal, setShowApiLogsModal] = useState(false);
   const [showWebhookLogsModal, setShowWebhookLogsModal] = useState(false);
+  const [selectedTrace, setSelectedTrace] = useState(null);
+  const [showTraceModal, setShowTraceModal] = useState(false);
   const [apiResults, setApiResults] = useState([]);
   const [apiLogs, setApiLogs] = useState([]);
   const [webhookLogs, setWebhookLogs] = useState([]);
@@ -1111,10 +1114,26 @@ export default function CompanyEduPage() {
                             </div>
                           )}
                           
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span>DB: {log.databaseAction || 'none'}</span>
-                            <span>S3: {log.s3Upload ? '✅' : '❌'}</span>
-                            <span>SSE: {log.sseNotification ? '✅' : '❌'}</span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span>DB: {log.databaseAction || 'none'}</span>
+                              <span>S3: {log.s3Upload ? '✅' : '❌'}</span>
+                              <span>SSE: {log.sseNotification ? '✅' : '❌'}</span>
+                            </div>
+                            {log.trace && (
+                              <button
+                                onClick={() => {
+                                  setSelectedTrace(log.trace);
+                                  setShowTraceModal(true);
+                                }}
+                                className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Show Detailed Trace
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1566,6 +1585,50 @@ export default function CompanyEduPage() {
           </div>
         )}
       </SidebarLayout>
+      
+      {showTraceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Detailed Webhook Trace
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowTraceModal(false);
+                    setSelectedTrace(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                <WebhookTraceViewer trace={selectedTrace} />
+              </div>
+              
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => {
+                    setShowTraceModal(false);
+                    setSelectedTrace(null);
+                  }}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
