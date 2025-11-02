@@ -134,33 +134,46 @@ export async function POST(request) {
     async function downloadWithRetry(fileUrl, maxAttempts = 6) {
       let delay = 0;
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        if (delay) await new Promise(r => setTimeout(r, delay));
+        if (delay) {
+          console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Waiting ${delay}ms before attempt ${attempt}`);
+          await new Promise(r => setTimeout(r, delay));
+        }
         
+        console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Download attempt ${attempt}/${maxAttempts} for ${fileUrl}`);
         const res = await fetch(fileUrl, {
           headers: { 'Authorization': `Bearer ${accessToken}` },
           redirect: 'follow'
         });
         
+        console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Attempt ${attempt} response: status=${res.status}`);
+        
         if (res.ok) {
+          trace.push({ step: 'file_download_success', timestamp: new Date().toISOString(), attempt, fileUrl });
+          console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Download succeeded on attempt ${attempt}`);
           return { success: true, response: res, attempts: attempt };
         }
         
         if (res.status === 423) {
           const retryAfter = parseInt(res.headers.get('retry-after') || '5', 10);
           delay = (retryAfter + 5) * 1000;
-          trace.push({ step: 'file_scan_pending', timestamp: new Date().toISOString(), attempt, retryAfter, fileUrl });
-          if (attempt === 1) {
-            return { success: false, status: 'pending_scan', retryAfter, attempt };
-          }
+          const logEntry = { step: 'file_scan_pending', timestamp: new Date().toISOString(), attempt, retryAfter, delayMs: delay, status: 423, fileUrl };
+          trace.push(logEntry);
+          console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Attempt ${attempt}: 423 response, retry-after=${retryAfter}s, waiting ${delay}ms`);
           continue;
         }
         
         if (res.status === 428) {
+          trace.push({ step: 'file_scan_blocked', timestamp: new Date().toISOString(), attempt, status: 428, fileUrl });
+          console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Attempt ${attempt}: 428 scan blocked`);
           return { success: false, status: 'scan_blocked', message: 'File scan blocked by policy' };
         }
         
+        trace.push({ step: 'file_download_failed', timestamp: new Date().toISOString(), attempt, status: res.status, fileUrl });
+        console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Attempt ${attempt}: Failed with status ${res.status}`);
         return { success: false, status: 'download_failed', httpStatus: res.status };
       }
+      trace.push({ step: 'file_infected', timestamp: new Date().toISOString(), attempts: maxAttempts, fileUrl });
+      console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] All ${maxAttempts} attempts failed, marking as infected`);
       return { success: false, status: 'infected', message: 'File failed malware scan' };
     }
     
