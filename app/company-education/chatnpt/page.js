@@ -359,14 +359,12 @@ export default function ChatNPTPage() {
                             <div className="space-y-1">
                               {msg.sources.slice(0, 5).map((source, sidx) => (
                                 <div key={sidx} className="text-xs truncate">
-                                  • <a 
-                                      href={source.downloadUrl} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
+                                  • <span className="font-medium">({source.source})</span> <a 
+                                      href={source.viewUrl} 
                                       className="text-blue-600 hover:text-blue-800 underline"
                                     >
                                       {source.topic}
-                                    </a> at {formatTimestamp(source.timestamp)} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
+                                    </a>{source.timestamp && ` at ${formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
                                 </div>
                               ))}
                               {msg.sources.length > 5 && (
@@ -490,14 +488,12 @@ export default function ChatNPTPage() {
               <div className="space-y-2">
                 {selectedCitations.map((source, idx) => (
                   <div key={idx} className="text-sm py-2 border-b border-gray-100 last:border-0">
-                    {idx + 1}. <a 
-                      href={source.downloadUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                    {idx + 1}. <span className="font-medium">({source.source})</span> <a 
+                      href={source.viewUrl}
                       className="text-blue-600 hover:text-blue-800 underline"
                     >
                       {source.topic}
-                    </a> at {formatTimestamp(source.timestamp)} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
+                    </a>{source.timestamp && ` at ${formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
                   </div>
                 ))}
               </div>

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getTableName } from '../../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { TextractClient, DetectDocumentTextCommand } from '@aws-sdk/client-textract';
 import { v4 as uuidv4 } from 'uuid';
 import { notifyWebexMessagesUpdate } from '../../../sse/webex-messages/route';
 import { getValidAccessToken } from '../../../../../lib/webex-token-manager';
@@ -10,6 +11,7 @@ import { getValidAccessToken } from '../../../../../lib/webex-token-manager';
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
+const textractClient = new TextractClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 
 async function getSiteUrlFromRoomId(roomId) {
   const tableName = getTableName('Settings');
@@ -270,6 +272,13 @@ export async function POST(request) {
     trace.push({ step: 'db_save_success', timestamp: new Date().toISOString() });
     notifyWebexMessagesUpdate();
     trace.push({ step: 'sse_notified', timestamp: new Date().toISOString() });
+
+    // Extract text from attachments asynchronously
+    if (attachments.some(a => a.status === 'available')) {
+      extractTextFromAttachments(messageId, attachments, tableName).catch(err => 
+        console.error(`[WEBHOOK-MSG-DEBUG] [${requestId}] Text extraction failed:`, err)
+      );
+    }
     
     trace.push({ step: 'completed', timestamp: new Date().toISOString(), duration: `${Date.now() - startTime}ms` });
     await logWebhookActivity({
@@ -307,5 +316,43 @@ export async function POST(request) {
     });
     
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+async function extractTextFromAttachments(messageId, attachments, tableName) {
+  for (const att of attachments) {
+    if (att.status !== 'available' || !att.s3Key) continue;
+    
+    try {
+      const result = await textractClient.send(new DetectDocumentTextCommand({
+        Document: {
+          S3Object: {
+            Bucket: process.env.S3_BUCKET,
+            Name: att.s3Key
+          }
+        }
+      }));
+
+      const extractedText = result.Blocks
+        ?.filter(block => block.BlockType === 'LINE')
+        .map(block => block.Text)
+        .join('\n') || '';
+
+      if (extractedText) {
+        att.extractedText = extractedText;
+      }
+    } catch (error) {
+      console.error(`Textract failed for ${att.fileName}:`, error.message);
+    }
+  }
+
+  const hasExtractedText = attachments.some(a => a.extractedText);
+  if (hasExtractedText) {
+    await docClient.send(new UpdateCommand({
+      TableName: tableName,
+      Key: { message_id: messageId },
+      UpdateExpression: 'SET attachments = :attachments',
+      ExpressionAttributeValues: { ':attachments': attachments }
+    }));
   }
 }

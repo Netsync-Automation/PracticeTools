@@ -146,6 +146,12 @@ const menuItems = [
         name: 'WebEx Messages',
         href: '/company-education/webex-messages',
         description: 'WebEx messages from monitored rooms'
+      },
+      {
+        id: 'documentation',
+        name: 'Documentation',
+        href: '/company-education/documentation',
+        description: 'Training documentation and resources'
       }
     ]
   },

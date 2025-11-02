@@ -54,21 +54,28 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Question is required' }, { status: 400 });
     }
 
-    const tableName = getTableName('WebexMeetingsRecordings');
-    const command = new ScanCommand({
-      TableName: tableName,
+    // Fetch Webex Recordings
+    const recordingsTable = getTableName('WebexMeetingsRecordings');
+    const recordingsResult = await docClient.send(new ScanCommand({
+      TableName: recordingsTable,
       FilterExpression: 'approved = :approved AND attribute_exists(transcriptText)',
-      ExpressionAttributeValues: {
-        ':approved': true
-      }
-    });
-    
-    const result = await docClient.send(command);
-    const recordings = result.Items || [];
+      ExpressionAttributeValues: { ':approved': true }
+    }));
+    const recordings = recordingsResult.Items || [];
 
-    if (recordings.length === 0) {
+    // Fetch Webex Messages
+    const messagesTable = getTableName('WebexMessages');
+    const messagesResult = await docClient.send(new ScanCommand({ TableName: messagesTable }));
+    const messages = messagesResult.Items || [];
+
+    // Fetch Documentation
+    const docsTable = getTableName('Documentation');
+    const docsResult = await docClient.send(new ScanCommand({ TableName: docsTable }));
+    const docs = docsResult.Items || [];
+
+    if (recordings.length === 0 && messages.length === 0 && docs.length === 0) {
       return NextResponse.json({ 
-        answer: 'No approved recordings with transcripts are currently available. Please check back later.',
+        answer: 'No data sources are currently available. Please check back later.',
         sources: []
       });
     }
@@ -79,6 +86,7 @@ export async function POST(request) {
       const chunks = parseVTTTranscript(rec.transcriptText);
       chunks.forEach(chunk => {
         chunksWithMetadata.push({
+          source: 'Webex Recordings',
           recordingId: rec.id,
           topic: rec.topic,
           timestamp: chunk.timestamp,
@@ -90,16 +98,54 @@ export async function POST(request) {
       });
     });
 
+    // Add Webex Messages
+    messages.forEach(msg => {
+      chunksWithMetadata.push({
+        source: 'Webex Messages',
+        messageId: msg.message_id,
+        topic: `Message from ${msg.person_email}`,
+        text: msg.text,
+        created: msg.created,
+        personEmail: msg.person_email
+      });
+      
+      // Add attachment text if available
+      msg.attachments?.forEach(att => {
+        if (att.extractedText) {
+          chunksWithMetadata.push({
+            source: 'Webex Messages',
+            messageId: msg.message_id,
+            topic: `Attachment: ${att.fileName}`,
+            text: att.extractedText,
+            created: msg.created,
+            personEmail: msg.person_email
+          });
+        }
+      });
+    });
+
+    // Add Documentation
+    docs.forEach(doc => {
+      chunksWithMetadata.push({
+        source: 'Documentation',
+        docId: doc.id,
+        topic: doc.fileName,
+        text: doc.extractedText || `Document: ${doc.fileName}`,
+        uploadedAt: doc.uploadedAt,
+        uploadedBy: doc.uploadedBy
+      });
+    });
+
     // Build context with chunk references
     const context = chunksWithMetadata.map((chunk, idx) => 
-      `[Chunk ${idx}|${chunk.topic}|${chunk.timestamp}]\n${chunk.text}`
+      `[Chunk ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}]\n${chunk.text}`
     ).join('\n\n');
 
-    const prompt = `You are a helpful AI assistant for Netsync Practice Tools. Answer the question based ONLY on the provided WebEx meeting transcript chunks. Each chunk has a reference [Chunk ID|Topic|Timestamp].
+    const prompt = `You are a helpful AI assistant for Netsync Practice Tools. Answer the question based ONLY on the provided data from Webex Recordings, Webex Messages, and Documentation. Each chunk has a reference [Chunk ID|Source|Topic|Timestamp].
 
 When answering, cite specific chunks by their ID numbers (e.g., "According to Chunk 5...").
 
-Transcript chunks:
+Data chunks:
 ${context}
 
 Question: ${question}
@@ -138,14 +184,38 @@ Answer (include chunk IDs in your response):`;
       .filter(id => id < chunksWithMetadata.length)
       .map(id => {
         const chunk = chunksWithMetadata[id];
-        return {
-          recordingId: chunk.recordingId,
+        const base = {
+          source: chunk.source,
           topic: chunk.topic,
-          timestamp: chunk.timestamp,
-          downloadUrl: chunk.downloadUrl,
-          date: chunk.createTime,
           text: chunk.text
         };
+        
+        if (chunk.source === 'Webex Recordings') {
+          return {
+            ...base,
+            recordingId: chunk.recordingId,
+            timestamp: chunk.timestamp,
+            downloadUrl: chunk.downloadUrl,
+            date: chunk.createTime,
+            viewUrl: `/company-education/webex-recordings`
+          };
+        } else if (chunk.source === 'Webex Messages') {
+          return {
+            ...base,
+            messageId: chunk.messageId,
+            date: chunk.created,
+            personEmail: chunk.personEmail,
+            viewUrl: `/company-education/webex-messages`
+          };
+        } else {
+          return {
+            ...base,
+            docId: chunk.docId,
+            date: chunk.uploadedAt,
+            uploadedBy: chunk.uploadedBy,
+            viewUrl: `/company-education/documentation`
+          };
+        }
       });
 
     return NextResponse.json({ answer, sources });
