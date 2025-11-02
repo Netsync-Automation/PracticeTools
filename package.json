@@ -31,6 +31,7 @@
     "@aws-sdk/client-dynamodb": "^3.888.0",
     "@aws-sdk/client-s3": "^3.450.0",
     "@aws-sdk/client-ssm": "^3.876.0",
+    "@aws-sdk/client-textract": "^3.922.0",
     "@aws-sdk/credential-providers": "^3.872.0",
     "@aws-sdk/lib-dynamodb": "^3.888.0",
     "@aws-sdk/s3-request-presigner": "^3.450.0",

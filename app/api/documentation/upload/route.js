@@ -113,8 +113,3 @@ async function extractTextFromDocument(id, s3Key, tableName) {
     console.error('Textract extraction error:', error);
   }
 }
-  } catch (error) {
-    console.error('Upload error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
