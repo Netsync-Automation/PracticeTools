@@ -25,6 +25,20 @@ export default function WebexMessagesPage() {
   }, [user]);
 
   useEffect(() => {
+    if (!loadingMessages && messages.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const messageId = params.get('id');
+      if (messageId) {
+        const message = messages.find(m => m.message_id === messageId);
+        if (message) {
+          setSelectedMessage(message);
+          window.history.replaceState({}, '', '/company-education/webex-messages');
+        }
+      }
+    }
+  }, [messages, loadingMessages]);
+
+  useEffect(() => {
     const eventSource = new EventSource('/api/sse/webex-messages');
     
     eventSource.addEventListener('message', (event) => {

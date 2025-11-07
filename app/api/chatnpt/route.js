@@ -136,21 +136,21 @@ export async function POST(request) {
       });
     });
 
-    // Build context with chunk references
+    // Build context with source references
     const context = chunksWithMetadata.map((chunk, idx) => 
-      `[Chunk ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}]\n${chunk.text}`
+      `[Source ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}]\n${chunk.text}`
     ).join('\n\n');
 
-    const prompt = `You are a helpful AI assistant for Netsync Practice Tools. Answer the question based ONLY on the provided data from Webex Recordings, Webex Messages, and Documentation. Each chunk has a reference [Chunk ID|Source|Topic|Timestamp].
+    const prompt = `You are a helpful AI assistant for Netsync Practice Tools. Answer the question based ONLY on the provided data from Webex Recordings, Webex Messages, and Documentation. Each piece of information has a reference [Source ID|Source Type|Topic|Timestamp].
 
-When answering, cite specific chunks by their ID numbers (e.g., "According to Chunk 5...").
+When answering, cite specific sources by their ID numbers (e.g., "According to Source 5..." or "Based on the information from Source 12...").
 
-Data chunks:
+Available information:
 ${context}
 
 Question: ${question}
 
-Answer (include chunk IDs in your response):`;
+Answer (cite source IDs in your response):`;
 
     const modelId = 'anthropic.claude-3-5-sonnet-20240620-v1:0';
     const payload = {
@@ -175,12 +175,12 @@ Answer (include chunk IDs in your response):`;
     const responseBody = JSON.parse(new TextDecoder().decode(bedrockResponse.body));
     const answer = responseBody.content[0].text;
 
-    // Extract chunk IDs from answer
-    const chunkMatches = answer.match(/Chunk \d+/g) || [];
-    const citedChunkIds = [...new Set(chunkMatches.map(m => parseInt(m.split(' ')[1])))];
+    // Extract source IDs from answer
+    const sourceMatches = answer.match(/Source \d+/g) || [];
+    const citedSourceIds = [...new Set(sourceMatches.map(m => parseInt(m.split(' ')[1])))];
     
-    // Build sources from cited chunks
-    const sources = citedChunkIds
+    // Build sources from cited references
+    const sources = citedSourceIds
       .filter(id => id < chunksWithMetadata.length)
       .map(id => {
         const chunk = chunksWithMetadata[id];
@@ -197,7 +197,7 @@ Answer (include chunk IDs in your response):`;
             timestamp: chunk.timestamp,
             downloadUrl: chunk.downloadUrl,
             date: chunk.createTime,
-            viewUrl: `/company-education/webex-recordings`
+            viewUrl: `/company-education/webex-recordings?id=${chunk.recordingId}`
           };
         } else if (chunk.source === 'Webex Messages') {
           return {
@@ -205,7 +205,7 @@ Answer (include chunk IDs in your response):`;
             messageId: chunk.messageId,
             date: chunk.created,
             personEmail: chunk.personEmail,
-            viewUrl: `/company-education/webex-messages`
+            viewUrl: `/company-education/webex-messages?id=${chunk.messageId}`
           };
         } else {
           return {
@@ -213,7 +213,7 @@ Answer (include chunk IDs in your response):`;
             docId: chunk.docId,
             date: chunk.uploadedAt,
             uploadedBy: chunk.uploadedBy,
-            viewUrl: `/company-education/documentation`
+            viewUrl: `/company-education/documentation?id=${chunk.docId}`
           };
         }
       });

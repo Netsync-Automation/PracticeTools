@@ -3,9 +3,10 @@ import { validateUserSession } from '../../../../lib/auth-check';
 import { getTableName } from '../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { TextractClient, DetectDocumentTextCommand } from '@aws-sdk/client-textract';
 import { v4 as uuidv4 } from 'uuid';
+import mammoth from 'mammoth';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -48,6 +49,15 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
+    const fileExt = file.name.toLowerCase().split('.').pop();
+    const allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'tif', 'doc', 'docx'];
+    
+    if (!allowedExts.includes(fileExt)) {
+      return NextResponse.json({ 
+        error: 'Unsupported file type. Please upload PDF, PNG, JPEG, TIFF, or Word documents.' 
+      }, { status: 400 });
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
     const id = uuidv4();
     const s3Key = `documentation/${id}/${file.name}`;
@@ -74,7 +84,7 @@ export async function POST(request) {
     }));
 
     // Extract text asynchronously
-    extractTextFromDocument(id, s3Key, tableName).catch(err => 
+    extractTextFromDocument(id, s3Key, tableName, fileExt, buffer).catch(err => 
       console.error('Text extraction failed:', err)
     );
 
@@ -85,31 +95,50 @@ export async function POST(request) {
   }
 }
 
-async function extractTextFromDocument(id, s3Key, tableName) {
+async function extractTextFromDocument(id, s3Key, tableName, fileExt, buffer) {
   try {
-    const result = await textractClient.send(new DetectDocumentTextCommand({
-      Document: {
-        S3Object: {
-          Bucket: process.env.S3_BUCKET,
-          Name: s3Key
-        }
-      }
-    }));
+    let extractedText = '';
 
-    const extractedText = result.Blocks
-      ?.filter(block => block.BlockType === 'LINE')
-      .map(block => block.Text)
-      .join('\n') || '';
+    if (fileExt === 'docx' || fileExt === 'doc') {
+      const result = await mammoth.extractRawText({ buffer });
+      extractedText = result.value;
+    } else {
+      const result = await textractClient.send(new DetectDocumentTextCommand({
+        Document: {
+          S3Object: {
+            Bucket: process.env.S3_BUCKET,
+            Name: s3Key
+          }
+        }
+      }));
+
+      extractedText = result.Blocks
+        ?.filter(block => block.BlockType === 'LINE')
+        .map(block => block.Text)
+        .join('\n') || '';
+    }
 
     if (extractedText) {
       await docClient.send(new UpdateCommand({
         TableName: tableName,
         Key: { id },
-        UpdateExpression: 'SET extractedText = :text',
-        ExpressionAttributeValues: { ':text': extractedText }
+        UpdateExpression: 'SET extractedText = :text, extractionStatus = :status',
+        ExpressionAttributeValues: { 
+          ':text': extractedText,
+          ':status': 'completed'
+        }
       }));
     }
   } catch (error) {
-    console.error('Textract extraction error:', error);
+    console.error('Text extraction error:', error);
+    await docClient.send(new UpdateCommand({
+      TableName: tableName,
+      Key: { id },
+      UpdateExpression: 'SET extractionStatus = :status, extractionError = :error',
+      ExpressionAttributeValues: { 
+        ':status': 'failed',
+        ':error': error.message || 'Text extraction failed'
+      }
+    })).catch(err => console.error('Failed to update extraction status:', err));
   }
 }

@@ -20,10 +20,36 @@ export default function ChatNPTPage() {
   const [editingTitle, setEditingTitle] = useState('');
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentChatTitle, setCurrentChatTitle] = useState('New Chat');
+  const [selectedSource, setSelectedSource] = useState(null);
+  const [loadingSource, setLoadingSource] = useState(false);
   const messagesEndRef = useRef(null);
 
+  const handleViewSource = async (source) => {
+    setLoadingSource(true);
+    if (source.source === 'Webex Messages' && source.messageId) {
+      try {
+        const response = await fetch(`/api/webexmessaging/messages/${source.messageId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setSelectedSource({ ...source, attachments: data.message?.attachments });
+        } else {
+          setSelectedSource(source);
+        }
+      } catch (error) {
+        console.error('Error fetching message details:', error);
+        setSelectedSource(source);
+      }
+    } else {
+      setSelectedSource(source);
+    }
+    setLoadingSource(false);
+  };
+
   const formatTimestamp = (timestamp) => {
+    if (!timestamp || typeof timestamp !== 'string') return '';
     const parts = timestamp.split(':');
+    if (parts.length < 3) return timestamp;
     const hours = parseInt(parts[0]);
     const minutes = parseInt(parts[1]);
     const seconds = parseInt(parts[2]);
@@ -52,20 +78,24 @@ export default function ChatNPTPage() {
 
   useEffect(() => {
     if (currentChatId && messages.length > 0) {
-      saveChatHistory();
+      const timeoutId = setTimeout(() => {
+        saveChatHistory();
+      }, 500);
+      return () => clearTimeout(timeoutId);
     }
-  }, [messages]);
+  }, [messages, currentChatId]);
 
-  const loadChatHistory = async () => {
+  const loadChatHistory = async (preserveCurrentChat = false) => {
     try {
       const response = await fetch(`/api/chatnpt/history?userEmail=${encodeURIComponent(user.email)}`);
       if (response.ok) {
         const data = await response.json();
         setChats(data.chats || []);
-        if (data.chats && data.chats.length > 0) {
+        if (!preserveCurrentChat && data.chats && data.chats.length > 0) {
           const lastChat = data.chats[0];
           setCurrentChatId(lastChat.chatId);
           setMessages(lastChat.messages || []);
+          setCurrentChatTitle(lastChat.title || 'Chat');
         }
       }
     } catch (error) {
@@ -73,8 +103,8 @@ export default function ChatNPTPage() {
     }
   };
 
-  const saveChatHistory = async () => {
-    if (!user?.email || !currentChatId) return;
+  const saveChatHistory = async (chatId = currentChatId, chatMessages = messages) => {
+    if (!user?.email || !chatId) return;
     
     try {
       await fetch('/api/chatnpt/history', {
@@ -82,8 +112,8 @@ export default function ChatNPTPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userEmail: user.email,
-          chatId: currentChatId,
-          messages
+          chatId: chatId,
+          messages: chatMessages
         })
       });
     } catch (error) {
@@ -94,11 +124,13 @@ export default function ChatNPTPage() {
   const createNewChat = async () => {
     setCurrentChatId(null);
     setMessages([]);
+    setCurrentChatTitle('New Chat');
   };
 
   const loadChat = (chat) => {
     setCurrentChatId(chat.chatId);
     setMessages(chat.messages || []);
+    setCurrentChatTitle(chat.title || 'Chat');
   };
 
   const renameChat = async (chatId, newTitle) => {
@@ -176,7 +208,7 @@ export default function ChatNPTPage() {
           const data = await response.json();
           chatIdToUse = data.chatId;
           setCurrentChatId(data.chatId);
-          await loadChatHistory();
+          await loadChatHistory(true);
         }
       } catch (error) {
         console.error('Error creating chat:', error);
@@ -198,20 +230,32 @@ export default function ChatNPTPage() {
           content: data.answer,
           sources: data.sources 
         };
-        setMessages(prev => [...prev, assistantMessage]);
+        const updatedMessages = [...newMessages, assistantMessage];
+        setMessages(updatedMessages);
+        if (chatIdToUse) {
+          await saveChatHistory(chatIdToUse, updatedMessages);
+        }
       } else {
         const errorMessage = { 
           role: 'assistant', 
           content: data.error || 'Sorry, I encountered an error. Please try again.' 
         };
-        setMessages(prev => [...prev, errorMessage]);
+        const updatedMessages = [...newMessages, errorMessage];
+        setMessages(updatedMessages);
+        if (chatIdToUse) {
+          await saveChatHistory(chatIdToUse, updatedMessages);
+        }
       }
     } catch (error) {
       const errorMessage = { 
         role: 'assistant', 
         content: 'Sorry, I encountered an error. Please try again.' 
       };
-      setMessages(prev => [...prev, errorMessage]);
+      const updatedMessages = [...newMessages, errorMessage];
+      setMessages(updatedMessages);
+      if (chatIdToUse) {
+        await saveChatHistory(chatIdToUse, updatedMessages);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -333,6 +377,9 @@ export default function ChatNPTPage() {
               </div>
               <div className="flex-1 flex flex-col">
               <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col overflow-hidden">
+              <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
+                <h2 className="text-lg font-semibold text-gray-900">{currentChatTitle}</h2>
+              </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
@@ -359,12 +406,12 @@ export default function ChatNPTPage() {
                             <div className="space-y-1">
                               {msg.sources.slice(0, 5).map((source, sidx) => (
                                 <div key={sidx} className="text-xs truncate">
-                                  • <span className="font-medium">({source.source})</span> <a 
-                                      href={source.viewUrl} 
+                                  • <span className="font-medium">({source.source})</span> <button 
+                                      onClick={() => handleViewSource(source)}
                                       className="text-blue-600 hover:text-blue-800 underline"
                                     >
                                       {source.topic}
-                                    </a>{source.timestamp && ` at ${formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
+                                    </button>{source.timestamp && ` at ${formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
                                 </div>
                               ))}
                               {msg.sources.length > 5 && (
@@ -431,7 +478,14 @@ export default function ChatNPTPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowSearchModal(false)}>
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Search Chats</h3>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold text-gray-900">Search Chats</h3>
+                <button onClick={() => setShowSearchModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
               <input
                 type="text"
                 value={searchQuery}
@@ -470,6 +524,123 @@ export default function ChatNPTPage() {
         </div>
       )}
 
+      {selectedSource && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setSelectedSource(null)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">Source Details</h3>
+              <button onClick={() => setSelectedSource(null)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Source Type</label>
+                <p className="text-gray-900 mt-1">{selectedSource.source}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Topic</label>
+                <p className="text-gray-900 mt-1">{selectedSource.topic}</p>
+              </div>
+              {selectedSource.timestamp && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Timestamp</label>
+                  <p className="text-gray-900 mt-1">{formatTimestamp(selectedSource.timestamp)}</p>
+                </div>
+              )}
+              {selectedSource.date && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Date</label>
+                  <p className="text-gray-900 mt-1">{new Date(selectedSource.date).toLocaleString()}</p>
+                </div>
+              )}
+              {selectedSource.personEmail && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">From</label>
+                  <p className="text-gray-900 mt-1">{selectedSource.personEmail}</p>
+                </div>
+              )}
+              {selectedSource.uploadedBy && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Uploaded By</label>
+                  <p className="text-gray-900 mt-1">{selectedSource.uploadedBy}</p>
+                </div>
+              )}
+              <div>
+                <label className="text-sm font-medium text-gray-500">Content</label>
+                <div className="bg-gray-50 rounded-lg p-4 mt-1 text-sm text-gray-900 whitespace-pre-wrap">
+                  {selectedSource.text}
+                </div>
+              </div>
+              {selectedSource.attachments && selectedSource.attachments.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Attachments</label>
+                  <div className="space-y-2 mt-2">
+                    {selectedSource.attachments.map((att, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <span className="text-sm text-gray-900 truncate">{att.fileName}</span>
+                          {att.status === 'available' ? (
+                            <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">Available</span>
+                          ) : att.status === 'infected' ? (
+                            <span className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full">Infected</span>
+                          ) : (
+                            <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">{att.status}</span>
+                          )}
+                        </div>
+                        {att.status === 'available' && att.s3Key && (
+                          <a
+                            href={`/api/webexmessaging/download?key=${encodeURIComponent(att.s3Key)}`}
+                            className="ml-2 inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors"
+                            download
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex gap-3 justify-end">
+              {selectedSource.source === 'Documentation' && selectedSource.docId && (
+                <a
+                  href={`/api/documentation/download?id=${selectedSource.docId}`}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  download
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download
+                </a>
+              )}
+              {selectedSource.source === 'Webex Recordings' && selectedSource.downloadUrl && (
+                <a
+                  href={selectedSource.downloadUrl}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  download
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download MP4
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showCitationsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowCitationsModal(false)}>
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -488,12 +659,12 @@ export default function ChatNPTPage() {
               <div className="space-y-2">
                 {selectedCitations.map((source, idx) => (
                   <div key={idx} className="text-sm py-2 border-b border-gray-100 last:border-0">
-                    {idx + 1}. <span className="font-medium">({source.source})</span> <a 
-                      href={source.viewUrl}
+                    {idx + 1}. <span className="font-medium">({source.source})</span> <button 
+                      onClick={() => { setShowCitationsModal(false); handleViewSource(source); }}
                       className="text-blue-600 hover:text-blue-800 underline"
                     >
                       {source.topic}
-                    </a>{source.timestamp && ` at ${formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
+                    </button>{source.timestamp && ` at ${formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
                   </div>
                 ))}
               </div>

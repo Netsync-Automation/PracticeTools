@@ -27,7 +27,10 @@ export async function GET(request) {
     });
     
     const result = await docClient.send(command);
-    return NextResponse.json({ chats: result.Items || [] });
+    const sortedChats = (result.Items || []).sort((a, b) => 
+      new Date(b.updated_at) - new Date(a.updated_at)
+    );
+    return NextResponse.json({ chats: sortedChats });
   } catch (error) {
     console.error('Error fetching chat history:', error);
     return NextResponse.json({ error: 'Failed to fetch chat history' }, { status: 500 });
@@ -37,13 +40,15 @@ export async function GET(request) {
 function summarizeTitle(text) {
   if (!text) return 'New Chat';
   
-  // Remove common question words and clean up
-  const cleaned = text
-    .replace(/^(what|how|why|when|where|who|can|could|would|should|is|are|do|does|did|tell me|explain|show me)\s+/i, '')
-    .replace(/\?+$/, '')
-    .trim();
+  const cleaned = text.replace(/\?+$/, '').trim();
   
-  // Take first 50 chars and capitalize first letter
+  // Keep questions natural but concise
+  if (cleaned.match(/^(who|what|where|when|why|how)/i)) {
+    const summary = cleaned.substring(0, 60);
+    return summary.charAt(0).toUpperCase() + summary.slice(1) + (cleaned.length > 60 ? '...' : '');
+  }
+  
+  // For statements, take first 50 chars
   const summary = cleaned.substring(0, 50);
   return summary.charAt(0).toUpperCase() + summary.slice(1) + (cleaned.length > 50 ? '...' : '');
 }

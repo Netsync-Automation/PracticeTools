@@ -14,6 +14,7 @@ export default function WebExRecordingsPage() {
   const [selectedTranscript, setSelectedTranscript] = useState(null);
   const [showTranscriptModal, setShowTranscriptModal] = useState(false);
   const [showHostDropdown, setShowHostDropdown] = useState(false);
+  const [selectedRecording, setSelectedRecording] = useState(null);
   const hostDropdownRef = useRef(null);
   const [selectedRecordings, setSelectedRecordings] = useState([]);
   const [approvingRecordings, setApprovingRecordings] = useState(false);
@@ -45,6 +46,20 @@ export default function WebExRecordingsPage() {
     const cleanup = setupSSE();
     return cleanup;
   }, []);
+
+  useEffect(() => {
+    if (!loadingRecordings && recordings.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const recordingId = params.get('id');
+      if (recordingId) {
+        const recording = recordings.find(r => r.id === recordingId);
+        if (recording) {
+          setSelectedRecording(recording);
+          window.history.replaceState({}, '', '/company-education/webex-recordings');
+        }
+      }
+    }
+  }, [recordings, loadingRecordings]);
   
   useEffect(() => {
     if (canApprove && activeTab === 'publicly-available') {
@@ -546,9 +561,9 @@ export default function WebExRecordingsPage() {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {filteredRecordings.map((recording) => (
-                            <tr key={recording.id} className="hover:bg-gray-50">
+                            <tr key={recording.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedRecording(recording)}>
                               {activeTab === 'approve-recordings' && (
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                                   <div title={recording.transcriptStatus !== 'available' ? 'Transcript must be available before approval' : ''}>
                                     <input
                                       type="checkbox"
@@ -569,10 +584,10 @@ export default function WebExRecordingsPage() {
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {formatDate(recording.createTime)}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
+                              <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                                 {recording.transcriptStatus === 'available' ? (
                                   <button
-                                    onClick={() => handleViewTranscript(recording.id)}
+                                    onClick={(e) => { e.stopPropagation(); handleViewTranscript(recording.id); }}
                                     className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer"
                                   >
                                     Available
@@ -587,19 +602,19 @@ export default function WebExRecordingsPage() {
                                   </span>
                                 )}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
                                 <button
-                                  onClick={() => handleDownload(recording.downloadUrl || recording.s3Url, `${recording.topic || 'recording'}.mp4`)}
+                                  onClick={(e) => { e.stopPropagation(); handleDownload(recording.downloadUrl || recording.s3Url, `${recording.topic || 'recording'}.mp4`); }}
                                   className="text-blue-600 hover:text-blue-900 font-medium"
                                 >
                                   Download MP4
                                 </button>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                                 {activeTab === 'approve-recordings' ? (
                                   <div className="flex gap-2">
                                     <button
-                                      onClick={() => handleApprove([recording.id])}
+                                      onClick={(e) => { e.stopPropagation(); handleApprove([recording.id]); }}
                                       disabled={approvingRecordings || recording.transcriptStatus !== 'available'}
                                       title={recording.transcriptStatus !== 'available' ? 'Transcript must be available before approval' : ''}
                                       className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
@@ -608,7 +623,7 @@ export default function WebExRecordingsPage() {
                                     </button>
                                     {!recording.denied && (
                                       <button
-                                        onClick={() => handleDeny([recording.id])}
+                                        onClick={(e) => { e.stopPropagation(); handleDeny([recording.id]); }}
                                         disabled={approvingRecordings}
                                         className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                                       >
@@ -619,7 +634,7 @@ export default function WebExRecordingsPage() {
                                 ) : (
                                   (isAdmin || recording.hostEmail?.toLowerCase() === userEmail) && (
                                     <button
-                                      onClick={() => handleDeny([recording.id])}
+                                      onClick={(e) => { e.stopPropagation(); handleDeny([recording.id]); }}
                                       disabled={approvingRecordings}
                                       className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                                     >
@@ -640,6 +655,133 @@ export default function WebExRecordingsPage() {
           </div>
         </SidebarLayout>
       </div>
+
+      {selectedRecording && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setSelectedRecording(null)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">Recording Details</h3>
+              <button onClick={() => setSelectedRecording(null)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto flex-1 space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Topic</label>
+                <p className="text-gray-900 mt-1">{selectedRecording.topic || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Meeting ID</label>
+                <p className="text-gray-900 mt-1">{selectedRecording.meetingId}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Host</label>
+                <p className="text-gray-900 mt-1">{selectedRecording.hostEmail || selectedRecording.hostUserId}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Start Date/Time</label>
+                <p className="text-gray-900 mt-1">{formatDate(selectedRecording.createTime)}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Duration</label>
+                <p className="text-gray-900 mt-1">{selectedRecording.durationSeconds ? `${Math.floor(selectedRecording.durationSeconds / 60)} minutes` : 'N/A'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Transcript Status</label>
+                <p className="text-gray-900 mt-1 capitalize">{selectedRecording.transcriptStatus || 'Pending'}</p>
+              </div>
+              {selectedRecording.approved && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Status</label>
+                  <p className="text-green-600 mt-1 font-medium">Approved</p>
+                </div>
+              )}
+              {selectedRecording.denied && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Status</label>
+                  <p className="text-red-600 mt-1 font-medium">Denied</p>
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex gap-3 justify-end">
+              {selectedRecording.transcriptStatus === 'available' && (
+                <button
+                  onClick={() => {
+                    setSelectedRecording(null);
+                    handleViewTranscript(selectedRecording.id);
+                  }}
+                  className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  View Transcript
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  handleDownload(selectedRecording.downloadUrl || selectedRecording.s3Url, `${selectedRecording.topic || 'recording'}.mp4`);
+                }}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download MP4
+              </button>
+              {activeTab === 'approve-recordings' && (
+                <>
+                  <button
+                    onClick={() => {
+                      setSelectedRecording(null);
+                      handleApprove([selectedRecording.id]);
+                    }}
+                    disabled={approvingRecordings || selectedRecording.transcriptStatus !== 'available'}
+                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Approve
+                  </button>
+                  {!selectedRecording.denied && (
+                    <button
+                      onClick={() => {
+                        setSelectedRecording(null);
+                        handleDeny([selectedRecording.id]);
+                      }}
+                      disabled={approvingRecordings}
+                      className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Deny
+                    </button>
+                  )}
+                </>
+              )}
+              {activeTab === 'publicly-available' && (isAdmin || selectedRecording.hostEmail?.toLowerCase() === userEmail) && (
+                <button
+                  onClick={() => {
+                    setSelectedRecording(null);
+                    handleDeny([selectedRecording.id]);
+                  }}
+                  disabled={approvingRecordings}
+                  className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Deny
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {showTranscriptModal && selectedTranscript && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowTranscriptModal(false)}>
