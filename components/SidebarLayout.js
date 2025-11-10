@@ -18,6 +18,7 @@ import {
   AcademicCapIcon
 } from '@heroicons/react/24/outline';
 import { useApp } from '../contexts/AppContext';
+import GlobalChatNPT from './GlobalChatNPT';
 
 const menuItems = [
   {
@@ -129,12 +130,6 @@ const menuItems = [
     icon: AcademicCapIcon,
     description: 'Training and educational resources',
     submenu: [
-      {
-        id: 'chatnpt',
-        name: 'ChatNPT',
-        href: '/company-education/chatnpt',
-        description: 'ChatNPT AI assistant'
-      },
       {
         id: 'webex-recordings',
         name: 'WebEx Recordings',
@@ -513,6 +508,9 @@ export default function SidebarLayout({ children, user }) {
           {children}
         </main>
       </div>
+
+      {/* Global ChatNPT Widget */}
+      <GlobalChatNPT user={user} />
     </div>
   );
 }
