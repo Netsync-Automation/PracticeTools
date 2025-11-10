@@ -455,6 +455,13 @@ class CommitBuilder {
           'authhandler': 'Enhanced auth-handler Service with improved functionality and error handling',
           'etatracker': 'Enhanced eta-tracker Service with improved functionality and error handling',
           'assignmentemail-processor': 'Enhanced assignment-email-processor Service with improved functionality and error handling',
+          'createtables': 'Enhanced create-tables Service with improved functionality and error handling',
+          'meetingstorage': 'Enhanced meeting-storage Service with improved functionality and error handling',
+          'webextoken-manager': 'Enhanced webex-token-manager Service with improved functionality and error handling',
+          'ssm': 'Enhanced ssm Service with improved functionality and error handling',
+          'webexmeetings-utils': 'Enhanced webex-meetings-utils Service with improved functionality and error handling',
+          'ssmconfig': 'Enhanced ssm-config Service with improved functionality and error handling',
+          'startupinit': 'Enhanced startup-init Service with improved functionality and error handling',
     };
     
     // Check for pattern matches

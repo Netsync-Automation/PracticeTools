@@ -8,7 +8,11 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@xenova/transformers', 'onnxruntime-node'],
     serverActions: {
       allowedOrigins: ['netsync.login.duosecurity.com', 'sso-79bfacfb.sso.duosecurity.com']
-    }
+    },
+    optimizeCss: true
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production'
   },
   async headers() {
     return [

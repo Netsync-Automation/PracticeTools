@@ -1,0 +1,200 @@
+﻿            {activeTab === 'email' && !isNonAdminPracticeUser && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">E-mail Settings</h2>
+                <div className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    id="emailNotifications"
+                    checked={settings.emailNotifications}
+                    onChange={(e) => setSettings({...settings, emailNotifications: e.target.checked})}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="emailNotifications" className="ml-2 block text-sm text-gray-900">
+                    Enable email notifications
+                  </label>
+                </div>
+                
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
+                  <input
+                    type="text"
+                    value={settings.smtpHost}
+                    onChange={(e) => setSettings({...settings, smtpHost: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="smtp.gmail.com"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Stored securely in SMTP_HOST SSM parameter</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Port</label>
+                  <input
+                    type="number"
+                    value={settings.smtpPort}
+                    onChange={(e) => setSettings({...settings, smtpPort: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="587"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Stored securely in SMTP_PORT SSM parameter</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Username</label>
+                  <input
+                    type="text"
+                    value={settings.smtpUser}
+                    onChange={(e) => setSettings({...settings, smtpUser: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="your-email@domain.com"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Stored securely in SMTP_USERNAME SSM parameter</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Password</label>
+                  <input
+                    type="password"
+                    value={settings.smtpPassword}
+                    onChange={(e) => setSettings({...settings, smtpPassword: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter password to update"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Stored securely in SMTP_PW SSM parameter (encrypted)</p>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleSaveEmail}
+                      disabled={saving.email}
+                      className={`${saving.email ? 'btn-disabled' : 'btn-primary'}`}
+                    >
+                      {saving.email ? 'Saving...' : 'Save Email Settings'}
+                    </button>
+                    
+                    <button
+                      onClick={() => setShowTestEmail(true)}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    >
+                      Test Email
+                    </button>
+                    
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/ews/test', { method: 'POST' });
+                          const data = await response.json();
+                          
+                          if (data.success) {
+                            alert(`EWS Connection Successful!\n\nFolder: ${data.folderName}\nTotal Items: ${data.totalItems}\n\n${data.message}`);
+                          } else {
+                            let errorMsg = `EWS Connection Failed:\n\n${data.error}`;
+                            if (data.diagnostics) {
+                              errorMsg += '\n\nTroubleshooting Steps:';
+                              data.diagnostics.suggestions.forEach((suggestion, i) => {
+                                errorMsg += `\n${i + 1}. ${suggestion}`;
+                              });
+                            }
+                            alert(errorMsg);
+                          }
+                        } catch (error) {
+                          alert('EWS test failed: Unable to connect');
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      Test EWS
+                    </button>
+                    
+
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Test SMTP configuration and EWS (Exchange Web Services) connectivity
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'resources' && !isNonAdminPracticeUser && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">E-mail Processing Rules</h2>
+                <div className="mb-6">
+                  <button
+                    onClick={() => setSettings({...settings, resourceEmailEnabled: !settings.resourceEmailEnabled})}
+                    disabled={!settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      settings.resourceEmailEnabled 
+                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    } ${(!settings.emailNotifications || !settings.smtpHost || !settings.smtpPort || !settings.smtpUser || !settings.smtpPassword) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={settings.resourceEmailEnabled ? 'Click to Disable E-mail Processing' : 'Click to Enable E-mail Processing'}
+                  >
+                    {settings.resourceEmailEnabled ? 'Enabled' : 'Disabled'}
+                  </button>
+                </div>
+                
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-yellow-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <h3 className="text-sm font-medium text-yellow-800">Important: Outlook Forwarding Rules Required</h3>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        In order for E-mail processing rules to function, each Practice Manager must create a server-side forwarding rule in their outlook client that matches the "Sender Email Address" and "Subject Pattern" in your E-mail processing rule, that forwards all of those E-mails to: <a href="mailto:practicetools@netsync.com" className="underline font-medium">practicetools@netsync.com</a>. To do this, in Outlook, go to File → Automatic Replies, then click "Rules" at the bottom left hand corner of the screen. Then Add Rule.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <div className="w-full">
+                      <h3 className="text-sm font-medium text-blue-800 mb-3">Explanation of what actions are available</h3>
+                      <div className="space-y-2">
+                        <div className="bg-white rounded-md border border-blue-100 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedActions);
+                              if (newExpanded.has('resource_assignment')) {
+                                newExpanded.delete('resource_assignment');
+                              } else {
+                                newExpanded.add('resource_assignment');
+                              }
+                              setExpandedActions(newExpanded);
+                            }}
+                            className="w-full p-3 text-left hover:bg-blue-50 transition-colors flex items-center justify-between"
+                          >
+                            <span className="text-sm font-semibold text-blue-900">Resource Assignment</span>
+                            <svg 
+                              className={`w-4 h-4 text-blue-600 transition-transform ${expandedActions.has('resource_assignment') ? 'rotate-180' : ''}`} 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {expandedActions.has('resource_assignment') && (
+                            <div className="px-3 pb-3 border-t border-blue-100">
+                              <p className="text-sm text-blue-700 pt-2">
+                                Configure email monitoring to automatically create resource assignments from specific email patterns. 
+                                The system will monitor the configured email account for messages matching sender and subject patterns, 
+                                then extract data using keyword mappings to populate new resource assignments.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="bg-white rounded-md border border-blue-100 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedActions);
+                              if (newExpanded.has('sa_assignment')) {
+                                newExpanded.delete('sa_assignment');
+                              } else {
+                                newExpanded.add('sa_assignment');
+                              }
+                              setExpandedActions(newExpanded);
+                            }}

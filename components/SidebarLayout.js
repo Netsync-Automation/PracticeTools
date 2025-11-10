@@ -14,7 +14,8 @@ import {
   PlusIcon,
   MinusIcon,
   InformationCircleIcon,
-  FolderIcon
+  FolderIcon,
+  AcademicCapIcon
 } from '@heroicons/react/24/outline';
 import { useApp } from '../contexts/AppContext';
 
@@ -123,6 +124,38 @@ const menuItems = [
     ]
   },
   {
+    id: 'company-education',
+    name: 'Company Education',
+    icon: AcademicCapIcon,
+    description: 'Training and educational resources',
+    submenu: [
+      {
+        id: 'chatnpt',
+        name: 'ChatNPT',
+        href: '/company-education/chatnpt',
+        description: 'ChatNPT AI assistant'
+      },
+      {
+        id: 'webex-recordings',
+        name: 'WebEx Recordings',
+        href: '/company-education/webex-recordings',
+        description: 'WebEx meeting recordings and transcripts'
+      },
+      {
+        id: 'webex-messages',
+        name: 'WebEx Messages',
+        href: '/company-education/webex-messages',
+        description: 'WebEx messages from monitored rooms'
+      },
+      {
+        id: 'documentation',
+        name: 'Documentation',
+        href: '/company-education/documentation',
+        description: 'Training documentation and resources'
+      }
+    ]
+  },
+  {
     id: 'admin-dashboard',
     name: 'Admin',
     href: '/admin',
@@ -133,7 +166,7 @@ const menuItems = [
       {
         id: 'settings',
         name: 'Settings',
-        href: '/admin/settings',
+        href: '/admin/settings/general-settings',
         description: 'Configure application settings'
       }
     ]

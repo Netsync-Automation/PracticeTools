@@ -1,0 +1,142 @@
+WEBHOOK VALIDATION MODAL EXPANSION - DSR COMPLIANT
+===================================================
+
+LOCATION: app/admin/settings/page.js
+LINE: Around 3915 (search for "grid grid-cols-1 md:grid-cols-2 gap-4")
+
+REPLACE THIS SECTION:
+---------------------
+The section that starts with:
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {/* WebEx Registration */}
+    
+And ends with:
+  </div>
+  
+  {/* Action Recommendations */}
+
+WITH THIS EXPANDED CODE:
+------------------------
+
+{/* Recordings Webhook Details */}
+{result.webhookDetails?.recordings && (
+  <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
+    <div className="flex items-center gap-2 mb-2">
+      <span className="text-green-600 text-lg">✓</span>
+      <h5 className="text-sm font-semibold text-gray-900">Recordings Webhook</h5>
+      <span className="ml-auto px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded">
+        {result.webhookDetails.recordings.status}
+      </span>
+    </div>
+    <div className="space-y-1 text-xs text-gray-600 ml-7">
+      <div><span className="font-medium">ID:</span> <code className="bg-gray-100 px-1 rounded">{result.webhookDetails.recordings.id}</code></div>
+      <div><span className="font-medium">Target URL:</span> <code className="bg-gray-100 px-1 rounded text-xs break-all">{result.webhookDetails.recordings.targetUrl}</code></div>
+      <div><span className="font-medium">Site URL:</span> {result.webhookDetails.recordings.siteUrl || 'N/A'}</div>
+      <div><span className="font-medium">Owned By:</span> {result.webhookDetails.recordings.ownedBy}</div>
+      <div><span className="font-medium">Created:</span> {new Date(result.webhookDetails.recordings.created).toLocaleString()}</div>
+    </div>
+  </div>
+)}
+
+{!result.webhookDetails?.recordings && (
+  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+    <div className="flex items-center gap-2">
+      <span className="text-red-600 text-lg">✗</span>
+      <h5 className="text-sm font-semibold text-red-900">Recordings Webhook Missing</h5>
+    </div>
+    <p className="text-xs text-red-700 ml-7 mt-1">No recordings webhook found for this site</p>
+  </div>
+)}
+
+{/* Transcripts Webhook Details */}
+{result.webhookDetails?.transcripts && (
+  <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
+    <div className="flex items-center gap-2 mb-2">
+      <span className="text-green-600 text-lg">✓</span>
+      <h5 className="text-sm font-semibold text-gray-900">Transcripts Webhook</h5>
+      <span className="ml-auto px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded">
+        {result.webhookDetails.transcripts.status}
+      </span>
+    </div>
+    <div className="space-y-1 text-xs text-gray-600 ml-7">
+      <div><span className="font-medium">ID:</span> <code className="bg-gray-100 px-1 rounded">{result.webhookDetails.transcripts.id}</code></div>
+      <div><span className="font-medium">Target URL:</span> <code className="bg-gray-100 px-1 rounded text-xs break-all">{result.webhookDetails.transcripts.targetUrl}</code></div>
+      <div><span className="font-medium">Site URL:</span> {result.webhookDetails.transcripts.siteUrl || 'N/A'}</div>
+      <div><span className="font-medium">Owned By:</span> {result.webhookDetails.transcripts.ownedBy}</div>
+      <div><span className="font-medium">Created:</span> {new Date(result.webhookDetails.transcripts.created).toLocaleString()}</div>
+    </div>
+  </div>
+)}
+
+{!result.webhookDetails?.transcripts && (
+  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+    <div className="flex items-center gap-2">
+      <span className="text-red-600 text-lg">✗</span>
+      <h5 className="text-sm font-semibold text-red-900">Transcripts Webhook Missing</h5>
+    </div>
+    <p className="text-xs text-red-700 ml-7 mt-1">No transcripts webhook found for this site</p>
+  </div>
+)}
+
+{/* System Information */}
+<div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+  <h5 className="text-sm font-semibold text-blue-900 mb-2">System Information</h5>
+  <div className="space-y-1 text-xs text-blue-800">
+    <div className="flex items-center gap-2">
+      {result.connectivity?.[0]?.reachable ? (
+        <span className="text-green-600">✓</span>
+      ) : (
+        <span className="text-red-600">✗</span>
+      )}
+      <span>Endpoint Connectivity: {result.connectivity?.[0]?.reachable ? 'Reachable' : 'Unreachable'}</span>
+    </div>
+    <div><span className="font-medium">Total WebEx Webhooks:</span> {result.totalWebhooksInWebEx || 0}</div>
+    <div><span className="font-medium">Webhooks for this Site:</span> {result.allWebhooksForSite?.length || 0}</div>
+  </div>
+</div>
+
+{/* All Webhooks for Site (if any) */}
+{result.allWebhooksForSite && result.allWebhooksForSite.length > 0 && (
+  <div className="mt-3">
+    <details className="group">
+      <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center gap-1">
+        <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+        All Webhooks for this Site ({result.allWebhooksForSite.length})
+      </summary>
+      <div className="mt-2 space-y-2 ml-5">
+        {result.allWebhooksForSite.map((webhook, idx) => (
+          <div key={idx} className="p-2 bg-gray-50 border border-gray-200 rounded text-xs">
+            <div className="font-medium text-gray-900">{webhook.name}</div>
+            <div className="text-gray-600 space-y-0.5 mt-1">
+              <div><span className="font-medium">ID:</span> {webhook.id}</div>
+              <div><span className="font-medium">Resource:</span> {webhook.resource}</div>
+              <div><span className="font-medium">Event:</span> {webhook.event}</div>
+              <div><span className="font-medium">Status:</span> {webhook.status}</div>
+              <div><span className="font-medium">Target:</span> <code className="bg-white px-1 rounded break-all">{webhook.targetUrl}</code></div>
+              {webhook.filter && <div><span className="font-medium">Filter:</span> {webhook.filter}</div>}
+              {webhook.siteUrl && <div><span className="font-medium">Site URL:</span> {webhook.siteUrl}</div>}
+              <div><span className="font-medium">Owned By:</span> {webhook.ownedBy}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </details>
+  </div>
+)}
+
+{/* Action Recommendations */}
+
+
+SUMMARY OF CHANGES:
+-------------------
+1. Replaced the simple 2-column grid layout with detailed individual sections for each webhook
+2. Shows full webhook details including ID, Target URL, Site URL, Owned By, and Created date
+3. Displays missing webhooks with clear red warning boxes
+4. Added System Information section with connectivity status and webhook counts
+5. Added collapsible "All Webhooks for this Site" section showing every webhook registered
+6. Maintains DSR compliance with modern, user-friendly UI design
+7. Provides the same level of detail as the validation script you ran
+
+This expansion makes the validate button show exactly what's registered with Webex, just like your validation script does.

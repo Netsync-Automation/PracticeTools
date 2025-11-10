@@ -1772,7 +1772,7 @@ export default function PracticeInformationPage() {
                   <button
                     onClick={async () => {
                       try {
-                        const response = await fetch('/api/debug/user-analysis');
+                        const response = await fetch(`/api/debug/user-analysis?email=${encodeURIComponent(user?.email || '')}`);
                         const analysis = await response.json();
                         console.log('ðŸ” [DEBUG] User Analysis:', analysis);
                         
@@ -1805,12 +1805,9 @@ export default function PracticeInformationPage() {
                         message += `- Can Add Topics: ${currentBoardPermissions.canAddTopics} (matches add topic button visibility)\n`;
                         message += `- Can Comment: ${currentBoardPermissions.canComment}\n\n`;
                         
-                        message += `BOARD MATCHING:\n`;
-                        message += `- Available Boards: ${analysis.practiceBoards.total}\n`;
-                        message += `- Matching Boards: ${analysis.practiceBoards.matching.length}\n`;
-                        message += `- Expected Board ID: ${analysis.practiceBoards.expectedBoardId}\n`;
-                        message += `- Has Expected Board: ${analysis.practiceBoards.hasExpectedBoard}\n`;
-                        message += `- Is Current Board Expected: ${currentPracticeId === analysis.practiceBoards.expectedBoardId}\n\n`;
+                        message += `BOARD ANALYSIS:\n`;
+                        message += `- Total Boards: ${analysis.summary.totalBoards}\n`;
+                        message += `- Editable Boards: ${analysis.summary.editableBoards}\n\n`;
                         
                         message += `USER PRACTICE OVERLAP:\n`;
                         const userPractices = analysis.user.practices || [];

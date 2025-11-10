@@ -1,0 +1,281 @@
+﻿        {showAddSite && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold mb-4">{editingSiteIndex !== null ? 'Edit Webex Meetings Site' : 'Add Webex Meetings Site'}</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Site URL *</label>
+                    <input
+                      type="url"
+                      value={newSite.siteUrl}
+                      onChange={(e) => setNewSite({...newSite, siteUrl: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://company.webex.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Access Token {editingSiteIndex !== null ? '(leave blank to keep current)' : '*'}</label>
+                    <input
+                      type="password"
+                      value={newSite.accessToken}
+                      onChange={(e) => setNewSite({...newSite, accessToken: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={editingSiteIndex !== null ? "Leave blank to keep current token" : "Enter access token"}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Refresh Token {editingSiteIndex !== null ? '(leave blank to keep current)' : '*'}</label>
+                    <input
+                      type="password"
+                      value={newSite.refreshToken}
+                      onChange={(e) => setNewSite({...newSite, refreshToken: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={editingSiteIndex !== null ? "Leave blank to keep current token" : "Enter refresh token"}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Client ID {editingSiteIndex !== null ? '(leave blank to keep current)' : '*'}</label>
+                    <input
+                      type="password"
+                      value={newSite.clientId}
+                      onChange={(e) => setNewSite({...newSite, clientId: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={editingSiteIndex !== null ? "Leave blank to keep current client ID" : "Enter client ID"}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Client Secret {editingSiteIndex !== null ? '(leave blank to keep current)' : '*'}</label>
+                    <input
+                      type="password"
+                      value={newSite.clientSecret}
+                      onChange={(e) => setNewSite({...newSite, clientSecret: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={editingSiteIndex !== null ? "Leave blank to keep current client secret" : "Enter client secret"}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Recording Hosts *</label>
+                    <div className="space-y-2">
+                      {newSite.recordingHosts.map((host, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={host}
+                            onChange={(e) => {
+                              const updatedHosts = [...newSite.recordingHosts];
+                              updatedHosts[index] = e.target.value;
+                              setNewSite({...newSite, recordingHosts: updatedHosts});
+                            }}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Recording host email"
+                          />
+                          {newSite.recordingHosts.length > 1 && (
+                            <button
+                              onClick={() => {
+                                const updatedHosts = newSite.recordingHosts.filter((_, i) => i !== index);
+                                setNewSite({...newSite, recordingHosts: updatedHosts});
+                              }}
+                              className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => {
+                          setNewSite({...newSite, recordingHosts: [...newSite.recordingHosts, '']});
+                        }}
+                        className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-md text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors"
+                      >
+                        + Add Recording Host
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowAddSite(false);
+                      setEditingSiteIndex(null);
+                      setNewSite({
+                        siteUrl: '',
+                        accessToken: '',
+                        refreshToken: '',
+                        clientId: '',
+                        clientSecret: '',
+                        recordingHosts: ['']
+                      });
+                    }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log('🔧 [MODAL-SAVE] Starting site modal save operation');
+                      console.log('🔧 [MODAL-SAVE] Edit mode:', editingSiteIndex !== null);
+                      console.log('🔧 [MODAL-SAVE] Site data:', newSite);
+                      console.log('🔧 [MODAL-SAVE] Recording hosts:', newSite.recordingHosts);
+                      
+                      if (editingSiteIndex !== null) {
+                        console.log('🔧 [MODAL-SAVE] Edit mode - validating fields');
+                        // Edit mode - validate required fields except tokens if blank
+                        if (!newSite.siteUrl || newSite.recordingHosts.some(host => {
+                          const hostEmail = typeof host === 'string' ? host : host?.email || '';
+                          return !hostEmail.trim();
+                        })) {
+                          console.log('❌ [MODAL-SAVE] Validation failed - missing required fields');
+                          alert('Please fill in all required fields');
+                          return;
+                        }
+                        
+                        const filteredHosts = newSite.recordingHosts.filter(host => {
+                          const hostEmail = typeof host === 'string' ? host : host?.email || '';
+                          return hostEmail.trim();
+                        }).map(host => typeof host === 'string' ? host : host.email);
+                        console.log('🔧 [MODAL-SAVE] Filtered hosts:', filteredHosts);
+                        
+                        const updatedSites = [...webexMeetingsSites];
+                        const existingSite = updatedSites[editingSiteIndex];
+                        console.log('🔧 [MODAL-SAVE] Existing site:', existingSite);
+                        
+                        updatedSites[editingSiteIndex] = {
+                          siteUrl: newSite.siteUrl,
+                          accessToken: newSite.accessToken || existingSite.accessToken,
+                          refreshToken: newSite.refreshToken || existingSite.refreshToken,
+                          clientId: newSite.clientId || existingSite.clientId,
+                          clientSecret: newSite.clientSecret || existingSite.clientSecret,
+                          recordingHosts: filteredHosts
+                        };
+                        
+                        console.log('🔧 [MODAL-SAVE] Updated site data:', updatedSites[editingSiteIndex]);
+                        setWebexMeetingsSites(updatedSites);
+                        console.log('✅ [MODAL-SAVE] Site updated in state');
+                        
+                        // Auto-save updated site
+                        setTimeout(async () => {
+                          console.log('🔧 [AUTO-SAVE] Starting automatic backend save for updated site');
+                          setSavingWebexMeetings(true);
+                          try {
+                            const requestPayload = {
+                              enabled: webexMeetingsEnabled,
+                              sites: updatedSites
+                            };
+                            
+                            console.log('🔧 [AUTO-SAVE] Request payload:', requestPayload);
+                            
+                            const response = await fetch('/api/settings/webex-meetings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(requestPayload)
+                            });
+                            
+                            console.log('🔧 [AUTO-SAVE] Response status:', response.status);
+                            
+                            if (response.ok) {
+                              const responseData = await response.json();
+                              console.log('🔧 [AUTO-SAVE] Success response:', responseData);
+                              console.log('✅ [AUTO-SAVE] Updated site auto-saved successfully!');
+                            } else {
+                              const errorData = await response.json();
+                              console.log('🔧 [AUTO-SAVE] Error response:', errorData);
+                              alert('Failed to auto-save updated site: ' + (errorData.error || 'Unknown error'));
+                            }
+                          } catch (error) {
+                            console.error('🔧 [AUTO-SAVE] Exception during auto-save:', error);
+                            alert('Error auto-saving updated site');
+                          } finally {
+                            console.log('🔧 [AUTO-SAVE] Auto-save operation completed');
+                            setSavingWebexMeetings(false);
+                          }
+                        }, 100);
+                      } else {
+                        console.log('🔧 [MODAL-SAVE] Add mode - validating all fields');
+                        // Add mode - validate all required fields
+                        if (!newSite.siteUrl || !newSite.accessToken || !newSite.refreshToken || !newSite.clientId || !newSite.clientSecret || newSite.recordingHosts.some(host => {
+                          const hostEmail = typeof host === 'string' ? host : host?.email || '';
+                          return !hostEmail.trim();
+                        })) {
+                          console.log('❌ [MODAL-SAVE] Validation failed - missing required fields');
+                          alert('Please fill in all required fields');
+                          return;
+                        }
+                        
+                        const filteredHosts = newSite.recordingHosts.filter(host => {
+                          const hostEmail = typeof host === 'string' ? host : host?.email || '';
+                          return hostEmail.trim();
+                        }).map(host => typeof host === 'string' ? host : host.email);
+                        console.log('🔧 [MODAL-SAVE] Filtered hosts:', filteredHosts);
+                        
+                        const newSiteData = {...newSite, recordingHosts: filteredHosts};
+                        console.log('🔧 [MODAL-SAVE] New site data:', newSiteData);
+                        
+                        const updatedSites = [...webexMeetingsSites, newSiteData];
+                        setWebexMeetingsSites(updatedSites);
+                        console.log('✅ [MODAL-SAVE] Site added to state');
+                        
+                        // Auto-save new site
+                        setTimeout(async () => {
+                          console.log('🔧 [AUTO-SAVE] Starting automatic backend save for new site');
+                          setSavingWebexMeetings(true);
+                          try {
+                            const requestPayload = {
+                              enabled: webexMeetingsEnabled,
+                              sites: updatedSites
+                            };
+                            
+                            console.log('🔧 [AUTO-SAVE] Request payload:', requestPayload);
+                            
+                            const response = await fetch('/api/settings/webex-meetings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify(requestPayload)
+                            });
+                            
+                            console.log('🔧 [AUTO-SAVE] Response status:', response.status);
+                            
+                            if (response.ok) {
+                              const responseData = await response.json();
+                              console.log('🔧 [AUTO-SAVE] Success response:', responseData);
+                              console.log('✅ [AUTO-SAVE] New site auto-saved successfully!');
+                            } else {
+                              const errorData = await response.json();
+                              console.log('🔧 [AUTO-SAVE] Error response:', errorData);
+                              alert('Failed to auto-save new site: ' + (errorData.error || 'Unknown error'));
+                            }
+                          } catch (error) {
+                            console.error('🔧 [AUTO-SAVE] Exception during auto-save:', error);
+                            alert('Error auto-saving new site');
+                          } finally {
+                            console.log('🔧 [AUTO-SAVE] Auto-save operation completed');
+                            setSavingWebexMeetings(false);
+                          }
+                        }, 100);
+                      }
+                      
+                      console.log('🔧 [MODAL-SAVE] Closing modal and resetting form');
+                      setShowAddSite(false);
+                      setEditingSiteIndex(null);
+                      setNewSite({
+                        siteUrl: '',
+                        accessToken: '',
+                        refreshToken: '',
+                        clientId: '',
+                        clientSecret: '',
+                        recordingHosts: ['']
+                      });
+                      console.log('✅ [MODAL-SAVE] Modal save operation completed');
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >

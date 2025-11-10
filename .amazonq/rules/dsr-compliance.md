@@ -22,10 +22,17 @@ Implement all new code following DSR rules from the start. Run DSR compliance an
 - Never hardcode secrets - use process.env or SSM parameters
 - Validate user permissions before data access
 
-### 4. Real-time Updates (SSE)
-- Use Server-Sent Events for any data that multiple users need to see updated in real-time
-- Implement SSE notifications in relevant API endpoints
-- Use EventSource on frontend for real-time data consumption
+### 4. Real-time Updates (SSE) - MANDATORY Implementation
+- **REQUIRED**: All data that can be modified by multiple users MUST implement Server-Sent Events
+- **Examples requiring SSE**: User lists, issue tracking, shared forms, status updates, notifications
+- **Implementation checklist**:
+  - Add SSE endpoint in API route (e.g., `/api/sse/[feature]`)
+  - Emit events on all CREATE, UPDATE, DELETE operations
+  - Use EventSource on frontend to consume real-time updates
+  - Update UI immediately when SSE events are received
+- **No exceptions**: If data can change while a user is viewing it, SSE is mandatory
+- **Pattern**: Follow existing SSE implementations in `/api/sse/` directory
+- **Testing**: Verify real-time updates work across multiple browser tabs before deployment
 
 ### 5. Temporary Script Cleanup
 - Delete any temporary files (test-*, debug-*, temp-*) after use
