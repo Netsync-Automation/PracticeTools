@@ -56,7 +56,7 @@ export default function ChatNPTWidget({ user }) {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -66,7 +66,9 @@ export default function ChatNPTWidget({ user }) {
   }, [user]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      setTimeout(scrollToBottom, 300);
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -212,7 +214,10 @@ export default function ChatNPTWidget({ user }) {
       const response = await fetch('/api/chatnpt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: input })
+        body: JSON.stringify({ 
+          question: input,
+          conversationHistory: messages
+        })
       });
 
       const data = await response.json();

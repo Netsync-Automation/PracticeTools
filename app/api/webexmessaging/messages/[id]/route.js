@@ -3,7 +3,7 @@ import { getTableName } from '../../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { validateUserSession } from '../../../../../lib/auth-check';
-import { notifyWebexMessagesUpdate } from '../../../../sse/webex-messages/route';
+import { notifyWebexMessagesUpdate } from '../../../sse/webex-messages/route';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);

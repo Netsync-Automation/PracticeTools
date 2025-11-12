@@ -63,7 +63,7 @@ export default function ChatNPTPage() {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -73,7 +73,9 @@ export default function ChatNPTPage() {
   }, [user]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      setTimeout(scrollToBottom, 300);
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -131,6 +133,7 @@ export default function ChatNPTPage() {
     setCurrentChatId(chat.chatId);
     setMessages(chat.messages || []);
     setCurrentChatTitle(chat.title || 'Chat');
+    setTimeout(scrollToBottom, 100);
   };
 
   const renameChat = async (chatId, newTitle) => {
@@ -186,7 +189,7 @@ export default function ChatNPTPage() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage = { role: 'user', content: input };
+    const userMessage = { role: 'user', content: input, timestamp: new Date().toISOString() };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput('');
@@ -219,6 +222,7 @@ export default function ChatNPTPage() {
       const response = await fetch('/api/chatnpt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ question: input })
       });
 
@@ -228,7 +232,8 @@ export default function ChatNPTPage() {
         const assistantMessage = { 
           role: 'assistant', 
           content: data.answer,
-          sources: data.sources 
+          sources: data.sources,
+          timestamp: new Date().toISOString()
         };
         const updatedMessages = [...newMessages, assistantMessage];
         setMessages(updatedMessages);
@@ -238,7 +243,8 @@ export default function ChatNPTPage() {
       } else {
         const errorMessage = { 
           role: 'assistant', 
-          content: data.error || 'Sorry, I encountered an error. Please try again.' 
+          content: data.error || 'Sorry, I encountered an error. Please try again.',
+          timestamp: new Date().toISOString()
         };
         const updatedMessages = [...newMessages, errorMessage];
         setMessages(updatedMessages);
@@ -249,7 +255,8 @@ export default function ChatNPTPage() {
     } catch (error) {
       const errorMessage = { 
         role: 'assistant', 
-        content: 'Sorry, I encountered an error. Please try again.' 
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date().toISOString()
       };
       const updatedMessages = [...newMessages, errorMessage];
       setMessages(updatedMessages);
@@ -399,6 +406,13 @@ export default function ChatNPTPage() {
                           ? 'bg-blue-600 text-white' 
                           : 'bg-gray-100 text-gray-900'
                       }`}>
+                        {msg.timestamp && (
+                          <div className={`text-xs mb-2 ${
+                            msg.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                          }`}>
+                            {new Date(msg.timestamp).toLocaleString()}
+                          </div>
+                        )}
                         <div className="whitespace-pre-wrap">{msg.content}</div>
                         {msg.sources && msg.sources.length > 0 && (
                           <div className="mt-3 pt-3 border-t border-gray-300">

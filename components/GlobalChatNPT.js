@@ -10,6 +10,14 @@ export default function GlobalChatNPT({ user }) {
   const [loadingSources, setLoadingSources] = useState(false);
   const chatWidget = ChatNPTWidget({ user });
 
+  useEffect(() => {
+    if (isOpen && chatWidget.messages.length > 0) {
+      setTimeout(() => {
+        chatWidget.messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [isOpen]);
+
   const fetchDataSources = async () => {
     setLoadingSources(true);
     try {

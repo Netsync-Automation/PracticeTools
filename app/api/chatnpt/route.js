@@ -3,24 +3,12 @@ import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedroc
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { getTableName } from '../../../lib/dynamodb';
+import { getUserFromRequest, logAIAccess } from '../../../lib/ai-user-context';
+import { filterDataForUser, sanitizeDataForAI } from '../../../lib/ai-access-control';
 
 const bedrockClient = new BedrockRuntimeClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
-
-function formatTimestamp(timestamp) {
-  const parts = timestamp.split(':');
-  const hours = parseInt(parts[0]);
-  const minutes = parseInt(parts[1]);
-  const seconds = parseInt(parts[2]);
-  
-  if (hours > 0) {
-    return `${hours}h ${minutes}m ${seconds}s`;
-  } else if (minutes > 0) {
-    return `${minutes}m ${seconds}s`;
-  }
-  return `${seconds}s`;
-}
 
 function parseVTTTranscript(vttText) {
   const chunks = [];
@@ -46,183 +34,267 @@ function parseVTTTranscript(vttText) {
   return chunks;
 }
 
+async function fetchTable(tableName, filterExpression = null, expressionAttributeValues = null) {
+  try {
+    const params = { TableName: getTableName(tableName) };
+    if (filterExpression) {
+      params.FilterExpression = filterExpression;
+      params.ExpressionAttributeValues = expressionAttributeValues;
+    }
+    const result = await docClient.send(new ScanCommand(params));
+    console.log(`Fetched ${tableName}: ${result.Items?.length || 0} items`);
+    return result.Items || [];
+  } catch (error) {
+    console.error(`Error fetching ${tableName}:`, error.message);
+    return [];
+  }
+}
+
 export async function POST(request) {
   try {
-    const { question } = await request.json();
+    const user = await getUserFromRequest(request);
+    const { question, conversationHistory = [] } = await request.json();
     
     if (!question?.trim()) {
       return NextResponse.json({ error: 'Question is required' }, { status: 400 });
     }
-
-    // Fetch Webex Recordings
-    const recordingsTable = getTableName('WebexMeetingsRecordings');
-    const recordingsResult = await docClient.send(new ScanCommand({
-      TableName: recordingsTable,
-      FilterExpression: 'approved = :approved AND attribute_exists(transcriptText)',
-      ExpressionAttributeValues: { ':approved': true }
-    }));
-    const recordings = recordingsResult.Items || [];
-
-    // Fetch Webex Messages
-    const messagesTable = getTableName('WebexMessages');
-    const messagesResult = await docClient.send(new ScanCommand({ TableName: messagesTable }));
-    const messages = messagesResult.Items || [];
-
-    // Fetch Documentation
-    const docsTable = getTableName('Documentation');
-    const docsResult = await docClient.send(new ScanCommand({ TableName: docsTable }));
-    const docs = docsResult.Items || [];
-
-    if (recordings.length === 0 && messages.length === 0 && docs.length === 0) {
-      return NextResponse.json({ 
-        answer: 'No data sources are currently available. Please check back later.',
-        sources: []
-      });
+    
+    if (user) {
+      await logAIAccess(user, 'chatnpt_query', { questionLength: question.length });
     }
 
-    // Parse transcripts into timestamped chunks
+    // Fetch ALL data from environment-specific tables
+    const [recordingsResult, messages, docs, issues, assignments, saAssignments, training, saMappings, companies, contacts, users, practiceInfo, releases] = await Promise.all([
+      docClient.send(new ScanCommand({
+        TableName: getTableName('WebexMeetingsRecordings'),
+        FilterExpression: 'approved = :approved AND attribute_exists(transcriptText)',
+        ExpressionAttributeValues: { ':approved': true }
+      })),
+      fetchTable('WebexMessages'),
+      fetchTable('Documentation'),
+      fetchTable('Issues'),
+      fetchTable('resource-assignments'),
+      fetchTable('sa-assignments'),
+      fetchTable('TrainingCerts'),
+      fetchTable('SAToAMMappings'),
+      fetchTable('Companies', 'attribute_not_exists(is_deleted) OR is_deleted = :false', { ':false': false }),
+      fetchTable('Contacts', 'attribute_not_exists(is_deleted) OR is_deleted = :false', { ':false': false }),
+      fetchTable('Users'),
+      fetchTable('PracticeInfoPages'),
+      fetchTable('Releases')
+    ]);
+
+    const recordings = recordingsResult.Items || [];
+    
+    // Filter data using same methods as application APIs
+    const issuesResult = user ? await filterDataForUser('issues', issues, user.email) : { filtered: [], restricted: true, reason: 'Authentication required' };
+    const assignmentsResult = user ? await filterDataForUser('assignments', assignments, user.email) : { filtered: [], restricted: true, reason: 'Authentication required' };
+    const saAssignmentsResult = user ? await filterDataForUser('sa_assignments', saAssignments, user.email) : { filtered: [], restricted: true, reason: 'Authentication required' };
+    const trainingResult = user ? await filterDataForUser('training_certs', training, user.email) : { filtered: [], restricted: true, reason: 'Authentication required' };
+    const companiesResult = user ? await filterDataForUser('companies', companies, user.email) : { filtered: companies, restricted: false, reason: null };
+    const contactsResult = user ? await filterDataForUser('contacts', contacts, user.email) : { filtered: contacts, restricted: false, reason: null };
+    
+    const filteredIssues = issuesResult.filtered;
+    const filteredAssignments = assignmentsResult.filtered;
+    const filteredSaAssignments = saAssignmentsResult.filtered;
+    const filteredTraining = trainingResult.filtered;
+    const filteredCompanies = companiesResult.filtered;
+    const filteredContacts = contactsResult.filtered;
+    
+    // Collect restriction info for user feedback
+    const restrictions = [];
+    if (issuesResult.restricted && issuesResult.reason) restrictions.push(`Issues: ${issuesResult.reason}`);
+    if (assignmentsResult.restricted && assignmentsResult.reason) restrictions.push(`Assignments: ${assignmentsResult.reason}`);
+    if (contactsResult.restricted && contactsResult.reason) restrictions.push(`Contacts: ${contactsResult.reason}`);
+
     const chunksWithMetadata = [];
+    
     recordings.forEach(rec => {
       const chunks = parseVTTTranscript(rec.transcriptText);
       chunks.forEach(chunk => {
         chunksWithMetadata.push({
           source: 'Webex Recordings',
-          recordingId: rec.id,
           topic: rec.topic,
           timestamp: chunk.timestamp,
-          text: chunk.text,
-          downloadUrl: rec.downloadUrl || rec.s3Url,
-          createTime: rec.createTime,
-          hostEmail: rec.hostEmail
+          text: chunk.text
         });
       });
     });
 
-    // Add Webex Messages
     messages.forEach(msg => {
       chunksWithMetadata.push({
         source: 'Webex Messages',
-        messageId: msg.message_id,
         topic: `Message from ${msg.person_email}`,
-        text: msg.text,
-        created: msg.created,
-        personEmail: msg.person_email
+        text: msg.text
       });
-      
-      // Add attachment text if available
       msg.attachments?.forEach(att => {
         if (att.extractedText) {
           chunksWithMetadata.push({
             source: 'Webex Messages',
-            messageId: msg.message_id,
             topic: `Attachment: ${att.fileName}`,
-            text: att.extractedText,
-            created: msg.created,
-            personEmail: msg.person_email
+            text: att.extractedText
           });
         }
       });
     });
 
-    // Add Documentation
     docs.forEach(doc => {
       chunksWithMetadata.push({
         source: 'Documentation',
-        docId: doc.id,
         topic: doc.fileName,
-        text: doc.extractedText || `Document: ${doc.fileName}`,
-        uploadedAt: doc.uploadedAt,
-        uploadedBy: doc.uploadedBy
+        text: doc.extractedText || `Document: ${doc.fileName}`
       });
     });
 
-    // Build context with source references
+    filteredIssues.forEach(issue => {
+      const sanitized = sanitizeDataForAI('issues', issue);
+      chunksWithMetadata.push({
+        source: 'Practice Issues',
+        topic: `Issue #${sanitized.issue_number}: ${sanitized.title}`,
+        text: `Type: ${sanitized.issue_type}\nStatus: ${sanitized.status}\nDescription: ${sanitized.description}\nPractice: ${sanitized.practice || 'N/A'}`
+      });
+    });
+    
+    filteredAssignments.forEach(assignment => {
+      const sanitized = sanitizeDataForAI('assignments', assignment);
+      chunksWithMetadata.push({
+        source: 'Resource Assignments',
+        topic: `Assignment #${sanitized.assignment_number}: ${sanitized.customerName}`,
+        text: `Practice: ${sanitized.practice}\nStatus: ${sanitized.status}\nProject: ${sanitized.projectNumber}\nDescription: ${sanitized.projectDescription}\nRegion: ${sanitized.region}`
+      });
+    });
+    
+    filteredSaAssignments.forEach(assignment => {
+      const sanitized = sanitizeDataForAI('assignments', assignment);
+      chunksWithMetadata.push({
+        source: 'SA Assignments',
+        topic: `SA Assignment #${sanitized.assignment_number}`,
+        text: `Practice: ${sanitized.practice}\nStatus: ${sanitized.status}\nProject: ${sanitized.projectNumber}\nDescription: ${sanitized.projectDescription || sanitized.notes}`
+      });
+    });
+    
+    filteredTraining.forEach(cert => {
+      const sanitized = sanitizeDataForAI('training_certs', cert);
+      const quantityNeeded = parseInt(cert.quantity_needed || cert.quantityNeeded) || 0;
+      const signUps = Array.isArray(cert.sign_ups) ? cert.sign_ups : (Array.isArray(cert.signUps) ? cert.signUps : []);
+      const totalSignUps = signUps.reduce((sum, signup) => sum + (signup.iterations || 1), 0);
+      const totalCompleted = signUps.reduce((sum, signup) => sum + (signup.completed_iterations || signup.completedIterations || 0), 0);
+      chunksWithMetadata.push({
+        source: 'Training Certifications',
+        topic: `${sanitized.vendor} - ${sanitized.name}`,
+        text: `Practice: ${sanitized.practice}\nType: ${sanitized.type}\nVendor: ${sanitized.vendor}\nName: ${sanitized.name}\nLevel: ${sanitized.level || 'N/A'}\nCode: ${sanitized.code || 'N/A'}\nQuantity Needed: ${quantityNeeded}\nTotal Sign-Ups: ${totalSignUps}\nTotal Completed: ${totalCompleted}\nPrerequisites: ${sanitized.prerequisites || 'None'}`
+      });
+    });
+    
+    saMappings.forEach(mapping => {
+      chunksWithMetadata.push({
+        source: 'SA to AM Mapping',
+        topic: `${mapping.sa_name} → ${mapping.am_name}`,
+        text: `SA: ${mapping.sa_name} (${mapping.sa_email})\nAM: ${mapping.am_name} (${mapping.am_email})\nRegion: ${mapping.region || 'N/A'}\nPractice: ${mapping.practice || 'N/A'}`
+      });
+    });
+    
+    filteredCompanies.forEach(company => {
+      chunksWithMetadata.push({
+        source: 'Companies',
+        topic: company.name,
+        text: `Company: ${company.name}\nTier: ${company.tier}\nTechnology: ${Array.isArray(company.technology) ? company.technology.join(', ') : company.technology}\nWebsite: ${company.website}`
+      });
+    });
+    
+    filteredContacts.forEach(contact => {
+      const company = filteredCompanies.find(c => c.id === contact.companyId);
+      chunksWithMetadata.push({
+        source: 'Contacts',
+        topic: `${contact.name} - ${company?.name || 'Unknown Company'}`,
+        text: `Name: ${contact.name}\nCompany: ${company?.name || 'Unknown'}\nEmail: ${contact.email}\nRole: ${contact.role}\nPhone: ${contact.cellPhone || contact.cell_phone || 'N/A'}`
+      });
+    });
+    
+    users.forEach(u => {
+      const sanitized = sanitizeDataForAI('users', u);
+      chunksWithMetadata.push({
+        source: 'Users',
+        topic: sanitized.name,
+        text: `Name: ${sanitized.name}\nEmail: ${sanitized.email}\nRole: ${sanitized.role}\nPractices: ${Array.isArray(sanitized.practices) ? sanitized.practices.join(', ') : 'N/A'}`
+      });
+    });
+    
+    practiceInfo.forEach(page => {
+      chunksWithMetadata.push({
+        source: 'Practice Information',
+        topic: page.title,
+        text: `Title: ${page.title}\nDescription: ${page.description}\nContent: ${page.content}`
+      });
+    });
+    
+    releases.forEach(release => {
+      chunksWithMetadata.push({
+        source: 'Release Notes',
+        topic: `Version ${release.version}`,
+        text: `Version: ${release.version}\nDate: ${release.date}\nType: ${release.type}\nNotes: ${release.notes}`
+      });
+    });
+    
     const context = chunksWithMetadata.map((chunk, idx) => 
       `[Source ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}]\n${chunk.text}`
     ).join('\n\n');
 
-    const prompt = `You are a helpful AI assistant for Netsync Practice Tools. Answer the question based ONLY on the provided data from Webex Recordings, Webex Messages, and Documentation. Each piece of information has a reference [Source ID|Source Type|Topic|Timestamp].
+    const restrictionNote = restrictions.length > 0 
+      ? `\n\nIMPORTANT - Access Restrictions:\n${restrictions.join('\n')}\nIf the user asks about restricted data, inform them of these access limitations.\n`
+      : '';
+    
+    const conversationContext = conversationHistory.length > 0
+      ? `\n\nConversation History (for context only, cite NEW sources from current data):\n${conversationHistory.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')}\n`
+      : '';
+    
+    const systemPrompt = `You are a helpful AI assistant for Netsync Practice Tools. Answer based ONLY on the provided data.
 
-When answering, cite specific sources by their ID numbers (e.g., "According to Source 5..." or "Based on the information from Source 12...").
+${user ? `User: ${user.name} (${user.role})\nData has been filtered based on user permissions.` : 'Unauthenticated access - limited data available'}${restrictionNote}
+Each piece of information has a reference [Source ID|Source Type|Topic|Timestamp].
+Cite sources by ID numbers.
 
 Available information:
-${context}
+${context}`;
 
-Question: ${question}
+    const userPrompt = `${conversationContext}\nQuestion: ${question}\n\nAnswer (cite source IDs):`;
 
-Answer (cite source IDs in your response):`;
-
-    const modelId = 'anthropic.claude-3-5-sonnet-20240620-v1:0';
-    const payload = {
-      anthropic_version: 'bedrock-2023-05-31',
-      max_tokens: 2000,
-      messages: [
-        {
-          role: 'user',
-          content: prompt
-        }
-      ]
-    };
-
-    const bedrockCommand = new InvokeModelCommand({
-      modelId,
+    const bedrockResponse = await bedrockClient.send(new InvokeModelCommand({
+      modelId: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
       contentType: 'application/json',
       accept: 'application/json',
-      body: JSON.stringify(payload)
-    });
+      body: JSON.stringify({
+        anthropic_version: 'bedrock-2023-05-31',
+        max_tokens: 2000,
+        messages: [
+          { role: 'user', content: systemPrompt },
+          { role: 'assistant', content: 'I understand. I will answer questions based only on the provided data and cite sources by ID numbers.' },
+          { role: 'user', content: userPrompt }
+        ]
+      })
+    }));
 
-    const bedrockResponse = await bedrockClient.send(bedrockCommand);
     const responseBody = JSON.parse(new TextDecoder().decode(bedrockResponse.body));
     const answer = responseBody.content[0].text;
 
-    // Extract source IDs from answer
     const sourceMatches = answer.match(/Source \d+/g) || [];
     const citedSourceIds = [...new Set(sourceMatches.map(m => parseInt(m.split(' ')[1])))];
     
-    // Build sources from cited references
     const sources = citedSourceIds
       .filter(id => id < chunksWithMetadata.length)
-      .map(id => {
-        const chunk = chunksWithMetadata[id];
-        const base = {
-          source: chunk.source,
-          topic: chunk.topic,
-          text: chunk.text
-        };
-        
-        if (chunk.source === 'Webex Recordings') {
-          return {
-            ...base,
-            recordingId: chunk.recordingId,
-            timestamp: chunk.timestamp,
-            downloadUrl: chunk.downloadUrl,
-            date: chunk.createTime,
-            viewUrl: `/company-education/webex-recordings?id=${chunk.recordingId}`
-          };
-        } else if (chunk.source === 'Webex Messages') {
-          return {
-            ...base,
-            messageId: chunk.messageId,
-            date: chunk.created,
-            personEmail: chunk.personEmail,
-            viewUrl: `/company-education/webex-messages?id=${chunk.messageId}`
-          };
-        } else {
-          return {
-            ...base,
-            docId: chunk.docId,
-            date: chunk.uploadedAt,
-            uploadedBy: chunk.uploadedBy,
-            viewUrl: `/company-education/documentation?id=${chunk.docId}`
-          };
-        }
-      });
+      .map(id => ({
+        source: chunksWithMetadata[id].source,
+        topic: chunksWithMetadata[id].topic,
+        text: chunksWithMetadata[id].text
+      }));
 
+    if (user) {
+      await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length });
+    }
+    
     return NextResponse.json({ answer, sources });
   } catch (error) {
     console.error('ChatNPT error:', error);
-    return NextResponse.json({ 
-      error: 'Failed to process question. Please try again.' 
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to process question. Please try again.' }, { status: 500 });
   }
 }
