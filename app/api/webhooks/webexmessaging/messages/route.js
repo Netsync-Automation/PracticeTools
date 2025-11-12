@@ -2,11 +2,13 @@ import { NextResponse } from 'next/server';
 import { getTableName } from '../../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { TextractClient, DetectDocumentTextCommand } from '@aws-sdk/client-textract';
 import { v4 as uuidv4 } from 'uuid';
 import { notifyWebexMessagesUpdate } from '../../../sse/webex-messages/route';
 import { getValidAccessToken } from '../../../../../lib/webex-token-manager';
+import mammoth from 'mammoth';
+import * as XLSX from 'xlsx';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -324,25 +326,50 @@ async function extractTextFromAttachments(messageId, attachments, tableName) {
     if (att.status !== 'available' || !att.s3Key) continue;
     
     try {
-      const result = await textractClient.send(new DetectDocumentTextCommand({
-        Document: {
-          S3Object: {
-            Bucket: process.env.S3_BUCKET,
-            Name: att.s3Key
-          }
-        }
-      }));
+      const fileExt = att.fileName.toLowerCase().split('.').pop();
+      let extractedText = '';
 
-      const extractedText = result.Blocks
-        ?.filter(block => block.BlockType === 'LINE')
-        .map(block => block.Text)
-        .join('\n') || '';
+      if (fileExt === 'docx' || fileExt === 'doc') {
+        const s3Response = await s3Client.send(new GetObjectCommand({
+          Bucket: process.env.S3_BUCKET,
+          Key: att.s3Key
+        }));
+        const buffer = Buffer.from(await s3Response.Body.transformToByteArray());
+        const result = await mammoth.extractRawText({ buffer });
+        extractedText = result.value;
+      } else if (fileExt === 'xlsx' || fileExt === 'xls') {
+        const s3Response = await s3Client.send(new GetObjectCommand({
+          Bucket: process.env.S3_BUCKET,
+          Key: att.s3Key
+        }));
+        const buffer = Buffer.from(await s3Response.Body.transformToByteArray());
+        const workbook = XLSX.read(buffer, { type: 'buffer' });
+        const sheets = workbook.SheetNames.map(name => {
+          const sheet = workbook.Sheets[name];
+          return `Sheet: ${name}\n${XLSX.utils.sheet_to_txt(sheet)}`;
+        });
+        extractedText = sheets.join('\n\n');
+      } else {
+        const result = await textractClient.send(new DetectDocumentTextCommand({
+          Document: {
+            S3Object: {
+              Bucket: process.env.S3_BUCKET,
+              Name: att.s3Key
+            }
+          }
+        }));
+
+        extractedText = result.Blocks
+          ?.filter(block => block.BlockType === 'LINE')
+          .map(block => block.Text)
+          .join('\n') || '';
+      }
 
       if (extractedText) {
         att.extractedText = extractedText;
       }
     } catch (error) {
-      console.error(`Textract failed for ${att.fileName}:`, error.message);
+      console.error(`Text extraction failed for ${att.fileName}:`, error.message);
     }
   }
 

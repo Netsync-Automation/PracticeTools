@@ -6,16 +6,19 @@ import Navbar from '../../../components/Navbar';
 import SidebarLayout from '../../../components/SidebarLayout';
 import Breadcrumb from '../../../components/Breadcrumb';
 import { useAuth } from '../../../hooks/useAuth';
+import { useCsrf } from '../../../hooks/useCsrf';
 import AccessCheck from '../../../components/AccessCheck';
 
 export default function WebexMessagesPage() {
   const router = useRouter();
   const { user, loading, logout } = useAuth();
+  const { getHeaders } = useCsrf();
   const [messages, setMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [monitoredRooms, setMonitoredRooms] = useState([]);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -70,6 +73,25 @@ export default function WebexMessagesPage() {
       setMonitoredRooms(data.rooms || []);
     } catch (error) {
       console.error('Error loading monitored rooms:', error);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    try {
+      const response = await fetch(`/api/webexmessaging/messages/${messageId}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+      
+      if (response.ok) {
+        setMessages(messages.filter(m => m.message_id !== messageId));
+        setDeleteConfirm(null);
+        setSelectedMessage(null);
+      } else {
+        alert('Failed to delete message');
+      }
+    } catch (error) {
+      alert('Error deleting message');
     }
   };
 
@@ -138,28 +160,35 @@ export default function WebexMessagesPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
+                  <table className="w-full table-fixed divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Time</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-44">Date/Time</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-52">User</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attachments</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Attachments</th>
+                        {user?.isAdmin && (
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Actions</th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredMessages.map((message) => (
                         <tr key={message.message_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedMessage(message)}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {new Date(message.created).toLocaleString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {message.person_email}
+                          <td className="px-6 py-4 text-sm text-gray-900">
+                            <div className="truncate" title={new Date(message.created).toLocaleString()}>
+                              {new Date(message.created).toLocaleString()}
+                            </div>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-900">
-                            <div className="max-w-md truncate" title={message.text}>{message.text}</div>
+                            <div className="truncate" title={message.person_email}>
+                              {message.person_email}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <td className="px-6 py-4 text-sm text-gray-900">
+                            <div className="truncate" title={message.text}>{message.text}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm">
                             {message.attachments && message.attachments.length > 0 ? (
                               <div className="space-y-1">
                                 {message.attachments.map((att, idx) => {
@@ -181,20 +210,21 @@ export default function WebexMessagesPage() {
                                   };
                                   
                                   return (
-                                    <div key={idx} className="flex items-center gap-2">
+                                    <div key={idx} className="flex items-center gap-2 min-w-0">
                                       {att.status === 'available' ? (
                                         <a
                                           href={`/api/webexmessaging/download?key=${encodeURIComponent(att.s3Key)}`}
-                                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 truncate min-w-0"
                                           download
+                                          title={att.fileName}
                                         >
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                           </svg>
-                                          {att.fileName}
+                                          <span className="truncate">{att.fileName}</span>
                                         </a>
                                       ) : (
-                                        <span className="text-gray-600">{att.fileName}</span>
+                                        <span className="text-gray-600 truncate" title={att.fileName}>{att.fileName}</span>
                                       )}
                                       {getStatusBadge(att.status)}
                                     </div>
@@ -205,6 +235,22 @@ export default function WebexMessagesPage() {
                               <span className="text-gray-400">None</span>
                             )}
                           </td>
+                          {user?.isAdmin && (
+                            <td className="px-6 py-4 text-sm">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteConfirm(message.message_id);
+                                }}
+                                className="text-red-600 hover:text-red-800 transition-colors"
+                                title="Delete message"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -221,11 +267,24 @@ export default function WebexMessagesPage() {
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">Message Details</h2>
-              <button onClick={() => setSelectedMessage(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-2">
+                {user?.isAdmin && (
+                  <button
+                    onClick={() => setDeleteConfirm(selectedMessage.message_id)}
+                    className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete message"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                )}
+                <button onClick={() => setSelectedMessage(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
             
             <div className="p-6 space-y-6">
@@ -310,6 +369,44 @@ export default function WebexMessagesPage() {
                   <p className="text-xs text-gray-600 font-mono break-all">{selectedMessage.room_id}</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Message</h3>
+                <p className="text-sm text-gray-600 mt-1">This action cannot be undone</p>
+              </div>
+            </div>
+            
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to permanently delete this message? It will be removed from the database and ChatNPT/Bedrock will no longer have access to it.
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteMessage(deleteConfirm)}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
