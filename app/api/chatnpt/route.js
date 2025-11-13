@@ -64,7 +64,7 @@ export async function POST(request) {
     }
 
     // Fetch ALL data from environment-specific tables
-    const [recordingsResult, messages, docs, issues, assignments, saAssignments, training, saMappings, companies, contacts, users, practiceInfo, releases] = await Promise.all([
+    const [recordingsResult, messages, docs, issues, assignments, saAssignments, training, saMappings, companies, contacts, users, practiceInfo, releases, practiceETAs] = await Promise.all([
       docClient.send(new ScanCommand({
         TableName: getTableName('WebexMeetingsRecordings'),
         FilterExpression: 'approved = :approved AND attribute_exists(transcriptText)',
@@ -81,7 +81,8 @@ export async function POST(request) {
       fetchTable('Contacts', 'attribute_not_exists(is_deleted) OR is_deleted = :false', { ':false': false }),
       fetchTable('Users'),
       fetchTable('PracticeInfoPages'),
-      fetchTable('Releases')
+      fetchTable('Releases'),
+      fetchTable('SAAssignmentStatusLog')
     ]);
 
     const recordings = recordingsResult.Items || [];
@@ -164,7 +165,7 @@ export async function POST(request) {
       chunksWithMetadata.push({
         source: 'Resource Assignments',
         topic: `Assignment #${sanitized.assignment_number}: ${sanitized.customerName}`,
-        text: `Practice: ${sanitized.practice}\nStatus: ${sanitized.status}\nProject: ${sanitized.projectNumber}\nDescription: ${sanitized.projectDescription}\nRegion: ${sanitized.region}\nPM: ${sanitized.pm || 'N/A'}\nResource: ${sanitized.resourceAssigned || 'N/A'}`,
+        text: `Practice: ${sanitized.practice}\nStatus: ${sanitized.status}\nProject: ${sanitized.projectNumber}\nDescription: ${sanitized.projectDescription}\nRegion: ${sanitized.region}\nPM: ${sanitized.pm || 'N/A'}\nResource: ${sanitized.resourceAssigned || 'N/A'}\nETA: ${assignment.eta || 'N/A'}`,
         url: `/projects/resource-assignments/${assignment.id}`,
         id: assignment.id
       });
@@ -244,179 +245,177 @@ export async function POST(request) {
       });
     });
     
+    // Calculate Practice ETAs from status log (same as frontend)
+    const twentyOneDaysAgo = new Date();
+    twentyOneDaysAgo.setDate(twentyOneDaysAgo.getDate() - 21);
+    const recentStatusChanges = practiceETAs.filter(log => new Date(log.changed_at) >= twentyOneDaysAgo);
+    
+    const practiceETAMap = new Map();
+    const practices = [...new Set(recentStatusChanges.map(sc => sc.practice).filter(p => p && p !== 'Pending'))];
+    
+    for (const practice of practices) {
+      const transitions = {
+        'pending_to_unassigned': { from: 'Pending', to: 'Unassigned', label: 'Practice Assignment' },
+        'unassigned_to_assigned': { from: 'Unassigned', to: 'Assigned', label: 'Resource Assignment' },
+        'assigned_to_pending_approval': { from: 'Assigned', to: 'Pending Approval', label: 'Management Approvals' },
+        'assigned_to_completed': { from: 'Assigned', to: 'Complete', label: 'SA Completion' }
+      };
+      
+      for (const [transitionKey, transition] of Object.entries(transitions)) {
+        const matchingChanges = recentStatusChanges.filter(sc => 
+          sc.practice === practice && sc.from_status === transition.from && sc.to_status === transition.to
+        );
+        
+        if (matchingChanges.length > 0) {
+          const durations = [];
+          for (const change of matchingChanges) {
+            const assignment = saAssignments.find(a => a.id === change.assignment_id);
+            if (assignment?.created_at) {
+              const createdDate = new Date(assignment.created_at);
+              const changedDate = new Date(change.changed_at);
+              const hours = (changedDate - createdDate) / (1000 * 60 * 60);
+              if (hours > 0) durations.push(hours);
+            }
+          }
+          
+          if (durations.length > 0) {
+            const avgHours = durations.reduce((sum, h) => sum + h, 0) / durations.length;
+            const avgDays = Math.round((avgHours / 24) * 100) / 100;
+            practiceETAMap.set(`${practice}_${transitionKey}`, {
+              practice,
+              transition: transition.label,
+              avgDays,
+              sampleSize: durations.length
+            });
+          }
+        }
+      }
+    }
+    
+    practiceETAMap.forEach(eta => {
+      chunksWithMetadata.push({
+        source: 'Practice ETAs',
+        topic: `${eta.practice} - ${eta.transition}`,
+        text: `Practice: ${eta.practice}\nTransition: ${eta.transition}\nAverage ETA: ${eta.avgDays} days\nSample Size: ${eta.sampleSize} assignments (last 21 days)`
+      });
+    });
+    
     const context = chunksWithMetadata.map((chunk, idx) => {
       const idSuffix = chunk.id ? `|ID:${chunk.id}` : '';
       return `[Source ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}${idSuffix}]\n${chunk.text}`;
     }).join('\n\n');
 
-    // Detect if this is a "show all" query that needs pre-filtering
-    let filteredContext = context;
-    let preFilteredCount = 0;
+    // Use AI to detect list queries and extract filter criteria
+    const intentPrompt = `Analyze this question and determine if it's asking for a LIST of ALL items matching specific criteria.
+
+Question: "${question}"
+
+Available data sources:
+- Resource Assignments (fields: pm, resourceAssigned, practice, status, region)
+- SA Assignments (fields: customer, saAssigned, am, isr, practice, status, region)
+- Contacts (fields: company)
+- SA to AM Mapping (fields: region, practice)
+- Training Certifications (fields: practice)
+- Practice Issues (fields: practice, status, issue_type)
+- Webex Recordings (fields: topic)
+- Webex Messages (fields: person_email)
+- Documentation (fields: fileName)
+- Practice ETAs (fields: practice, transition)
+
+Respond with ONLY a JSON object (no markdown, no explanation):
+{
+  "isListQuery": true/false,
+  "dataSource": "Resource Assignments" | "SA Assignments" | "Contacts" | "SA to AM Mapping" | "Training Certifications" | "Practice Issues" | "Webex Recordings" | "Webex Messages" | "Documentation" | "Practice ETAs" | null,
+  "filterField": "pm" | "resourceAssigned" | "customer" | "saAssigned" | "am" | "isr" | "practice" | "status" | "region" | "company" | "issue_type" | "topic" | "person_email" | "fileName" | "transition" | null,
+  "filterValue": "extracted name/value" | null
+}`;
+
+    const intentResponse = await bedrockClient.send(new InvokeModelCommand({
+      modelId: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
+      contentType: 'application/json',
+      accept: 'application/json',
+      body: JSON.stringify({
+        anthropic_version: 'bedrock-2023-05-31',
+        max_tokens: 200,
+        messages: [{ role: 'user', content: intentPrompt }]
+      })
+    }));
+
+    const intentBody = JSON.parse(new TextDecoder().decode(intentResponse.body));
+    const intentText = intentBody.content[0].text.trim();
+    let intent;
+    try {
+      intent = JSON.parse(intentText);
+    } catch (e) {
+      intent = { isListQuery: false };
+    }
+
     let matchingChunks = [];
     
-    // Pattern 1: "show all projects where X is PM"
-    const pmMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:project|assignment).*?\s+(\w[\w\s]+?)\s+is\s+(?:the\s+)?(?:pm|project manager)/i);
-    if (pmMatch) {
-      const pmName = pmMatch[1].trim().toLowerCase();
+    // Apply AI-detected filters
+    if (intent.isListQuery && intent.dataSource && intent.filterField && intent.filterValue) {
+      const filterValue = intent.filterValue.toLowerCase();
+      const fieldMap = {
+        'pm': 'pm:',
+        'resourceAssigned': 'resource:',
+        'customer': 'customer:',
+        'saAssigned': 'sa assigned:',
+        'am': 'am:',
+        'isr': 'isr:',
+        'practice': 'practice:',
+        'status': 'status:',
+        'region': 'region:',
+        'company': 'company:',
+        'issue_type': 'type:',
+        'transition': 'transition:',
+        'topic': null,
+        'person_email': null,
+        'fileName': null
+      };
+      
+      const fieldPrefix = fieldMap[intent.filterField];
       matchingChunks = chunksWithMetadata.filter(chunk => 
-        chunk.source === 'Resource Assignments' && 
-        chunk.text && 
-        chunk.text.toLowerCase().includes('pm:') &&
-        chunk.text.toLowerCase().includes(pmName)
-      );
-    }
-    
-    // Pattern 2: "show all opportunities/SA assignments for X" (customer)
-    const customerMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:opportunit(?:y|ies)|sa assignment).*(?:for|with|at)\s+([a-z\s&]+?)(?:\?|$)/i);
-    if (!matchingChunks.length && customerMatch) {
-      const customerName = customerMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        chunk.source === 'SA Assignments' && 
-        chunk.text && 
-        chunk.text.toLowerCase().includes('customer:') &&
-        chunk.text.toLowerCase().includes(customerName)
-      );
-    }
-    
-    // Pattern 3: "show all opportunities where X is SA"
-    const saMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:opportunit(?:y|ies)|sa assignment).*(?:where|with)\s+([a-z\s]+?)\s+is\s+(?:the\s+)?(?:sa|solution architect)/i);
-    if (!matchingChunks.length && saMatch) {
-      const saName = saMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        chunk.source === 'SA Assignments' && 
-        chunk.text && 
-        chunk.text.toLowerCase().includes('sa assigned:') &&
-        chunk.text.toLowerCase().includes(saName)
-      );
-    }
-    
-    // Pattern 4: "what projects is X assigned to" (resource)
-    const resourceMatch = question.match(/(?:what|which).*(?:project|assignment).*(?:is|are)\s+(\w[\w\s]+?)\s+assigned/i);
-    if (!matchingChunks.length && resourceMatch) {
-      const resourceName = resourceMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        chunk.source === 'Resource Assignments' && 
-        chunk.text && 
-        chunk.text.toLowerCase().includes('resource:') &&
-        chunk.text.toLowerCase().includes(resourceName)
-      );
-    }
-    
-    // Pattern 5: Practice-based queries
-    const practiceMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:project|assignment|opportunit).*(?:in|for)\s+(\w[\w\s]+?)\s+practice/i);
-    if (!matchingChunks.length && practiceMatch) {
-      const practiceName = practiceMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        (chunk.source === 'Resource Assignments' || chunk.source === 'SA Assignments') &&
+        chunk.source === intent.dataSource &&
         chunk.text &&
-        chunk.text.toLowerCase().includes('practice:') &&
-        chunk.text.toLowerCase().includes(practiceName)
-      );
-    }
-    
-    // Pattern 6: Status-based queries
-    const statusMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:project|assignment|opportunit).*(?:with|in)\s+(\w+)\s+status/i);
-    if (!matchingChunks.length && statusMatch) {
-      const statusName = statusMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        (chunk.source === 'Resource Assignments' || chunk.source === 'SA Assignments') &&
-        chunk.text &&
-        chunk.text.toLowerCase().includes('status:') &&
-        chunk.text.toLowerCase().includes(statusName)
-      );
-    }
-    
-    // Pattern 7: Region-based queries
-    const regionMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:project|assignment|opportunit).*(?:in|for)\s+([a-z\-]+)\s+region/i);
-    if (!matchingChunks.length && regionMatch) {
-      const regionName = regionMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        (chunk.source === 'Resource Assignments' || chunk.source === 'SA Assignments') &&
-        chunk.text &&
-        chunk.text.toLowerCase().includes('region:') &&
-        chunk.text.toLowerCase().includes(regionName)
-      );
-    }
-    
-    // Pattern 8: AM (Account Manager) queries
-    const amMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:opportunit|sa assignment).*(?:where|with)\s+([a-z\s]+?)\s+is\s+(?:the\s+)?(?:am|account manager)/i);
-    if (!matchingChunks.length && amMatch) {
-      const amName = amMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        chunk.source === 'SA Assignments' &&
-        chunk.text &&
-        chunk.text.toLowerCase().includes('am:') &&
-        chunk.text.toLowerCase().includes(amName)
-      );
-    }
-    
-    // Pattern 9: ISR (Inside Sales Rep) queries
-    const isrMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:opportunit|sa assignment).*(?:where|with)\s+([a-z\s]+?)\s+is\s+(?:the\s+)?isr/i);
-    if (!matchingChunks.length && isrMatch) {
-      const isrName = isrMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        chunk.source === 'SA Assignments' &&
-        chunk.text &&
-        chunk.text.toLowerCase().includes('isr:') &&
-        chunk.text.toLowerCase().includes(isrName)
-      );
-    }
-    
-    // Pattern 10: Contact information queries
-    const contactMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:contact|people|person).*(?:at|for|from)\s+([a-z\s&]+?)(?:\?|$)/i);
-    if (!matchingChunks.length && contactMatch) {
-      const companyName = contactMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        chunk.source === 'Contacts' &&
-        chunk.text &&
-        chunk.text.toLowerCase().includes('company:') &&
-        chunk.text.toLowerCase().includes(companyName)
-      );
-    }
-    
-    // Pattern 11: SA to AM Mapping queries
-    const saMappingMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:sa|mapping|am).*(?:for|with|in)\s+([a-z\s\-]+?)\s+(?:region|practice)/i);
-    if (!matchingChunks.length && saMappingMatch) {
-      const filterValue = saMappingMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        chunk.source === 'SA to AM Mapping' &&
-        chunk.text &&
+        (!fieldPrefix || chunk.text.toLowerCase().includes(fieldPrefix)) &&
         chunk.text.toLowerCase().includes(filterValue)
-      );
-    }
-    
-    // Pattern 12: Training Certifications queries
-    const trainingMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:training|cert|certification).*(?:for|in)\s+([a-z\s]+?)(?:\s+practice|\?|$)/i);
-    if (!matchingChunks.length && trainingMatch) {
-      const practiceName = trainingMatch[1].trim().toLowerCase();
-      matchingChunks = chunksWithMetadata.filter(chunk => 
-        chunk.source === 'Training Certifications' &&
-        chunk.text &&
-        chunk.text.toLowerCase().includes('practice:') &&
-        chunk.text.toLowerCase().includes(practiceName)
       );
     }
     
     // Apply pre-filtering if matches found - return directly without AI
     if (matchingChunks.length > 0) {
-      let description = '';
-      if (pmMatch) description = `where ${pmMatch[1].trim()} is the Project Manager`;
-      else if (resourceMatch) description = `where ${resourceMatch[1].trim()} is assigned as a resource`;
-      else if (customerMatch) description = `for customer ${customerMatch[1].trim()}`;
-      else if (saMatch) description = `where ${saMatch[1].trim()} is the Solution Architect`;
-      else if (practiceMatch) description = `in the ${practiceMatch[1].trim()} practice`;
-      else if (statusMatch) description = `with ${statusMatch[1].trim()} status`;
-      else if (regionMatch) description = `in the ${regionMatch[1].trim()} region`;
-      else if (amMatch) description = `where ${amMatch[1].trim()} is the Account Manager`;
-      else if (isrMatch) description = `where ${isrMatch[1].trim()} is the ISR`;
-      else if (contactMatch) description = `at ${contactMatch[1].trim()}`;
-      else if (saMappingMatch) description = `for ${saMappingMatch[1].trim()}`;
-      else if (trainingMatch) description = `for the ${trainingMatch[1].trim()} practice`;
+      const fieldLabels = {
+        'pm': 'Project Manager',
+        'resourceAssigned': 'assigned resource',
+        'customer': 'customer',
+        'saAssigned': 'Solution Architect',
+        'am': 'Account Manager',
+        'isr': 'ISR',
+        'practice': 'practice',
+        'status': 'status',
+        'region': 'region',
+        'company': 'company',
+        'issue_type': 'issue type',
+        'transition': 'transition type',
+        'topic': 'topic',
+        'person_email': 'sender',
+        'fileName': 'file name'
+      };
       
-      const itemType = matchingChunks[0].source === 'Contacts' ? 'contacts' : 
-                       (matchingChunks[0].source === 'SA to AM Mapping' ? 'SA to AM mappings' : 
-                       (matchingChunks[0].source === 'Training Certifications' ? 'training certifications' : 
-                       (matchingChunks[0].source === 'SA Assignments' ? 'opportunities' : 'projects')));
+      const description = `where ${fieldLabels[intent.filterField] || intent.filterField} is ${intent.filterValue}`;
+      const sourceTypeMap = {
+        'Contacts': 'contacts',
+        'SA to AM Mapping': 'SA to AM mappings',
+        'Training Certifications': 'training certifications',
+        'Practice Issues': 'issues',
+        'Webex Recordings': 'recordings',
+        'Webex Messages': 'messages',
+        'Documentation': 'documents',
+        'SA Assignments': 'opportunities',
+        'Resource Assignments': 'projects',
+        'Practice ETAs': 'ETA metrics'
+      };
+      const itemType = sourceTypeMap[matchingChunks[0].source] || 'items';
       const answer = `Found ${matchingChunks.length} ${itemType} ${description}.\n\nAll ${matchingChunks.length} items are listed in the sources below. Click "View all ${matchingChunks.length} citations" to see the complete list with details.`;
       
       const sources = matchingChunks.map(chunk => ({
@@ -434,6 +433,8 @@ export async function POST(request) {
       return NextResponse.json({ answer, sources });
     }
 
+    let filteredContext = context;
+    
     const restrictionNote = restrictions.length > 0 
       ? `\n\nIMPORTANT - Access Restrictions:\n${restrictions.join('\n')}\nIf the user asks about restricted data, inform them of these access limitations.\n`
       : '';
