@@ -157,74 +157,7 @@ export async function POST(request) {
       });
     });
     
-    // Check if this is a direct data query that should bypass AI
-    let directQueryMatch = question.match(/(?:where|with)\s+([a-z\s]+?)\s+is\s+(?:the\s+)?(?:pm|project manager)/i);
-    let opportunityQueryMatch = question.match(/(?:how many|count|list|show).*(?:opportunit(?:y|ies)|sa assignment).*(?:for|with|at)\s+([a-z\s&]+?)(?:\?|$)/i);
-    
-    if (directQueryMatch) {
-      const pmName = directQueryMatch[1].trim();
-      console.log(`[ChatNPT] Direct query detected for PM: "${pmName}"`);
-      
-      if (pmName.length > 0) {
-        const matchingAssignments = filteredAssignments.filter(a => 
-          a.pm && a.pm.toLowerCase().includes(pmName.toLowerCase())
-        );
-        
-        if (matchingAssignments.length > 0) {
-        const pmDisplayName = matchingAssignments[0]?.pm || pmName;
-        const answer = `I found ${matchingAssignments.length} projects where ${pmDisplayName} is the Project Manager:\n\n${matchingAssignments.map((a, i) => 
-          `${i + 1}. **${a.projectNumber}** - ${a.customerName}\n   - Description: ${a.projectDescription}\n   - Practice: ${a.practice}\n   - Status: ${a.status}\n   - Region: ${a.region || 'N/A'}`
-        ).join('\n\n')}`;
-        
-        const sources = matchingAssignments.map(a => ({
-          source: 'Resource Assignments',
-          topic: `Assignment #${a.assignment_number}: ${a.customerName}`,
-          text: `Practice: ${a.practice}\nStatus: ${a.status}\nProject: ${a.projectNumber}\nDescription: ${a.projectDescription}\nRegion: ${a.region}\nPM: ${a.pm}`,
-          url: `/projects/resource-assignments/${a.id}`,
-          id: a.id
-        }));
-        
-        if (user) {
-          await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length, directQuery: true });
-        }
-        
-        return NextResponse.json({ answer, sources });
-        }
-      }
-    }
-    
-    // Handle opportunity/customer query for SA Assignments
-    if (opportunityQueryMatch) {
-      const customerName = opportunityQueryMatch[1].trim();
-      console.log(`[ChatNPT] Opportunity query detected for customer: "${customerName}"`);
-      
-      if (customerName.length > 0) {
-        const matchingSaAssignments = filteredSaAssignments.filter(a => 
-          a.customerName && a.customerName.toLowerCase().includes(customerName.toLowerCase())
-        );
-        
-        if (matchingSaAssignments.length > 0) {
-          const customerDisplayName = matchingSaAssignments[0]?.customerName || customerName;
-          const answer = `I found ${matchingSaAssignments.length} SA Assignment${matchingSaAssignments.length !== 1 ? 's' : ''} (opportunities) for ${customerDisplayName}:\n\n${matchingSaAssignments.map((a, i) => 
-            `${i + 1}. **${a.opportunityId || 'N/A'}** - ${a.opportunityName || 'No name'}\n   - Practice: ${a.practice}\n   - Status: ${a.status}\n   - Region: ${a.region || 'N/A'}\n   - SA Assigned: ${a.saAssigned || 'Unassigned'}\n   - AM: ${a.am || 'N/A'}\n   - ISR: ${a.isr || 'N/A'}`
-          ).join('\n\n')}`;
-          
-          const sources = matchingSaAssignments.map(a => ({
-            source: 'SA Assignments',
-            topic: `SA Assignment #${a.sa_assignment_number}: ${a.customerName}`,
-            text: `Customer: ${a.customerName}\nOpportunity: ${a.opportunityName || 'N/A'}\nOpportunity ID: ${a.opportunityId || 'N/A'}\nPractice: ${a.practice}\nStatus: ${a.status}\nRegion: ${a.region || 'N/A'}\nSA: ${a.saAssigned || 'N/A'}\nAM: ${a.am || 'N/A'}`,
-            url: `/projects/sa-assignments/${a.id}`,
-            id: a.id
-          }));
-          
-          if (user) {
-            await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length, directQuery: true });
-          }
-          
-          return NextResponse.json({ answer, sources });
-        }
-      }
-    }
+
     
     filteredAssignments.forEach(assignment => {
       const sanitized = sanitizeDataForAI('assignments', assignment);
@@ -311,9 +244,195 @@ export async function POST(request) {
       });
     });
     
-    const context = chunksWithMetadata.map((chunk, idx) => 
-      `[Source ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}]\n${chunk.text}`
-    ).join('\n\n');
+    const context = chunksWithMetadata.map((chunk, idx) => {
+      const idSuffix = chunk.id ? `|ID:${chunk.id}` : '';
+      return `[Source ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}${idSuffix}]\n${chunk.text}`;
+    }).join('\n\n');
+
+    // Detect if this is a "show all" query that needs pre-filtering
+    let filteredContext = context;
+    let preFilteredCount = 0;
+    let matchingChunks = [];
+    
+    // Pattern 1: "show all projects where X is PM"
+    const pmMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:project|assignment).*?\s+(\w[\w\s]+?)\s+is\s+(?:the\s+)?(?:pm|project manager)/i);
+    if (pmMatch) {
+      const pmName = pmMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        chunk.source === 'Resource Assignments' && 
+        chunk.text && 
+        chunk.text.toLowerCase().includes('pm:') &&
+        chunk.text.toLowerCase().includes(pmName)
+      );
+    }
+    
+    // Pattern 2: "show all opportunities/SA assignments for X" (customer)
+    const customerMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:opportunit(?:y|ies)|sa assignment).*(?:for|with|at)\s+([a-z\s&]+?)(?:\?|$)/i);
+    if (!matchingChunks.length && customerMatch) {
+      const customerName = customerMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        chunk.source === 'SA Assignments' && 
+        chunk.text && 
+        chunk.text.toLowerCase().includes('customer:') &&
+        chunk.text.toLowerCase().includes(customerName)
+      );
+    }
+    
+    // Pattern 3: "show all opportunities where X is SA"
+    const saMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:opportunit(?:y|ies)|sa assignment).*(?:where|with)\s+([a-z\s]+?)\s+is\s+(?:the\s+)?(?:sa|solution architect)/i);
+    if (!matchingChunks.length && saMatch) {
+      const saName = saMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        chunk.source === 'SA Assignments' && 
+        chunk.text && 
+        chunk.text.toLowerCase().includes('sa assigned:') &&
+        chunk.text.toLowerCase().includes(saName)
+      );
+    }
+    
+    // Pattern 4: "what projects is X assigned to" (resource)
+    const resourceMatch = question.match(/(?:what|which).*(?:project|assignment).*(?:is|are)\s+(\w[\w\s]+?)\s+assigned/i);
+    if (!matchingChunks.length && resourceMatch) {
+      const resourceName = resourceMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        chunk.source === 'Resource Assignments' && 
+        chunk.text && 
+        chunk.text.toLowerCase().includes('resource:') &&
+        chunk.text.toLowerCase().includes(resourceName)
+      );
+    }
+    
+    // Pattern 5: Practice-based queries
+    const practiceMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:project|assignment|opportunit).*(?:in|for)\s+(\w[\w\s]+?)\s+practice/i);
+    if (!matchingChunks.length && practiceMatch) {
+      const practiceName = practiceMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        (chunk.source === 'Resource Assignments' || chunk.source === 'SA Assignments') &&
+        chunk.text &&
+        chunk.text.toLowerCase().includes('practice:') &&
+        chunk.text.toLowerCase().includes(practiceName)
+      );
+    }
+    
+    // Pattern 6: Status-based queries
+    const statusMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:project|assignment|opportunit).*(?:with|in)\s+(\w+)\s+status/i);
+    if (!matchingChunks.length && statusMatch) {
+      const statusName = statusMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        (chunk.source === 'Resource Assignments' || chunk.source === 'SA Assignments') &&
+        chunk.text &&
+        chunk.text.toLowerCase().includes('status:') &&
+        chunk.text.toLowerCase().includes(statusName)
+      );
+    }
+    
+    // Pattern 7: Region-based queries
+    const regionMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:project|assignment|opportunit).*(?:in|for)\s+([a-z\-]+)\s+region/i);
+    if (!matchingChunks.length && regionMatch) {
+      const regionName = regionMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        (chunk.source === 'Resource Assignments' || chunk.source === 'SA Assignments') &&
+        chunk.text &&
+        chunk.text.toLowerCase().includes('region:') &&
+        chunk.text.toLowerCase().includes(regionName)
+      );
+    }
+    
+    // Pattern 8: AM (Account Manager) queries
+    const amMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:opportunit|sa assignment).*(?:where|with)\s+([a-z\s]+?)\s+is\s+(?:the\s+)?(?:am|account manager)/i);
+    if (!matchingChunks.length && amMatch) {
+      const amName = amMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        chunk.source === 'SA Assignments' &&
+        chunk.text &&
+        chunk.text.toLowerCase().includes('am:') &&
+        chunk.text.toLowerCase().includes(amName)
+      );
+    }
+    
+    // Pattern 9: ISR (Inside Sales Rep) queries
+    const isrMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:opportunit|sa assignment).*(?:where|with)\s+([a-z\s]+?)\s+is\s+(?:the\s+)?isr/i);
+    if (!matchingChunks.length && isrMatch) {
+      const isrName = isrMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        chunk.source === 'SA Assignments' &&
+        chunk.text &&
+        chunk.text.toLowerCase().includes('isr:') &&
+        chunk.text.toLowerCase().includes(isrName)
+      );
+    }
+    
+    // Pattern 10: Contact information queries
+    const contactMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:contact|people|person).*(?:at|for|from)\s+([a-z\s&]+?)(?:\?|$)/i);
+    if (!matchingChunks.length && contactMatch) {
+      const companyName = contactMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        chunk.source === 'Contacts' &&
+        chunk.text &&
+        chunk.text.toLowerCase().includes('company:') &&
+        chunk.text.toLowerCase().includes(companyName)
+      );
+    }
+    
+    // Pattern 11: SA to AM Mapping queries
+    const saMappingMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:sa|mapping|am).*(?:for|with|in)\s+([a-z\s\-]+?)\s+(?:region|practice)/i);
+    if (!matchingChunks.length && saMappingMatch) {
+      const filterValue = saMappingMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        chunk.source === 'SA to AM Mapping' &&
+        chunk.text &&
+        chunk.text.toLowerCase().includes(filterValue)
+      );
+    }
+    
+    // Pattern 12: Training Certifications queries
+    const trainingMatch = question.match(/(?:show|list|find|get).*(?:all|every).*(?:training|cert|certification).*(?:for|in)\s+([a-z\s]+?)(?:\s+practice|\?|$)/i);
+    if (!matchingChunks.length && trainingMatch) {
+      const practiceName = trainingMatch[1].trim().toLowerCase();
+      matchingChunks = chunksWithMetadata.filter(chunk => 
+        chunk.source === 'Training Certifications' &&
+        chunk.text &&
+        chunk.text.toLowerCase().includes('practice:') &&
+        chunk.text.toLowerCase().includes(practiceName)
+      );
+    }
+    
+    // Apply pre-filtering if matches found - return directly without AI
+    if (matchingChunks.length > 0) {
+      let description = '';
+      if (pmMatch) description = `where ${pmMatch[1].trim()} is the Project Manager`;
+      else if (resourceMatch) description = `where ${resourceMatch[1].trim()} is assigned as a resource`;
+      else if (customerMatch) description = `for customer ${customerMatch[1].trim()}`;
+      else if (saMatch) description = `where ${saMatch[1].trim()} is the Solution Architect`;
+      else if (practiceMatch) description = `in the ${practiceMatch[1].trim()} practice`;
+      else if (statusMatch) description = `with ${statusMatch[1].trim()} status`;
+      else if (regionMatch) description = `in the ${regionMatch[1].trim()} region`;
+      else if (amMatch) description = `where ${amMatch[1].trim()} is the Account Manager`;
+      else if (isrMatch) description = `where ${isrMatch[1].trim()} is the ISR`;
+      else if (contactMatch) description = `at ${contactMatch[1].trim()}`;
+      else if (saMappingMatch) description = `for ${saMappingMatch[1].trim()}`;
+      else if (trainingMatch) description = `for the ${trainingMatch[1].trim()} practice`;
+      
+      const itemType = matchingChunks[0].source === 'Contacts' ? 'contacts' : 
+                       (matchingChunks[0].source === 'SA to AM Mapping' ? 'SA to AM mappings' : 
+                       (matchingChunks[0].source === 'Training Certifications' ? 'training certifications' : 
+                       (matchingChunks[0].source === 'SA Assignments' ? 'opportunities' : 'projects')));
+      const answer = `Found ${matchingChunks.length} ${itemType} ${description}.\n\nAll ${matchingChunks.length} items are listed in the sources below. Click "View all ${matchingChunks.length} citations" to see the complete list with details.`;
+      
+      const sources = matchingChunks.map(chunk => ({
+        source: chunk.source,
+        topic: chunk.topic,
+        text: chunk.text,
+        url: chunk.url,
+        id: chunk.id
+      }));
+      
+      if (user) {
+        await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length, preFiltered: true });
+      }
+      
+      return NextResponse.json({ answer, sources });
+    }
 
     const restrictionNote = restrictions.length > 0 
       ? `\n\nIMPORTANT - Access Restrictions:\n${restrictions.join('\n')}\nIf the user asks about restricted data, inform them of these access limitations.\n`
@@ -326,8 +445,15 @@ export async function POST(request) {
     const systemPrompt = `You are a helpful AI assistant for Netsync Practice Tools. Answer based ONLY on the provided data.
 
 ${user ? `User: ${user.name} (${user.role})\nData has been filtered based on user permissions.` : 'Unauthenticated access - limited data available'}${restrictionNote}
-Each piece of information has a reference [Source ID|Source Type|Topic|Timestamp].
-Cite sources by ID numbers.
+
+Each piece of information has a reference [Source ID|Source Type|Topic|Timestamp|ID:database_id].
+
+CRITICAL SOURCE CITATION RULES:
+- ONLY cite a source if you are using information from that EXACT source
+- Double-check that the Source ID matches the data you are referencing
+- If you cite "Source 439", the information MUST come from the text under [Source 439|...]
+- NEVER cite a source number unless you have verified it contains the information you are stating
+- When multiple sources contain similar information, cite the SPECIFIC source you used
 
 CRITICAL INSTRUCTIONS:
 - When asked to find ALL items matching criteria (e.g., "all projects where X is PM"), you MUST search through EVERY source and list EVERY match
@@ -336,13 +462,18 @@ CRITICAL INSTRUCTIONS:
 - If there are many matches, list them all systematically
 
 Available information:
-${context}`;
-
+${filteredContext}`;
+    
     const userPrompt = `${conversationContext}\nQuestion: ${question}\n\nIMPORTANT: If this question asks for ALL items (e.g., "all projects", "show me all", "list all"), you must:
 1. Search through EVERY source in the data
 2. List EVERY matching item - do not limit to examples
-3. Provide the total count
-4. Cite all relevant source IDs
+3. Use ULTRA-COMPACT format: ONLY "Project# - Customer [Source#]" - NO extra text, descriptions, or formatting
+4. Provide the total count at the end
+5. Example format:
+200001 - Company A [Source 0]
+200002 - Company B [Source 1]
+...
+Total: X projects
 
 Answer (cite source IDs):`;
 
@@ -352,7 +483,7 @@ Answer (cite source IDs):`;
       accept: 'application/json',
       body: JSON.stringify({
         anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 4000,
+        max_tokens: 8192,
         messages: [
           { role: 'user', content: systemPrompt },
           { role: 'assistant', content: 'I understand. I will answer questions based only on the provided data and cite sources by ID numbers.' },
@@ -362,26 +493,56 @@ Answer (cite source IDs):`;
     }));
 
     const responseBody = JSON.parse(new TextDecoder().decode(bedrockResponse.body));
-    const answer = responseBody.content[0].text;
+    let answer = responseBody.content[0].text;
+    const stopReason = responseBody.stop_reason;
 
     const sourceMatches = answer.match(/Source \d+/g) || [];
     const citedSourceIds = [...new Set(sourceMatches.map(m => parseInt(m.split(' ')[1])))];
     
+    // Use matchingChunks if pre-filtering was applied, otherwise use all chunks
+    const sourceChunks = matchingChunks.length > 0 ? matchingChunks : chunksWithMetadata;
+    
     const sources = citedSourceIds
-      .filter(id => id < chunksWithMetadata.length)
-      .map(id => ({
-        source: chunksWithMetadata[id].source,
-        topic: chunksWithMetadata[id].topic,
-        text: chunksWithMetadata[id].text,
-        url: chunksWithMetadata[id].url,
-        id: chunksWithMetadata[id].id
+      .filter(id => id >= 0 && id < sourceChunks.length)
+      .map(id => {
+        const chunk = sourceChunks[id];
+        if (!chunk) return null;
+        return {
+          source: chunk.source,
+          topic: chunk.topic,
+          text: chunk.text,
+          url: chunk.url,
+          id: chunk.id,
+          sourceIndex: id
+        };
+      })
+      .filter(s => s !== null);
+
+    // Check if response was truncated due to token limit - return all sources
+    if (stopReason === 'max_tokens' && sourceChunks.length > sources.length) {
+      // AI hit token limit and didn't cite all sources - return them all
+      const allSources = sourceChunks.map(chunk => ({
+        source: chunk.source,
+        topic: chunk.topic,
+        text: chunk.text,
+        url: chunk.url,
+        id: chunk.id
       }));
+      
+      answer = `Found ${allSources.length} matching items.\n\nDue to the large result set, all ${allSources.length} items are listed in the sources below. Click "View all ${allSources.length} citations" to see the complete list with details.`;
+      
+      if (user) {
+        await logAIAccess(user, 'chatnpt_response', { sourcesCount: allSources.length, truncated: true, autoExpanded: true });
+      }
+      
+      return NextResponse.json({ answer, sources: allSources, truncated: true });
+    }
 
     if (user) {
-      await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length });
+      await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length, truncated: stopReason === 'max_tokens' });
     }
     
-    return NextResponse.json({ answer, sources });
+    return NextResponse.json({ answer, sources, truncated: stopReason === 'max_tokens' });
   } catch (error) {
     console.error('ChatNPT error:', error);
     return NextResponse.json({ error: 'Failed to process question. Please try again.' }, { status: 500 });
