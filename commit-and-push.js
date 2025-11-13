@@ -462,6 +462,7 @@ class CommitBuilder {
           'webexmeetings-utils': 'Enhanced webex-meetings-utils Service with improved functionality and error handling',
           'ssmconfig': 'Enhanced ssm-config Service with improved functionality and error handling',
           'startupinit': 'Enhanced startup-init Service with improved functionality and error handling',
+          'webexrecording-notifications': 'Enhanced webex-recording-notifications Service with improved functionality and error handling',
     };
     
     // Check for pattern matches

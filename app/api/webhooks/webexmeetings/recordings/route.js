@@ -255,14 +255,6 @@ export async function POST(request) {
       console.error('Failed to send SSE notification for new recording:', sseError);
     }
 
-    // Send Webex notification to host for approval
-    try {
-      const { sendRecordingApprovalNotification } = await import('../../../../../lib/webex-recording-notifications.js');
-      await sendRecordingApprovalNotification(recordingData);
-    } catch (notifError) {
-      console.error('Failed to send Webex approval notification:', notifError);
-    }
-
     // Try to get transcript immediately
     try {
       await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/webexmeetings/recordings/${data.id}/transcript`, {

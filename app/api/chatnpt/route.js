@@ -151,16 +151,89 @@ export async function POST(request) {
       chunksWithMetadata.push({
         source: 'Practice Issues',
         topic: `Issue #${sanitized.issue_number}: ${sanitized.title}`,
-        text: `Type: ${sanitized.issue_type}\nStatus: ${sanitized.status}\nDescription: ${sanitized.description}\nPractice: ${sanitized.practice || 'N/A'}`
+        text: `Type: ${sanitized.issue_type}\nStatus: ${sanitized.status}\nDescription: ${sanitized.description}\nPractice: ${sanitized.practice || 'N/A'}`,
+        url: `/issues/${issue.id}`,
+        id: issue.id
       });
     });
+    
+    // Check if this is a direct data query that should bypass AI
+    let directQueryMatch = question.match(/(?:where|with)\s+([a-z\s]+?)\s+is\s+(?:the\s+)?(?:pm|project manager)/i);
+    let opportunityQueryMatch = question.match(/(?:how many|count|list|show).*(?:opportunit(?:y|ies)|sa assignment).*(?:for|with|at)\s+([a-z\s&]+?)(?:\?|$)/i);
+    
+    if (directQueryMatch) {
+      const pmName = directQueryMatch[1].trim();
+      console.log(`[ChatNPT] Direct query detected for PM: "${pmName}"`);
+      
+      if (pmName.length > 0) {
+        const matchingAssignments = filteredAssignments.filter(a => 
+          a.pm && a.pm.toLowerCase().includes(pmName.toLowerCase())
+        );
+        
+        if (matchingAssignments.length > 0) {
+        const pmDisplayName = matchingAssignments[0]?.pm || pmName;
+        const answer = `I found ${matchingAssignments.length} projects where ${pmDisplayName} is the Project Manager:\n\n${matchingAssignments.map((a, i) => 
+          `${i + 1}. **${a.projectNumber}** - ${a.customerName}\n   - Description: ${a.projectDescription}\n   - Practice: ${a.practice}\n   - Status: ${a.status}\n   - Region: ${a.region || 'N/A'}`
+        ).join('\n\n')}`;
+        
+        const sources = matchingAssignments.map(a => ({
+          source: 'Resource Assignments',
+          topic: `Assignment #${a.assignment_number}: ${a.customerName}`,
+          text: `Practice: ${a.practice}\nStatus: ${a.status}\nProject: ${a.projectNumber}\nDescription: ${a.projectDescription}\nRegion: ${a.region}\nPM: ${a.pm}`,
+          url: `/projects/resource-assignments/${a.id}`,
+          id: a.id
+        }));
+        
+        if (user) {
+          await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length, directQuery: true });
+        }
+        
+        return NextResponse.json({ answer, sources });
+        }
+      }
+    }
+    
+    // Handle opportunity/customer query for SA Assignments
+    if (opportunityQueryMatch) {
+      const customerName = opportunityQueryMatch[1].trim();
+      console.log(`[ChatNPT] Opportunity query detected for customer: "${customerName}"`);
+      
+      if (customerName.length > 0) {
+        const matchingSaAssignments = filteredSaAssignments.filter(a => 
+          a.customerName && a.customerName.toLowerCase().includes(customerName.toLowerCase())
+        );
+        
+        if (matchingSaAssignments.length > 0) {
+          const customerDisplayName = matchingSaAssignments[0]?.customerName || customerName;
+          const answer = `I found ${matchingSaAssignments.length} SA Assignment${matchingSaAssignments.length !== 1 ? 's' : ''} (opportunities) for ${customerDisplayName}:\n\n${matchingSaAssignments.map((a, i) => 
+            `${i + 1}. **${a.opportunityId || 'N/A'}** - ${a.opportunityName || 'No name'}\n   - Practice: ${a.practice}\n   - Status: ${a.status}\n   - Region: ${a.region || 'N/A'}\n   - SA Assigned: ${a.saAssigned || 'Unassigned'}\n   - AM: ${a.am || 'N/A'}\n   - ISR: ${a.isr || 'N/A'}`
+          ).join('\n\n')}`;
+          
+          const sources = matchingSaAssignments.map(a => ({
+            source: 'SA Assignments',
+            topic: `SA Assignment #${a.sa_assignment_number}: ${a.customerName}`,
+            text: `Customer: ${a.customerName}\nOpportunity: ${a.opportunityName || 'N/A'}\nOpportunity ID: ${a.opportunityId || 'N/A'}\nPractice: ${a.practice}\nStatus: ${a.status}\nRegion: ${a.region || 'N/A'}\nSA: ${a.saAssigned || 'N/A'}\nAM: ${a.am || 'N/A'}`,
+            url: `/projects/sa-assignments/${a.id}`,
+            id: a.id
+          }));
+          
+          if (user) {
+            await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length, directQuery: true });
+          }
+          
+          return NextResponse.json({ answer, sources });
+        }
+      }
+    }
     
     filteredAssignments.forEach(assignment => {
       const sanitized = sanitizeDataForAI('assignments', assignment);
       chunksWithMetadata.push({
         source: 'Resource Assignments',
         topic: `Assignment #${sanitized.assignment_number}: ${sanitized.customerName}`,
-        text: `Practice: ${sanitized.practice}\nStatus: ${sanitized.status}\nProject: ${sanitized.projectNumber}\nDescription: ${sanitized.projectDescription}\nRegion: ${sanitized.region}`
+        text: `Practice: ${sanitized.practice}\nStatus: ${sanitized.status}\nProject: ${sanitized.projectNumber}\nDescription: ${sanitized.projectDescription}\nRegion: ${sanitized.region}\nPM: ${sanitized.pm || 'N/A'}\nResource: ${sanitized.resourceAssigned || 'N/A'}`,
+        url: `/projects/resource-assignments/${assignment.id}`,
+        id: assignment.id
       });
     });
     
@@ -168,8 +241,10 @@ export async function POST(request) {
       const sanitized = sanitizeDataForAI('assignments', assignment);
       chunksWithMetadata.push({
         source: 'SA Assignments',
-        topic: `SA Assignment #${sanitized.assignment_number}`,
-        text: `Practice: ${sanitized.practice}\nStatus: ${sanitized.status}\nProject: ${sanitized.projectNumber}\nDescription: ${sanitized.projectDescription || sanitized.notes}`
+        topic: `SA Assignment #${sanitized.sa_assignment_number}: ${sanitized.customerName || 'Unknown Customer'}`,
+        text: `Customer: ${sanitized.customerName || 'N/A'}\nPractice: ${sanitized.practice}\nStatus: ${sanitized.status}\nOpportunity: ${sanitized.opportunityName || 'N/A'}\nOpportunity ID: ${sanitized.opportunityId || 'N/A'}\nSA Assigned: ${sanitized.saAssigned || 'Unassigned'}\nAM: ${sanitized.am || 'N/A'}\nISR: ${sanitized.isr || 'N/A'}\nRegion: ${sanitized.region || 'N/A'}`,
+        url: `/projects/sa-assignments/${assignment.id}`,
+        id: assignment.id
       });
     });
     
@@ -254,10 +329,22 @@ ${user ? `User: ${user.name} (${user.role})\nData has been filtered based on use
 Each piece of information has a reference [Source ID|Source Type|Topic|Timestamp].
 Cite sources by ID numbers.
 
+CRITICAL INSTRUCTIONS:
+- When asked to find ALL items matching criteria (e.g., "all projects where X is PM"), you MUST search through EVERY source and list EVERY match
+- Do NOT limit results to just a few examples - provide the COMPLETE list
+- Count the total matches and state the count clearly
+- If there are many matches, list them all systematically
+
 Available information:
 ${context}`;
 
-    const userPrompt = `${conversationContext}\nQuestion: ${question}\n\nAnswer (cite source IDs):`;
+    const userPrompt = `${conversationContext}\nQuestion: ${question}\n\nIMPORTANT: If this question asks for ALL items (e.g., "all projects", "show me all", "list all"), you must:
+1. Search through EVERY source in the data
+2. List EVERY matching item - do not limit to examples
+3. Provide the total count
+4. Cite all relevant source IDs
+
+Answer (cite source IDs):`;
 
     const bedrockResponse = await bedrockClient.send(new InvokeModelCommand({
       modelId: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
@@ -265,7 +352,7 @@ ${context}`;
       accept: 'application/json',
       body: JSON.stringify({
         anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 2000,
+        max_tokens: 4000,
         messages: [
           { role: 'user', content: systemPrompt },
           { role: 'assistant', content: 'I understand. I will answer questions based only on the provided data and cite sources by ID numbers.' },
@@ -285,7 +372,9 @@ ${context}`;
       .map(id => ({
         source: chunksWithMetadata[id].source,
         topic: chunksWithMetadata[id].topic,
-        text: chunksWithMetadata[id].text
+        text: chunksWithMetadata[id].text,
+        url: chunksWithMetadata[id].url,
+        id: chunksWithMetadata[id].id
       }));
 
     if (user) {

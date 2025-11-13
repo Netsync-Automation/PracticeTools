@@ -85,6 +85,7 @@ export async function POST(request, { params }) {
           Item: {
             ...recording,
             transcriptRetryCount: retryCount,
+            transcriptFailed: true,
             updated_at: new Date().toISOString()
           }
         });
@@ -92,6 +93,13 @@ export async function POST(request, { params }) {
         
         const { notifyWebexRecordingsUpdate } = await import('../../../../sse/webex-meetings/route.js');
         notifyWebexRecordingsUpdate();
+        
+        try {
+          const { sendTranscriptFailureNotification } = await import('../../../../../../lib/webex-recording-notifications.js');
+          await sendTranscriptFailureNotification(recording);
+        } catch (notifError) {
+          console.error('Failed to send transcript failure notification:', notifError);
+        }
         
         return NextResponse.json({ message: 'Max retries reached, transcript not available' });
       }
@@ -129,21 +137,30 @@ export async function POST(request, { params }) {
     });
     await s3Client.send(s3Command);
     
+    const updatedRecording = {
+      ...recording,
+      transcriptText,
+      transcriptS3Key: s3Key,
+      transcriptS3Url: `https://${process.env.S3_BUCKET}.s3.amazonaws.com/${s3Key}`,
+      transcriptRetryCount: recording.transcriptRetryCount || 0,
+      updated_at: new Date().toISOString()
+    };
+    
     const updateCommand = new PutCommand({
       TableName: tableName,
-      Item: {
-        ...recording,
-        transcriptText,
-        transcriptS3Key: s3Key,
-        transcriptS3Url: `https://${process.env.S3_BUCKET}.s3.amazonaws.com/${s3Key}`,
-        transcriptRetryCount: recording.transcriptRetryCount || 0,
-        updated_at: new Date().toISOString()
-      }
+      Item: updatedRecording
     });
     await docClient.send(updateCommand);
     
     const { notifyWebexRecordingsUpdate } = await import('../../../../sse/webex-meetings/route.js');
     notifyWebexRecordingsUpdate();
+    
+    try {
+      const { sendRecordingApprovalNotification } = await import('../../../../../../lib/webex-recording-notifications.js');
+      await sendRecordingApprovalNotification(updatedRecording);
+    } catch (notifError) {
+      console.error('Failed to send recording approval notification:', notifError);
+    }
     
     return NextResponse.json({ success: true, message: 'Transcript fetched successfully' });
   } catch (error) {
