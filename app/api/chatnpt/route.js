@@ -5,6 +5,7 @@ import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { getTableName } from '../../../lib/dynamodb';
 import { getUserFromRequest, logAIAccess } from '../../../lib/ai-user-context';
 import { filterDataForUser, sanitizeDataForAI } from '../../../lib/ai-access-control';
+import { createOpenSearchClient } from '../../../lib/opensearch-setup.js';
 
 const bedrockClient = new BedrockRuntimeClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
@@ -50,6 +51,88 @@ async function fetchTable(tableName, filterExpression = null, expressionAttribut
   }
 }
 
+async function generateEmbedding(text) {
+  const params = {
+    modelId: 'amazon.titan-embed-text-v1',
+    contentType: 'application/json',
+    accept: 'application/json',
+    body: JSON.stringify({
+      inputText: text
+    })
+  };
+  
+  const command = new InvokeModelCommand(params);
+  const result = await bedrockClient.send(command);
+  const response = JSON.parse(new TextDecoder().decode(result.body));
+  return response.embedding;
+}
+
+async function searchDocumentChunks(embedding, tenantId, maxResults) {
+  try {
+    const opensearchClient = createOpenSearchClient();
+    
+    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    const searchQuery = {
+      size: maxResults,
+      query: {
+        bool: {
+          must: [
+            {
+              knn: {
+                vector: {
+                  vector: embedding,
+                  k: maxResults
+                }
+              }
+            }
+          ],
+          filter: [
+            {
+              term: {
+                tenantId: tenantId
+              }
+            }
+          ],
+          should: [
+            {
+              bool: {
+                must_not: {
+                  exists: {
+                    field: 'expirationDate'
+                  }
+                }
+              }
+            },
+            {
+              range: {
+                expirationDate: {
+                  gte: currentDate
+                }
+              }
+            }
+          ],
+          minimum_should_match: 1
+        }
+      },
+      _source: ['documentId', 'chunkIndex', 'text', 's3Key', 'tenantId', 'expirationDate']
+    };
+    
+    const response = await opensearchClient.search({
+      index: 'document-vectors',
+      body: searchQuery
+    });
+    
+    return response.body.hits.hits.map(hit => ({
+      ...hit._source,
+      score: hit._score
+    }));
+  } catch (error) {
+    console.error('Error searching document chunks:', error);
+    return [];
+  }
+}
+
 export async function POST(request) {
   try {
     const user = await getUserFromRequest(request);
@@ -63,15 +146,24 @@ export async function POST(request) {
       await logAIAccess(user, 'chatnpt_query', { questionLength: question.length });
     }
 
+    // Generate embedding for semantic search of document chunks
+    let documentChunks = [];
+    try {
+      const questionEmbedding = await generateEmbedding(question);
+      documentChunks = await searchDocumentChunks(questionEmbedding, 'default', 10);
+    } catch (error) {
+      console.error('Error searching document chunks:', error);
+    }
+
     // Fetch ALL data from environment-specific tables
-    const [recordingsResult, messages, docs, issues, assignments, saAssignments, training, saMappings, companies, contacts, users, practiceInfo, releases, practiceETAs] = await Promise.all([
+    const [recordingsResult, messages, docs, issues, assignments, saAssignments, training, saMappings, companies, contacts, users, practiceInfo, releases, practiceETAs, settingsResult] = await Promise.all([
       docClient.send(new ScanCommand({
         TableName: getTableName('WebexMeetingsRecordings'),
         FilterExpression: 'approved = :approved AND attribute_exists(transcriptText)',
         ExpressionAttributeValues: { ':approved': true }
       })),
       fetchTable('WebexMessages'),
-      fetchTable('Documentation'),
+      fetchTable('Documentation', 'attribute_exists(extractedText) AND extractionStatus = :status', { ':status': 'completed' }),
       fetchTable('Issues'),
       fetchTable('resource-assignments'),
       fetchTable('sa-assignments'),
@@ -82,31 +174,30 @@ export async function POST(request) {
       fetchTable('Users'),
       fetchTable('PracticeInfoPages'),
       fetchTable('Releases'),
-      fetchTable('SAAssignmentStatusLog')
+      fetchTable('SAAssignmentStatusLog'),
+      fetchTable('Settings')
     ]);
 
     const recordings = recordingsResult.Items || [];
+    const settings = settingsResult || [];
     
     // Filter data using same methods as application APIs
     const issuesResult = user ? await filterDataForUser('issues', issues, user.email) : { filtered: [], restricted: true, reason: 'Authentication required' };
     const assignmentsResult = user ? await filterDataForUser('assignments', assignments, user.email) : { filtered: [], restricted: true, reason: 'Authentication required' };
     const saAssignmentsResult = user ? await filterDataForUser('sa_assignments', saAssignments, user.email) : { filtered: [], restricted: true, reason: 'Authentication required' };
     const trainingResult = user ? await filterDataForUser('training_certs', training, user.email) : { filtered: [], restricted: true, reason: 'Authentication required' };
-    const companiesResult = user ? await filterDataForUser('companies', companies, user.email) : { filtered: companies, restricted: false, reason: null };
-    const contactsResult = user ? await filterDataForUser('contacts', contacts, user.email) : { filtered: contacts, restricted: false, reason: null };
     
     const filteredIssues = issuesResult.filtered;
     const filteredAssignments = assignmentsResult.filtered;
     const filteredSaAssignments = saAssignmentsResult.filtered;
     const filteredTraining = trainingResult.filtered;
-    const filteredCompanies = companiesResult.filtered;
-    const filteredContacts = contactsResult.filtered;
+    const filteredCompanies = companies; // No filtering - anyone can view
+    const filteredContacts = contacts; // No filtering - anyone can view
     
     // Collect restriction info for user feedback
     const restrictions = [];
     if (issuesResult.restricted && issuesResult.reason) restrictions.push(`Issues: ${issuesResult.reason}`);
     if (assignmentsResult.restricted && assignmentsResult.reason) restrictions.push(`Assignments: ${assignmentsResult.reason}`);
-    if (contactsResult.restricted && contactsResult.reason) restrictions.push(`Contacts: ${contactsResult.reason}`);
 
     const chunksWithMetadata = [];
     
@@ -117,7 +208,10 @@ export async function POST(request) {
           source: 'Webex Recordings',
           topic: rec.topic,
           timestamp: chunk.timestamp,
-          text: chunk.text
+          text: chunk.text,
+          url: `/company-education/webex-recordings`,
+          downloadUrl: rec.downloadUrl || rec.s3Url,
+          recordingId: rec.id
         });
       });
     });
@@ -126,24 +220,61 @@ export async function POST(request) {
       chunksWithMetadata.push({
         source: 'Webex Messages',
         topic: `Message from ${msg.person_email}`,
-        text: msg.text
+        text: msg.text,
+        url: `/company-education/webex-messages?id=${msg.message_id}`,
+        messageId: msg.message_id,
+        personEmail: msg.person_email,
+        date: msg.created,
+        attachments: msg.attachments
       });
       msg.attachments?.forEach(att => {
         if (att.extractedText) {
           chunksWithMetadata.push({
             source: 'Webex Messages',
             topic: `Attachment: ${att.fileName}`,
-            text: att.extractedText
+            text: att.extractedText,
+            url: `/company-education/webex-messages?id=${msg.message_id}`,
+            messageId: msg.message_id,
+            personEmail: msg.person_email,
+            date: msg.created,
+            attachments: msg.attachments
           });
         }
       });
     });
 
+    // Add legacy documentation (for backward compatibility) - filter out expired documents
+    const currentDate = new Date();
     docs.forEach(doc => {
+      if (doc.extractedText && doc.extractedText.trim()) {
+        // Skip expired documents
+        if (doc.expirationDate && new Date(doc.expirationDate) < currentDate) {
+          return;
+        }
+        
+        chunksWithMetadata.push({
+          source: 'Documentation',
+          topic: doc.fileName,
+          text: doc.extractedText,
+          docId: doc.id,
+          uploadedBy: doc.uploadedBy,
+          uploadedAt: doc.uploadedAt,
+          expirationDate: doc.expirationDate
+        });
+      }
+    });
+
+    // Add new document chunks from RAG system (already filtered for expiration in OpenSearch query)
+    documentChunks.forEach(chunk => {
       chunksWithMetadata.push({
-        source: 'Documentation',
-        topic: doc.fileName,
-        text: doc.extractedText || `Document: ${doc.fileName}`
+        source: 'Documents',
+        topic: `${chunk.documentId} - Chunk ${chunk.chunkIndex}`,
+        text: chunk.text,
+        documentId: chunk.documentId,
+        s3Key: chunk.s3Key,
+        chunkIndex: chunk.chunkIndex,
+        score: chunk.score,
+        expirationDate: chunk.expirationDate
       });
     });
 
@@ -153,7 +284,7 @@ export async function POST(request) {
         source: 'Practice Issues',
         topic: `Issue #${sanitized.issue_number}: ${sanitized.title}`,
         text: `Type: ${sanitized.issue_type}\nStatus: ${sanitized.status}\nDescription: ${sanitized.description}\nPractice: ${sanitized.practice || 'N/A'}`,
-        url: `/issues/${issue.id}`,
+        url: `/issue/${issue.id}`,
         id: issue.id
       });
     });
@@ -191,15 +322,19 @@ export async function POST(request) {
       chunksWithMetadata.push({
         source: 'Training Certifications',
         topic: `${sanitized.vendor} - ${sanitized.name}`,
-        text: `Practice: ${sanitized.practice}\nType: ${sanitized.type}\nVendor: ${sanitized.vendor}\nName: ${sanitized.name}\nLevel: ${sanitized.level || 'N/A'}\nCode: ${sanitized.code || 'N/A'}\nQuantity Needed: ${quantityNeeded}\nTotal Sign-Ups: ${totalSignUps}\nTotal Completed: ${totalCompleted}\nPrerequisites: ${sanitized.prerequisites || 'None'}`
+        text: `Practice: ${sanitized.practice}\nType: ${sanitized.type}\nVendor: ${sanitized.vendor}\nName: ${sanitized.name}\nLevel: ${sanitized.level || 'N/A'}\nCode: ${sanitized.code || 'N/A'}\nQuantity Needed: ${quantityNeeded}\nTotal Sign-Ups: ${totalSignUps}\nTotal Completed: ${totalCompleted}\nPrerequisites: ${sanitized.prerequisites || 'None'}`,
+        url: `/practice-information/training-certs`,
+        id: cert.id
       });
     });
     
     saMappings.forEach(mapping => {
       chunksWithMetadata.push({
         source: 'SA to AM Mapping',
-        topic: `${mapping.sa_name} → ${mapping.am_name}`,
-        text: `SA: ${mapping.sa_name} (${mapping.sa_email})\nAM: ${mapping.am_name} (${mapping.am_email})\nRegion: ${mapping.region || 'N/A'}\nPractice: ${mapping.practice || 'N/A'}`
+        topic: `${mapping.sa_name} supports AM ${mapping.am_name}`,
+        text: `SA Support Relationship: ${mapping.sa_name} (${mapping.sa_email}) organizationally supports AM ${mapping.am_name} (${mapping.am_email})\nRegion: ${mapping.region || 'N/A'}\nPractice: ${mapping.practice || 'N/A'}\nNote: This is an organizational support mapping, not an opportunity assignment`,
+        url: `/pre-sales/sa-to-am-mapping`,
+        id: mapping.id
       });
     });
     
@@ -207,16 +342,21 @@ export async function POST(request) {
       chunksWithMetadata.push({
         source: 'Companies',
         topic: company.name,
-        text: `Company: ${company.name}\nTier: ${company.tier}\nTechnology: ${Array.isArray(company.technology) ? company.technology.join(', ') : company.technology}\nWebsite: ${company.website}`
+        text: `Company: ${company.name}\nTier: ${company.tier}\nTechnology: ${Array.isArray(company.technology) ? company.technology.join(', ') : company.technology}\nWebsite: ${company.website}`,
+        url: `/contact-information`,
+        id: company.id
       });
     });
     
     filteredContacts.forEach(contact => {
-      const company = filteredCompanies.find(c => c.id === contact.companyId);
+      const company = filteredCompanies.find(c => c.id === contact.company_id);
+      const companyName = company?.name || 'Unknown Company';
       chunksWithMetadata.push({
         source: 'Contacts',
-        topic: `${contact.name} - ${company?.name || 'Unknown Company'}`,
-        text: `Name: ${contact.name}\nCompany: ${company?.name || 'Unknown'}\nEmail: ${contact.email}\nRole: ${contact.role}\nPhone: ${contact.cellPhone || contact.cell_phone || 'N/A'}`
+        topic: `${contact.name} - ${companyName}`,
+        text: `Name: ${contact.name}\nCompany: ${companyName}\nEmail: ${contact.email || 'N/A'}\nRole: ${contact.role || 'N/A'}\nCell Phone: ${contact.cell_phone || 'N/A'}\nOffice Phone: ${contact.office_phone || 'N/A'}\nFax: ${contact.fax || 'N/A'}\nNotes: ${contact.notes || 'N/A'}`,
+        url: `/contact-information`,
+        id: contact.id
       });
     });
     
@@ -236,6 +376,67 @@ export async function POST(request) {
         text: `Title: ${page.title}\nDescription: ${page.description}\nContent: ${page.content}`
       });
     });
+    
+    // Extract practice board data from Settings table
+    const practiceBoards = settings.filter(setting => 
+      setting.setting_key && setting.setting_key.includes('practice_board_')
+    );
+    
+    // Helper to strip HTML tags from text
+    const stripHtml = (html) => {
+      if (!html) return '';
+      return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    };
+    
+    let totalCardsIndexed = 0;
+    practiceBoards.forEach(board => {
+      try {
+        const boardData = JSON.parse(board.setting_value);
+        const boardName = board.setting_key.replace(/^(dev|prod)_practice_board_/, '').replace(/_/g, ' ');
+        const topic = boardData.topic || 'Main Topic';
+        
+        if (boardData.columns && Array.isArray(boardData.columns)) {
+          boardData.columns.forEach(column => {
+            if (column.cards && Array.isArray(column.cards)) {
+              column.cards.forEach(card => {
+                const cleanDescription = stripHtml(card.description);
+                const cardUrl = `/practice-information?card=${card.id}`;
+                const cardText = [
+                  `Board: ${boardName}`,
+                  `Topic: ${topic}`,
+                  `Column: ${column.title}`,
+                  `Card Title: ${card.title}`,
+                  cleanDescription ? `Description: ${cleanDescription}` : '',
+                  card.assignedTo && card.assignedTo.length > 0 ? `Assigned To: ${card.assignedTo.join(', ')}` : '',
+                  card.dueDate ? `Due Date: ${card.dueDate}` : '',
+                  card.labels && card.labels.length > 0 ? `Labels: ${card.labels.join(', ')}` : '',
+                  card.checklists && card.checklists.length > 0 ? `Checklists: ${card.checklists.map(cl => `${cl.name} (${cl.items.length} items)`).join(', ')}` : '',
+                  card.comments && card.comments.length > 0 ? `Comments: ${card.comments.map(c => `${c.author}: ${stripHtml(c.text)}`).join(' | ')}` : ''
+                ].filter(Boolean).join('\n');
+                
+                // Extract practice ID from setting key for proper navigation
+                const practiceIdMatch = board.setting_key.match(/^(dev|prod)_practice_board_([^_]+(?:-[^_]+)*?)(?:_.*)?$/);
+                const practiceId = practiceIdMatch ? practiceIdMatch[2].split('-').join('-') : board.setting_key;
+                
+                chunksWithMetadata.push({
+                  source: 'Practice Information',
+                  topic: `${boardName} - ${topic} - ${column.title} - ${card.title}`,
+                  text: cardText,
+                  id: card.id,
+                  boardId: practiceId,
+                  boardTopic: topic
+                });
+                totalCardsIndexed++;
+              });
+            }
+          });
+        }
+      } catch (error) {
+        console.error('[CHATNPT] Error parsing practice board data:', error);
+      }
+    });
+    
+
     
     releases.forEach(release => {
       chunksWithMetadata.push({
@@ -314,19 +515,20 @@ Available data sources:
 - Resource Assignments (fields: pm, resourceAssigned, practice, status, region)
 - SA Assignments (fields: customer, saAssigned, am, isr, practice, status, region)
 - Contacts (fields: company)
-- SA to AM Mapping (fields: region, practice)
+- SA to AM Mapping (fields: saName, amName, region, practice)
 - Training Certifications (fields: practice)
 - Practice Issues (fields: practice, status, issue_type)
 - Webex Recordings (fields: topic)
 - Webex Messages (fields: person_email)
 - Documentation (fields: fileName)
+- Documents (fields: documentId, s3Key)
 - Practice ETAs (fields: practice, transition)
 
 Respond with ONLY a JSON object (no markdown, no explanation):
 {
   "isListQuery": true/false,
-  "dataSource": "Resource Assignments" | "SA Assignments" | "Contacts" | "SA to AM Mapping" | "Training Certifications" | "Practice Issues" | "Webex Recordings" | "Webex Messages" | "Documentation" | "Practice ETAs" | null,
-  "filterField": "pm" | "resourceAssigned" | "customer" | "saAssigned" | "am" | "isr" | "practice" | "status" | "region" | "company" | "issue_type" | "topic" | "person_email" | "fileName" | "transition" | null,
+  "dataSource": "Resource Assignments" | "SA Assignments" | "Contacts" | "SA to AM Mapping" | "Training Certifications" | "Practice Issues" | "Webex Recordings" | "Webex Messages" | "Documentation" | "Documents" | "Practice ETAs" | null,
+  "filterField": "pm" | "resourceAssigned" | "customer" | "saAssigned" | "am" | "isr" | "practice" | "status" | "region" | "company" | "issue_type" | "topic" | "person_email" | "fileName" | "documentId" | "s3Key" | "transition" | "saName" | "amName" | null,
   "filterValue": "extracted name/value" | null
 }`;
 
@@ -368,9 +570,13 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         'company': 'company:',
         'issue_type': 'type:',
         'transition': 'transition:',
+        'saName': 'sa support relationship:',
+        'amName': 'organizationally supports am',
         'topic': null,
         'person_email': null,
-        'fileName': null
+        'fileName': null,
+        'documentId': null,
+        's3Key': null
       };
       
       const fieldPrefix = fieldMap[intent.filterField];
@@ -399,7 +605,9 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         'transition': 'transition type',
         'topic': 'topic',
         'person_email': 'sender',
-        'fileName': 'file name'
+        'fileName': 'file name',
+        'documentId': 'document ID',
+        's3Key': 'document path'
       };
       
       const description = `where ${fieldLabels[intent.filterField] || intent.filterField} is ${intent.filterValue}`;
@@ -411,6 +619,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         'Webex Recordings': 'recordings',
         'Webex Messages': 'messages',
         'Documentation': 'documents',
+        'Documents': 'document chunks',
         'SA Assignments': 'opportunities',
         'Resource Assignments': 'projects',
         'Practice ETAs': 'ETA metrics'
@@ -423,14 +632,35 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         topic: chunk.topic,
         text: chunk.text,
         url: chunk.url,
-        id: chunk.id
+        id: chunk.id,
+        boardId: chunk.boardId,
+        boardTopic: chunk.boardTopic,
+        downloadUrl: chunk.downloadUrl,
+        recordingId: chunk.recordingId,
+        messageId: chunk.messageId,
+        personEmail: chunk.personEmail,
+        date: chunk.date,
+        attachments: chunk.attachments,
+        docId: chunk.docId,
+        uploadedBy: chunk.uploadedBy,
+        uploadedAt: chunk.uploadedAt,
+        documentId: chunk.documentId,
+        s3Key: chunk.s3Key,
+        chunkIndex: chunk.chunkIndex,
+        score: chunk.score,
+        expirationDate: chunk.expirationDate
       }));
       
       if (user) {
         await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length, preFiltered: true });
       }
       
-      return NextResponse.json({ answer, sources });
+      const responseData = { answer, sources };
+      const jsonString = JSON.stringify(responseData);
+      return new Response(jsonString, {
+        status: 200,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      });
     }
 
     let filteredContext = context;
@@ -448,6 +678,15 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 ${user ? `User: ${user.name} (${user.role})\nData has been filtered based on user permissions.` : 'Unauthenticated access - limited data available'}${restrictionNote}
 
 Each piece of information has a reference [Source ID|Source Type|Topic|Timestamp|ID:database_id].
+
+CRITICAL DATA SOURCE DISTINCTIONS:
+- "SA to AM Mapping" sources show ORGANIZATIONAL SUPPORT relationships (which AMs an SA supports)
+- "SA Assignments" sources show OPPORTUNITY ASSIGNMENTS (which specific opportunities/customers an SA is assigned to)
+- "Documentation" sources show legacy uploaded documents with full text extraction
+- "Documents" sources show semantically relevant chunks from documents processed by the RAG system
+- When asked "which AMs does [SA] support?" or "who does [SA] support?", use ONLY "SA to AM Mapping" sources
+- When asked "which opportunities is [SA] assigned to?" or "what projects is [SA] working on?", use ONLY "SA Assignments" sources
+- For document-related questions, prioritize "Documents" sources as they contain more relevant, chunked content
 
 CRITICAL SOURCE CITATION RULES:
 - ONLY cite a source if you are using information from that EXACT source
@@ -508,14 +747,34 @@ Answer (cite source IDs):`;
       .map(id => {
         const chunk = sourceChunks[id];
         if (!chunk) return null;
-        return {
+        const sourceObj = {
           source: chunk.source,
           topic: chunk.topic,
           text: chunk.text,
           url: chunk.url,
           id: chunk.id,
+          boardId: chunk.boardId,
+          boardTopic: chunk.boardTopic,
+          downloadUrl: chunk.downloadUrl,
+          recordingId: chunk.recordingId,
+          messageId: chunk.messageId,
+          personEmail: chunk.personEmail,
+          date: chunk.date,
+          attachments: chunk.attachments,
+          docId: chunk.docId,
+          uploadedBy: chunk.uploadedBy,
+          uploadedAt: chunk.uploadedAt,
+          documentId: chunk.documentId,
+          s3Key: chunk.s3Key,
+          chunkIndex: chunk.chunkIndex,
+          score: chunk.score,
+          expirationDate: chunk.expirationDate,
           sourceIndex: id
         };
+        if (chunk.url) {
+          console.log(`[CHATNPT] Returning source with URL - Source: ${chunk.source}, URL: ${chunk.url}`);
+        }
+        return sourceObj;
       })
       .filter(s => s !== null);
 
@@ -527,7 +786,23 @@ Answer (cite source IDs):`;
         topic: chunk.topic,
         text: chunk.text,
         url: chunk.url,
-        id: chunk.id
+        id: chunk.id,
+        boardId: chunk.boardId,
+        boardTopic: chunk.boardTopic,
+        downloadUrl: chunk.downloadUrl,
+        recordingId: chunk.recordingId,
+        messageId: chunk.messageId,
+        personEmail: chunk.personEmail,
+        date: chunk.date,
+        attachments: chunk.attachments,
+        docId: chunk.docId,
+        uploadedBy: chunk.uploadedBy,
+        uploadedAt: chunk.uploadedAt,
+        documentId: chunk.documentId,
+        s3Key: chunk.s3Key,
+        chunkIndex: chunk.chunkIndex,
+        score: chunk.score,
+        expirationDate: chunk.expirationDate
       }));
       
       answer = `Found ${allSources.length} matching items.\n\nDue to the large result set, all ${allSources.length} items are listed in the sources below. Click "View all ${allSources.length} citations" to see the complete list with details.`;
@@ -536,14 +811,26 @@ Answer (cite source IDs):`;
         await logAIAccess(user, 'chatnpt_response', { sourcesCount: allSources.length, truncated: true, autoExpanded: true });
       }
       
-      return NextResponse.json({ answer, sources: allSources, truncated: true });
+      const responseData = { answer, sources: allSources, truncated: true };
+      const jsonString = JSON.stringify(responseData);
+      return new Response(jsonString, {
+        status: 200,
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      });
     }
 
     if (user) {
       await logAIAccess(user, 'chatnpt_response', { sourcesCount: sources.length, truncated: stopReason === 'max_tokens' });
     }
     
-    return NextResponse.json({ answer, sources, truncated: stopReason === 'max_tokens' });
+    const responseData = { answer, sources, truncated: stopReason === 'max_tokens' };
+    const jsonString = JSON.stringify(responseData);
+    return new Response(jsonString, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    });
   } catch (error) {
     console.error('ChatNPT error:', error);
     return NextResponse.json({ error: 'Failed to process question. Please try again.' }, { status: 500 });

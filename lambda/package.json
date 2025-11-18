@@ -1,0 +1,11 @@
+{
+  "name": "document-processor",
+  "version": "1.0.0",
+  "description": "AWS Lambda function for document processing",
+  "main": "index.js",
+  "dependencies": {
+    "@opensearch-project/opensearch": "^2.11.0",
+    "archiver": "^7.0.1",
+    "aws-sdk": "^2.1691.0"
+  }
+}

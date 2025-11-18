@@ -216,12 +216,13 @@ export default function GlobalChatNPT({ user }) {
                               <div className="space-y-1">
                                 {msg.sources.slice(0, 5).map((source, sidx) => (
                                   <div key={sidx} className="text-xs truncate">
-                                    • <span className="font-medium">({source.source})</span> <button 
-                                        onClick={() => chatWidget.handleViewSource(source)}
+                                    • <span className="font-medium">({source.source})</span> <a 
+                                        onClick={(e) => { e.preventDefault(); chatWidget.handleViewSource(source); }}
+                                        href="#"
                                         className="text-blue-600 hover:text-blue-800 underline"
                                       >
                                         {source.topic}
-                                      </button>{source.timestamp && ` at ${chatWidget.formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
+                                      </a>{source.timestamp && ` at ${chatWidget.formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
                                   </div>
                                 ))}
                                 {msg.sources.length > 5 && (
@@ -423,17 +424,66 @@ export default function GlobalChatNPT({ user }) {
               )}
             </div>
             <div className="px-6 py-4 border-t border-gray-200 flex gap-3 justify-end">
-              {chatWidget.selectedSource.url && (
-                <a
-                  href={chatWidget.selectedSource.url}
-                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                  View in Practice Tools
-                </a>
-              )}
+              {(() => {
+                console.log('DEBUG: selectedSource data:', JSON.stringify(chatWidget.selectedSource, null, 2));
+                if (!chatWidget.selectedSource) {
+                  console.log('DEBUG: No selectedSource');
+                  return null;
+                }
+                
+                const isPracticeInfo = chatWidget.selectedSource.source === 'Practice Information';
+                const hasBoardId = !!chatWidget.selectedSource.boardId;
+                const hasUrl = !!chatWidget.selectedSource.url;
+                
+                console.log('DEBUG: isPracticeInfo:', isPracticeInfo, 'hasBoardId:', hasBoardId, 'hasUrl:', hasUrl);
+                
+                if (isPracticeInfo && hasBoardId) {
+                  console.log('DEBUG: Practice Info button - boardId:', chatWidget.selectedSource.boardId);
+                  console.log('DEBUG: Practice Info button - boardTopic:', chatWidget.selectedSource.boardTopic);
+                  return (
+                    <button
+                      onClick={() => {
+                        const boardId = chatWidget.selectedSource.boardId;
+                        const boardTopic = chatWidget.selectedSource.boardTopic || 'Main Topic';
+                        
+                        console.log('DEBUG: Opening practice-information page with URL params');
+                        console.log('DEBUG: Target boardId:', boardId);
+                        console.log('DEBUG: Target boardTopic:', boardTopic);
+                        
+                        // Navigate to practice-information page with URL parameters
+                        const url = new URL('/practice-information', window.location.origin);
+                        url.searchParams.set('boardId', boardId);
+                        url.searchParams.set('topic', boardTopic);
+                        
+                        console.log('DEBUG: Generated URL:', url.toString());
+                        window.location.href = url.toString();
+                      }}
+                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View in Practice Tools
+                    </button>
+                  );
+                } else if (hasUrl) {
+                  console.log('DEBUG: Showing URL button');
+                  return (
+                    <a
+                      href={chatWidget.selectedSource.url}
+                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View in Practice Tools
+                    </a>
+                  );
+                } else {
+                  console.log('DEBUG: No button shown - missing required data');
+                  return null;
+                }
+              })()}
               {chatWidget.selectedSource.source === 'Documentation' && chatWidget.selectedSource.docId && (
                 <a
                   href={`/api/documentation/download?id=${chatWidget.selectedSource.docId}`}
@@ -446,17 +496,43 @@ export default function GlobalChatNPT({ user }) {
                   Download
                 </a>
               )}
-              {chatWidget.selectedSource.source === 'Webex Recordings' && chatWidget.selectedSource.downloadUrl && (
-                <a
-                  href={chatWidget.selectedSource.downloadUrl}
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  download
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Download MP4
-                </a>
+              {chatWidget.selectedSource.source === 'Webex Recordings' && (
+                <>
+                  {chatWidget.selectedSource.recordingId && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await fetch(`/api/webexmeetings/recordings/${chatWidget.selectedSource.recordingId}/transcript`);
+                          if (response.ok) {
+                            const data = await response.json();
+                            chatWidget.setSelectedTranscript(data);
+                            chatWidget.setShowTranscriptModal(true);
+                          }
+                        } catch (error) {
+                          console.error('Error fetching transcript:', error);
+                        }
+                      }}
+                      className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      View Transcript
+                    </button>
+                  )}
+                  {chatWidget.selectedSource.downloadUrl && (
+                    <a
+                      href={chatWidget.selectedSource.downloadUrl}
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      download
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download MP4
+                    </a>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -572,15 +648,38 @@ export default function GlobalChatNPT({ user }) {
               <div className="space-y-2">
                 {chatWidget.selectedCitations.map((source, idx) => (
                   <div key={idx} className="text-sm py-2 border-b border-gray-100 last:border-0">
-                    {idx + 1}. <span className="font-medium">({source.source})</span> <button 
-                      onClick={() => { chatWidget.setShowCitationsModal(false); chatWidget.handleViewSource(source); }}
+                    {idx + 1}. <span className="font-medium">({source.source})</span> <a 
+                      onClick={(e) => { e.preventDefault(); chatWidget.setShowCitationsModal(false); chatWidget.handleViewSource(source); }}
+                      href="#"
                       className="text-blue-600 hover:text-blue-800 underline"
                     >
                       {source.topic}
-                    </button>{source.timestamp && ` at ${chatWidget.formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
+                    </a>{source.timestamp && ` at ${chatWidget.formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transcript Modal */}
+      {chatWidget.showTranscriptModal && chatWidget.selectedTranscript && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]" onClick={() => chatWidget.setShowTranscriptModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">{chatWidget.selectedTranscript.topic}</h3>
+              <button
+                onClick={() => chatWidget.setShowTranscriptModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto flex-1">
+              <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{chatWidget.selectedTranscript.transcript}</pre>
             </div>
           </div>
         </div>

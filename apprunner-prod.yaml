@@ -26,6 +26,8 @@ run:
 
     - name: NODE_OPTIONS
       value: "--trace-warnings --trace-uncaught"
+    - name: OPENSEARCH_ENDPOINT
+      value: "https://9nagbvhy3f5jrpqjoo6l.us-east-1.aoss.amazonaws.com"
 
   secrets:
     - name: NEXTAUTH_URL

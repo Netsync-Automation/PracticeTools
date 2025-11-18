@@ -2,16 +2,14 @@ import { NextResponse } from 'next/server';
 import { validateUserSession } from '../../../../lib/auth-check';
 import { getTableName } from '../../../../lib/dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { TextractClient, DetectDocumentTextCommand } from '@aws-sdk/client-textract';
+import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
-import mammoth from 'mammoth';
 
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
-const textractClient = new TextractClient({ region: process.env.AWS_DEFAULT_REGION || 'us-east-1' });
 
 export async function POST(request) {
   try {
@@ -42,103 +40,102 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
 
-    const formData = await request.formData();
-    const file = formData.get('file');
+    let fileName, fileType, expirationDate;
     
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    const contentType = request.headers.get('content-type');
+    if (contentType?.includes('application/json')) {
+      const body = await request.json();
+      fileName = body.fileName;
+      fileType = body.fileType;
+      expirationDate = body.expirationDate;
+    } else {
+      // Handle FormData from file upload
+      const formData = await request.formData();
+      const file = formData.get('file');
+      if (file) {
+        fileName = file.name;
+        fileType = file.type;
+        expirationDate = formData.get('expirationDate');
+      }
+    }
+    
+    if (!fileName || !fileType) {
+      return NextResponse.json({ error: 'fileName and fileType are required' }, { status: 400 });
     }
 
-    const fileExt = file.name.toLowerCase().split('.').pop();
-    const allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'tif', 'doc', 'docx'];
+    const fileExt = fileName.toLowerCase().split('.').pop();
+    const allowedExts = [
+      // Documents
+      'pdf', 'doc', 'docx', 'rtf', 'odt',
+      // Spreadsheets  
+      'xls', 'xlsx', 'csv', 'ods',
+      // Presentations
+      'ppt', 'pptx', 'odp',
+      // Text
+      'txt', 'md', 'xml', 'html', 'htm',
+      // Images
+      'png', 'jpg', 'jpeg', 'tiff', 'tif', 'gif', 'bmp',
+      // Archives
+      'zip', 'tar', 'gz',
+      // Email
+      'msg', 'eml'
+    ];
     
     if (!allowedExts.includes(fileExt)) {
       return NextResponse.json({ 
-        error: 'Unsupported file type. Please upload PDF, PNG, JPEG, TIFF, or Word documents.' 
+        error: 'Unsupported file type. Supported formats: PDF, Word, Excel, PowerPoint, images, text files, and more.' 
       }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
     const id = uuidv4();
-    const s3Key = `documentation/${id}/${file.name}`;
+    const s3Key = `documentation/${id}/${fileName}`;
 
-    await s3Client.send(new PutObjectCommand({
+    // Generate presigned URL for direct upload
+    const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET,
       Key: s3Key,
-      Body: buffer,
-      ContentType: file.type || 'application/octet-stream'
-    }));
+      ContentType: fileType,
+      Metadata: {
+        originalName: fileName,
+        uploadedBy: validation.user.email,
+        uploadedAt: new Date().toISOString(),
+        ...(expirationDate && { expirationDate })
+      }
+    });
+    
+    const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+    const documentItem = {
+      id,
+      fileName,
+      s3Key,
+      uploadedBy: validation.user.email,
+      uploadedAt: new Date().toISOString(),
+      contentType: fileType,
+      extractionStatus: 'pending'
+    };
+    
+    if (expirationDate) {
+      documentItem.expirationDate = expirationDate;
+    }
 
     const tableName = getTableName('Documentation');
     await docClient.send(new PutCommand({
       TableName: tableName,
-      Item: {
-        id,
-        fileName: file.name,
-        s3Key,
-        uploadedBy: validation.user.email,
-        uploadedAt: new Date().toISOString(),
-        fileSize: buffer.length,
-        contentType: file.type || 'application/octet-stream'
-      }
+      Item: documentItem
     }));
 
-    // Extract text asynchronously
-    extractTextFromDocument(id, s3Key, tableName, fileExt, buffer).catch(err => 
-      console.error('Text extraction failed:', err)
-    );
-
-    return NextResponse.json({ success: true, id });
+    return NextResponse.json({ 
+      success: true, 
+      id,
+      uploadUrl: presignedUrl,
+      s3Key
+    });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-async function extractTextFromDocument(id, s3Key, tableName, fileExt, buffer) {
-  try {
-    let extractedText = '';
-
-    if (fileExt === 'docx' || fileExt === 'doc') {
-      const result = await mammoth.extractRawText({ buffer });
-      extractedText = result.value;
-    } else {
-      const result = await textractClient.send(new DetectDocumentTextCommand({
-        Document: {
-          S3Object: {
-            Bucket: process.env.S3_BUCKET,
-            Name: s3Key
-          }
-        }
-      }));
-
-      extractedText = result.Blocks
-        ?.filter(block => block.BlockType === 'LINE')
-        .map(block => block.Text)
-        .join('\n') || '';
-    }
-
-    if (extractedText) {
-      await docClient.send(new UpdateCommand({
-        TableName: tableName,
-        Key: { id },
-        UpdateExpression: 'SET extractedText = :text, extractionStatus = :status',
-        ExpressionAttributeValues: { 
-          ':text': extractedText,
-          ':status': 'completed'
-        }
-      }));
-    }
-  } catch (error) {
-    console.error('Text extraction error:', error);
-    await docClient.send(new UpdateCommand({
-      TableName: tableName,
-      Key: { id },
-      UpdateExpression: 'SET extractionStatus = :status, extractionError = :error',
-      ExpressionAttributeValues: { 
-        ':status': 'failed',
-        ':error': error.message || 'Text extraction failed'
-      }
-    })).catch(err => console.error('Failed to update extraction status:', err));
-  }
-}
+// Document processing is now handled by S3 event triggers to Lambda
+// The Lambda function will process documents using Textract and store chunks in DynamoDB

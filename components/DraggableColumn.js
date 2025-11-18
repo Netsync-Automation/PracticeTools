@@ -62,12 +62,16 @@ export function DraggableColumn({
             className="font-semibold text-gray-900 text-lg bg-transparent border-b-2 border-blue-500 outline-none flex-1 mr-2"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
+                e.preventDefault();
                 updateColumnTitle(column.id, e.target.value);
               } else if (e.key === 'Escape') {
+                e.preventDefault();
                 setEditingColumn(null);
               }
+              e.stopPropagation();
             }}
             onBlur={(e) => updateColumnTitle(column.id, e.target.value)}
+            onClick={(e) => e.stopPropagation()}
             autoFocus
             aria-label="Edit column title"
           />
@@ -80,7 +84,7 @@ export function DraggableColumn({
             title={canEdit ? 'Click to edit column name' : ''}
             tabIndex={canEdit ? 0 : -1}
             onKeyDown={(e) => {
-              if (canEdit && (e.key === 'Enter' || e.key === ' ')) {
+              if (canEdit && e.key === 'Enter') {
                 e.preventDefault();
                 setEditingColumn(column.id);
               }

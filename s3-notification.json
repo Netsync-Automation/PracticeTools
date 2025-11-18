@@ -1,0 +1,19 @@
+{
+  "LambdaFunctionConfigurations": [
+    {
+      "Id": "DocumentProcessorTrigger",
+      "LambdaFunctionArn": "arn:aws:lambda:us-east-1:501399536130:function:PracticeTools-DocumentProcessor",
+      "Events": ["s3:ObjectCreated:*"],
+      "Filter": {
+        "Key": {
+          "FilterRules": [
+            {
+              "Name": "prefix",
+              "Value": "documentation/"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

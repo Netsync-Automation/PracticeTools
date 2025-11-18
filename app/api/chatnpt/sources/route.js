@@ -35,6 +35,7 @@ export async function GET() {
       { table: 'Contacts', name: 'Contacts', description: 'Contact information (filtered by permissions)', icon: 'contact' },
       { table: 'Users', name: 'Users', description: 'User information (filtered by permissions)', icon: 'user' },
       { table: 'PracticeInfoPages', name: 'Practice Information', description: 'Practice information pages', icon: 'info' },
+      { table: 'Settings', name: 'Practice Boards', description: 'Practice board cards, columns, and topics', icon: 'info', countBoards: true },
       { table: 'Releases', name: 'Release Notes', description: 'Application release notes and features', icon: 'release' }
     ];
 
@@ -49,6 +50,32 @@ export async function GET() {
           Select: 'COUNT'
         }));
         count = result.Count || 0;
+      } else if (source.countBoards) {
+        // Count practice board cards from Settings table
+        const result = await docClient.send(new ScanCommand({
+          TableName: getTableName(source.table)
+        }));
+        const settings = result.Items || [];
+        const practiceBoards = settings.filter(setting => 
+          setting.key && setting.key.includes('practice_board_')
+        );
+        
+        let cardCount = 0;
+        practiceBoards.forEach(board => {
+          try {
+            const boardData = JSON.parse(board.value);
+            if (boardData.columns && Array.isArray(boardData.columns)) {
+              boardData.columns.forEach(column => {
+                if (column.cards && Array.isArray(column.cards)) {
+                  cardCount += column.cards.length;
+                }
+              });
+            }
+          } catch (error) {
+            // Skip invalid board data
+          }
+        });
+        count = cardCount;
       } else {
         count = await checkTable(source.table);
       }
