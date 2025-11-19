@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
@@ -168,7 +168,7 @@ function FileDropZone({ onFilesSelected, files }) {
   );
 }
 
-export default function PracticeInformationPage() {
+function PracticeInformationPageContent() {
   const { user, loading, logout } = useAuth();
   const { getHeaders } = useCsrf();
   const searchParams = useSearchParams();
@@ -4205,5 +4205,17 @@ export default function PracticeInformationPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PracticeInformationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <PracticeInformationPageContent />
+    </Suspense>
   );
 }
