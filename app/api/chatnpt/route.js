@@ -123,8 +123,11 @@ async function searchDocumentChunks(embedding, tenantId, maxResults) {
       body: searchQuery
     });
     
+    // OpenSearch results now contain auto-generated _id and _source fields
+    // The _source contains our logical documentId and chunkIndex for correlation
     return response.body.hits.hits.map(hit => ({
       ...hit._source,
+      osDocId: hit._id, // Store the auto-generated OpenSearch document ID
       score: hit._score
     }));
   } catch (error) {

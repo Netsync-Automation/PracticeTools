@@ -60,9 +60,10 @@ async function deployLambda() {
           console.log('Function does not exist. Please create it manually in AWS Console first.');
           console.log('Use the following configuration:');
           console.log('- Runtime: Node.js 22.x');
-          console.log('- Handler: document-processor.handler');
+          console.log('- Handler: index.handler');
           console.log('- Timeout: 15 minutes');
           console.log('- Memory: 1024 MB');
+          console.log('- Environment Variables: Set ENVIRONMENT based on deployment target');
         }
         
         // Clean up
@@ -81,6 +82,12 @@ async function deployLambda() {
     archive.pipe(output);
     archive.file('document-processor.js', { name: 'index.js' });
     archive.file('package.json');
+    
+    // Include node_modules if it exists
+    if (fs.existsSync('node_modules')) {
+      archive.directory('node_modules/', 'node_modules/');
+    }
+    
     archive.finalize();
     
   } catch (error) {

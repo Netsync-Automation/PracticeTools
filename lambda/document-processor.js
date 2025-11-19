@@ -69,6 +69,7 @@ async function processDocument(bucket, key) {
     let extractedText;
     
     if (['pdf', 'png', 'jpg', 'jpeg'].includes(fileExtension)) {
+      console.log(`Processing ${fileExtension.toUpperCase()} file with Textract`);
       extractedText = await extractTextWithTextract(bucket, key);
     } else if (['docx', 'doc'].includes(fileExtension)) {
       extractedText = await analyzeDocumentSync(bucket, key);
@@ -88,7 +89,9 @@ async function processDocument(bucket, key) {
     await updateDocumentStatus(documentId, 'completed');
     
     console.log(`Successfully processed ${chunks.length} chunks for ${key}`);
+    console.log(`Document chunks stored in DynamoDB with correlation to OpenSearch auto-generated IDs`);
   } catch (error) {
+    console.error(`Error processing documentation/${documentId}/${key.split('/').pop()}:`, error);
     // Update Documentation table status to failed
     await updateDocumentStatus(documentId, 'failed');
     throw error;
@@ -96,27 +99,36 @@ async function processDocument(bucket, key) {
 }
 
 async function extractTextWithTextract(bucket, key) {
+  console.log(`Starting Textract processing for s3://${bucket}/${key}`);
+  
   const params = {
     DocumentLocation: {
       S3Object: {
         Bucket: bucket,
-        Name: key
+        Name: key // Key is already decoded in processDocument function
       }
     }
   };
   
+  console.log('Calling startDocumentTextDetection...');
   const startResult = await textract.startDocumentTextDetection(params).promise();
   const jobId = startResult.JobId;
+  console.log(`Textract job started with ID: ${jobId}`);
   
   // Poll for completion
   let jobStatus = 'IN_PROGRESS';
+  let pollCount = 0;
   while (jobStatus === 'IN_PROGRESS') {
+    pollCount++;
+    console.log(`Polling Textract job ${jobId}, attempt ${pollCount}`);
     await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
     
     const statusResult = await textract.getDocumentTextDetection({ JobId: jobId }).promise();
     jobStatus = statusResult.JobStatus;
+    console.log(`Textract job ${jobId} status: ${jobStatus}`);
     
     if (jobStatus === 'SUCCEEDED') {
+      console.log(`Textract job ${jobId} completed successfully, retrieving results...`);
       let extractedText = '';
       let nextToken = null;
       
@@ -135,9 +147,15 @@ async function extractTextWithTextract(bucket, key) {
         nextToken = result.NextToken;
       } while (nextToken);
       
+      console.log(`Extracted ${extractedText.length} characters from Textract`);
       return extractedText;
     } else if (jobStatus === 'FAILED') {
-      throw new Error('Textract job failed');
+      throw new Error(`Textract job ${jobId} failed`);
+    }
+    
+    // Safety check to prevent infinite polling
+    if (pollCount > 60) { // 5 minutes of polling
+      throw new Error(`Textract job ${jobId} timed out after ${pollCount} polls`);
     }
   }
 }
@@ -147,7 +165,7 @@ async function analyzeDocumentSync(bucket, key) {
     Document: {
       S3Object: {
         Bucket: bucket,
-        Name: key
+        Name: key // Key is already decoded in processDocument function
       }
     },
     FeatureTypes: ['TABLES', 'FORMS']
@@ -167,7 +185,7 @@ async function analyzeDocumentSync(bucket, key) {
 
 async function readTextFile(bucket, key) {
   const s3 = new AWS.S3();
-  const result = await s3.getObject({ Bucket: bucket, Key: key }).promise();
+  const result = await s3.getObject({ Bucket: bucket, Key: key }).promise(); // Key is already decoded
   return result.Body.toString('utf-8');
 }
 
@@ -204,50 +222,73 @@ async function storeChunkWithEmbedding(documentId, s3Key, chunkText, chunkIndex,
   // Generate embedding using Bedrock Titan
   const embedding = await generateEmbedding(chunkText);
   
-  // Store in DynamoDB
-  const chunkItem = {
-    pk: `DOC#${documentId}`,
-    sk: `CHUNK#${String(chunkIndex).padStart(5, '0')}`,
-    documentId,
-    s3Key,
-    chunkIndex,
-    extractedText: chunkText,
-    tenantId: extractTenantFromKey(s3Key),
-    createdAt: new Date().toISOString(),
-    tokenCount: Math.ceil(chunkText.length / 4)
-  };
-  
-  // Add expiration date if present
-  if (documentMetadata.expirationDate) {
-    chunkItem.expirationDate = documentMetadata.expirationDate;
-  }
-  
-  await dynamodb.put({
-    TableName: CHUNKS_TABLE,
-    Item: chunkItem
-  }).promise();
-  
-  // Store vector in OpenSearch
+  // Prepare vector document for OpenSearch (without specifying ID)
   const vectorBody = {
     documentId,
     chunkIndex,
     text: chunkText,
     vector: embedding,
     s3Key,
-    tenantId: chunkItem.tenantId,
-    createdAt: chunkItem.createdAt
+    tenantId: extractTenantFromKey(s3Key),
+    createdAt: new Date().toISOString()
   };
   
-  // Add expiration date to vector if present
+  // Add expiration date if present
   if (documentMetadata.expirationDate) {
     vectorBody.expirationDate = documentMetadata.expirationDate;
   }
   
-  await opensearchClient.index({
-    index: 'document-vectors',
-    id: `${documentId}-${chunkIndex}`,
-    body: vectorBody
-  });
+  try {
+    // Index in OpenSearch Serverless WITHOUT specifying document ID (auto-generated)
+    console.log(`Indexing chunk ${chunkIndex} for document ${documentId} in OpenSearch...`);
+    const osResponse = await opensearchClient.index({
+      index: 'document-vectors',
+      body: vectorBody
+    });
+    
+    // Capture the auto-generated OpenSearch document ID
+    const osDocId = osResponse._id || osResponse.body?._id;
+    console.log(`OpenSearch auto-generated ID: ${osDocId}`);
+    
+    if (!osDocId) {
+      throw new Error('Failed to get auto-generated document ID from OpenSearch response');
+    }
+    
+    // Store in DynamoDB with OpenSearch document ID for correlation
+    const chunkItem = {
+      pk: `DOC#${documentId}`,
+      sk: `CHUNK#${String(chunkIndex).padStart(5, '0')}`,
+      documentId,
+      s3Key,
+      chunkIndex,
+      extractedText: chunkText,
+      osDocId, // Store the auto-generated OpenSearch document ID
+      tenantId: vectorBody.tenantId,
+      createdAt: vectorBody.createdAt,
+      tokenCount: Math.ceil(chunkText.length / 4)
+    };
+    
+    // Add expiration date if present
+    if (documentMetadata.expirationDate) {
+      chunkItem.expirationDate = documentMetadata.expirationDate;
+    }
+    
+    await dynamodb.put({
+      TableName: CHUNKS_TABLE,
+      Item: chunkItem
+    }).promise();
+    
+    console.log(`Successfully stored chunk ${chunkIndex} - DynamoDB: ${chunkItem.pk}/${chunkItem.sk}, OpenSearch: ${osDocId}`);
+    
+  } catch (error) {
+    console.error(`Failed to process document chunk ${documentId}-${chunkIndex}:`, {
+      errorType: error.name,
+      errorMessage: error.message,
+      statusCode: error.meta?.statusCode,
+      responseBody: error.meta?.body
+    });
+    throw error;
+  }
 }
 
 async function generateEmbedding(text) {
@@ -277,6 +318,8 @@ function extractDocumentIdFromKey(s3Key) {
 
 async function updateDocumentStatus(documentId, status) {
   try {
+    console.log(`Updating document ${documentId} status to ${status} in table: ${DOCUMENTATION_TABLE}`);
+    
     await dynamodb.update({
       TableName: DOCUMENTATION_TABLE,
       Key: { id: documentId },
@@ -288,20 +331,24 @@ async function updateDocumentStatus(documentId, status) {
     }).promise();
     console.log(`Updated document ${documentId} status to ${status}`);
   } catch (error) {
-    console.error(`Failed to update document status for ${documentId}:`, error);
+    console.error(`Failed to update document status for ${documentId} in table ${DOCUMENTATION_TABLE}:`, error);
   }
 }
 
 async function getDocumentMetadata(documentId) {
   try {
+    console.log(`Getting document metadata for ${documentId} from table: ${DOCUMENTATION_TABLE}`);
+    console.log(`Environment: ${getEnvironment()}`);
+    
     const result = await dynamodb.get({
       TableName: DOCUMENTATION_TABLE,
       Key: { id: documentId }
     }).promise();
     
+    console.log(`Document metadata result:`, result.Item ? 'Found' : 'Not found');
     return result.Item || {};
   } catch (error) {
-    console.error(`Failed to get document metadata for ${documentId}:`, error);
+    console.error(`Failed to get document metadata for ${documentId} from table ${DOCUMENTATION_TABLE}:`, error);
     return {};
   }
 }
