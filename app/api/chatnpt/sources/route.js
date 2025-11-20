@@ -23,20 +23,20 @@ export async function GET() {
     const sources = [];
 
     const dataSources = [
-      { table: 'WebexMeetingsRecordings', name: 'Meeting Recordings', description: 'Approved WebEx meeting recordings with transcripts', icon: 'video', filter: true },
-      { table: 'WebexMessages', name: 'Team Messages', description: 'Messages from monitored WebEx team spaces', icon: 'chat' },
-      { table: 'Documentation', name: 'Documentation', description: 'Uploaded training documents and resources', icon: 'document' },
-      { table: 'Issues', name: 'Practice Issues', description: 'Practice issues and questions (filtered by permissions)', icon: 'issue' },
-      { table: 'resource-assignments', name: 'Resource Assignments', description: 'Project resource assignments (filtered by permissions)', icon: 'assignment' },
-      { table: 'sa-assignments', name: 'SA Assignments', description: 'Sales architect assignments (filtered by permissions)', icon: 'assignment' },
-      { table: 'SAToAMMappings', name: 'SA to AM Mapping', description: 'Sales architect to account manager mappings', icon: 'mapping' },
-      { table: 'TrainingCerts', name: 'Training Certifications', description: 'Practice training certifications (filtered by permissions)', icon: 'certificate' },
-      { table: 'Companies', name: 'Companies', description: 'Company contact information (filtered by permissions)', icon: 'company' },
-      { table: 'Contacts', name: 'Contacts', description: 'Contact information (filtered by permissions)', icon: 'contact' },
-      { table: 'Users', name: 'Users', description: 'User information (filtered by permissions)', icon: 'user' },
-      { table: 'PracticeInfoPages', name: 'Practice Information', description: 'Practice information pages', icon: 'info' },
-      { table: 'Settings', name: 'Practice Boards', description: 'Practice board cards, columns, and topics', icon: 'info', countBoards: true },
-      { table: 'Releases', name: 'Release Notes', description: 'Application release notes and features', icon: 'release' }
+      { table: 'WebexMeetingsRecordings', name: 'Meeting Recordings', description: 'Approved WebEx meeting recordings with transcripts', icon: 'video', filter: true, url: '/company-education/webex-recordings' },
+      { table: 'WebexMessages', name: 'Webex Messages', description: 'Messages from monitored WebEx team spaces', icon: 'chat', countUniqueMessages: true, url: '/company-education/webex-messages' },
+      { table: 'Documentation', name: 'Documentation', description: 'Uploaded training documents and resources', icon: 'document', countUniqueDocuments: true, url: '/company-education/documentation' },
+      { table: 'Issues', name: 'Practice Issues', description: 'Practice issues and questions (filtered by permissions)', icon: 'issue', url: '/practice-issues' },
+      { table: 'resource-assignments', name: 'Resource Assignments', description: 'Project resource assignments (filtered by permissions)', icon: 'assignment', url: '/projects/resource-assignments' },
+      { table: 'sa-assignments', name: 'SA Assignments', description: 'Sales architect assignments (filtered by permissions)', icon: 'assignment', url: '/projects/sa-assignments' },
+      { table: 'SAToAMMappings', name: 'SA to AM Mapping', description: 'Sales architect to account manager mappings', icon: 'mapping', url: '/pre-sales/sa-to-am-mapping' },
+      { table: 'TrainingCerts', name: 'Training Certifications', description: 'Practice training certifications (filtered by permissions)', icon: 'certificate', url: '/practice-information/training-certs' },
+      { table: 'Companies', name: 'Companies', description: 'Company contact information (filtered by permissions)', icon: 'company', url: '/contact-information' },
+      { table: 'Contacts', name: 'Contacts', description: 'Contact information (filtered by permissions)', icon: 'contact', url: '/contact-information' },
+      { table: 'Users', name: 'Users', description: 'User information (filtered by permissions)', icon: 'user', url: '/admin/users' },
+      { table: 'PracticeInfoPages', name: 'Practice Information', description: 'Practice information pages', icon: 'info', url: '/practice-information' },
+      { table: 'Settings', name: 'Practice Boards', description: 'Practice board cards, columns, and topics', icon: 'info', countBoards: true, url: '/practice-information' },
+      { table: 'Releases', name: 'Release Notes', description: 'Application release notes and features', icon: 'release', url: '/admin/releases' }
     ];
 
     for (const source of dataSources) {
@@ -50,6 +50,26 @@ export async function GET() {
           Select: 'COUNT'
         }));
         count = result.Count || 0;
+      } else if (source.countUniqueDocuments) {
+        // Count unique documents (not chunks) from Documentation table
+        const result = await docClient.send(new ScanCommand({
+          TableName: getTableName(source.table),
+          ProjectionExpression: 'id, fileName'
+        }));
+        const items = result.Items || [];
+        // Count unique documents by grouping by fileName or id
+        const uniqueDocuments = new Set();
+        items.forEach(item => {
+          if (item.fileName) {
+            uniqueDocuments.add(item.fileName);
+          } else if (item.id) {
+            uniqueDocuments.add(item.id);
+          }
+        });
+        count = uniqueDocuments.size;
+      } else if (source.countUniqueMessages) {
+        // Count messages from WebexMessages table
+        count = await checkTable(source.table);
       } else if (source.countBoards) {
         // Count practice board cards from Settings table
         const result = await docClient.send(new ScanCommand({
@@ -80,12 +100,15 @@ export async function GET() {
         count = await checkTable(source.table);
       }
       
+      console.log(`[DATA SOURCES DEBUG] ${source.name}: ${count} items`);
+      
       if (count > 0) {
         sources.push({
           name: source.name,
           description: source.description,
           count: count,
-          icon: source.icon
+          icon: source.icon,
+          url: source.url
         });
       }
     }

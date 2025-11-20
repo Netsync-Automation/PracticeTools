@@ -36,15 +36,12 @@ export default function DocumentationPage() {
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'documentation_updated') {
-        // Only update if not currently uploading
-        if (!uploading) {
-          loadDocuments();
-        }
+        loadDocuments();
       }
     };
 
     return () => eventSource.close();
-  }, [uploading]);
+  }, []);
 
   useEffect(() => {
     if (!loadingDocs && documents.length > 0) {
@@ -459,7 +456,9 @@ export default function DocumentationPage() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">File Size</label>
-                <p className="text-gray-900 mt-1">{(selectedDoc.fileSize / 1024).toFixed(2)} KB</p>
+                <p className="text-gray-900 mt-1">
+                  {selectedDoc.fileSize ? `${(selectedDoc.fileSize / 1024).toFixed(2)} KB` : 'Processing...'}
+                </p>
               </div>
               {selectedDoc.expirationDate && (
                 <div>

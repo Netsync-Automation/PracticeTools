@@ -62,6 +62,11 @@ async function processDocument(bucket, key) {
   const documentId = extractDocumentIdFromKey(key);
   const fileExtension = key.split('.').pop().toLowerCase();
   
+  // Get file size from S3
+  const s3 = new AWS.S3();
+  const headResult = await s3.headObject({ Bucket: bucket, Key: key }).promise();
+  const fileSize = headResult.ContentLength;
+  
   // Get document metadata including expiration date
   const documentMetadata = await getDocumentMetadata(documentId);
   
@@ -85,15 +90,15 @@ async function processDocument(bucket, key) {
       storeChunkWithEmbedding(documentId, key, chunk, index, documentMetadata)
     ));
     
-    // Update Documentation table status to completed
-    await updateDocumentStatus(documentId, 'completed');
+    // Update Documentation table status to completed with fileSize
+    await updateDocumentStatus(documentId, 'completed', fileSize);
     
     console.log(`Successfully processed ${chunks.length} chunks for ${key}`);
     console.log(`Document chunks stored in DynamoDB with correlation to OpenSearch auto-generated IDs`);
   } catch (error) {
     console.error(`Error processing documentation/${documentId}/${key.split('/').pop()}:`, error);
-    // Update Documentation table status to failed
-    await updateDocumentStatus(documentId, 'failed');
+    // Update Documentation table status to failed with fileSize
+    await updateDocumentStatus(documentId, 'failed', fileSize);
     throw error;
   }
 }
@@ -222,6 +227,9 @@ async function storeChunkWithEmbedding(documentId, s3Key, chunkText, chunkIndex,
   // Generate embedding using Bedrock Titan
   const embedding = await generateEmbedding(chunkText);
   
+  // Ensure index exists with proper mapping before indexing
+  await ensureVectorIndexExists();
+  
   // Prepare vector document for OpenSearch (without specifying ID)
   const vectorBody = {
     documentId,
@@ -316,20 +324,33 @@ function extractDocumentIdFromKey(s3Key) {
   return parts.length >= 2 ? parts[1] : generateDocumentId(s3Key);
 }
 
-async function updateDocumentStatus(documentId, status) {
+async function updateDocumentStatus(documentId, status, fileSize = null) {
   try {
     console.log(`Updating document ${documentId} status to ${status} in table: ${DOCUMENTATION_TABLE}`);
+    
+    const updateExpression = fileSize 
+      ? 'SET extractionStatus = :status, processedAt = :processedAt, fileSize = :fileSize'
+      : 'SET extractionStatus = :status, processedAt = :processedAt';
+    
+    const expressionAttributeValues = {
+      ':status': status,
+      ':processedAt': new Date().toISOString()
+    };
+    
+    if (fileSize) {
+      expressionAttributeValues[':fileSize'] = fileSize;
+    }
     
     await dynamodb.update({
       TableName: DOCUMENTATION_TABLE,
       Key: { id: documentId },
-      UpdateExpression: 'SET extractionStatus = :status, processedAt = :processedAt',
-      ExpressionAttributeValues: {
-        ':status': status,
-        ':processedAt': new Date().toISOString()
-      }
+      UpdateExpression: updateExpression,
+      ExpressionAttributeValues: expressionAttributeValues
     }).promise();
     console.log(`Updated document ${documentId} status to ${status}`);
+    
+    // Trigger SSE notification
+    await notifyDocumentationUpdate(documentId, status);
   } catch (error) {
     console.error(`Failed to update document status for ${documentId} in table ${DOCUMENTATION_TABLE}:`, error);
   }
@@ -350,6 +371,86 @@ async function getDocumentMetadata(documentId) {
   } catch (error) {
     console.error(`Failed to get document metadata for ${documentId} from table ${DOCUMENTATION_TABLE}:`, error);
     return {};
+  }
+}
+
+async function ensureVectorIndexExists() {
+  const indexName = 'document-vectors';
+  
+  try {
+    // Check if index exists
+    const exists = await opensearchClient.indices.exists({ index: indexName });
+    
+    if (!exists.body) {
+      console.log(`Creating vector index ${indexName} with proper mapping...`);
+      
+      // Create index with proper vector mapping
+      const indexBody = {
+        settings: {
+          index: {
+            knn: true,
+            'knn.algo_param.ef_search': 100
+          }
+        },
+        mappings: {
+          properties: {
+            documentId: { type: 'keyword' },
+            chunkIndex: { type: 'integer' },
+            text: { type: 'text' },
+            vector: {
+              type: 'knn_vector',
+              dimension: 1536,
+              method: {
+                name: 'hnsw',
+                space_type: 'cosinesimil',
+                engine: 'nmslib'
+              }
+            },
+            s3Key: { type: 'keyword' },
+            tenantId: { type: 'keyword' },
+            createdAt: { type: 'date' },
+            expirationDate: { type: 'date' }
+          }
+        }
+      };
+      
+      await opensearchClient.indices.create({
+        index: indexName,
+        body: indexBody
+      });
+      
+      console.log(`Vector index ${indexName} created successfully with proper mapping`);
+    } else {
+      console.log(`Vector index ${indexName} already exists`);
+    }
+  } catch (error) {
+    console.error('Error ensuring vector index exists:', error);
+    // Continue processing even if index creation fails
+  }
+}
+
+async function notifyDocumentationUpdate(documentId, status) {
+  try {
+    const env = getEnvironment();
+    const baseUrl = env === 'prod' 
+      ? 'https://practicetools.netsync.com'
+      : 'http://localhost:3000';
+    
+    const response = await fetch(`${baseUrl}/api/sse/documentation/notify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ documentId, status })
+    });
+    
+    if (response.ok) {
+      console.log(`SSE notification sent for document ${documentId} status: ${status}`);
+    } else {
+      console.error(`Failed to send SSE notification: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error sending SSE notification:', error);
   }
 }
 

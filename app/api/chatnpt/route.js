@@ -73,6 +73,7 @@ async function searchDocumentChunks(embedding, tenantId, maxResults) {
     
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
+    // Use KNN vector search for semantic similarity
     const searchQuery = {
       size: maxResults,
       query: {
@@ -136,6 +137,8 @@ async function searchDocumentChunks(embedding, tenantId, maxResults) {
   }
 }
 
+
+
 export async function POST(request) {
   try {
     const user = await getUserFromRequest(request);
@@ -153,7 +156,11 @@ export async function POST(request) {
     let documentChunks = [];
     try {
       const questionEmbedding = await generateEmbedding(question);
-      documentChunks = await searchDocumentChunks(questionEmbedding, 'default', 10);
+      documentChunks = await searchDocumentChunks(questionEmbedding, 'documentation', 10);
+      console.log(`[CHATNPT DEBUG] Found ${documentChunks.length} document chunks for question: "${question}"`);
+      if (documentChunks.length > 0) {
+        console.log(`[CHATNPT DEBUG] First chunk preview:`, documentChunks[0].text?.substring(0, 200));
+      }
     } catch (error) {
       console.error('Error searching document chunks:', error);
     }
@@ -166,7 +173,7 @@ export async function POST(request) {
         ExpressionAttributeValues: { ':approved': true }
       })),
       fetchTable('WebexMessages'),
-      fetchTable('Documentation', 'attribute_exists(extractedText) AND extractionStatus = :status', { ':status': 'completed' }),
+      fetchTable('Documentation'),
       fetchTable('Issues'),
       fetchTable('resource-assignments'),
       fetchTable('sa-assignments'),
@@ -203,6 +210,25 @@ export async function POST(request) {
     if (assignmentsResult.restricted && assignmentsResult.reason) restrictions.push(`Assignments: ${assignmentsResult.reason}`);
 
     const chunksWithMetadata = [];
+    
+    // Add new document chunks from RAG system FIRST (highest priority for indexing)
+    documentChunks.forEach(chunk => {
+      // Find the document name from the Documentation table
+      const doc = docs.find(d => d.id === chunk.documentId);
+      const documentName = doc?.fileName || chunk.documentId;
+      
+      chunksWithMetadata.push({
+        source: 'Documents',
+        topic: `${documentName} - Chunk ${chunk.chunkIndex}`,
+        text: chunk.text,
+        documentId: chunk.documentId,
+        s3Key: chunk.s3Key,
+        chunkIndex: chunk.chunkIndex,
+        score: chunk.score,
+        expirationDate: chunk.expirationDate,
+        fileName: documentName
+      });
+    });
     
     recordings.forEach(rec => {
       const chunks = parseVTTTranscript(rec.transcriptText);
@@ -267,19 +293,7 @@ export async function POST(request) {
       }
     });
 
-    // Add new document chunks from RAG system (already filtered for expiration in OpenSearch query)
-    documentChunks.forEach(chunk => {
-      chunksWithMetadata.push({
-        source: 'Documents',
-        topic: `${chunk.documentId} - Chunk ${chunk.chunkIndex}`,
-        text: chunk.text,
-        documentId: chunk.documentId,
-        s3Key: chunk.s3Key,
-        chunkIndex: chunk.chunkIndex,
-        score: chunk.score,
-        expirationDate: chunk.expirationDate
-      });
-    });
+    // Document chunks already added at the beginning for proper indexing
 
     filteredIssues.forEach(issue => {
       const sanitized = sanitizeDataForAI('issues', issue);
@@ -504,10 +518,68 @@ export async function POST(request) {
       });
     });
     
-    const context = chunksWithMetadata.map((chunk, idx) => {
+    // Use only semantically relevant sources for context
+    const relevantChunks = [];
+    
+    // Always include document chunks first (from semantic search)
+    documentChunks.forEach(chunk => {
+      const doc = docs.find(d => d.id === chunk.documentId);
+      const documentName = doc?.fileName || chunk.documentId;
+      relevantChunks.push({
+        source: 'Documents',
+        topic: `${documentName} - Chunk ${chunk.chunkIndex}`,
+        text: chunk.text,
+        documentId: chunk.documentId,
+        s3Key: chunk.s3Key,
+        chunkIndex: chunk.chunkIndex,
+        score: chunk.score,
+        expirationDate: chunk.expirationDate,
+        fileName: documentName
+      });
+    });
+    
+    // Add other sources based on semantic relevance scoring
+    const questionLower = question.toLowerCase();
+    const questionWords = questionLower.split(' ').filter(word => word.length > 2);
+    
+    const scoredSources = chunksWithMetadata
+      .filter(chunk => chunk.source !== 'Documents') // Already added above
+      .map(chunk => {
+        const textLower = chunk.text?.toLowerCase() || '';
+        const topicLower = chunk.topic?.toLowerCase() || '';
+        
+        // Calculate relevance score based on keyword matches
+        let score = 0;
+        questionWords.forEach(word => {
+          if (topicLower.includes(word)) score += 3; // Topic matches are more important
+          if (textLower.includes(word)) score += 1;
+        });
+        
+        // Special handling for specific queries that should include all practice issues
+        if (questionLower.includes('issues') || questionLower.includes('problems') || questionLower.includes('bugs')) {
+          if (chunk.source === 'Practice Issues') {
+            score += 2; // Boost practice issues for issue-related queries
+          }
+        }
+        
+        return { chunk, score };
+      })
+      .filter(item => item.score > 0) // Only include sources with some relevance
+      .sort((a, b) => b.score - a.score) // Sort by relevance score
+      .map(item => item.chunk);
+    
+    relevantChunks.push(...scoredSources);
+    
+    const context = relevantChunks.map((chunk, idx) => {
       const idSuffix = chunk.id ? `|ID:${chunk.id}` : '';
-      return `[Source ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}${idSuffix}]\n${chunk.text}`;
+      const sourceRef = `[Source ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}${idSuffix}]\n${chunk.text}`;
+      
+
+      
+      return sourceRef;
     }).join('\n\n');
+    
+    // sourceChunks will be set later after matchingChunks is populated
 
     // Use AI to detect list queries and extract filter criteria
     const intentPrompt = `Analyze this question and determine if it's asking for a LIST of ALL items matching specific criteria.
@@ -651,7 +723,8 @@ Respond with ONLY a JSON object (no markdown, no explanation):
         s3Key: chunk.s3Key,
         chunkIndex: chunk.chunkIndex,
         score: chunk.score,
-        expirationDate: chunk.expirationDate
+        expirationDate: chunk.expirationDate,
+        fileName: chunk.fileName
       }));
       
       if (user) {
@@ -742,8 +815,13 @@ Answer (cite source IDs):`;
     const sourceMatches = answer.match(/Source \d+/g) || [];
     const citedSourceIds = [...new Set(sourceMatches.map(m => parseInt(m.split(' ')[1])))];
     
-    // Use matchingChunks if pre-filtering was applied, otherwise use all chunks
-    const sourceChunks = matchingChunks.length > 0 ? matchingChunks : chunksWithMetadata;
+    console.log(`[DEBUG] AI cited sources: ${citedSourceIds.join(', ')}`);
+    console.log(`[DEBUG] Total sources available: ${chunksWithMetadata.length}`);
+    
+    // Use matchingChunks if pre-filtering was applied, otherwise use relevant chunks
+    const sourceChunks = matchingChunks.length > 0 ? matchingChunks : relevantChunks;
+    
+
     
     const sources = citedSourceIds
       .filter(id => id >= 0 && id < sourceChunks.length)
@@ -772,6 +850,7 @@ Answer (cite source IDs):`;
           chunkIndex: chunk.chunkIndex,
           score: chunk.score,
           expirationDate: chunk.expirationDate,
+          fileName: chunk.fileName,
           sourceIndex: id
         };
         if (chunk.url) {
@@ -805,7 +884,8 @@ Answer (cite source IDs):`;
         s3Key: chunk.s3Key,
         chunkIndex: chunk.chunkIndex,
         score: chunk.score,
-        expirationDate: chunk.expirationDate
+        expirationDate: chunk.expirationDate,
+        fileName: chunk.fileName
       }));
       
       answer = `Found ${allSources.length} matching items.\n\nDue to the large result set, all ${allSources.length} items are listed in the sources below. Click "View all ${allSources.length} citations" to see the complete list with details.`;

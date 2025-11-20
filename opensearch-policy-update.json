@@ -1,0 +1,38 @@
+[
+  {
+    "Rules": [
+      {
+        "Resource": [
+          "collection/practicetools-*"
+        ],
+        "Permission": [
+          "aoss:CreateCollectionItems",
+          "aoss:DeleteCollectionItems",
+          "aoss:UpdateCollectionItems",
+          "aoss:DescribeCollectionItems"
+        ],
+        "ResourceType": "collection"
+      },
+      {
+        "Resource": [
+          "index/practicetools-*/document-vectors"
+        ],
+        "Permission": [
+          "aoss:CreateIndex",
+          "aoss:DeleteIndex",
+          "aoss:UpdateIndex",
+          "aoss:DescribeIndex",
+          "aoss:ReadDocument",
+          "aoss:WriteDocument"
+        ],
+        "ResourceType": "index"
+      }
+    ],
+    "Principal": [
+      "arn:aws:iam::501399536130:role/aws-apprunner-service-role",
+      "arn:aws:iam::501399536130:role/PracticeTools-DocumentProcessor-Role",
+      "arn:aws:sts::501399536130:assumed-role/aws-apprunner-service-role/*",
+      "arn:aws:iam::501399536130:user/issue-tracker-user"
+    ]
+  }
+]
