@@ -28,16 +28,17 @@ async function logWebhookActivity(logData) {
 }
 
 async function getWebexMeetingsConfig() {
+  const timestamp = new Date().toISOString();
   const tableName = getTableName('Settings');
-  console.log('🎥 [RECORDINGS-WEBHOOK] Loading config from table:', tableName);
+  console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Loading config from table:`, tableName);
   const command = new GetCommand({
     TableName: tableName,
     Key: { setting_key: 'webex-meetings' }
   });
   const result = await docClient.send(command);
-  console.log('🎥 [RECORDINGS-WEBHOOK] Raw config result:', result.Item);
+  console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Raw config result:`, result.Item);
   const config = result.Item?.setting_value ? JSON.parse(result.Item.setting_value) : null;
-  console.log('🎥 [RECORDINGS-WEBHOOK] Parsed config:', config);
+  console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Parsed config:`, JSON.stringify(config, null, 2));
   return config;
 }
 
@@ -60,20 +61,21 @@ async function uploadToS3(buffer, key) {
 }
 
 export async function POST(request) {
-  console.log('🎥 [RECORDINGS-WEBHOOK] Received webhook request');
-  console.log('🎥 [RECORDINGS-WEBHOOK] Request headers:', Object.fromEntries(request.headers.entries()));
-  console.log('🎥 [RECORDINGS-WEBHOOK] Request method:', request.method);
-  console.log('🎥 [RECORDINGS-WEBHOOK] Request URL:', request.url);
+  const timestamp = new Date().toISOString();
+  console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ========== WEBHOOK RECEIVED ==========`);
+  console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Request headers:`, JSON.stringify(Object.fromEntries(request.headers.entries()), null, 2));
+  console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Request method:`, request.method);
+  console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Request URL:`, request.url);
   
   let webhookData = null;
   try {
     const webhook = await request.json();
-    console.log('🎥 [RECORDINGS-WEBHOOK] Parsed webhook data:', JSON.stringify(webhook, null, 2));
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Parsed webhook data:`, JSON.stringify(webhook, null, 2));
     const { data } = webhook;
     webhookData = data;
     
     if (!data || webhook.resource !== 'recordings') {
-      console.error('🎥 [RECORDINGS-WEBHOOK] Invalid webhook data:', { data: !!data, resource: webhook.resource });
+      console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ❌ Invalid webhook data:`, { data: !!data, resource: webhook.resource });
       await logWebhookActivity({
         webhookType: 'recordings',
         siteUrl: data?.siteUrl || 'unknown',
@@ -88,15 +90,15 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid webhook data' }, { status: 400 });
     }
     
-    console.log('🎥 [RECORDINGS-WEBHOOK] Valid recordings webhook received for:', data.id);
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ✓ Valid recordings webhook received for:`, data.id);
 
     // Get WebexMeetings configuration
-    console.log('🎥 [RECORDINGS-WEBHOOK] Loading WebEx configuration...');
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Loading WebEx configuration...`);
     const config = await getWebexMeetingsConfig();
-    console.log('🎥 [RECORDINGS-WEBHOOK] Config loaded:', { enabled: config?.enabled, sitesCount: config?.sites?.length });
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Config loaded:`, { enabled: config?.enabled, sitesCount: config?.sites?.length });
     
     if (!config?.enabled || !config.sites?.length) {
-      console.warn('🎥 [RECORDINGS-WEBHOOK] WebexMeetings not configured or disabled');
+      console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ⚠️ WebexMeetings not configured or disabled`);
       await logWebhookActivity({
         webhookType: 'recordings',
         siteUrl: data.siteUrl,
@@ -111,13 +113,13 @@ export async function POST(request) {
     }
 
     // Find matching site configuration
-    console.log('🎥 [RECORDINGS-WEBHOOK] Looking for matching site:', { 
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Looking for matching site:`, { 
       siteUrl: data.siteUrl, 
       hostUserId: data.hostUserId,
       hostEmail: data.hostEmail,
       creatorId: data.creatorId
     });
-    console.log('🎥 [RECORDINGS-WEBHOOK] Available sites:', config.sites.map(s => ({ siteUrl: s.siteUrl, hosts: s.recordingHosts })));
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Available sites:`, config.sites.map(s => ({ siteUrl: s.siteUrl, hosts: s.recordingHosts })));
     
     const matchingSite = config.sites.find(site => {
       if (data.siteUrl !== site.siteUrl) return false;
@@ -129,7 +131,7 @@ export async function POST(request) {
     });
 
     if (!matchingSite) {
-      console.warn('🎥 [RECORDINGS-WEBHOOK] No matching site/host found');
+      console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ⚠️ No matching site/host found`);
       await logWebhookActivity({
         webhookType: 'recordings',
         siteUrl: data.siteUrl,
@@ -144,10 +146,10 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Recording not from configured host/site' }, { status: 200 });
     }
     
-    console.log('🎥 [RECORDINGS-WEBHOOK] Found matching site:', matchingSite.siteUrl);
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ✓ Found matching site:`, matchingSite.siteUrl);
 
     // Get valid access token for the site
-    console.log('🎥 [RECORDINGS-WEBHOOK] Getting valid access token for site:', data.siteUrl);
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Getting valid access token for site:`, data.siteUrl);
     const { getValidAccessToken } = await import('../../../../../lib/webex-token-manager.js');
     const validAccessToken = await getValidAccessToken(data.siteUrl);
     
@@ -159,8 +161,8 @@ export async function POST(request) {
     // Need to specify hostEmail parameter for admin access to recordings
     let hostEmail = data.hostEmail || matchingSite.recordingHosts.find(h => h.userId === data.hostUserId)?.email;
     
-    console.log('🎥 [RECORDINGS-WEBHOOK] Available webhook fields:', Object.keys(data));
-    console.log('🎥 [RECORDINGS-WEBHOOK] Host identification:', {
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Available webhook fields:`, Object.keys(data));
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Host identification:`, {
       webhookHostEmail: data.hostEmail,
       webhookHostUserId: data.hostUserId,
       resolvedHostEmail: hostEmail
@@ -170,26 +172,26 @@ export async function POST(request) {
     
     if (hostEmail) {
       // Try with hostEmail parameter first
-      console.log('🎥 [RECORDINGS-WEBHOOK] Fetching recording details for ID:', data.id, 'with hostEmail:', hostEmail);
+      console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Fetching recording details for ID:`, data.id, 'with hostEmail:', hostEmail);
       recordingResponse = await fetch(`https://webexapis.com/v1/recordings/${data.id}?hostEmail=${encodeURIComponent(hostEmail)}`, {
         headers: { 'Authorization': `Bearer ${validAccessToken}` }
       });
     } else {
       // Fallback: try each configured recording host email until one works
-      console.log('🎥 [RECORDINGS-WEBHOOK] No hostEmail available, trying each configured host...');
+      console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] No hostEmail available, trying each configured host...`);
       
       for (const host of matchingSite.recordingHosts) {
-        console.log('🎥 [RECORDINGS-WEBHOOK] Trying hostEmail:', host.email);
+        console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Trying hostEmail:`, host.email);
         recordingResponse = await fetch(`https://webexapis.com/v1/recordings/${data.id}?hostEmail=${encodeURIComponent(host.email)}`, {
           headers: { 'Authorization': `Bearer ${validAccessToken}` }
         });
         
         if (recordingResponse.ok) {
           hostEmail = host.email;
-          console.log('🎥 [RECORDINGS-WEBHOOK] Success with hostEmail:', hostEmail);
+          console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ✓ Success with hostEmail:`, hostEmail);
           break;
         } else {
-          console.log('🎥 [RECORDINGS-WEBHOOK] Failed with hostEmail:', host.email, 'Status:', recordingResponse.status);
+          console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ❌ Failed with hostEmail:`, host.email, 'Status:', recordingResponse.status);
         }
       }
     }
@@ -200,7 +202,7 @@ export async function POST(request) {
     }
     
     const recordingDetails = await recordingResponse.json();
-    console.log('🎥 [RECORDINGS-WEBHOOK] Recording details:', JSON.stringify(recordingDetails, null, 2));
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Recording details:`, JSON.stringify(recordingDetails, null, 2));
     
     const downloadUrl = recordingDetails.temporaryDirectDownloadLinks?.recordingDownloadLink || recordingDetails.downloadUrl;
     if (!downloadUrl) {
@@ -208,15 +210,15 @@ export async function POST(request) {
     }
     
     // Download recording
-    console.log('🎥 [RECORDINGS-WEBHOOK] Downloading recording from:', downloadUrl);
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Downloading recording from:`, downloadUrl);
     const recordingBuffer = await downloadRecording(downloadUrl, validAccessToken);
-    console.log('🎥 [RECORDINGS-WEBHOOK] Recording downloaded, size:', recordingBuffer.byteLength, 'bytes');
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ✓ Recording downloaded, size:`, recordingBuffer.byteLength, 'bytes');
     
     // Upload to S3
     const s3Key = `webexmeetings-recordings/${data.id}.mp4`;
-    console.log('🎥 [RECORDINGS-WEBHOOK] Uploading to S3:', s3Key);
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Uploading to S3:`, s3Key);
     await uploadToS3(recordingBuffer, s3Key);
-    console.log('🎥 [RECORDINGS-WEBHOOK] S3 upload completed');
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ✓ S3 upload completed`);
 
     // Store in DynamoDB
     const tableName = getTableName('WebexMeetingsRecordings');
@@ -245,7 +247,7 @@ export async function POST(request) {
       Item: recordingData
     });
     await docClient.send(putCommand);
-    console.log('🎥 [RECORDINGS-WEBHOOK] Recording data saved to DynamoDB');
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ✓ Recording data saved to DynamoDB`);
 
     // Send SSE notification for new recording
     try {
@@ -264,7 +266,7 @@ export async function POST(request) {
       console.log('Transcript fetch initiated:', error.message);
     }
 
-    console.log('🎥 [RECORDINGS-WEBHOOK] Processing completed successfully');
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ========== ✓ SUCCESS - Processing completed ==========`);
     await logWebhookActivity({
       webhookType: 'recordings',
       siteUrl: data.siteUrl,
@@ -278,7 +280,8 @@ export async function POST(request) {
     });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('🎥 [RECORDINGS-WEBHOOK] Processing failed:', {
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] ========== ❌ ERROR - Processing failed ==========`);
+    console.error(`[${timestamp}] 🎥 [RECORDINGS-WEBHOOK] Error details:`, {
       message: error.message,
       stack: error.stack,
       name: error.name

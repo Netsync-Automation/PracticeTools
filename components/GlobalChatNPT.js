@@ -112,7 +112,7 @@ export default function GlobalChatNPT({ user }) {
                       }
                       
                       const title = `ChatNPT issue: ${questionPreview}`;
-                      const description = `Inputted: ${lastUserMessage.content}\\n\\nResponse: ${lastAssistantMessage.content}\\n\\n<Update additional context explaining what the response should have been>`;
+                      const description = `Inputted: ${lastUserMessage.content}\n\nResponse: ${lastAssistantMessage.content}\n\n<Update additional context explaining what the response should have been>`;
                       
                       const params = new URLSearchParams({
                         issueType: 'Bug Report',

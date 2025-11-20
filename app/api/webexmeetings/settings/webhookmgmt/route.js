@@ -9,23 +9,25 @@ const dynamoClient = new DynamoDBClient({ region: process.env.AWS_DEFAULT_REGION
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 async function getWebexMeetingsConfig() {
+  const timestamp = new Date().toISOString();
   const tableName = getTableName('Settings');
-  console.log('🔧 [WEBHOOK-MGMT] Loading config from table:', tableName);
+  console.error(`[${timestamp}] 🔧 [WEBHOOK-MGMT] Loading config from table:`, tableName);
   const command = new GetCommand({
     TableName: tableName,
     Key: { setting_key: 'webex-meetings' }
   });
   const result = await docClient.send(command);
-  console.log('🔧 [WEBHOOK-MGMT] Raw config result:', result.Item);
+  console.error(`[${timestamp}] 🔧 [WEBHOOK-MGMT] Raw config result:`, result.Item);
   const config = result.Item?.setting_value ? JSON.parse(result.Item.setting_value) : null;
-  console.log('🔧 [WEBHOOK-MGMT] Parsed config:', config);
+  console.error(`[${timestamp}] 🔧 [WEBHOOK-MGMT] Parsed config:`, JSON.stringify(config, null, 2));
   return config;
 }
 
 async function saveWebexMeetingsConfig(config) {
+  const timestamp = new Date().toISOString();
   const tableName = getTableName('Settings');
-  console.log('🔧 [WEBHOOK-MGMT] Saving config to table:', tableName);
-  console.log('🔧 [WEBHOOK-MGMT] Config to save:', JSON.stringify(config, null, 2));
+  console.error(`[${timestamp}] 🔧 [WEBHOOK-MGMT] Saving config to table:`, tableName);
+  console.error(`[${timestamp}] 🔧 [WEBHOOK-MGMT] Config to save:`, JSON.stringify(config, null, 2));
   const command = new PutCommand({
     TableName: tableName,
     Item: {
@@ -35,7 +37,7 @@ async function saveWebexMeetingsConfig(config) {
     }
   });
   const result = await docClient.send(command);
-  console.log('🔧 [WEBHOOK-MGMT] Save result:', result);
+  console.error(`[${timestamp}] 🔧 [WEBHOOK-MGMT] Save result:`, result);
 }
 
 export async function POST(request) {

@@ -155,14 +155,21 @@ export async function POST(request) {
     // Generate embedding for semantic search of document chunks
     let documentChunks = [];
     try {
+      console.log(`[CHATNPT OPENSEARCH] Starting semantic search for question: "${question}"`);
+      console.log(`[CHATNPT OPENSEARCH] OpenSearch endpoint: ${process.env.OPENSEARCH_ENDPOINT}`);
       const questionEmbedding = await generateEmbedding(question);
+      console.log(`[CHATNPT OPENSEARCH] Generated embedding with ${questionEmbedding.length} dimensions`);
       documentChunks = await searchDocumentChunks(questionEmbedding, 'documentation', 10);
-      console.log(`[CHATNPT DEBUG] Found ${documentChunks.length} document chunks for question: "${question}"`);
+      console.log(`[CHATNPT OPENSEARCH] ✓ Found ${documentChunks.length} document chunks from OpenSearch`);
       if (documentChunks.length > 0) {
-        console.log(`[CHATNPT DEBUG] First chunk preview:`, documentChunks[0].text?.substring(0, 200));
+        console.log(`[CHATNPT OPENSEARCH] First chunk: ${documentChunks[0].documentId} - Score: ${documentChunks[0].score}`);
+        console.log(`[CHATNPT OPENSEARCH] Preview:`, documentChunks[0].text?.substring(0, 150));
+      } else {
+        console.log(`[CHATNPT OPENSEARCH] ⚠️ WARNING: No document chunks returned from OpenSearch!`);
       }
     } catch (error) {
-      console.error('Error searching document chunks:', error);
+      console.error('[CHATNPT OPENSEARCH] ❌ ERROR searching document chunks:', error);
+      console.error('[CHATNPT OPENSEARCH] Error details:', error.message, error.stack);
     }
 
     // Fetch ALL data from environment-specific tables
@@ -574,7 +581,10 @@ export async function POST(request) {
       const idSuffix = chunk.id ? `|ID:${chunk.id}` : '';
       const sourceRef = `[Source ${idx}|${chunk.source}|${chunk.topic}${chunk.timestamp ? '|' + chunk.timestamp : ''}${idSuffix}]\n${chunk.text}`;
       
-
+      // Debug logging for source indexing
+      if (idx < 10) {
+        console.log(`[CHATNPT SOURCE DEBUG] Source ${idx}: ${chunk.source} - ${chunk.topic.substring(0, 50)}`);
+      }
       
       return sourceRef;
     }).join('\n\n');
@@ -817,16 +827,17 @@ Answer (cite source IDs):`;
     
     console.log(`[DEBUG] AI cited sources: ${citedSourceIds.join(', ')}`);
     console.log(`[DEBUG] Total sources available: ${chunksWithMetadata.length}`);
+    console.log(`[DEBUG] Document chunks from semantic search: ${documentChunks.length}`);
+    console.log(`[DEBUG] Relevant chunks after filtering: ${relevantChunks.length}`);
     
     // Use matchingChunks if pre-filtering was applied, otherwise use relevant chunks
     const sourceChunks = matchingChunks.length > 0 ? matchingChunks : relevantChunks;
-    
-
     
     const sources = citedSourceIds
       .filter(id => id >= 0 && id < sourceChunks.length)
       .map(id => {
         const chunk = sourceChunks[id];
+        console.log(`[CHATNPT CITATION DEBUG] Cited Source ${id}: ${chunk.source} - ${chunk.topic}`);
         if (!chunk) return null;
         const sourceObj = {
           source: chunk.source,
@@ -838,6 +849,7 @@ Answer (cite source IDs):`;
           boardTopic: chunk.boardTopic,
           downloadUrl: chunk.downloadUrl,
           recordingId: chunk.recordingId,
+          timestamp: chunk.timestamp,
           messageId: chunk.messageId,
           personEmail: chunk.personEmail,
           date: chunk.date,
@@ -873,6 +885,7 @@ Answer (cite source IDs):`;
         boardTopic: chunk.boardTopic,
         downloadUrl: chunk.downloadUrl,
         recordingId: chunk.recordingId,
+        timestamp: chunk.timestamp,
         messageId: chunk.messageId,
         personEmail: chunk.personEmail,
         date: chunk.date,
