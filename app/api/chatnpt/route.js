@@ -95,28 +95,29 @@ async function searchDocumentChunks(embedding, tenantId, maxResults) {
               }
             }
           ],
-          should: [
+          must_not: [
             {
               bool: {
-                must_not: {
-                  exists: {
-                    field: 'expirationDate'
+                must: [
+                  {
+                    exists: {
+                      field: 'expirationDate'
+                    }
+                  },
+                  {
+                    range: {
+                      expirationDate: {
+                        lt: currentDate
+                      }
+                    }
                   }
-                }
-              }
-            },
-            {
-              range: {
-                expirationDate: {
-                  gte: currentDate
-                }
+                ]
               }
             }
-          ],
-          minimum_should_match: 1
+          ]
         }
       },
-      _source: ['documentId', 'chunkIndex', 'text', 's3Key', 'tenantId', 'expirationDate']
+      _source: ['documentId', 'chunkIndex', 'text', 's3Key', 'tenantId', 'expirationDate', 'fileName']
     };
     
     const response = await opensearchClient.search({
@@ -220,20 +221,18 @@ export async function POST(request) {
     
     // Add new document chunks from RAG system FIRST (highest priority for indexing)
     documentChunks.forEach(chunk => {
-      // Find the document name from the Documentation table
-      const doc = docs.find(d => d.id === chunk.documentId);
-      const documentName = doc?.fileName || chunk.documentId;
+      const fileName = chunk.fileName || 'Unknown Document';
       
       chunksWithMetadata.push({
         source: 'Documents',
-        topic: `${documentName} - Chunk ${chunk.chunkIndex}`,
+        topic: fileName,
         text: chunk.text,
         documentId: chunk.documentId,
         s3Key: chunk.s3Key,
         chunkIndex: chunk.chunkIndex,
         score: chunk.score,
         expirationDate: chunk.expirationDate,
-        fileName: documentName
+        fileName: fileName
       });
     });
     
@@ -530,18 +529,17 @@ export async function POST(request) {
     
     // Always include document chunks first (from semantic search)
     documentChunks.forEach(chunk => {
-      const doc = docs.find(d => d.id === chunk.documentId);
-      const documentName = doc?.fileName || chunk.documentId;
+      const fileName = chunk.fileName || 'Unknown Document';
       relevantChunks.push({
         source: 'Documents',
-        topic: `${documentName} - Chunk ${chunk.chunkIndex}`,
+        topic: fileName,
         text: chunk.text,
         documentId: chunk.documentId,
         s3Key: chunk.s3Key,
         chunkIndex: chunk.chunkIndex,
         score: chunk.score,
         expirationDate: chunk.expirationDate,
-        fileName: documentName
+        fileName: fileName
       });
     });
     
