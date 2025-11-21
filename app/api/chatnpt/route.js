@@ -95,25 +95,26 @@ async function searchDocumentChunks(embedding, tenantId, maxResults) {
               }
             }
           ],
-          should: [
+          must_not: [
             {
               bool: {
-                must_not: {
-                  exists: {
-                    field: 'expirationDate'
+                must: [
+                  {
+                    exists: {
+                      field: 'expirationDate'
+                    }
+                  },
+                  {
+                    range: {
+                      expirationDate: {
+                        lt: currentDate
+                      }
+                    }
                   }
-                }
-              }
-            },
-            {
-              range: {
-                expirationDate: {
-                  gte: currentDate
-                }
+                ]
               }
             }
-          ],
-          minimum_should_match: 1
+          ]
         }
       },
       _source: ['documentId', 'chunkIndex', 'text', 's3Key', 'tenantId', 'expirationDate']

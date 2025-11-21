@@ -3,8 +3,12 @@ const AWS = require('aws-sdk');
 const textract = new AWS.Textract();
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 const bedrock = new AWS.BedrockRuntime();
+const ssm = new AWS.SSM();
 const { Client } = require('@opensearch-project/opensearch');
 const { AwsSigv4Signer } = require('@opensearch-project/opensearch/aws');
+
+// Cache for SSM parameters
+let nextAuthUrlCache = {};
 
 // DSR Compliance: Environment-aware configuration
 function getEnvironment(bucket, key) {
@@ -442,11 +446,35 @@ async function ensureVectorIndexExists(opensearchClient) {
   }
 }
 
+async function getNextAuthUrl(env) {
+  if (nextAuthUrlCache[env]) {
+    return nextAuthUrlCache[env];
+  }
+  
+  try {
+    const parameterName = env === 'prod' 
+      ? '/PracticeTools/NEXTAUTH_URL'
+      : '/PracticeTools/dev/NEXTAUTH_URL';
+    
+    const result = await ssm.getParameter({
+      Name: parameterName,
+      WithDecryption: false
+    }).promise();
+    
+    nextAuthUrlCache[env] = result.Parameter.Value;
+    return result.Parameter.Value;
+  } catch (error) {
+    console.error(`Failed to get NEXTAUTH_URL from SSM for ${env}:`, error);
+    // Fallback to hardcoded URLs
+    return env === 'prod' 
+      ? 'https://practicetools.netsync.com'
+      : 'https://dev.practicetools.netsync.com';
+  }
+}
+
 async function notifyDocumentationUpdate(documentId, status, env) {
   try {
-    const baseUrl = env === 'prod' 
-      ? 'https://practicetools.netsync.com'
-      : 'http://localhost:3000';
+    const baseUrl = await getNextAuthUrl(env);
     
     const response = await fetch(`${baseUrl}/api/sse/documentation/notify`, {
       method: 'POST',
