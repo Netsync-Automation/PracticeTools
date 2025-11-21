@@ -82,12 +82,16 @@ async function deployLambda() {
     });
     
     archive.pipe(output);
-    archive.file('document-processor.js', { name: 'index.js' });
-    archive.file('package.json');
     
-    // Include node_modules if it exists
-    if (fs.existsSync('node_modules')) {
-      archive.directory('node_modules/', 'node_modules/');
+    // Add Lambda files from lambda directory
+    const lambdaDir = path.join(__dirname);
+    archive.file(path.join(lambdaDir, 'document-processor.js'), { name: 'index.js' });
+    archive.file(path.join(lambdaDir, 'package.json'));
+    
+    // Include lambda-specific node_modules if it exists
+    const lambdaNodeModules = path.join(lambdaDir, 'node_modules');
+    if (fs.existsSync(lambdaNodeModules)) {
+      archive.directory(lambdaNodeModules, 'node_modules/');
     }
     
     archive.finalize();

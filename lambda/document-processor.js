@@ -256,7 +256,8 @@ async function storeChunkWithEmbedding(documentId, s3Key, chunkText, chunkIndex,
     vector: embedding,
     s3Key,
     tenantId: extractTenantFromKey(s3Key),
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    fileName: documentMetadata.fileName || 'Unknown Document'
   };
   
   // Add expiration date if present
@@ -291,7 +292,8 @@ async function storeChunkWithEmbedding(documentId, s3Key, chunkText, chunkIndex,
       osDocId, // Store the auto-generated OpenSearch document ID
       tenantId: vectorBody.tenantId,
       createdAt: vectorBody.createdAt,
-      tokenCount: Math.ceil(chunkText.length / 4)
+      tokenCount: Math.ceil(chunkText.length / 4),
+      fileName: documentMetadata.fileName || 'Unknown Document'
     };
     
     // Add expiration date if present
@@ -337,8 +339,12 @@ function generateDocumentId(s3Key) {
 }
 
 function extractDocumentIdFromKey(s3Key) {
-  // Extract document ID from S3 key pattern: documentation/{id}/{filename}
+  // Extract document ID from S3 key pattern: documentation/{env}/{id}/{filename}
   const parts = s3Key.split('/');
+  // Check if path includes environment (dev/prod)
+  if (parts.length >= 4 && (parts[1] === 'dev' || parts[1] === 'prod')) {
+    return parts[2]; // documentation/dev/{id}/filename
+  }
   return parts.length >= 2 ? parts[1] : generateDocumentId(s3Key);
 }
 
