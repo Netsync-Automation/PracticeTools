@@ -124,10 +124,18 @@ export async function POST(request) {
     const matchingSite = config.sites.find(site => {
       if (data.siteUrl !== site.siteUrl) return false;
       
-      // Check if hostUserId matches any configured recording host user IDs
-      return data.hostUserId && site.recordingHosts.some(host => 
-        host.userId === data.hostUserId
-      );
+      // Check if hostUserId or hostEmail matches any configured recording host
+      return site.recordingHosts.some(host => {
+        // Match by userId if both are available
+        if (data.hostUserId && host.userId && host.userId === data.hostUserId) {
+          return true;
+        }
+        // Fall back to email matching
+        if (data.hostEmail && host.email && host.email === data.hostEmail) {
+          return true;
+        }
+        return false;
+      });
     });
 
     if (!matchingSite) {

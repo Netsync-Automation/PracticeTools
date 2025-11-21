@@ -32,17 +32,7 @@ export async function GET() {
             const tokens = await getWebexTokens(site.siteUrl);
             const credentials = await getWebexCredentials(site.siteUrl);
             
-            // Load monitored rooms from SSM via API
-            let monitoredRooms = [];
-            try {
-              const roomsResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/webexmessaging/monitored-rooms?siteUrl=${encodeURIComponent(site.siteUrl)}`);
-              if (roomsResponse.ok) {
-                const roomsData = await roomsResponse.json();
-                monitoredRooms = roomsData.rooms || [];
-              }
-            } catch (error) {
-              console.error(`Failed to load monitored rooms for ${site.siteUrl}:`, error);
-            }
+            let monitoredRooms = site.monitoredRooms || [];
             
             return {
               ...site,
@@ -226,7 +216,8 @@ export async function POST(request) {
           recordingHosts: resolvedHosts,
           siteName: site.siteName || site.siteUrl.split('.')[0],
           botName: site.botName || '',
-          botEmail: site.botEmail || ''
+          botEmail: site.botEmail || '',
+          monitoredRooms: site.monitoredRooms || []
         };
         
         console.log(`✅ [DEBUG] Site ${siteIndex + 1} processing completed:`, JSON.stringify(processedSite, null, 2));
