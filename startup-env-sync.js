@@ -23,7 +23,7 @@ function updateEnvFile(branch) {
   const envPath = '.env.local';
   
   try {
-    // Read current .env.local
+    // Read current .env.local (skip if doesn't exist in AWS)
     const envContent = readFileSync(envPath, 'utf8');
     
     // Determine environment settings based on branch
@@ -52,6 +52,11 @@ function updateEnvFile(branch) {
     console.log(`Environment synced: ${branch} branch -> NODE_ENV=${nodeEnv}, ENVIRONMENT=${environment}`);
     
   } catch (error) {
+    // In AWS environments, .env.local may not exist - this is expected
+    if (process.env.AWS_EXECUTION_ENV || process.env.NODE_ENV === 'production') {
+      console.log('.env.local not found (expected in AWS environment)');
+      return;
+    }
     console.error('Error updating .env.local:', error.message);
   }
 }

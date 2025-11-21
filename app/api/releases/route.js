@@ -53,9 +53,11 @@ export async function GET() {
       notes: r.notes ? r.notes.substring(0, 50) + '...' : 'No notes'
     })));
     
-    // Sort releases by version (newest first)
+    // Sort releases by timestamp (newest first)
     const sortedReleases = envReleases.sort((a, b) => {
-      return compareVersions(b.version, a.version);
+      const timeA = new Date(a.timestamp || a.date).getTime();
+      const timeB = new Date(b.timestamp || b.date).getTime();
+      return timeB - timeA;
     });
     
     console.log('[RELEASES-API] Returning releases:', sortedReleases.length);
@@ -69,25 +71,4 @@ export async function GET() {
     console.log('[RELEASES-API] Returning empty array due to error');
     return NextResponse.json([]);
   }
-}
-
-function compareVersions(a, b) {
-  const parseVersion = (v) => {
-    const [base, dev] = v.split('-dev.');
-    const [major, minor, patch] = base.split('.').map(Number);
-    return { major, minor, patch, dev: dev ? parseInt(dev) : null };
-  };
-  
-  const vA = parseVersion(a);
-  const vB = parseVersion(b);
-  
-  if (vA.major !== vB.major) return vA.major - vB.major;
-  if (vA.minor !== vB.minor) return vA.minor - vB.minor;
-  if (vA.patch !== vB.patch) return vA.patch - vB.patch;
-  
-  if (vA.dev === null && vB.dev === null) return 0;
-  if (vA.dev === null) return 1;
-  if (vB.dev === null) return -1;
-  
-  return vA.dev - vB.dev;
 }
