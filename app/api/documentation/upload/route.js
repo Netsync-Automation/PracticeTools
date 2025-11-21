@@ -88,7 +88,8 @@ export async function POST(request) {
     }
 
     const id = uuidv4();
-    const s3Key = `documentation/${id}/${fileName}`;
+    const env = process.env.ENVIRONMENT || 'dev';
+    const s3Key = `documentation/${env}/${id}/${fileName}`;
 
     // Generate presigned URL for direct upload
     const command = new PutObjectCommand({

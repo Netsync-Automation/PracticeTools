@@ -7,17 +7,23 @@ const { Client } = require('@opensearch-project/opensearch');
 const { AwsSigv4Signer } = require('@opensearch-project/opensearch/aws');
 
 // DSR Compliance: Environment-aware configuration
-function getEnvironment() {
-  return process.env.ENVIRONMENT || process.env.NODE_ENV || 'dev';
+function getEnvironment(bucket, key) {
+  // Detect environment from S3 key path (e.g., documentation/prod/... or documentation/dev/...)
+  if (key && key.includes('/prod/')) {
+    return 'prod';
+  }
+  if (key && key.includes('/dev/')) {
+    return 'dev';
+  }
+  // Fallback to Lambda environment variable
+  return process.env.ENVIRONMENT || 'dev';
 }
 
-function getTableName(baseName) {
-  const env = getEnvironment();
+function getTableName(baseName, env) {
   return `PracticeTools-${env}-${baseName}`;
 }
 
-function getOpenSearchEndpoint() {
-  const env = getEnvironment();
+function getOpenSearchEndpoint(env) {
   // Environment-specific OpenSearch endpoints
   const endpoints = {
     dev: 'https://8st52hujhn4om815yz4l.us-east-1.aoss.amazonaws.com',
@@ -26,17 +32,17 @@ function getOpenSearchEndpoint() {
   return process.env.OPENSEARCH_ENDPOINT || endpoints[env] || endpoints.dev;
 }
 
-const CHUNKS_TABLE = getTableName('DocumentChunks');
-const DOCUMENTATION_TABLE = getTableName('Documentation');
-const OPENSEARCH_ENDPOINT = getOpenSearchEndpoint();
-
-const opensearchClient = new Client({
-  ...AwsSigv4Signer({
-    region: 'us-east-1',
-    service: 'aoss'
-  }),
-  node: OPENSEARCH_ENDPOINT
-});
+// Create OpenSearch client for specific environment
+function getOpenSearchClient(env) {
+  const endpoint = getOpenSearchEndpoint(env);
+  return new Client({
+    ...AwsSigv4Signer({
+      region: 'us-east-1',
+      service: 'aoss'
+    }),
+    node: endpoint
+  });
+}
 
 exports.handler = async (event) => {
   console.log('Processing document event:', JSON.stringify(event, null, 2));
@@ -59,6 +65,14 @@ exports.handler = async (event) => {
 async function processDocument(bucket, key) {
   console.log(`Processing document: s3://${bucket}/${key}`);
   
+  // Determine environment from S3 key
+  const env = getEnvironment(bucket, key);
+  console.log(`Detected environment: ${env}`);
+  
+  const CHUNKS_TABLE = getTableName('DocumentChunks', env);
+  const DOCUMENTATION_TABLE = getTableName('Documentation', env);
+  const opensearchClient = getOpenSearchClient(env);
+  
   const documentId = extractDocumentIdFromKey(key);
   const fileExtension = key.split('.').pop().toLowerCase();
   
@@ -68,7 +82,7 @@ async function processDocument(bucket, key) {
   const fileSize = headResult.ContentLength;
   
   // Get document metadata including expiration date
-  const documentMetadata = await getDocumentMetadata(documentId);
+  const documentMetadata = await getDocumentMetadata(documentId, DOCUMENTATION_TABLE);
   
   try {
     let extractedText;
@@ -87,18 +101,18 @@ async function processDocument(bucket, key) {
     const chunks = chunkText(extractedText);
     
     await Promise.all(chunks.map((chunk, index) => 
-      storeChunkWithEmbedding(documentId, key, chunk, index, documentMetadata)
+      storeChunkWithEmbedding(documentId, key, chunk, index, documentMetadata, CHUNKS_TABLE, opensearchClient)
     ));
     
     // Update Documentation table status to completed with fileSize
-    await updateDocumentStatus(documentId, 'completed', fileSize);
+    await updateDocumentStatus(documentId, 'completed', fileSize, DOCUMENTATION_TABLE, env);
     
     console.log(`Successfully processed ${chunks.length} chunks for ${key}`);
     console.log(`Document chunks stored in DynamoDB with correlation to OpenSearch auto-generated IDs`);
   } catch (error) {
     console.error(`Error processing documentation/${documentId}/${key.split('/').pop()}:`, error);
     // Update Documentation table status to failed with fileSize
-    await updateDocumentStatus(documentId, 'failed', fileSize);
+    await updateDocumentStatus(documentId, 'failed', fileSize, DOCUMENTATION_TABLE, env);
     throw error;
   }
 }
@@ -223,12 +237,12 @@ function chunkText(text, maxTokens = 500, overlap = 50) {
   return chunks;
 }
 
-async function storeChunkWithEmbedding(documentId, s3Key, chunkText, chunkIndex, documentMetadata = {}) {
+async function storeChunkWithEmbedding(documentId, s3Key, chunkText, chunkIndex, documentMetadata = {}, CHUNKS_TABLE, opensearchClient) {
   // Generate embedding using Bedrock Titan
   const embedding = await generateEmbedding(chunkText);
   
   // Ensure index exists with proper mapping before indexing
-  await ensureVectorIndexExists();
+  await ensureVectorIndexExists(opensearchClient);
   
   // Prepare vector document for OpenSearch (without specifying ID)
   const vectorBody = {
@@ -324,7 +338,7 @@ function extractDocumentIdFromKey(s3Key) {
   return parts.length >= 2 ? parts[1] : generateDocumentId(s3Key);
 }
 
-async function updateDocumentStatus(documentId, status, fileSize = null) {
+async function updateDocumentStatus(documentId, status, fileSize = null, DOCUMENTATION_TABLE, env) {
   try {
     console.log(`Updating document ${documentId} status to ${status} in table: ${DOCUMENTATION_TABLE}`);
     
@@ -350,16 +364,15 @@ async function updateDocumentStatus(documentId, status, fileSize = null) {
     console.log(`Updated document ${documentId} status to ${status}`);
     
     // Trigger SSE notification
-    await notifyDocumentationUpdate(documentId, status);
+    await notifyDocumentationUpdate(documentId, status, env);
   } catch (error) {
     console.error(`Failed to update document status for ${documentId} in table ${DOCUMENTATION_TABLE}:`, error);
   }
 }
 
-async function getDocumentMetadata(documentId) {
+async function getDocumentMetadata(documentId, DOCUMENTATION_TABLE) {
   try {
     console.log(`Getting document metadata for ${documentId} from table: ${DOCUMENTATION_TABLE}`);
-    console.log(`Environment: ${getEnvironment()}`);
     
     const result = await dynamodb.get({
       TableName: DOCUMENTATION_TABLE,
@@ -374,7 +387,7 @@ async function getDocumentMetadata(documentId) {
   }
 }
 
-async function ensureVectorIndexExists() {
+async function ensureVectorIndexExists(opensearchClient) {
   const indexName = 'document-vectors';
   
   try {
@@ -429,9 +442,8 @@ async function ensureVectorIndexExists() {
   }
 }
 
-async function notifyDocumentationUpdate(documentId, status) {
+async function notifyDocumentationUpdate(documentId, status, env) {
   try {
-    const env = getEnvironment();
     const baseUrl = env === 'prod' 
       ? 'https://practicetools.netsync.com'
       : 'http://localhost:3000';

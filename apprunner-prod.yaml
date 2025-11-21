@@ -13,7 +13,6 @@ run:
   command: npm start
   network:
     port: 3000
-    env: PORT=3000
   env:
     - name: AWS_DEFAULT_REGION
       value: us-east-1

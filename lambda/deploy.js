@@ -14,6 +14,7 @@ const S3_KEY = 'lambda/document-processor.zip';
 async function deployLambda() {
   try {
     console.log('Creating deployment package...');
+    console.log(`Function name: ${FUNCTION_NAME}`);
     
     // Create zip file
     const output = fs.createWriteStream('document-processor.zip');
@@ -63,7 +64,8 @@ async function deployLambda() {
           console.log('- Handler: index.handler');
           console.log('- Timeout: 15 minutes');
           console.log('- Memory: 1024 MB');
-          console.log('- Environment Variables: Set ENVIRONMENT based on deployment target');
+          console.log('- Environment Variables: ENVIRONMENT will be passed by caller');
+          console.log('- IAM Role: Needs permissions for S3, DynamoDB, OpenSearch, Bedrock');
         }
         
         // Clean up
