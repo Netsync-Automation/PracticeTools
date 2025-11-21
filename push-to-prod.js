@@ -16,13 +16,8 @@ let dynamoClient = null;
 
 function createDynamoClient(region) {
   if (!dynamoClient) {
-    dynamoClient = new DynamoDBClient({
-      region: region,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-      }
-    });
+    // Use default credential chain (AWS CLI credentials, environment variables, IAM role, etc.)
+    dynamoClient = new DynamoDBClient({ region });
   }
   return dynamoClient;
 }
