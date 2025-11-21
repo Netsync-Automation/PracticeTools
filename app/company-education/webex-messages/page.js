@@ -19,6 +19,8 @@ export default function WebexMessagesPage() {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [monitoredRooms, setMonitoredRooms] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const messagesPerPage = 15;
 
   useEffect(() => {
     if (user) {
@@ -100,6 +102,10 @@ export default function WebexMessagesPage() {
     msg.person_email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredMessages.length / messagesPerPage);
+  const startIndex = (currentPage - 1) * messagesPerPage;
+  const paginatedMessages = filteredMessages.slice(startIndex, startIndex + messagesPerPage);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -173,7 +179,7 @@ export default function WebexMessagesPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredMessages.map((message) => (
+                      {paginatedMessages.map((message) => (
                         <tr key={message.message_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedMessage(message)}>
                           <td className="px-6 py-4 text-sm text-gray-900">
                             <div className="truncate" title={new Date(message.created).toLocaleString()}>
@@ -255,6 +261,43 @@ export default function WebexMessagesPage() {
                       ))}
                     </tbody>
                   </table>
+                  
+                  {totalPages > 1 && (
+                    <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+                      <div className="text-sm text-gray-700">
+                        Showing {startIndex + 1} to {Math.min(startIndex + messagesPerPage, filteredMessages.length)} of {filteredMessages.length} messages
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                          className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Previous
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`px-3 py-1 border rounded-md text-sm font-medium ${
+                              currentPage === page
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

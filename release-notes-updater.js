@@ -11,27 +11,13 @@ import { readFileSync } from 'fs';
 export class ReleaseNotesUpdater {
   static async updateReleaseNotesPage(environment, newVersion, releaseNotes) {
     try {
-      // Get all releases from database for sidebar
-      const allReleases = await db.getReleases();
-      
-      // Filter releases by environment
-      const envReleases = allReleases.filter(release => {
-        if (environment === 'prod') {
-          return !release.version.includes('-dev.');
-        } else {
-          return release.version.includes('-dev.');
-        }
-      });
-      
-      // Sort releases by version (newest first)
-      envReleases.sort((a, b) => this.compareVersions(b.version, a.version));
-      
-      // Generate new page content
-      const pageContent = this.generateReleaseNotesPageContent(envReleases, environment);
-      
-      // Update the release notes page
+      // Read the current page file to preserve its structure
       const pagePath = 'app/release-notes/page.js';
-      return pageContent;
+      const currentPageContent = readFileSync(pagePath, 'utf8');
+      
+      // The page loads releases dynamically from the API, so we don't need to modify it
+      // Just return the current content as-is since releases are stored in the database
+      return currentPageContent;
       
     } catch (error) {
       console.error('Error updating release notes page:', error);
@@ -39,6 +25,7 @@ export class ReleaseNotesUpdater {
     }
   }
   
+  // This method is deprecated - page now loads releases dynamically from database
   static generateReleaseNotesPageContent(releases, environment) {
     const envTitle = environment === 'prod' ? 'Production' : 'Development';
     
@@ -46,6 +33,7 @@ export class ReleaseNotesUpdater {
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import SidebarLayout from '../../components/SidebarLayout';
 import Navbar from '../../components/Navbar';
 import Breadcrumb from '../../components/Breadcrumb';
 
@@ -187,22 +175,24 @@ export default function ReleaseNotes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-50">
         <Navbar user={user} onLogout={handleLogout} />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <SidebarLayout user={user}>
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
           </div>
-        </div>
+        </SidebarLayout>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <Navbar user={user} onLogout={handleLogout} />
-      
-      <div className="container mx-auto px-4 py-6">
+      <SidebarLayout user={user}>
+        <div className="container mx-auto px-4 py-6">
         <Breadcrumb 
           items={[
             { label: 'Release Notes', href: '/release-notes' }
@@ -346,10 +336,14 @@ export default function ReleaseNotes() {
           @apply text-blue-500 font-bold mr-2;
         }
       \`}</style>
+      </SidebarLayout>
     </div>
   );
 }`;
   }
+  
+  // Deprecated: Kept for backward compatibility but not used
+  // Page now loads releases dynamically from /api/releases
   
   static compareVersions(a, b) {
     const parseVersion = (v) => {

@@ -111,3 +111,42 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Failed to add label' }, { status: 500 });
   }
 }
+
+export async function DELETE(request) {
+  try {
+    const { practiceId, labelId } = await request.json();
+    
+    if (!practiceId || !labelId) {
+      return NextResponse.json({ error: 'Practice ID and label ID are required' }, { status: 400 });
+    }
+
+    const tableName = getTableName('PracticeBoardLabels');
+    await ensureTableExists(tableName);
+    
+    const getCommand = new GetCommand({
+      TableName: tableName,
+      Key: { practiceId }
+    });
+
+    const result = await docClient.send(getCommand);
+    const existingLabels = result.Item?.labels || [];
+    
+    const updatedLabels = existingLabels.filter(label => label.id !== labelId);
+
+    const putCommand = new PutCommand({
+      TableName: tableName,
+      Item: {
+        practiceId,
+        labels: updatedLabels,
+        updatedAt: new Date().toISOString()
+      }
+    });
+
+    await docClient.send(putCommand);
+
+    return NextResponse.json({ labels: updatedLabels });
+  } catch (error) {
+    console.error('Error deleting label:', error);
+    return NextResponse.json({ error: 'Failed to delete label' }, { status: 500 });
+  }
+}

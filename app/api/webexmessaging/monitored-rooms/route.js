@@ -61,7 +61,36 @@ export async function POST(request) {
       }));
     }
     
-    // Store monitored rooms
+    // Get existing rooms to compare
+    const existingRooms = [];
+    for (let i = 1; i <= 50; i++) {
+      try {
+        const idParam = await ssmClient.send(new GetParameterCommand({
+          Name: getParameterName(sitePrefix, 'ROOM_ID', i)
+        }));
+        existingRooms.push({ index: i, id: idParam.Parameter.Value });
+      } catch (e) {
+        break;
+      }
+    }
+    
+    // Delete rooms that are no longer in the list
+    for (const existing of existingRooms) {
+      if (!monitoredRooms.find(r => r.id === existing.id)) {
+        try {
+          await ssmClient.send(new DeleteParameterCommand({
+            Name: getParameterName(sitePrefix, 'ROOM_NAME', existing.index)
+          }));
+        } catch (e) {}
+        try {
+          await ssmClient.send(new DeleteParameterCommand({
+            Name: getParameterName(sitePrefix, 'ROOM_ID', existing.index)
+          }));
+        } catch (e) {}
+      }
+    }
+    
+    // Create or update monitored rooms
     for (let i = 0; i < monitoredRooms.length; i++) {
       const room = monitoredRooms[i];
       const num = i + 1;

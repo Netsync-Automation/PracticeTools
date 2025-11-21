@@ -16,13 +16,8 @@ let dynamoClient = null;
 
 function createDynamoClient(region) {
   if (!dynamoClient) {
-    dynamoClient = new DynamoDBClient({
-      region: region,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-      }
-    });
+    // Use default credential chain (AWS CLI credentials, environment variables, IAM role, etc.)
+    dynamoClient = new DynamoDBClient({ region });
   }
   return dynamoClient;
 }
@@ -738,11 +733,17 @@ class ProdPushManager {
   
   static async updateReleaseNotesPage(version, releaseNotes) {
     try {
-      // The release notes are stored in the database and the page loads them dynamically
-      // However, we should ensure the database contains the release notes in the correct format
-      console.log('✅ Release notes stored in database - page will load dynamically');
+      // Import ReleaseNotesUpdater to generate the page content
+      const { ReleaseNotesUpdater } = await import('./release-notes-updater.js');
       
-      // Verify the release was saved with the notes
+      // Generate the updated page content for production environment
+      const pageContent = await ReleaseNotesUpdater.updateReleaseNotesPage('prod', version, releaseNotes);
+      
+      // Write the updated page to the file system
+      writeFileSync('app/release-notes/page.js', pageContent);
+      console.log('✅ Release notes page file updated successfully');
+      
+      // Verify the release was saved with the notes in database
       const scanCommand = new ScanCommand({
         TableName: `${this.appName}-prod-Releases`,
         FilterExpression: 'version = :version',
@@ -765,7 +766,8 @@ class ProdPushManager {
       }
       
     } catch (error) {
-      console.log('⚠️  Release notes verification failed:', error.message);
+      console.log('⚠️  Release notes update failed:', error.message);
+      throw error;
     }
   }
   

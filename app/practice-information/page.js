@@ -1,12 +1,15 @@
 ﻿'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import { useBoardDragDrop } from '../../hooks/useBoardDragDrop';
 import { useCsrf } from '../../hooks/useCsrf';
 import { sanitizeText } from '../../lib/sanitize';
 import { linkifyText } from '../../lib/url-utils';
+import { uploadFilesWithProgress } from '../../lib/upload-with-progress';
+import FileUploadProgress from '../../components/FileUploadProgress';
 import SidebarLayout from '../../components/SidebarLayout';
 import Navbar from '../../components/Navbar';
 import Breadcrumb from '../../components/Breadcrumb';
@@ -56,9 +59,7 @@ function FileDropZone({ onFilesSelected, files }) {
   ];
 
   const validateFiles = (fileList) => {
-    const validFiles = Array.from(fileList).filter(file => {
-      return file.size <= 5 * 1024 * 1024 && validTypes.includes(file.type);
-    });
+    const validFiles = Array.from(fileList);
     return validFiles.slice(0, 5);
   };
 
@@ -123,7 +124,6 @@ function FileDropZone({ onFilesSelected, files }) {
           type="file"
           multiple
           onChange={handleChange}
-          accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
           className="hidden"
         />
         <div>
@@ -137,7 +137,7 @@ function FileDropZone({ onFilesSelected, files }) {
           <span className="text-gray-500"> or drag and drop</span>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Max 5 files, 5MB each. Images, PDF, DOC, XLS, TXT, ZIP
+          Max 5 files. All file types supported.
         </p>
       </div>
       
@@ -168,9 +168,10 @@ function FileDropZone({ onFilesSelected, files }) {
   );
 }
 
-export default function PracticeInformationPage() {
+function PracticeInformationPageContent() {
   const { user, loading, logout } = useAuth();
   const { getHeaders } = useCsrf();
+  const searchParams = useSearchParams();
   const [columns, setColumns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showNewColumn, setShowNewColumn] = useState(false);
@@ -180,6 +181,7 @@ export default function PracticeInformationPage() {
   const [newCardDescription, setNewCardDescription] = useState('');
   const [editingCard, setEditingCard] = useState(null);
   const [editingDescription, setEditingDescription] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showProjectNumberModal, setShowProjectNumberModal] = useState(false);
   const [projectNumber, setProjectNumber] = useState('');
@@ -239,6 +241,7 @@ export default function PracticeInformationPage() {
   const [editingLabel, setEditingLabel] = useState(null);
   const [editLabelName, setEditLabelName] = useState('');
   const [editLabelColor, setEditLabelColor] = useState('');
+  const [uploadProgress, setUploadProgress] = useState([]);
 
   // Topic preference management
   const getTopicPreferenceKey = (practiceId, userEmail) => {
@@ -301,6 +304,45 @@ export default function PracticeInformationPage() {
       setIsLoading(false);
     }
   }, [user]);
+
+  // Handle URL parameters for direct navigation from ChatNPT
+  useEffect(() => {
+    if (availableBoards.length > 0 && searchParams) {
+      const urlBoardId = searchParams.get('boardId');
+      const urlTopic = searchParams.get('topic');
+      
+      if (urlBoardId) {
+        console.log('🎯 [URL NAVIGATION] Processing boardId:', {
+          urlBoardId,
+          urlTopic,
+          availableBoards: availableBoards.map(b => ({ id: b.practiceId, practices: b.practices }))
+        });
+        
+        // Find board by matching practices string
+        const targetBoard = availableBoards.find(board => {
+          const boardPracticesString = board.practices?.join('-') || '';
+          return boardPracticesString === urlBoardId;
+        });
+        
+        if (targetBoard && targetBoard.practiceId !== currentPracticeId) {
+          console.log('🎯 [URL NAVIGATION] Setting board from URL:', {
+            targetBoard,
+            urlTopic
+          });
+          
+          setCurrentPracticeId(targetBoard.practiceId);
+          setCurrentBoardName(targetBoard.practices?.join(', ') || '');
+          setCurrentBoardPractices(targetBoard.practices || []);
+          
+          const targetTopic = urlTopic || 'Main Topic';
+          setCurrentTopic(targetTopic);
+          saveTopicPreference(targetBoard.practiceId, targetTopic);
+        } else {
+          console.log('🎯 [URL NAVIGATION] No matching board found for:', urlBoardId);
+        }
+      }
+    }
+  }, [availableBoards, searchParams, currentPracticeId]);
 
   useEffect(() => {
     if (currentPracticeId) {
@@ -389,6 +431,13 @@ export default function PracticeInformationPage() {
         console.log('ðŸ” [FRONTEND] No boards available, setting loading to false');
         setIsLoading(false);
       } else if (boards.length > 0 && !currentPracticeId) {
+        // Check if URL parameters should override default selection
+        const urlBoardId = searchParams?.get('boardId');
+        
+        if (urlBoardId) {
+          console.log('🔍 [FRONTEND] URL will override default board selection');
+          return;
+        }
         console.log('ðŸ” [FRONTEND] Finding default board for user');
         let defaultBoard;
         
@@ -1068,27 +1117,52 @@ export default function PracticeInformationPage() {
       // Upload comment attachments if any
       if (commentFiles.length > 0) {
         try {
-          const formData = new FormData();
-          commentFiles.forEach(file => {
-            formData.append('attachments', file);
-          });
-          
-          const response = await fetch('/api/files/upload', {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (response.ok) {
-            const result = await response.json();
-            attachments = result.attachments.map(att => ({
+          // Initialize progress tracking
+          const initialProgress = commentFiles.map((file, index) => ({
+            id: `comment-${Date.now()}-${index}`,
+            filename: file.name,
+            size: file.size,
+            progress: 0,
+            error: null
+          }));
+          setUploadProgress(initialProgress);
+
+          // Upload with progress tracking
+          const results = await uploadFilesWithProgress(
+            commentFiles,
+            (fileId, progress, filename) => {
+              setUploadProgress(prev => 
+                prev.map(item => 
+                  item.filename === filename ? { ...item, progress } : item
+                )
+              );
+            },
+            (fileId, result) => {
+              // File completed
+            },
+            (fileId, error) => {
+              setUploadProgress(prev => 
+                prev.map(item => 
+                  item.id === fileId ? { ...item, error } : item
+                )
+              );
+            }
+          );
+
+          // Process all successful uploads
+          attachments = results.flatMap(result => 
+            result.attachments.map(att => ({
               id: att.id,
               filename: att.filename,
               size: att.size,
               path: att.s3Key,
               uploadedBy: user?.email,
               created_at: att.created_at
-            }));
-          }
+            }))
+          );
+
+          // Clear progress after 2 seconds
+          setTimeout(() => setUploadProgress([]), 2000);
         } catch (error) {
           console.error('Error uploading comment files:', error);
         }
@@ -1482,52 +1556,78 @@ export default function PracticeInformationPage() {
 
   const addAttachments = async (columnId, cardId, files) => {
     try {
-      const formData = new FormData();
-      files.forEach(file => {
-        formData.append('attachments', file);
-      });
-      
-      const response = await fetch('/api/files/upload', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        const attachments = result.attachments.map(att => ({
+      // Initialize progress tracking for each file
+      const initialProgress = files.map((file, index) => ({
+        id: `${Date.now()}-${index}`,
+        filename: file.name,
+        size: file.size,
+        progress: 0,
+        error: null
+      }));
+      setUploadProgress(initialProgress);
+
+      // Upload with progress tracking
+      const results = await uploadFilesWithProgress(
+        files,
+        (fileId, progress, filename) => {
+          setUploadProgress(prev => 
+            prev.map(item => 
+              item.filename === filename ? { ...item, progress } : item
+            )
+          );
+        },
+        (fileId, result) => {
+          // File completed
+        },
+        (fileId, error) => {
+          setUploadProgress(prev => 
+            prev.map(item => 
+              item.id === fileId ? { ...item, error } : item
+            )
+          );
+        }
+      );
+
+      // Process all successful uploads
+      const allAttachments = results.flatMap(result => 
+        result.attachments.map(att => ({
           id: att.id,
           filename: att.filename,
           size: att.size,
           path: att.s3Key,
           uploadedBy: user?.email,
           created_at: att.created_at
+        }))
+      );
+
+      const newColumns = columns.map(col => 
+        col.id === columnId 
+          ? { 
+              ...col, 
+              cards: col.cards.map(card => 
+                card.id === cardId 
+                  ? { ...card, attachments: [...(card.attachments || []), ...allAttachments] }
+                  : card
+              )
+            }
+          : col
+      );
+      
+      setColumns(newColumns);
+      saveBoardData(newColumns);
+      
+      if (selectedCard && selectedCard.id === cardId) {
+        setSelectedCard(prev => ({
+          ...prev,
+          attachments: [...(prev.attachments || []), ...allAttachments]
         }));
-        
-        const newColumns = columns.map(col => 
-          col.id === columnId 
-            ? { 
-                ...col, 
-                cards: col.cards.map(card => 
-                  card.id === cardId 
-                    ? { ...card, attachments: [...(card.attachments || []), ...attachments] }
-                    : card
-                )
-              }
-            : col
-        );
-        
-        setColumns(newColumns);
-        saveBoardData(newColumns);
-        
-        if (selectedCard && selectedCard.id === cardId) {
-          setSelectedCard(prev => ({
-            ...prev,
-            attachments: [...(prev.attachments || []), ...attachments]
-          }));
-        }
       }
+
+      // Clear progress after 2 seconds
+      setTimeout(() => setUploadProgress([]), 2000);
     } catch (error) {
       console.error('Error uploading files:', error);
+      // Keep progress visible to show error
     }
     
     setCardFiles([]);
@@ -1595,6 +1695,7 @@ export default function PracticeInformationPage() {
     setShowChecklistDropdown(false);
     setSelectedChecklistItem(null);
     setEditingDescription(false);
+    setEditingTitle(false);
     setShowAddMenu(false);
     setShowProjectNumberModal(false);
     setProjectNumber('');
@@ -2367,14 +2468,44 @@ export default function PracticeInformationPage() {
                       ) : null;
                     })()}
                   </div>
-                  <input
-                    type="text"
-                    value={selectedCard.title}
-                    onChange={(e) => setSelectedCard({ ...selectedCard, title: e.target.value })}
-                    className="text-2xl font-bold text-gray-900 border-none outline-none w-full placeholder-gray-400 focus:ring-0 bg-transparent"
-                    onBlur={() => updateCard(selectedCard.columnId, selectedCard.id, { title: selectedCard.title })}
-                    placeholder="Card title..."
-                  />
+                  {editingTitle ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={selectedCard.title}
+                        onChange={(e) => setSelectedCard({ ...selectedCard, title: e.target.value })}
+                        className="text-2xl font-bold text-gray-900 border-2 border-blue-500 rounded-lg px-3 py-1 w-full placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        onBlur={() => {
+                          updateCard(selectedCard.columnId, selectedCard.id, { title: selectedCard.title });
+                          setEditingTitle(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            updateCard(selectedCard.columnId, selectedCard.id, { title: selectedCard.title });
+                            setEditingTitle(false);
+                          }
+                          if (e.key === 'Escape') {
+                            setEditingTitle(false);
+                          }
+                        }}
+                        placeholder="Card title..."
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-bold text-gray-900 flex-1">{selectedCard.title}</h2>
+                      {canComment && (
+                        <button
+                          onClick={() => setEditingTitle(true)}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                          title="Rename card"
+                        >
+                          <PencilIcon className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                     <span>Created {new Date(selectedCard.createdAt).toLocaleDateString()} at {new Date(selectedCard.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                     <span>•</span>
@@ -2444,7 +2575,9 @@ export default function PracticeInformationPage() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => {
-                                  updateCard(selectedCard.columnId, selectedCard.id, { description: selectedCard.description });
+                                  const linkedDescription = linkifyText(selectedCard.description);
+                                  updateCard(selectedCard.columnId, selectedCard.id, { description: linkedDescription });
+                                  setSelectedCard(prev => ({ ...prev, description: linkedDescription }));
                                   setEditingDescription(false);
                                 }}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -3071,7 +3204,6 @@ export default function PracticeInformationPage() {
                                   addAttachments(selectedCard.columnId, selectedCard.id, files);
                                 }
                               }}
-                              accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
                               className="hidden"
                               id="attachment-upload"
                             />
@@ -3081,7 +3213,7 @@ export default function PracticeInformationPage() {
                             >
                               Click to upload files
                             </label>
-                            <p className="text-xs text-gray-500 mt-1">or drag and drop • Max 5MB each</p>
+                            <p className="text-xs text-gray-500 mt-1">or drag and drop • All file types supported</p>
                           </div>
                         </div>
                       )}
@@ -3240,7 +3372,6 @@ export default function PracticeInformationPage() {
                                   const files = Array.from(e.target.files || []);
                                   setCommentFiles(prev => [...prev, ...files].slice(0, 3));
                                 }}
-                                accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
                                 className="hidden"
                                 id="comment-attachment-upload"
                               />
@@ -3412,6 +3543,9 @@ export default function PracticeInformationPage() {
       )}
       
       {/* Card Settings Modal */}
+      {/* Upload Progress Indicator */}
+      <FileUploadProgress uploads={uploadProgress} />
+
       {showCardSettings && selectedCard && (
         <CardSettingsModal
           isOpen={showCardSettings}
@@ -4071,5 +4205,17 @@ export default function PracticeInformationPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PracticeInformationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <PracticeInformationPageContent />
+    </Suspense>
   );
 }

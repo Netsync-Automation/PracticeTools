@@ -49,7 +49,7 @@ function updateEnvFile(branch) {
     // Write updated content
     writeFileSync(envPath, updatedContent);
     
-    console.log(`🔧 Environment synced: ${branch} branch → NODE_ENV=${nodeEnv}, ENVIRONMENT=${environment}`);
+    console.log(`Environment synced: ${branch} branch -> NODE_ENV=${nodeEnv}, ENVIRONMENT=${environment}`);
     
   } catch (error) {
     console.error('Error updating .env.local:', error.message);
@@ -61,7 +61,7 @@ function main() {
   
   // Skip env file update in AWS environments
   if (currentBranch === null) {
-    console.log('🔧 Environment variables managed by AWS App Runner');
+    console.log('Environment variables managed by AWS App Runner');
     return;
   }
   

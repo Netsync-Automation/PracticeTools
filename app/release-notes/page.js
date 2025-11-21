@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import SidebarLayout from '../../components/SidebarLayout';
 import Navbar from '../../components/Navbar';
 import Breadcrumb from '../../components/Breadcrumb';
 
@@ -143,22 +144,24 @@ export default function ReleaseNotes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-50">
         <Navbar user={user} onLogout={handleLogout} />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <SidebarLayout user={user}>
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
           </div>
-        </div>
+        </SidebarLayout>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <Navbar user={user} onLogout={handleLogout} />
-      
-      <div className="container mx-auto px-4 py-6">
+      <SidebarLayout user={user}>
+        <div className="container mx-auto px-4 py-6">
         <Breadcrumb 
           items={[
             { label: 'Release Notes', href: '/release-notes' }
@@ -302,6 +305,7 @@ export default function ReleaseNotes() {
           @apply text-blue-500 font-bold mr-2;
         }
       `}</style>
+      </SidebarLayout>
     </div>
   );
 }

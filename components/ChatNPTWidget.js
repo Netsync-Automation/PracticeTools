@@ -17,6 +17,8 @@ export default function ChatNPTWidget({ user }) {
   const [currentChatTitle, setCurrentChatTitle] = useState('New Chat');
   const [selectedSource, setSelectedSource] = useState(null);
   const [loadingSource, setLoadingSource] = useState(false);
+  const [showTranscriptModal, setShowTranscriptModal] = useState(false);
+  const [selectedTranscript, setSelectedTranscript] = useState(null);
   const messagesEndRef = useRef(null);
 
   const handleViewSource = async (source) => {
@@ -56,7 +58,7 @@ export default function ChatNPTWidget({ user }) {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -66,7 +68,9 @@ export default function ChatNPTWidget({ user }) {
   }, [user]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      setTimeout(scrollToBottom, 300);
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -212,7 +216,10 @@ export default function ChatNPTWidget({ user }) {
       const response = await fetch('/api/chatnpt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: input })
+        body: JSON.stringify({ 
+          question: input,
+          conversationHistory: messages
+        })
       });
 
       const data = await response.json();
@@ -257,9 +264,9 @@ export default function ChatNPTWidget({ user }) {
   return { 
     chats, currentChatId, messages, input, isLoading, showCitationsModal, selectedCitations,
     editingChatId, editingTitle, showSearchModal, searchQuery, currentChatTitle, selectedSource,
-    loadingSource, messagesEndRef, setInput, setShowCitationsModal, setSelectedCitations,
+    loadingSource, showTranscriptModal, selectedTranscript, messagesEndRef, setInput, setShowCitationsModal, setSelectedCitations,
     setEditingChatId, setEditingTitle, setShowSearchModal, setSearchQuery, setSelectedSource,
-    handleViewSource, formatTimestamp, createNewChat, loadChat, renameChat, deleteChat, 
+    setShowTranscriptModal, setSelectedTranscript, handleViewSource, formatTimestamp, createNewChat, loadChat, renameChat, deleteChat, 
     searchChats, handleSubmit
   };
 }

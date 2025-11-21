@@ -1250,19 +1250,36 @@ export default function CompanyEduPage() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Recording Hosts (Email Addresses)</label>
-                    {newSite.recordingHosts.map((host, index) => (
+                    {newSite.recordingHosts.map((host, index) => {
+                      const hostEmail = typeof host === 'string' ? host : host.email || '';
+                      const hostUserId = typeof host === 'object' ? host.userId : null;
+                      return (
                       <div key={index} className="flex gap-2 mb-2">
-                        <input
-                          type="email"
-                          value={host}
-                          onChange={(e) => {
-                            const updated = [...newSite.recordingHosts];
-                            updated[index] = e.target.value;
-                            setNewSite({...newSite, recordingHosts: updated});
-                          }}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="host@example.com"
-                        />
+                        <div className="flex-1">
+                          <input
+                            type="email"
+                            value={hostEmail}
+                            onChange={(e) => {
+                              const updated = [...newSite.recordingHosts];
+                              if (hostUserId) {
+                                updated[index] = { email: e.target.value, userId: hostUserId };
+                              } else {
+                                updated[index] = e.target.value;
+                              }
+                              setNewSite({...newSite, recordingHosts: updated});
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="host@example.com"
+                          />
+                          {hostUserId && (
+                            <div className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              User ID: {hostUserId.substring(0, 20)}...
+                            </div>
+                          )}
+                        </div>
                         {newSite.recordingHosts.length > 1 && (
                           <button
                             onClick={() => {
@@ -1277,7 +1294,7 @@ export default function CompanyEduPage() {
                           </button>
                         )}
                       </div>
-                    ))}
+                    );})}
                     <button
                       onClick={() => setNewSite({...newSite, recordingHosts: [...newSite.recordingHosts, '']})}
                       className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
@@ -1495,7 +1512,7 @@ export default function CompanyEduPage() {
                         return;
                       }
                       
-                      const validHosts = newSite.recordingHosts.filter(h => h.trim());
+                      const validHosts = newSite.recordingHosts.filter(h => (typeof h === 'string' ? h.trim() : h.email?.trim()));
                       if (validHosts.length === 0) {
                         alert('Please add at least one recording host');
                         return;
@@ -1532,8 +1549,8 @@ export default function CompanyEduPage() {
                       
                       setSavingWebexMeetings(true);
                       try {
-                        // Save bot token and monitored rooms if configured
-                        if (newSite.botToken || (hasBotToken && newSite.monitoredRooms.length > 0)) {
+                        // Save bot token and monitored rooms if bot is configured
+                        if (newSite.botToken || hasBotToken) {
                           const roomsResponse = await fetch('/api/webexmessaging/monitored-rooms', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },

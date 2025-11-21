@@ -223,6 +223,24 @@ export default function NewIssuePage() {
       }));
     }
     
+    // Handle URL parameters for pre-filling form (from ChatNPT)
+    const urlParams = new URLSearchParams(window.location.search);
+    const issueType = urlParams.get('issueType');
+    const title = urlParams.get('title');
+    const description = urlParams.get('description');
+    
+    if (issueType || title || description) {
+      setFormData(prev => ({
+        ...prev,
+        issue_type: issueType || prev.issue_type,
+        title: title || prev.title,
+        description: description || prev.description
+      }));
+      
+      // Clear URL parameters after setting form data
+      window.history.replaceState({}, '', '/new-issue');
+    }
+    
     // Fetch issue types
     const fetchIssueTypes = async () => {
       try {

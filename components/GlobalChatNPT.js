@@ -10,6 +10,14 @@ export default function GlobalChatNPT({ user }) {
   const [loadingSources, setLoadingSources] = useState(false);
   const chatWidget = ChatNPTWidget({ user });
 
+  useEffect(() => {
+    if (isOpen && chatWidget.messages.length > 0) {
+      setTimeout(() => {
+        chatWidget.messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [isOpen]);
+
   const fetchDataSources = async () => {
     setLoadingSources(true);
     try {
@@ -30,6 +38,23 @@ export default function GlobalChatNPT({ user }) {
       fetchDataSources();
     }
   }, [showDataSources]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Ctrl + ` (Windows/Linux) or Cmd + ` (Mac) to toggle ChatNPT
+      if ((event.ctrlKey || event.metaKey) && event.key === '`') {
+        event.preventDefault();
+        setIsOpen(prev => !prev);
+      }
+      // Escape to close ChatNPT when open
+      else if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   if (!user) return null;
 
@@ -65,6 +90,49 @@ export default function GlobalChatNPT({ user }) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const lastUserMessage = chatWidget.messages.filter(m => m.role === 'user').pop();
+                    const lastAssistantMessage = chatWidget.messages.filter(m => m.role === 'assistant').pop();
+                    
+                    if (lastUserMessage && lastAssistantMessage) {
+                      // Create a concise title that fits within 100 characters
+                      const userInput = lastUserMessage.content.trim();
+                      const maxQuestionLength = 60; // Leave room for "ChatNPT issue: " prefix
+                      
+                      let questionPreview = userInput;
+                      if (userInput.length > maxQuestionLength) {
+                        // Find the last complete word within the limit
+                        questionPreview = userInput.substring(0, maxQuestionLength);
+                        const lastSpace = questionPreview.lastIndexOf(' ');
+                        if (lastSpace > 20) { // Ensure we have meaningful content
+                          questionPreview = questionPreview.substring(0, lastSpace);
+                        }
+                        questionPreview += '...';
+                      }
+                      
+                      const title = `ChatNPT issue: ${questionPreview}`;
+                      const description = `Inputted: ${lastUserMessage.content}\n\nResponse: ${lastAssistantMessage.content}\n\n<Update additional context explaining what the response should have been>`;
+                      
+                      const params = new URLSearchParams({
+                        issueType: 'Bug Report',
+                        title: title,
+                        description: description
+                      });
+                      
+                      window.location.href = `/new-issue?${params.toString()}`;
+                    } else {
+                      alert('No conversation history to report on.');
+                    }
+                  }}
+                  className="px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20 rounded-lg transition-colors flex items-center gap-2"
+                  title="Report an issue with ChatNPT response"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  Report Issue
+                </button>
                 <button
                   onClick={() => setShowDataSources(true)}
                   className="px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20 rounded-lg transition-colors flex items-center gap-2"
@@ -208,12 +276,13 @@ export default function GlobalChatNPT({ user }) {
                               <div className="space-y-1">
                                 {msg.sources.slice(0, 5).map((source, sidx) => (
                                   <div key={sidx} className="text-xs truncate">
-                                    • <span className="font-medium">({source.source})</span> <button 
-                                        onClick={() => chatWidget.handleViewSource(source)}
+                                    • <span className="font-medium">({source.source})</span> <a 
+                                        onClick={(e) => { e.preventDefault(); chatWidget.handleViewSource(source); }}
+                                        href="#"
                                         className="text-blue-600 hover:text-blue-800 underline"
                                       >
                                         {source.topic}
-                                      </button>{source.timestamp && ` at ${chatWidget.formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
+                                      </a>{source.timestamp && ` at ${chatWidget.formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
                                   </div>
                                 ))}
                                 {msg.sources.length > 5 && (
@@ -371,6 +440,18 @@ export default function GlobalChatNPT({ user }) {
                   <p className="text-gray-900 mt-1">{chatWidget.selectedSource.uploadedBy}</p>
                 </div>
               )}
+              {chatWidget.selectedSource.fileName && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Document Name</label>
+                  <p className="text-gray-900 mt-1">{chatWidget.selectedSource.fileName}</p>
+                </div>
+              )}
+              {chatWidget.selectedSource.chunkIndex !== undefined && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Document Section</label>
+                  <p className="text-gray-900 mt-1">Chunk {chatWidget.selectedSource.chunkIndex + 1}</p>
+                </div>
+              )}
               <div>
                 <label className="text-sm font-medium text-gray-500">Content</label>
                 <div className="bg-gray-50 rounded-lg p-4 mt-1 text-sm text-gray-900 whitespace-pre-wrap">
@@ -415,7 +496,67 @@ export default function GlobalChatNPT({ user }) {
               )}
             </div>
             <div className="px-6 py-4 border-t border-gray-200 flex gap-3 justify-end">
-              {chatWidget.selectedSource.source === 'Documentation' && chatWidget.selectedSource.docId && (
+              {(() => {
+                console.log('DEBUG: selectedSource data:', JSON.stringify(chatWidget.selectedSource, null, 2));
+                if (!chatWidget.selectedSource) {
+                  console.log('DEBUG: No selectedSource');
+                  return null;
+                }
+                
+                const isPracticeInfo = chatWidget.selectedSource.source === 'Practice Information';
+                const hasBoardId = !!chatWidget.selectedSource.boardId;
+                const hasUrl = !!chatWidget.selectedSource.url;
+                
+                console.log('DEBUG: isPracticeInfo:', isPracticeInfo, 'hasBoardId:', hasBoardId, 'hasUrl:', hasUrl);
+                
+                if (isPracticeInfo && hasBoardId) {
+                  console.log('DEBUG: Practice Info button - boardId:', chatWidget.selectedSource.boardId);
+                  console.log('DEBUG: Practice Info button - boardTopic:', chatWidget.selectedSource.boardTopic);
+                  return (
+                    <button
+                      onClick={() => {
+                        const boardId = chatWidget.selectedSource.boardId;
+                        const boardTopic = chatWidget.selectedSource.boardTopic || 'Main Topic';
+                        
+                        console.log('DEBUG: Opening practice-information page with URL params');
+                        console.log('DEBUG: Target boardId:', boardId);
+                        console.log('DEBUG: Target boardTopic:', boardTopic);
+                        
+                        // Navigate to practice-information page with URL parameters
+                        const url = new URL('/practice-information', window.location.origin);
+                        url.searchParams.set('boardId', boardId);
+                        url.searchParams.set('topic', boardTopic);
+                        
+                        console.log('DEBUG: Generated URL:', url.toString());
+                        window.location.href = url.toString();
+                      }}
+                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View in Practice Tools
+                    </button>
+                  );
+                } else if (hasUrl) {
+                  console.log('DEBUG: Showing URL button');
+                  return (
+                    <a
+                      href={chatWidget.selectedSource.url}
+                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View in Practice Tools
+                    </a>
+                  );
+                } else {
+                  console.log('DEBUG: No button shown - missing required data');
+                  return null;
+                }
+              })()}
+              {(chatWidget.selectedSource.source === 'Documentation' && chatWidget.selectedSource.docId) && (
                 <a
                   href={`/api/documentation/download?id=${chatWidget.selectedSource.docId}`}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
@@ -427,17 +568,55 @@ export default function GlobalChatNPT({ user }) {
                   Download
                 </a>
               )}
-              {chatWidget.selectedSource.source === 'Webex Recordings' && chatWidget.selectedSource.downloadUrl && (
+              {(chatWidget.selectedSource.source === 'Documents' && chatWidget.selectedSource.documentId) && (
                 <a
-                  href={chatWidget.selectedSource.downloadUrl}
+                  href={`/api/documentation/download?id=${chatWidget.selectedSource.documentId}`}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
                   download
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  Download MP4
+                  Download Document
                 </a>
+              )}
+              {chatWidget.selectedSource.source === 'Webex Recordings' && (
+                <>
+                  {chatWidget.selectedSource.recordingId && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const response = await fetch(`/api/webexmeetings/recordings/${chatWidget.selectedSource.recordingId}/transcript`);
+                          if (response.ok) {
+                            const data = await response.json();
+                            chatWidget.setSelectedTranscript(data);
+                            chatWidget.setShowTranscriptModal(true);
+                          }
+                        } catch (error) {
+                          console.error('Error fetching transcript:', error);
+                        }
+                      }}
+                      className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      View Transcript
+                    </button>
+                  )}
+                  {chatWidget.selectedSource.downloadUrl && (
+                    <a
+                      href={chatWidget.selectedSource.downloadUrl}
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      download
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download MP4
+                    </a>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -474,7 +653,16 @@ export default function GlobalChatNPT({ user }) {
               ) : (
                 <div className="space-y-4">
                   {dataSources.map((source, idx) => (
-                    <div key={idx} className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-100 hover:shadow-md transition-shadow">
+                    <div 
+                      key={idx} 
+                      className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-100 hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+                      onClick={() => {
+                        if (source.url) {
+                          setShowDataSources(false);
+                          window.location.href = source.url;
+                        }
+                      }}
+                    >
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
                           {source.icon === 'video' && (
@@ -496,28 +684,17 @@ export default function GlobalChatNPT({ user }) {
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="text-lg font-semibold text-gray-900">{source.name}</h4>
-                            {source.url ? (
-                              <a
-                                href={source.url}
-                                onClick={() => setShowDataSources(false)}
-                                className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-full hover:bg-blue-700 transition-colors cursor-pointer"
-                                title="View in application"
-                              >
-                                {source.count} {source.count === 1 ? 'item' : 'items'}
-                              </a>
-                            ) : (
+                            <div className="flex items-center gap-2">
                               <span className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-full">
                                 {source.count} {source.count === 1 ? 'item' : 'items'}
                               </span>
-                            )}
+                              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </div>
                           </div>
-                          <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                            {source.path}
-                          </p>
                           <p className="text-gray-600 text-sm">{source.description}</p>
+                          <p className="text-xs text-blue-600 mt-2 font-medium">Click to view in application</p>
                         </div>
                       </div>
                     </div>
@@ -553,15 +730,38 @@ export default function GlobalChatNPT({ user }) {
               <div className="space-y-2">
                 {chatWidget.selectedCitations.map((source, idx) => (
                   <div key={idx} className="text-sm py-2 border-b border-gray-100 last:border-0">
-                    {idx + 1}. <span className="font-medium">({source.source})</span> <button 
-                      onClick={() => { chatWidget.setShowCitationsModal(false); chatWidget.handleViewSource(source); }}
+                    {idx + 1}. <span className="font-medium">({source.source})</span> <a 
+                      onClick={(e) => { e.preventDefault(); chatWidget.setShowCitationsModal(false); chatWidget.handleViewSource(source); }}
+                      href="#"
                       className="text-blue-600 hover:text-blue-800 underline"
                     >
                       {source.topic}
-                    </button>{source.timestamp && ` at ${chatWidget.formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
+                    </a>{source.timestamp && ` at ${chatWidget.formatTimestamp(source.timestamp)}`} {source.text && <span className="text-gray-500" title={source.text}>("{source.text.substring(0, 50)}...")</span>}
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transcript Modal */}
+      {chatWidget.showTranscriptModal && chatWidget.selectedTranscript && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]" onClick={() => chatWidget.setShowTranscriptModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">{chatWidget.selectedTranscript.topic}</h3>
+              <button
+                onClick={() => chatWidget.setShowTranscriptModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto flex-1">
+              <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">{chatWidget.selectedTranscript.transcript}</pre>
             </div>
           </div>
         </div>
