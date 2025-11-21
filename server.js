@@ -49,7 +49,7 @@ app.prepare().then(() => {
     console.error('[STARTUP] Stack trace:', err.stack);
     process.exit(1);
   })
-  .listen(port, () => {
+  .listen(port, hostname, () => {
     console.log(`[STARTUP] Server ready on http://${hostname}:${port}`);
     console.log('[STARTUP] Application startup completed successfully');
     console.log('[DEBUG] Server listening details:');
@@ -59,7 +59,17 @@ app.prepare().then(() => {
     console.log('  - Process PID:', process.pid);
     console.log('  - Memory usage:', process.memoryUsage());
     
-    // Test server responsiveness
+    // Periodic health check logging every 30 seconds
+    setInterval(() => {
+      const mem = process.memoryUsage();
+      console.log('[HEALTH] Server alive check:', {
+        uptime: process.uptime(),
+        memoryMB: Math.round(mem.heapUsed / 1024 / 1024),
+        timestamp: new Date().toISOString()
+      });
+    }, 30000);
+    
+    // Initial health check
     setTimeout(() => {
       console.log('[DEBUG] Server health check - still running after 5 seconds');
     }, 5000);
