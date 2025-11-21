@@ -31,9 +31,13 @@ export default function SettingsPage() {
       return;
     }
     
-    // Redirect to general settings if on base settings page
+    // Redirect to appropriate page based on role
     if (pathname === '/admin/settings') {
-      router.push('/admin/settings/general-settings');
+      if (user && !user.isAdmin && (user.role === 'practice_manager' || user.role === 'practice_principal')) {
+        router.push('/admin/settings/user-management');
+      } else {
+        router.push('/admin/settings/general-settings');
+      }
     }
   }, [user, router, pathname]);
 

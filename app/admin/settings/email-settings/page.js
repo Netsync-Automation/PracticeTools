@@ -43,7 +43,7 @@ export default function EmailSettingsPage() {
   ];
 
   useEffect(() => {
-    if (!loading && user && !user.isAdmin) {
+    if (!loading && user && !user.isAdmin && user.role !== 'practice_manager' && user.role !== 'practice_principal') {
       router.push('/');
       return;
     }
