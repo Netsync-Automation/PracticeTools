@@ -451,25 +451,17 @@ async function getNextAuthUrl(env) {
     return nextAuthUrlCache[env];
   }
   
-  try {
-    const parameterName = env === 'prod' 
-      ? '/PracticeTools/NEXTAUTH_URL'
-      : '/PracticeTools/dev/NEXTAUTH_URL';
-    
-    const result = await ssm.getParameter({
-      Name: parameterName,
-      WithDecryption: false
-    }).promise();
-    
-    nextAuthUrlCache[env] = result.Parameter.Value;
-    return result.Parameter.Value;
-  } catch (error) {
-    console.error(`Failed to get NEXTAUTH_URL from SSM for ${env}:`, error);
-    // Fallback to hardcoded URLs
-    return env === 'prod' 
-      ? 'https://practicetools.netsync.com'
-      : 'https://dev.practicetools.netsync.com';
-  }
+  const parameterName = env === 'prod' 
+    ? '/PracticeTools/NEXTAUTH_URL'
+    : '/PracticeTools/dev/NEXTAUTH_URL';
+  
+  const result = await ssm.getParameter({
+    Name: parameterName,
+    WithDecryption: false
+  }).promise();
+  
+  nextAuthUrlCache[env] = result.Parameter.Value;
+  return result.Parameter.Value;
 }
 
 async function notifyDocumentationUpdate(documentId, status, env) {
