@@ -1,0 +1,14 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "https://practicetools.netsync.com",
+        "https://dev.practicetools.netsync.com"
+      ],
+      "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+      "AllowedHeaders": ["*"],
+      "ExposeHeaders": ["ETag", "x-amz-meta-custom-header"],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}
