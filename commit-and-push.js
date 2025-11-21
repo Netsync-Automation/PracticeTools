@@ -464,6 +464,7 @@ class CommitBuilder {
           'startupinit': 'Enhanced startup-init Service with improved functionality and error handling',
           'webexrecording-notifications': 'Enhanced webex-recording-notifications Service with improved functionality and error handling',
           'opensearchsetup': 'Enhanced opensearch-setup Service with improved functionality and error handling',
+          'transcriptretry-processor': 'Enhanced transcript-retry-processor Service with improved functionality and error handling',
     };
     
     // Check for pattern matches
