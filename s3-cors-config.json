@@ -1,12 +1,12 @@
 {
   "CORSRules": [
     {
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
       "AllowedOrigins": [
         "https://practicetools.netsync.com",
-        "https://dev.practicetools.netsync.com"
+        "https://czpifmw72k.us-east-1.awsapprunner.com"
       ],
-      "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
-      "AllowedHeaders": ["*"],
       "ExposeHeaders": ["ETag", "x-amz-meta-custom-header"],
       "MaxAgeSeconds": 3600
     }

@@ -36,7 +36,7 @@ export default function GeneralSettingsPage() {
   const isNonAdminPracticeUser = user && !user.isAdmin && (user.role === 'practice_manager' || user.role === 'practice_principal');
 
   useEffect(() => {
-    if (user && !user.isAdmin) {
+    if (user && !user.isAdmin && user.role !== 'practice_manager' && user.role !== 'practice_principal') {
       router.push('/');
       return;
     }
