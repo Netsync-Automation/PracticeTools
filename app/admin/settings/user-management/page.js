@@ -236,7 +236,8 @@ export default function UserManagementPage() {
           practices: editingUser.practices || [],
           auth_method: editingUser.auth_method,
           region: editingUser.region,
-          status: 'active'
+          status: 'active',
+          webex_bot_source: editingUser.webex_bot_source || null
         })
       });
       
@@ -1041,6 +1042,25 @@ export default function UserManagementPage() {
                         ))}
                       </select>
                     </div>
+                    
+                    {editingUser.webex_bot_sources && editingUser.webex_bot_sources.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Practice Team</label>
+                        <select
+                          value={editingUser.webex_bot_source || ''}
+                          onChange={(e) => setEditingUser({...editingUser, webex_bot_source: e.target.value})}
+                          className="input-field"
+                        >
+                          <option value="">None</option>
+                          {editingUser.webex_bot_sources.map(botSource => (
+                            <option key={botSource} value={botSource}>{botSource}</option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Available teams: {editingUser.webex_bot_sources.join(', ')}
+                        </p>
+                      </div>
+                    )}
                     
                     {editingUser.role !== 'netsync_employee' && (
                       <div>

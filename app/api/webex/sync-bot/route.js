@@ -113,31 +113,43 @@ export async function POST(request) {
           );
           syncedCount++;
         } else if (existingUser.created_from === 'webex_sync') {
-          // Only update existing WebEx user if they don't have a bot source yet
-          if (!existingUser.webex_bot_source) {
-            const updates = { webex_bot_source: bot.friendlyName || bot.name };
-            
-            // Update role if needed and not staged
-            if (existingUser.status !== 'staged' && existingUser.role !== role) {
-              updates.role = role;
-            }
-            
+          // Add this bot to user's sources if not already present
+          const currentSources = existingUser.webex_bot_sources || [];
+          const botName = bot.friendlyName || bot.name;
+          
+          if (!currentSources.includes(botName)) {
+            const updates = { webex_bot_sources: [...currentSources, botName] };
             await db.updateUser(membership.personEmail, updates);
           }
-          // If user already has a bot source, preserve it and don't update
         }
       }
     }
 
-    // Remove users who are no longer in the room (only for this specific bot)
+    // Remove bot source from users no longer in this room
     const allUsers = await db.getAllUsers();
     let removedCount = 0;
+    const botName = bot.friendlyName || bot.name;
+    
     for (const user of allUsers) {
-      if (user.created_from === 'webex_sync' && 
-          user.webex_bot_source === (bot.friendlyName || bot.name) && 
-          !roomEmails.has(user.email)) {
-        await db.deleteUser(user.email);
-        removedCount++;
+      if (user.created_from === 'webex_sync') {
+        const currentSources = user.webex_bot_sources || [];
+        
+        // If user has this bot as a source but is no longer in the room
+        if (currentSources.includes(botName) && !roomEmails.has(user.email)) {
+          const updatedSources = currentSources.filter(s => s !== botName);
+          
+          if (updatedSources.length === 0) {
+            // No more bot sources - delete user
+            await db.deleteUser(user.email);
+            removedCount++;
+          } else {
+            // Still has other bot sources - just remove this one and switch to first remaining
+            await db.updateUser(user.email, { 
+              webex_bot_sources: updatedSources,
+              webex_bot_source: updatedSources[0] // Set primary to first remaining
+            });
+          }
+        }
       }
     }
 
