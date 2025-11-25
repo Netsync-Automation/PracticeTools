@@ -5,7 +5,8 @@
       "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
       "AllowedOrigins": [
         "https://practicetools.netsync.com",
-        "https://czpifmw72k.us-east-1.awsapprunner.com"
+        "https://czpifmw72k.us-east-1.awsapprunner.com",
+        "https://cfm2pd2zmq.us-east-1.awsapprunner.com"
       ],
       "ExposeHeaders": ["ETag", "x-amz-meta-custom-header"],
       "MaxAgeSeconds": 3600

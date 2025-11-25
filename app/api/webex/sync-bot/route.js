@@ -78,6 +78,14 @@ export async function POST(request) {
     const memberships = data.items || [];
     const roomEmails = new Set();
     let syncedCount = 0;
+    
+    // Safety check: if we got 0 members, something is wrong - don't remove users
+    if (memberships.length === 0) {
+      return NextResponse.json({ 
+        error: `No members found in room for bot "${bot.friendlyName || bot.name}". This may indicate an API issue or empty room. No users were modified.`,
+        warning: true
+      }, { status: 200 });
+    }
 
     // Process current room members
     for (const membership of memberships) {
