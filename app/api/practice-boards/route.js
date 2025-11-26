@@ -173,22 +173,20 @@ export async function POST(request) {
       console.log('[PRACTICE-BOARDS-DEBUG] User practices:', user.practices);
       console.log('[PRACTICE-BOARDS-DEBUG] User role:', user.role);
       
+      // DSR: Normalize practice names for comparison (case-insensitive, remove spaces)
+      const normalizePractice = (practice) => practice?.toLowerCase().replace(/\s+/g, '');
+      
       // DSR: Enhanced permission check for practice principals, managers, and members
       let canEdit = false;
       
       if (boardPractices && user.practices) {
-        // Check for direct practice match
-        canEdit = boardPractices.some(practice => user.practices.includes(practice));
+        const userPracticesNormalized = user.practices.map(p => normalizePractice(p));
+        const boardPracticesNormalized = boardPractices.map(p => normalizePractice(p));
         
-        // DSR: Additional check for practice users - they can edit boards for their practice
-        if (!canEdit && (user.role === 'practice_principal' || user.role === 'practice_manager' || user.role === 'practice_member')) {
-          // Check if user's practice matches any board practice (case-insensitive)
-          canEdit = boardPractices.some(boardPractice => 
-            user.practices.some(userPractice => 
-              boardPractice.toLowerCase().replace(/[^a-z]/g, '') === userPractice.toLowerCase().replace(/[^a-z]/g, '')
-            )
-          );
-        }
+        // Check if any user practice matches any board practice (normalized)
+        canEdit = boardPracticesNormalized.some(boardPractice => 
+          userPracticesNormalized.includes(boardPractice)
+        );
       }
       
       console.log('[PRACTICE-BOARDS-DEBUG] Can edit board:', canEdit);
