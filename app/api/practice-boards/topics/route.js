@@ -153,10 +153,20 @@ export async function POST(request) {
         createdAt: new Date().toISOString()
       }));
       
+      // Get practices from Main Topic board to ensure consistency
+      const mainBoardKey = `${environment}_practice_board_${practiceId}`;
+      const mainBoardData = await db.getSetting(mainBoardKey);
+      let practices = [];
+      if (mainBoardData) {
+        const parsed = JSON.parse(mainBoardData);
+        practices = parsed.practices || [];
+      }
+      
       await db.saveSetting(topicBoardKey, JSON.stringify({
         columns: defaultColumns,
         topic,
         practiceId,
+        practices,
         createdAt: new Date().toISOString(),
         createdBy: user.email
       }));
