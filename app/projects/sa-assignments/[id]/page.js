@@ -13,7 +13,7 @@ import AssignResourceModal from '../../../../components/AssignResourceModal';
 import CompleteStatusModal from '../../../../components/CompleteStatusModal';
 import UserField from '../../../../components/UserField';
 import { getEnvironment, getTableName } from '../../../../lib/dynamodb';
-import { PRACTICE_OPTIONS } from '../../../../constants/practices';
+
 
 // Color palette for practice-SA pairings
 const COLOR_PALETTE = [

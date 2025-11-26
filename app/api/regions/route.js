@@ -27,15 +27,14 @@ export async function GET(request) {
         const regionCode = item.code?.S || item.name?.S || '';
         const regionName = item.name?.S || item.code?.S || '';
         return {
-          code: regionCode,
-          name: regionName,
+          value: regionCode,
+          label: regionName,
           active: item.active?.BOOL !== false
         };
       }).filter(region => region.active);
       
       return NextResponse.json({
-        success: true,
-        regions: regions.sort((a, b) => a.name.localeCompare(b.name))
+        regions: regions.sort((a, b) => a.label.localeCompare(b.label))
       });
     } catch (error) {
       if (error.name === 'ResourceNotFoundException') {
@@ -52,15 +51,14 @@ export async function GET(request) {
           const regionCode = item.code?.S || item.name?.S || '';
           const regionName = item.name?.S || item.code?.S || '';
           return {
-            code: regionCode,
-            name: regionName,
+            value: regionCode,
+            label: regionName,
             active: item.active?.BOOL !== false
           };
         }).filter(region => region.active);
         
         return NextResponse.json({
-          success: true,
-          regions: regions.sort((a, b) => a.name.localeCompare(b.name))
+          regions: regions.sort((a, b) => a.label.localeCompare(b.label))
         });
       }
       throw error;

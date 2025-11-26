@@ -6,7 +6,6 @@ import Navbar from '../../../../components/Navbar';
 import SidebarLayout from '../../../../components/SidebarLayout';
 import Breadcrumb from '../../../../components/Breadcrumb';
 import { useAuth } from '../../../../hooks/useAuth';
-import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 import { getRoleColor } from '../../../../utils/roleColors';
 
 export default function UserManagementPage() {
@@ -48,8 +47,7 @@ export default function UserManagementPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [userRoles, setUserRoles] = useState([]);
   const [regions, setRegions] = useState([]);
-  
-  const practicesList = PRACTICE_OPTIONS.sort();
+  const [practicesList, setPracticesList] = useState([]);
 
   const tabs = [
     { id: 'general', name: 'General Settings', icon: '⚙️', href: '/admin/settings/general-settings' },
@@ -91,6 +89,7 @@ export default function UserManagementPage() {
       fetchWebexBotsForFilter();
       fetchUserRoles();
       fetchRegions();
+      fetchPractices();
     }
   }, [user, router]);
   
@@ -148,6 +147,16 @@ export default function UserManagementPage() {
     }
   };
 
+  const fetchPractices = async () => {
+    try {
+      const response = await fetch('/api/practice-options');
+      const data = await response.json();
+      setPracticesList(data.practices || []);
+    } catch (error) {
+      console.error('Error fetching practices:', error);
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/admin/users');
@@ -160,35 +169,7 @@ export default function UserManagementPage() {
     }
   };
   
-  const validatePracticeRoles = (role, practices, excludeEmail = null) => {
-    if (role !== 'practice_manager' && role !== 'practice_principal') {
-      return { valid: true };
-    }
-    
-    for (const practice of practices) {
-      const existingUser = users.find(user => 
-        user.email !== excludeEmail &&
-        user.role === role && 
-        (user.practices || []).includes(practice)
-      );
-      
-      if (existingUser) {
-        return {
-          valid: false,
-          message: `There is already a ${role.replace('_', ' ')} for ${practice} practice (${existingUser.name})`
-        };
-      }
-    }
-    
-    return { valid: true };
-  };
-  
   const handleAddUser = async () => {
-    const validation = validatePracticeRoles(newUser.role, newUser.practices || []);
-    if (!validation.valid) {
-      alert(validation.message);
-      return;
-    }
     
     setLoadingActions(prev => ({...prev, add: true}));
     try {
@@ -218,11 +199,6 @@ export default function UserManagementPage() {
   };
   
   const handleEditUser = async () => {
-    const validation = validatePracticeRoles(editingUser.role, editingUser.practices || [], editingUser.email);
-    if (!validation.valid) {
-      alert(validation.message);
-      return;
-    }
     
     setLoadingActions(prev => ({...prev, edit: true}));
     try {
@@ -236,7 +212,8 @@ export default function UserManagementPage() {
           practices: editingUser.practices || [],
           auth_method: editingUser.auth_method,
           region: editingUser.region,
-          status: 'active'
+          status: 'active',
+          webex_bot_source: editingUser.webex_bot_source || null
         })
       });
       
@@ -1041,6 +1018,25 @@ export default function UserManagementPage() {
                         ))}
                       </select>
                     </div>
+                    
+                    {editingUser.webex_bot_sources && editingUser.webex_bot_sources.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Practice Team</label>
+                        <select
+                          value={editingUser.webex_bot_source || ''}
+                          onChange={(e) => setEditingUser({...editingUser, webex_bot_source: e.target.value})}
+                          className="input-field"
+                        >
+                          <option value="">None</option>
+                          {editingUser.webex_bot_sources.map(botSource => (
+                            <option key={botSource} value={botSource}>{botSource}</option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Available teams: {editingUser.webex_bot_sources.join(', ')}
+                        </p>
+                      </div>
+                    )}
                     
                     {editingUser.role !== 'netsync_employee' && (
                       <div>

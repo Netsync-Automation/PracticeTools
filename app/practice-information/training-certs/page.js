@@ -8,7 +8,6 @@ import SidebarLayout from '../../../components/SidebarLayout';
 import AccessCheck from '../../../components/AccessCheck';
 import Breadcrumb from '../../../components/Breadcrumb';
 import Pagination from '../../../components/Pagination';
-import { PRACTICE_OPTIONS } from '../../../constants/practices';
 
 export default function TrainingCertsPage() {
   const router = useRouter();
@@ -29,6 +28,7 @@ export default function TrainingCertsPage() {
   const [showRevertWarningModal, setShowRevertWarningModal] = useState(false);
   const [revertEntry, setRevertEntry] = useState(null);
   const [iterationEntry, setIterationEntry] = useState(null);
+  const [practiceOptions, setPracticeOptions] = useState([]);
   const [filters, setFilters] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('trainingCertsFilters');
@@ -116,8 +116,19 @@ export default function TrainingCertsPage() {
         console.error('Error fetching entries:', error);
       }
     };
+
+    const fetchPracticeOptions = async () => {
+      try {
+        const response = await fetch('/api/practice-options');
+        const data = await response.json();
+        setPracticeOptions(data.practices || []);
+      } catch (error) {
+        console.error('Error fetching practice options:', error);
+      }
+    };
     
     checkAuth();
+    fetchPracticeOptions();
     fetchSettings();
     fetchEntries();
     setLoading(false);
@@ -264,7 +275,7 @@ export default function TrainingCertsPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
                   >
                     <option value="">All Practices</option>
-                    {(PRACTICE_OPTIONS || []).map(practice => (
+                    {(practiceOptions || []).map(practice => (
                       <option key={practice} value={practice}>{practice}</option>
                     ))}
                   </select>
@@ -1043,7 +1054,7 @@ function AddTrainingModal({ isOpen, onClose, user, settings }) {
                   required
                 >
                   <option value="">Select Practice</option>
-                  {(PRACTICE_OPTIONS || []).filter(practice => 
+                  {(practiceOptions || []).filter(practice => 
                     user?.isAdmin || (user?.practices || []).includes(practice)
                   ).map(practice => (
                     <option key={practice} value={practice}>{practice}</option>
@@ -1350,7 +1361,7 @@ function SettingsModal({ isOpen, onClose, settings, onSettingsUpdate, user }) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
             >
               <option value="">Choose a practice...</option>
-              {(PRACTICE_OPTIONS || []).map(practice => (
+              {(practiceOptions || []).map(practice => (
                 <option key={practice} value={practice}>{practice}</option>
               ))}
             </select>
@@ -1825,7 +1836,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                       required
                     >
                       <option value="">Select Practice</option>
-                      {(PRACTICE_OPTIONS || []).filter(practice => 
+                      {(practiceOptions || []).filter(practice => 
                         user?.isAdmin || (user?.practices || []).includes(practice)
                       ).map(practice => (
                         <option key={practice} value={practice}>{practice}</option>

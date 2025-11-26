@@ -12,7 +12,6 @@ import PracticeSelector from '../../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../../components/MultiResourceSelector';
 import AccountManagerSelector from '../../../../components/AccountManagerSelector';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../../../constants/assignmentStatus';
-import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
 function FileUploadZone({ attachments, setAttachments }) {
   const [dragActive, setDragActive] = useState(false);

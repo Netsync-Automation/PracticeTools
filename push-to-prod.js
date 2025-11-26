@@ -74,7 +74,7 @@ class ProdPushManager {
   static async getBackupDirectory() {
     if (this.backupDir) return this.backupDir;
     
-    const defaultDir = 'D:\\Coding\\Backups\\PracticeTools\\prod';
+    const defaultDir = 'C:\\Coding\\Backups\\PracticeTools\\prod';
     
     const rl = readline.createInterface({
       input: process.stdin,
