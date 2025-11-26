@@ -160,35 +160,7 @@ export default function UserManagementPage() {
     }
   };
   
-  const validatePracticeRoles = (role, practices, excludeEmail = null) => {
-    if (role !== 'practice_manager' && role !== 'practice_principal') {
-      return { valid: true };
-    }
-    
-    for (const practice of practices) {
-      const existingUser = users.find(user => 
-        user.email !== excludeEmail &&
-        user.role === role && 
-        (user.practices || []).includes(practice)
-      );
-      
-      if (existingUser) {
-        return {
-          valid: false,
-          message: `There is already a ${role.replace('_', ' ')} for ${practice} practice (${existingUser.name})`
-        };
-      }
-    }
-    
-    return { valid: true };
-  };
-  
   const handleAddUser = async () => {
-    const validation = validatePracticeRoles(newUser.role, newUser.practices || []);
-    if (!validation.valid) {
-      alert(validation.message);
-      return;
-    }
     
     setLoadingActions(prev => ({...prev, add: true}));
     try {
@@ -218,11 +190,6 @@ export default function UserManagementPage() {
   };
   
   const handleEditUser = async () => {
-    const validation = validatePracticeRoles(editingUser.role, editingUser.practices || [], editingUser.email);
-    if (!validation.valid) {
-      alert(validation.message);
-      return;
-    }
     
     setLoadingActions(prev => ({...prev, edit: true}));
     try {
