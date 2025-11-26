@@ -6,7 +6,6 @@ import Navbar from '../../../../components/Navbar';
 import SidebarLayout from '../../../../components/SidebarLayout';
 import Breadcrumb from '../../../../components/Breadcrumb';
 import { useAuth } from '../../../../hooks/useAuth';
-import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 
 export default function WebExSettingsPage() {
   const router = useRouter();
@@ -35,8 +34,7 @@ export default function WebExSettingsPage() {
   const [saving, setSaving] = useState({ webex: false });
   const [selectedSpace, setSelectedSpace] = useState('');
   const [selectedResourceSpace, setSelectedResourceSpace] = useState('');
-
-  const practicesList = PRACTICE_OPTIONS.sort();
+  const [practicesList, setPracticesList] = useState([]);
 
   const tabs = [
     { id: 'general-settings', name: 'General Settings', href: '/admin/settings/general-settings' },
@@ -58,11 +56,16 @@ export default function WebExSettingsPage() {
     if (user) {
       const loadData = async () => {
         try {
-          const response = await fetch('/api/admin/webex-bots?t=' + Date.now());
-          const data = await response.json();
-          setWebexBots(data.bots || []);
+          const [botsResponse, practicesResponse] = await Promise.all([
+            fetch('/api/admin/webex-bots?t=' + Date.now()),
+            fetch('/api/practice-options')
+          ]);
+          const botsData = await botsResponse.json();
+          const practicesData = await practicesResponse.json();
+          setWebexBots(botsData.bots || []);
+          setPracticesList(practicesData.practices || []);
         } catch (error) {
-          console.error('Error loading WebEx bots:', error);
+          console.error('Error loading data:', error);
         }
       };
       loadData();

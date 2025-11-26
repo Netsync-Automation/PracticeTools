@@ -19,7 +19,7 @@ import AssignResourceModal from '../../../components/AssignResourceModal';
 import CompleteStatusModal from '../../../components/CompleteStatusModal';
 import RegionSelector from '../../../components/RegionSelector';
 import UserField from '../../../components/UserField';
-import { PRACTICE_OPTIONS } from '../../../constants/practices';
+
 import { getEnvironment, getTableName } from '../../../lib/dynamodb';
 import StatBox from '../../../components/StatBox';
 
@@ -155,6 +155,7 @@ export default function SaAssignmentsPage() {
   const [tempIndividualSAStatusSelection, setTempIndividualSAStatusSelection] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [saStatuses, setSaStatuses] = useState(['Pending', 'Unassigned', 'Assigned', 'Pending Approval', 'Complete']);
+  const [practiceOptions, setPracticeOptions] = useState([]);
   const saAssignmentsPerPage = 20;
 
   useEffect(() => {
@@ -276,6 +277,7 @@ export default function SaAssignmentsPage() {
     fetchSaAssignments();
     fetchSaStatuses();
     fetchPracticeETAs();
+    fetchPracticeOptions();
     
     let eventSource;
     let reconnectTimer;
@@ -375,6 +377,16 @@ export default function SaAssignmentsPage() {
       }
     } catch (error) {
       console.error('Error fetching SA statuses:', error);
+    }
+  };
+
+  const fetchPracticeOptions = async () => {
+    try {
+      const response = await fetch('/api/practice-options');
+      const data = await response.json();
+      setPracticeOptions(data.practices || []);
+    } catch (error) {
+      console.error('Error fetching practice options:', error);
     }
   };
 
@@ -1300,7 +1312,7 @@ export default function SaAssignmentsPage() {
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Practice Filters</h3>
                 <div className="space-y-2 mb-6 max-h-64 overflow-y-auto">
-                  {PRACTICE_OPTIONS.map(practice => (
+                  {practiceOptions.map(practice => (
                     <label key={practice} className="flex items-center">
                       <input
                         type="checkbox"
@@ -1320,7 +1332,7 @@ export default function SaAssignmentsPage() {
                 </div>
                 <div className="flex gap-2 mb-4 flex-wrap">
                   <button
-                    onClick={() => setTempPracticeSelection(PRACTICE_OPTIONS)}
+                    onClick={() => setTempPracticeSelection(practiceOptions)}
                     className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                   >
                     Select All

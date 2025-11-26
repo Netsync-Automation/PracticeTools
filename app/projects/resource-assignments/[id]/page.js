@@ -17,7 +17,6 @@ import MultiResourceSelector from '../../../../components/MultiResourceSelector'
 import RegionSelector from '../../../../components/RegionSelector';
 import AccountManagerSelector from '../../../../components/AccountManagerSelector';
 import { ASSIGNMENT_STATUS_OPTIONS } from '../../../../constants/assignmentStatus';
-import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 import { extractDisplayNames } from '../../../../utils/displayUtils';
 
 function FileUploadZone({ attachments, setAttachments }) {

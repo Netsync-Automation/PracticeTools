@@ -283,19 +283,29 @@ function PracticeInformationPageContent() {
 
   const isAdminLevel = user && (user.isAdmin || user.role === 'executive');
   
+  // DSR: Normalize practice names for comparison (case-insensitive, remove spaces)
+  const normalizePractice = (practice) => practice?.toLowerCase().replace(/\s+/g, '');
+  
+  const userPracticesNormalized = user?.practices?.map(p => normalizePractice(p)) || [];
+  const boardPracticesNormalized = currentBoardPractices.map(p => normalizePractice(p));
+  
+  const hasPracticeMatch = boardPracticesNormalized.some(boardPractice => 
+    userPracticesNormalized.includes(boardPractice)
+  );
+  
   const canEdit = user && (isAdminLevel || 
     ((user.role === 'practice_manager' || user.role === 'practice_principal') && 
-    currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))));
+    currentBoardPractices.length > 0 && hasPracticeMatch));
   
   const canAddCards = user && (isAdminLevel || 
     ((user.role === 'practice_manager' || user.role === 'practice_principal' || user.role === 'practice_member') && 
-    currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))));
+    currentBoardPractices.length > 0 && hasPracticeMatch));
   
   const canComment = user && (isAdminLevel || 
     (user.role === 'practice_manager' && currentBoardPractices.length > 0) ||
-    (user.role === 'practice_principal' && currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))) ||
-    (user.role === 'practice_member' && currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))) ||
-    (currentBoardPractices.length > 0 && currentBoardPractices.some(practice => user.practices?.includes(practice))));
+    (user.role === 'practice_principal' && currentBoardPractices.length > 0 && hasPracticeMatch) ||
+    (user.role === 'practice_member' && currentBoardPractices.length > 0 && hasPracticeMatch) ||
+    (currentBoardPractices.length > 0 && hasPracticeMatch));
 
   useEffect(() => {
     if (user) {

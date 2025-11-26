@@ -15,7 +15,6 @@ import UserSelector from '../../../components/UserSelector';
 import PracticeSelector from '../../../components/PracticeSelector';
 import MultiResourceSelector from '../../../components/MultiResourceSelector';
 import RegionSelector from '../../../components/RegionSelector';
-import { PRACTICE_OPTIONS } from '../../../constants/practices';
 import StatBox from '../../../components/StatBox';
 import { extractDisplayNames } from '../../../utils/displayUtils';
 
@@ -42,6 +41,7 @@ export default function ResourceAssignmentsPage() {
   const [tempStatusSelection, setTempStatusSelection] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const assignmentsPerPage = 20;
+  const [practiceOptions, setPracticeOptions] = useState([]);
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -144,6 +144,7 @@ export default function ResourceAssignmentsPage() {
     
     checkAuth();
     fetchAssignments();
+    fetchPracticeOptions();
     
     // Setup SSE connection for real-time assignment updates
     let eventSource;
@@ -242,6 +243,16 @@ export default function ResourceAssignmentsPage() {
       setAssignments([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPracticeOptions = async () => {
+    try {
+      const response = await fetch('/api/practice-options');
+      const data = await response.json();
+      setPracticeOptions(data.practices || []);
+    } catch (error) {
+      console.error('Error fetching practice options:', error);
     }
   };
 
@@ -907,7 +918,7 @@ export default function ResourceAssignmentsPage() {
                     <h3 className="text-lg font-semibold mb-4">Select Practices</h3>
                     
                     <div className="space-y-3 mb-6">
-                      {PRACTICE_OPTIONS.sort().map(practice => (
+                      {practiceOptions.map(practice => (
                         <label key={practice} className="flex items-center">
                           <input
                             type="checkbox"
@@ -928,7 +939,7 @@ export default function ResourceAssignmentsPage() {
                     
                     <div className="flex gap-2 mb-4">
                       <button
-                        onClick={() => setTempPracticeSelection([...PRACTICE_OPTIONS])}
+                        onClick={() => setTempPracticeSelection([...practiceOptions])}
                         className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
                       >
                         All Practices

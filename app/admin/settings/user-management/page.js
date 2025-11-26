@@ -6,7 +6,6 @@ import Navbar from '../../../../components/Navbar';
 import SidebarLayout from '../../../../components/SidebarLayout';
 import Breadcrumb from '../../../../components/Breadcrumb';
 import { useAuth } from '../../../../hooks/useAuth';
-import { PRACTICE_OPTIONS } from '../../../../constants/practices';
 import { getRoleColor } from '../../../../utils/roleColors';
 
 export default function UserManagementPage() {
@@ -48,8 +47,7 @@ export default function UserManagementPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [userRoles, setUserRoles] = useState([]);
   const [regions, setRegions] = useState([]);
-  
-  const practicesList = PRACTICE_OPTIONS.sort();
+  const [practicesList, setPracticesList] = useState([]);
 
   const tabs = [
     { id: 'general', name: 'General Settings', icon: '⚙️', href: '/admin/settings/general-settings' },
@@ -91,6 +89,7 @@ export default function UserManagementPage() {
       fetchWebexBotsForFilter();
       fetchUserRoles();
       fetchRegions();
+      fetchPractices();
     }
   }, [user, router]);
   
@@ -145,6 +144,16 @@ export default function UserManagementPage() {
       setRegions(data.regions || []);
     } catch (error) {
       console.error('Error fetching regions:', error);
+    }
+  };
+
+  const fetchPractices = async () => {
+    try {
+      const response = await fetch('/api/practice-options');
+      const data = await response.json();
+      setPracticesList(data.practices || []);
+    } catch (error) {
+      console.error('Error fetching practices:', error);
     }
   };
 
