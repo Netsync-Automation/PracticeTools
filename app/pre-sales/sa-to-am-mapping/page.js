@@ -391,7 +391,7 @@ export default function SAToAMMappingPage() {
       <div className="min-h-screen bg-gray-50">
         <Navbar user={user} onLogout={logout} />
         <SidebarLayout user={user}>
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8 w-full max-w-full overflow-x-hidden">
             <Breadcrumb items={[
               { label: 'Pre-Sales', href: '#' },
               { label: 'SA to AM Mapping' }
@@ -655,8 +655,8 @@ export default function SAToAMMappingPage() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full divide-y divide-gray-200" style={{minWidth: '1000px'}}>
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Solutions Architect</th>

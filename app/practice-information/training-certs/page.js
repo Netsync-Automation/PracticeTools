@@ -173,11 +173,11 @@ export default function TrainingCertsPage() {
 
   return (
     <AccessCheck user={user}>
-      <div className="bg-gray-50">
+      <div className="bg-gray-50 min-h-screen">
         <Navbar user={user} onLogout={handleLogout} />
         
         <SidebarLayout user={user}>
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8 w-full max-w-full overflow-x-hidden">
             <Breadcrumb items={[
               { label: 'Practice Information', href: '/practice-information' },
               { label: 'Training & Certs' }
@@ -726,8 +726,8 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
       />
       
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full divide-y divide-gray-200" style={{minWidth: '1200px'}}>
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Practice</th>

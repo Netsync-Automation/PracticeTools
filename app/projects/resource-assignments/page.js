@@ -380,7 +380,7 @@ export default function ResourceAssignmentsPage() {
         <Navbar user={user} onLogout={handleLogout} />
         
         <SidebarLayout user={user}>
-          <div className="p-8">
+          <div className="w-full max-w-full overflow-x-hidden p-4 sm:p-6 lg:p-8">
             <Breadcrumb items={[
               { label: 'Projects', href: '/projects' },
               { label: 'Resource Assignments' }

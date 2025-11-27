@@ -226,7 +226,7 @@ export default function PracticeIssuesLeadershipPage() {
         <Navbar user={user} onLogout={logout} />
         
         <SidebarLayout user={user}>
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8 w-full max-w-full overflow-x-hidden">
             <Breadcrumb items={[{ label: 'Practice Leadership View' }]} />
             
             <div className="mb-8">
@@ -764,8 +764,8 @@ function AssignedIssuesTable({ issues, user, router, issueTypes }) {
 
   return (
     <div className="card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="overflow-x-auto w-full">
+        <table className="w-full divide-y divide-gray-200" style={{minWidth: '900px'}}>
           <thead className="bg-gray-50">
             <tr>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">ID</th>

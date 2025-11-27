@@ -516,11 +516,11 @@ export default function PracticeIssuesPage() {
 
   return (
     <AccessCheck user={user}>
-      <div className="bg-gray-50">
+      <div className="bg-gray-50 min-h-screen">
         <Navbar user={user} onLogout={handleLogout} />
         
         <SidebarLayout user={user}>
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8 w-full max-w-full overflow-x-hidden">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -971,8 +971,8 @@ function IssueTable({ issues, user, visibilityData, onUpvote, onUpdate, columnSo
   
   return (
     <div className="card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="overflow-x-auto w-full">
+        <table className="w-full divide-y divide-gray-200" style={{minWidth: '900px'}}>
           <thead className="bg-gray-50">
             <tr>
               <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">ID</th>
