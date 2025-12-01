@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import sharp from 'sharp';
 import { getEnvironment } from '../../../../lib/dynamodb';
 
+export const dynamic = 'force-dynamic';
+
 const s3Client = new S3Client({
   region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
 });
