@@ -7,7 +7,7 @@ import { sanitizeText } from '../lib/sanitize';
 import { formatPhoneNumber, createPhoneLink } from '../lib/phone-utils.js';
 import PhoneInput from './PhoneInput.js';
 
-export default function ContactManagementSystem({ practiceGroupId, contactType, user, refreshTrigger, canAddCompaniesContacts }) {
+export default function ContactManagementSystem({ practiceGroupId, contactType, user, refreshTrigger, canAddCompaniesContacts, externalFilters, onSearchResults, allPracticeGroups, searchTerm: externalSearchTerm }) {
   const { getHeaders } = useCsrf();
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
@@ -18,6 +18,9 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
   const [showAddContact, setShowAddContact] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  
+  // Use external filters for tier/technology/solution filtering only
+  const activeFilters = externalFilters !== undefined ? externalFilters : filters;
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const searchInputRef = useRef(null);
@@ -136,7 +139,10 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
 
   useEffect(() => {
     filterCompanies();
-  }, [companies, searchTerm, filters]);
+    if (externalSearchTerm) {
+      performSearch(externalSearchTerm);
+    }
+  }, [companies, activeFilters, externalSearchTerm]);
 
   const fetchCompanies = async () => {
     setLoading(true);
@@ -195,6 +201,7 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
     if (!term.trim()) {
       setSearchResults([]);
       setShowSearchResults(false);
+      if (onSearchResults) onSearchResults([]);
       return;
     }
 
@@ -203,8 +210,51 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
     const searchLower = term.toLowerCase();
     const results = [];
 
+    // Determine which companies to search based on practice group filter
+    let companiesToSearch = [];
+    
+    // If practice group filter is "All", fetch and search all companies
+    if (externalFilters?.practiceGroup === '' && allPracticeGroups) {
+      for (const group of allPracticeGroups) {
+        try {
+          const response = await fetch(`/api/companies?practiceGroupId=${group.id}&contactType=${contactType}`);
+          const data = await response.json();
+          const companiesWithGroup = (data.companies || []).map(c => ({
+            ...c,
+            practiceGroupName: group.displayName,
+            contactType
+          }));
+          companiesToSearch.push(...companiesWithGroup);
+        } catch (error) {
+          // Continue with other groups
+        }
+      }
+    } else if (externalFilters?.practiceGroup) {
+      // If specific practice group filter is set, fetch companies from that group
+      try {
+        const group = allPracticeGroups?.find(g => g.id === externalFilters.practiceGroup);
+        const response = await fetch(`/api/companies?practiceGroupId=${externalFilters.practiceGroup}&contactType=${contactType}`);
+        const data = await response.json();
+        companiesToSearch = (data.companies || []).map(c => ({
+          ...c,
+          practiceGroupName: group?.displayName || 'Unknown',
+          contactType
+        }));
+      } catch (error) {
+        companiesToSearch = [];
+      }
+    } else {
+      // Use current displayed companies
+      const group = allPracticeGroups?.find(g => g.id === practiceGroupId);
+      companiesToSearch = companies.map(c => ({
+        ...c,
+        practiceGroupName: group?.displayName || 'Unknown',
+        contactType
+      }));
+    }
+
     // Search companies
-    companies.forEach(company => {
+    companiesToSearch.forEach(company => {
       if (Object.values(company).some(value => 
         value.toString().toLowerCase().includes(searchLower)
       )) {
@@ -216,55 +266,62 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       }
     });
 
-    // Search contacts
-    const allContacts = await getAllContacts();
-    allContacts.forEach(contact => {
-      if (Object.values(contact).some(value => 
-        value && value.toString().toLowerCase().includes(searchLower)
-      )) {
-        results.push({
+    // Search contacts from the companies being searched
+    for (const company of companiesToSearch) {
+      try {
+        const response = await fetch(`/api/contacts?companyId=${company.id}`);
+        const data = await response.json();
+        const companyContacts = (data.contacts || []).map(contact => ({
           ...contact,
-          type: 'contact',
-          matchText: `${contact.name} (${contact.companyName})`
+          companyName: company.name,
+          practiceGroupName: company.practiceGroupName,
+          contactType: company.contactType,
+          type: 'contact'
+        }));
+        
+        companyContacts.forEach(contact => {
+          if (Object.values(contact).some(value => 
+            value && value.toString().toLowerCase().includes(searchLower)
+          )) {
+            results.push({
+              ...contact,
+              matchText: `${contact.name} (${contact.companyName})`
+            });
+          }
         });
+      } catch (error) {
+        // Continue with other companies
       }
-    });
+    }
 
-    setSearchResults(results.slice(0, 10)); // Limit to 10 results
-    setShowSearchResults(true);
+    const limitedResults = results.slice(0, 10);
+    setSearchResults(limitedResults);
+    
+    if (externalSearchTerm !== undefined && onSearchResults) {
+      // Pass results to parent when using external search
+      onSearchResults(limitedResults);
+    } else {
+      setShowSearchResults(true);
+    }
   };
 
   const filterCompanies = () => {
     let filtered = companies;
 
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(company => {
-        const searchLower = searchTerm.toLowerCase();
-        return Object.entries(company).some(([key, value]) => {
-          if (key === 'technology' || key === 'solutionType') {
-            const arrayValue = Array.isArray(value) ? value : [value];
-            return arrayValue.some(item => item && item.toString().toLowerCase().includes(searchLower));
-          }
-          return value && value.toString().toLowerCase().includes(searchLower);
-        });
-      });
-    }
-
     // Apply dropdown filters
-    if (filters.tier) {
-      filtered = filtered.filter(company => company.tier === filters.tier);
+    if (activeFilters.tier) {
+      filtered = filtered.filter(company => company.tier === activeFilters.tier);
     }
-    if (filters.technology) {
+    if (activeFilters.technology) {
       filtered = filtered.filter(company => {
         const companyTech = Array.isArray(company.technology) ? company.technology : [company.technology];
-        return companyTech.some(tech => tech && tech.toLowerCase().includes(filters.technology.toLowerCase()));
+        return companyTech.some(tech => tech && tech.toLowerCase().includes(activeFilters.technology.toLowerCase()));
       });
     }
-    if (filters.solutionType) {
+    if (activeFilters.solutionType) {
       filtered = filtered.filter(company => {
         const companySolutions = Array.isArray(company.solutionType) ? company.solutionType : [company.solutionType];
-        return companySolutions.some(solution => solution && solution.toLowerCase().includes(filters.solutionType.toLowerCase()));
+        return companySolutions.some(solution => solution && solution.toLowerCase().includes(activeFilters.solutionType.toLowerCase()));
       });
     }
 
@@ -691,82 +748,72 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
 
   return (
     <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="card">
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1">
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search companies and contacts..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                performSearch(e.target.value);
-              }}
-              onFocus={() => {
-                if (searchTerm) {
-                  updateDropdownPosition();
-                  setShowSearchResults(true);
-                }
-              }}
-              onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          
-          {/* Filters */}
-          <div className="flex gap-3">
-            <select
-              value={filters.tier}
-              onChange={(e) => setFilters({...filters, tier: e.target.value})}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Tiers</option>
-              {fieldOptions.tier.filter(opt => opt !== 'Create your own options in Settings').map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
+      {/* Filters and Add Company (when external filters not provided) */}
+      {externalFilters === undefined && (
+        <div className="card">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Filters */}
+            <div className="flex gap-3">
+              <select
+                value={filters.tier}
+                onChange={(e) => setFilters({...filters, tier: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Tiers</option>
+                {fieldOptions.tier.filter(opt => opt !== 'Create your own options in Settings').map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              
+              <select
+                value={filters.technology}
+                onChange={(e) => setFilters({...filters, technology: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Technology</option>
+                {fieldOptions.technology.filter(opt => opt !== 'Create your own options in Settings').map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              
+              <select
+                value={filters.solutionType}
+                onChange={(e) => setFilters({...filters, solutionType: e.target.value})}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Solutions</option>
+                {fieldOptions.solutionType.filter(opt => opt !== 'Create your own options in Settings').map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
             
-            <select
-              value={filters.technology}
-              onChange={(e) => setFilters({...filters, technology: e.target.value})}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Technology</option>
-              {fieldOptions.technology.filter(opt => opt !== 'Create your own options in Settings').map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
-            
-            <select
-              value={filters.solutionType}
-              onChange={(e) => setFilters({...filters, solutionType: e.target.value})}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Solutions</option>
-              {fieldOptions.solutionType.filter(opt => opt !== 'Create your own options in Settings').map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
+            {canAddCompaniesContacts && (
+              <button
+                onClick={() => setShowAddCompany(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Add Company
+              </button>
+            )}
           </div>
-          
-          {canAddCompaniesContacts && (
-            <button
-              onClick={() => setShowAddCompany(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Add Company
-            </button>
-          )}
         </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Companies List */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Companies</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Companies</h3>
+            {canAddCompaniesContacts && (
+              <button
+                onClick={() => setShowAddCompany(true)}
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+              >
+                Add Company
+              </button>
+            )}
+          </div>
           
           {loading ? (
             <div className="flex justify-center py-8">

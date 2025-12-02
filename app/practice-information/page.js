@@ -282,6 +282,8 @@ function PracticeInformationPageContent() {
   ];
 
   const isAdminLevel = user && (user.isAdmin || user.role === 'executive');
+  const isPersonalBoard = currentPracticeId?.startsWith('personal_');
+  const isOwnPersonalBoard = isPersonalBoard && currentPracticeId === `personal_${user?.email.replace(/[^a-zA-Z0-9]/g, '_')}`;
   
   // DSR: Normalize practice names for comparison (case-insensitive, remove spaces)
   const normalizePractice = (practice) => practice?.toLowerCase().replace(/\s+/g, '');
@@ -293,15 +295,16 @@ function PracticeInformationPageContent() {
     userPracticesNormalized.includes(boardPractice)
   );
   
-  const canEdit = user && (isAdminLevel || 
+  // DSR: Personal boards have unrestricted access for owner and admins
+  const canEdit = user && (isOwnPersonalBoard || isAdminLevel || 
     ((user.role === 'practice_manager' || user.role === 'practice_principal') && 
     currentBoardPractices.length > 0 && hasPracticeMatch));
   
-  const canAddCards = user && (isAdminLevel || 
+  const canAddCards = user && (isOwnPersonalBoard || isAdminLevel || 
     ((user.role === 'practice_manager' || user.role === 'practice_principal' || user.role === 'practice_member') && 
     currentBoardPractices.length > 0 && hasPracticeMatch));
   
-  const canComment = user && (isAdminLevel || 
+  const canComment = user && (isOwnPersonalBoard || isAdminLevel || 
     (user.role === 'practice_manager' && currentBoardPractices.length > 0) ||
     (user.role === 'practice_principal' && currentBoardPractices.length > 0 && hasPracticeMatch) ||
     (user.role === 'practice_member' && currentBoardPractices.length > 0 && hasPracticeMatch) ||
@@ -914,6 +917,9 @@ function PracticeInformationPageContent() {
   };
 
   const formatBoardDisplayName = (board) => {
+    if (board.isPersonal) {
+      return board.practices[0]; // Already formatted as "User's Board"
+    }
     if (board.practices && board.practices.length > 0) {
       return board.practices.map(practice => formatPracticeName(practice)).join(', ');
     }
@@ -1865,8 +1871,20 @@ function PracticeInformationPageContent() {
               <div className="flex items-center justify-between">
                 {/* Left: Title & Description */}
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-gray-900">Practice Information Board</h1>
-                  <p className="text-sm text-gray-600 mt-1">Organize and track practice information using cards and columns</p>
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-2xl font-bold text-gray-900">Practice Information Board</h1>
+                    {isOwnPersonalBoard && (
+                      <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-full shadow-md">
+                        👤 Personal Board
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {isOwnPersonalBoard 
+                      ? 'Your private workspace - manage topics, invite users, and organize your work'
+                      : 'Organize and track practice information using cards and columns'
+                    }
+                  </p>
                 </div>
                 
                 {/* Right: Actions */}
@@ -1984,7 +2002,7 @@ function PracticeInformationPageContent() {
                       >
                         {availableBoards.map(board => (
                           <option key={board.practiceId} value={board.practiceId}>
-                            {formatBoardDisplayName(board)}
+                            {board.isPersonal ? '👤 ' : ''}{formatBoardDisplayName(board)}
                           </option>
                         ))}
                       </select>
@@ -2399,6 +2417,9 @@ function PracticeInformationPageContent() {
         <BoardSettingsModal 
           onClose={() => setShowBoardSettings(false)}
           currentPracticeId={currentPracticeId}
+          currentBoardName={currentBoardName}
+          isPersonalBoard={currentPracticeId?.startsWith('personal_')}
+          user={user}
           boardBackground={boardBackground}
           setBoardBackground={setBoardBackground}
           predefinedBackgrounds={predefinedBackgrounds}

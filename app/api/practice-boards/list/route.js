@@ -89,8 +89,24 @@ export async function GET(request) {
     
     console.log('🔍 [API] Boards with permissions:', boardsWithPermissions.length);
     
-    console.log('🔍 [API] Final practice boards list:', boardsWithPermissions.length);
-    return NextResponse.json({ boards: boardsWithPermissions });
+    // DSR: Add personal board for current user
+    const personalBoardId = `personal_${user.email.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const personalBoard = {
+      practiceId: personalBoardId,
+      practices: [`${user.name}'s Board`],
+      managerId: user.email,
+      createdAt: new Date().toISOString(),
+      isPersonal: true,
+      isOwned: true,
+      canEdit: true,
+      canCreateTopics: true
+    };
+    
+    // Add personal board at the beginning
+    const allBoards = [personalBoard, ...boardsWithPermissions];
+    
+    console.log('🔍 [API] Final practice boards list (including personal):', allBoards.length);
+    return NextResponse.json({ boards: allBoards });
   } catch (error) {
     console.error('🔍 [API] Error listing practice boards:', error);
     return NextResponse.json({ error: 'Failed to list practice boards' }, { status: 500 });

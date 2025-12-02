@@ -37,24 +37,22 @@ export async function POST(request) {
     }
     
     console.log('🔌 [EMAIL-TEST] Creating SMTP transporter...');
+    const portNum = parseInt(port);
     const transporterConfig = {
       host: smtpHost,
-      port: parseInt(port),
-      secure: parseInt(port) === 465,
-      requireTLS: parseInt(port) === 587,
+      port: portNum,
+      secure: portNum === 465,
       auth: {
         user: smtpUser,
         pass: smtpPassword
       },
       tls: {
         rejectUnauthorized: false,
-        servername: smtpHost,
-        secureProtocol: 'TLSv1_2_method'
+        ciphers: 'SSLv3'
       },
       connectionTimeout: 30000,
       greetingTimeout: 20000,
-      socketTimeout: 30000,
-
+      socketTimeout: 30000
     };
     
     console.log('📋 [EMAIL-TEST] Transporter config:', {
