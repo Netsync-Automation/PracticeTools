@@ -54,10 +54,10 @@ export default function EmailSettingsPage() {
           const response = await fetch('/api/settings/email?t=' + Date.now());
           const data = await response.json();
           setSettings({
-            emailNotifications: data.emailNotifications || false,
-            smtpHost: data.smtpHost || '',
-            smtpPort: data.smtpPort || '',
-            smtpUser: data.smtpUser || '',
+            emailNotifications: data.settings?.emailNotifications || false,
+            smtpHost: data.settings?.smtpHost || '',
+            smtpPort: data.settings?.smtpPort || '',
+            smtpUser: data.settings?.smtpUser || '',
             smtpPassword: ''
           });
         } catch (error) {

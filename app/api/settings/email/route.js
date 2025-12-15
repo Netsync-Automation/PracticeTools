@@ -130,11 +130,13 @@ export async function GET() {
     ]);
     
     return NextResponse.json({
-      emailNotifications: emailNotifications === 'true',
-      smtpHost: smtpHost || '',
-      smtpPort: smtpPort || '587',
-      smtpUser: smtpUser || '',
-      smtpPassword: smtpPassword ? '••••••••' : ''
+      settings: {
+        emailNotifications: emailNotifications === 'true',
+        smtpHost: smtpHost || '',
+        smtpPort: smtpPort || '587',
+        smtpUser: smtpUser || '',
+        smtpPassword: smtpPassword ? '••••••••' : ''
+      }
     });
   } catch (error) {
     console.error('Error loading email settings:', error);
