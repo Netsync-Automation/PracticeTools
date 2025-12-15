@@ -26,6 +26,15 @@ export async function POST(request) {
 
     const { emailNotifications, smtpHost, smtpPort, smtpUser, smtpPassword } = await request.json();
     
+    console.log('[EMAIL-SETTINGS] Saving settings:', {
+      emailNotifications,
+      smtpHost,
+      smtpPort,
+      smtpUser,
+      hasPassword: !!smtpPassword,
+      passwordLength: smtpPassword?.length || 0
+    });
+    
     // Get environment for database operations
     const environment = process.env.ENVIRONMENT || 'dev';
     
@@ -64,13 +73,23 @@ export async function POST(request) {
     }
     
     if (smtpPassword) {
+      console.log('[EMAIL-SETTINGS] Updating SMTP password in SSM:', {
+        paramName: ENV === 'prod' ? '/PracticeTools/SMTP_PW' : `/PracticeTools/${ENV}/SMTP_PW`,
+        passwordLength: smtpPassword.length,
+        passwordType: typeof smtpPassword,
+        passwordValue: smtpPassword.substring(0, 10) + '...',
+        isTimestamp: smtpPassword.includes('T') && smtpPassword.includes('Z')
+      });
       const passwordCommand = new PutParameterCommand({
         Name: ENV === 'prod' ? '/PracticeTools/SMTP_PW' : `/PracticeTools/${ENV}/SMTP_PW`,
-        Value: smtpPassword,
+        Value: String(smtpPassword),
         Type: 'String',
         Overwrite: true
       });
       await ssmClient.send(passwordCommand);
+      console.log('[EMAIL-SETTINGS] SMTP password updated successfully');
+    } else {
+      console.log('[EMAIL-SETTINGS] No password provided, skipping SSM update');
     }
     
     return NextResponse.json({ success: true });

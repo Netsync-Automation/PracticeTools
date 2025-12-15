@@ -77,13 +77,19 @@ export default function EmailSettingsPage() {
         return;
       }
 
+      // Only send password if it was actually changed (not empty)
+      const settingsToSave = { ...settings };
+      if (!settingsToSave.smtpPassword || settingsToSave.smtpPassword.trim() === '') {
+        delete settingsToSave.smtpPassword;
+      }
+
       const response = await fetch('/api/settings/email', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken
         },
-        body: JSON.stringify(settings)
+        body: JSON.stringify(settingsToSave)
       });
 
       const data = await response.json();
