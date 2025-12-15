@@ -122,13 +122,16 @@ export async function POST(request) {
             await db.updateUser(membership.personEmail, updates);
           }
         } else if (existingUser.created_from === 'local' && existingUser.auth_method === 'sso') {
-          // Convert local SSO user to webex source
+          // DSR: Convert local SSO user to webex source
           const botName = bot.friendlyName || bot.name;
-          await db.updateUser(membership.personEmail, {
+          const updates = {
             created_from: 'webex_sync',
             webex_bot_sources: [botName],
             webex_bot_source: botName
-          });
+          };
+          
+          // Use the actual email from the database (case-sensitive key) for the update
+          await db.updateUser(existingUser.email, updates);
           syncedCount++;
         }
       }

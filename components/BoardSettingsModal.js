@@ -3,10 +3,14 @@
 import { useState } from 'react';
 import { XMarkIcon, PhotoIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import ChecklistTemplateEditModal from './ChecklistTemplateEditModal';
+import UserManagementTab from './UserManagementTab';
 
 function BoardSettingsModal({ 
   onClose, 
-  currentPracticeId, 
+  currentPracticeId,
+  currentBoardName,
+  isPersonalBoard,
+  user,
   boardBackground, 
   setBoardBackground, 
   predefinedBackgrounds, 
@@ -25,7 +29,8 @@ function BoardSettingsModal({
 
   const tabs = [
     { id: 'background', label: 'Background' },
-    { id: 'cards', label: 'Card Settings' }
+    { id: 'cards', label: 'Card Settings' },
+    ...(isPersonalBoard ? [{ id: 'users', label: 'User Management' }] : [])
   ];
 
   const handleEditTemplate = (template) => {
@@ -163,6 +168,16 @@ function BoardSettingsModal({
                   </div>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'users' && (
+              <UserManagementTab
+                currentPracticeId={currentPracticeId}
+                currentBoardName={currentBoardName}
+                isPersonalBoard={isPersonalBoard}
+                user={user}
+                getHeaders={getHeaders}
+              />
             )}
 
             {activeTab === 'cards' && (

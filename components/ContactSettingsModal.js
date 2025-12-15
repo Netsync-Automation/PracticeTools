@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useCsrf } from '../hooks/useCsrf';
 import { sanitizeText } from '../lib/sanitize';
 
-export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId, contactType, onSettingsChange }) {
+export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId, contactType, onSettingsChange, practiceGroupName }) {
   const { getHeaders } = useCsrf();
   const [fieldOptions, setFieldOptions] = useState({
     msaSigned: [],
@@ -284,6 +284,14 @@ export default function ContactSettingsModal({ isOpen, onClose, practiceGroupId,
             <div>
               <h2 className="text-xl sm:text-2xl font-bold">Contact Information Settings</h2>
               <p className="text-blue-100 text-sm mt-1">Manage field options and deleted records</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-500 text-white">
+                  Practice Group: {practiceGroupName || 'Unknown'}
+                </span>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-500 text-white">
+                  Type: {contactType || 'Unknown'}
+                </span>
+              </div>
             </div>
             <button
               onClick={() => {

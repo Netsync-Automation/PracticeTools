@@ -5,20 +5,22 @@ import { getSSMParameter } from '../../../../lib/ssm-helper.js';
 export async function POST(request) {
   try {
     console.log('🔧 [EMAIL-TEST] Starting email test...');
-    const { testEmail, appName } = await request.json();
-    console.log('📧 [EMAIL-TEST] Request data:', { testEmail, appName });
+    const { testEmail } = await request.json();
+    console.log('📧 [EMAIL-TEST] Request data:', { testEmail });
     
     if (!testEmail) {
       console.log('❌ [EMAIL-TEST] No test email provided');
       return NextResponse.json({ error: 'Test email address is required' }, { status: 400 });
     }
     
-    console.log('🔍 [EMAIL-TEST] Fetching SMTP parameters from SSM...');
-    const [smtpHost, smtpUser, smtpPassword, smtpPort] = await Promise.all([
+    console.log('🔍 [EMAIL-TEST] Fetching SMTP parameters and app settings from SSM...');
+    const [smtpHost, smtpUser, smtpPassword, smtpPort, appName, logoUrl] = await Promise.all([
       getSSMParameter('SMTP_HOST'),
       getSSMParameter('SMTP_USERNAME'),
       getSSMParameter('SMTP_PW'),
-      getSSMParameter('SMTP_PORT')
+      getSSMParameter('SMTP_PORT'),
+      getSSMParameter('APP_NAME'),
+      getSSMParameter('LOGO_URL')
     ]);
     
     const port = smtpPort || '587';
@@ -37,24 +39,19 @@ export async function POST(request) {
     }
     
     console.log('🔌 [EMAIL-TEST] Creating SMTP transporter...');
+    const portNum = parseInt(port);
     const transporterConfig = {
       host: smtpHost,
-      port: parseInt(port),
-      secure: parseInt(port) === 465,
-      requireTLS: parseInt(port) === 587,
+      port: portNum,
+      secure: false,
+      ignoreTLS: true,
       auth: {
         user: smtpUser,
         pass: smtpPassword
       },
-      tls: {
-        rejectUnauthorized: false,
-        servername: smtpHost,
-        secureProtocol: 'TLSv1_2_method'
-      },
       connectionTimeout: 30000,
       greetingTimeout: 20000,
-      socketTimeout: 30000,
-
+      socketTimeout: 30000
     };
     
     console.log('📋 [EMAIL-TEST] Transporter config:', {
@@ -82,19 +79,22 @@ export async function POST(request) {
     }
     
     // Test email content
+    const fromEmail = smtpUser.includes('@') ? smtpUser : `${smtpUser}@netsync.com`;
+    const applicationName = appName || 'PracticeTools';
     const mailOptions = {
-      from: `"${appName || 'Issue Tracker'}" <${smtpUser}>`,
+      from: `"${applicationName}" <${fromEmail}>`,
       to: testEmail,
-      subject: `Test Email from ${appName || 'Issue Tracker'}`,
+      subject: `Test Email from ${applicationName}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2563eb;">Email Configuration Test</h2>
-          <p>This is a test email from <strong>${appName || 'Issue Tracker'}</strong>.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          ${logoUrl ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${logoUrl}" alt="${applicationName}" style="max-width: 200px; height: auto;"></div>` : ''}
+          <h2 style="color: #2563eb; text-align: center;">Email Configuration Test</h2>
+          <p>This is a test email from <strong>${applicationName}</strong>.</p>
           <p>If you received this email, your SMTP configuration is working correctly!</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
           <p style="color: #6b7280; font-size: 14px;">
             Sent at: ${new Date().toLocaleString()}<br>
-            From: ${appName || 'Issue Tracker'}
+            From: ${applicationName}
           </p>
         </div>
       `
