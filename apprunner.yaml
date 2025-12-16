@@ -9,8 +9,8 @@ build:
       - echo "Installing dependencies..."
       - npm install
       - echo "Building application..."
-      - export NODE_OPTIONS="--max-old-space-size=2048"
-      - npm run build
+      - export NODE_OPTIONS="--max-old-space-size=1536"
+      - npm run build -- --experimental-worker-threads=false
       - echo "=== BUILD COMPLETED ==="
       - echo "Auto-versioning handled by local commit script"
 run:
