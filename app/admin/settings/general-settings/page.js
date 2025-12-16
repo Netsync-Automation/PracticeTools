@@ -349,31 +349,58 @@ export default function GeneralSettingsPage() {
                     This will create OpenSearch indices and index all companies and contacts from all practice groups. 
                     Run this after deployment or if search results are missing.
                   </p>
-                  <button
-                    onClick={async () => {
-                      if (!confirm('This will re-index all companies and contacts in OpenSearch. This may take a few minutes. Continue?')) return;
-                      const btn = event.target;
-                      btn.disabled = true;
-                      btn.textContent = 'Indexing...';
-                      try {
-                        const response = await fetch('/api/admin/index-contacts-opensearch', { method: 'POST' });
-                        const data = await response.json();
-                        if (data.success) {
-                          alert(`✓ Success!\n\nIndexed:\n• ${data.totalCompanies} companies\n• ${data.totalContacts} contacts`);
-                        } else {
-                          alert(`✗ Error: ${data.error}`);
+                  <div className="flex gap-3">
+                    <button
+                      onClick={async () => {
+                        if (!confirm('This will re-index all companies and contacts in OpenSearch. This may take a few minutes. Continue?')) return;
+                        const btn = event.target;
+                        btn.disabled = true;
+                        btn.textContent = 'Indexing...';
+                        try {
+                          const response = await fetch('/api/admin/index-contacts-opensearch', { method: 'POST' });
+                          const data = await response.json();
+                          if (data.success) {
+                            alert(`✓ Success!\n\nIndexed:\n• ${data.totalCompanies} companies\n• ${data.totalContacts} contacts`);
+                          } else {
+                            alert(`✗ Error: ${data.error}`);
+                          }
+                        } catch (error) {
+                          alert(`✗ Error: ${error.message}`);
+                        } finally {
+                          btn.disabled = false;
+                          btn.textContent = '🔍 Index Contacts Now';
                         }
-                      } catch (error) {
-                        alert(`✗ Error: ${error.message}`);
-                      } finally {
-                        btn.disabled = false;
-                        btn.textContent = '🔍 Index Contacts Now';
-                      }
-                    }}
-                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm flex items-center gap-2"
-                  >
-                    🔍 Index Contacts Now
-                  </button>
+                      }}
+                      className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm flex items-center gap-2"
+                    >
+                      🔍 Index Contacts Now
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!confirm('This will DELETE all OpenSearch contact indices. You will need to re-index afterwards. Continue?')) return;
+                        const btn = event.target;
+                        btn.disabled = true;
+                        btn.textContent = 'Deleting...';
+                        try {
+                          const response = await fetch('/api/admin/delete-contacts-opensearch', { method: 'DELETE' });
+                          const data = await response.json();
+                          if (data.success) {
+                            alert('✓ Indices deleted successfully');
+                          } else {
+                            alert(`✗ Error: ${data.error}`);
+                          }
+                        } catch (error) {
+                          alert(`✗ Error: ${error.message}`);
+                        } finally {
+                          btn.disabled = false;
+                          btn.textContent = '🗑️ Delete Indices';
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm flex items-center gap-2"
+                    >
+                      🗑️ Delete Indices
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -208,20 +208,14 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
     updateDropdownPosition();
 
     try {
-      // Build query parameters
       const params = new URLSearchParams({ q: term });
       
-      // Add practice group filter
       if (externalFilters?.practiceGroup) {
         params.append('practiceGroupId', externalFilters.practiceGroup);
       }
-      
-      // Add contact type
       if (contactType) {
         params.append('contactType', contactType);
       }
-      
-      // Add other filters
       if (activeFilters.tier) {
         params.append('tier', activeFilters.tier);
       }
@@ -233,6 +227,11 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       }
 
       const response = await fetch(`/api/search/contacts?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('OpenSearch failed');
+      }
+      
       const data = await response.json();
       const results = data.results || [];
 
@@ -244,7 +243,100 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
         setShowSearchResults(true);
       }
     } catch (error) {
-      setSearchResults([]);
+      console.warn('OpenSearch unavailable, using fallback search');
+      await performFallbackSearch(term);
+    }
+  };
+
+  const performFallbackSearch = async (term) => {
+    const searchLower = term.toLowerCase();
+    const results = [];
+
+    let companiesToSearch = [];
+    
+    if (externalFilters?.practiceGroup === '' && allPracticeGroups) {
+      for (const group of allPracticeGroups) {
+        try {
+          const response = await fetch(`/api/companies?practiceGroupId=${group.id}&contactType=${contactType}`);
+          const data = await response.json();
+          const companiesWithGroup = (data.companies || []).map(c => ({
+            ...c,
+            practiceGroupName: group.displayName,
+            contactType
+          }));
+          companiesToSearch.push(...companiesWithGroup);
+        } catch (error) {
+          // Continue
+        }
+      }
+    } else if (externalFilters?.practiceGroup) {
+      try {
+        const group = allPracticeGroups?.find(g => g.id === externalFilters.practiceGroup);
+        const response = await fetch(`/api/companies?practiceGroupId=${externalFilters.practiceGroup}&contactType=${contactType}`);
+        const data = await response.json();
+        companiesToSearch = (data.companies || []).map(c => ({
+          ...c,
+          practiceGroupName: group?.displayName || 'Unknown',
+          contactType
+        }));
+      } catch (error) {
+        companiesToSearch = [];
+      }
+    } else {
+      const group = allPracticeGroups?.find(g => g.id === practiceGroupId);
+      companiesToSearch = companies.map(c => ({
+        ...c,
+        practiceGroupName: group?.displayName || 'Unknown',
+        contactType
+      }));
+    }
+
+    companiesToSearch.forEach(company => {
+      if (Object.values(company).some(value => 
+        value && value.toString().toLowerCase().includes(searchLower)
+      )) {
+        results.push({
+          ...company,
+          type: 'company',
+          matchText: company.name
+        });
+      }
+    });
+
+    for (const company of companiesToSearch) {
+      try {
+        const response = await fetch(`/api/contacts?companyId=${company.id}`);
+        const data = await response.json();
+        const companyContacts = (data.contacts || []).map(contact => ({
+          ...contact,
+          companyName: company.name,
+          practiceGroupName: company.practiceGroupName,
+          contactType: company.contactType,
+          type: 'contact'
+        }));
+        
+        companyContacts.forEach(contact => {
+          if (Object.values(contact).some(value => 
+            value && value.toString().toLowerCase().includes(searchLower)
+          )) {
+            results.push({
+              ...contact,
+              matchText: `${contact.name} (${contact.companyName})`
+            });
+          }
+        });
+      } catch (error) {
+        // Continue
+      }
+    }
+
+    const limitedResults = results.slice(0, 10);
+    setSearchResults(limitedResults);
+    
+    if (externalSearchTerm !== undefined && onSearchResults) {
+      onSearchResults(limitedResults);
+    } else {
+      setShowSearchResults(true);
     }
   };
 

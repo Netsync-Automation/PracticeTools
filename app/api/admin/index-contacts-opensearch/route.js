@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { validateUserSession } from '../../../../lib/auth-check.js';
 import { db } from '../../../../lib/dynamodb.js';
-import { createContactIndices, indexCompany, indexContact } from '../../../../lib/opensearch-contacts.js';
+import { deleteContactIndices, createContactIndices, indexCompany, indexContact } from '../../../../lib/opensearch-contacts.js';
 
 export async function POST(request) {
   try {
@@ -12,6 +12,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    console.log('Deleting old OpenSearch indices...');
+    await deleteContactIndices();
+    
     console.log('Creating OpenSearch indices...');
     await createContactIndices();
     
