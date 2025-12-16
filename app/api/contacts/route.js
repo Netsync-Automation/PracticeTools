@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../lib/auth-check.js';
 import { validatePhoneNumber } from '../../../lib/phone-utils.js';
+import { indexContact, deleteContactFromIndex } from '../../../lib/opensearch-contacts.js';
 
 
 export const dynamic = 'force-dynamic';
@@ -74,6 +75,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Failed to save contact' }, { status: 500 });
     }
 
+    // Index in OpenSearch
+    const company = await db.getCompanyById(contact.companyId);
+    if (company) {
+      const practiceGroups = await db.getPracticeGroups();
+      const practiceGroup = practiceGroups.find(g => g.id === company.practiceGroupId);
+      await indexContact(savedContact, company.name, company.practiceGroupId, practiceGroup?.displayName || 'Unknown', company.contactType);
+    }
+
     return NextResponse.json({ contact: savedContact });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to save contact' }, { status: 500 });
@@ -118,6 +127,17 @@ export async function PUT(request) {
 
     if (!success) {
       return NextResponse.json({ error: 'Failed to update contact' }, { status: 500 });
+    }
+
+    // Re-index in OpenSearch
+    const updatedContact = await db.getContactById(id);
+    if (updatedContact) {
+      const company = await db.getCompanyById(updatedContact.companyId);
+      if (company) {
+        const practiceGroups = await db.getPracticeGroups();
+        const practiceGroup = practiceGroups.find(g => g.id === company.practiceGroupId);
+        await indexContact(updatedContact, company.name, company.practiceGroupId, practiceGroup?.displayName || 'Unknown', company.contactType);
+      }
     }
 
     return NextResponse.json({ success: true });
@@ -167,6 +187,9 @@ export async function DELETE(request) {
     if (!success) {
       return NextResponse.json({ error: 'Failed to delete contact' }, { status: 500 });
     }
+
+    // Mark as deleted in OpenSearch
+    await deleteContactFromIndex(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {

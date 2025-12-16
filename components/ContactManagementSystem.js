@@ -207,101 +207,44 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
 
     updateDropdownPosition();
 
-    const searchLower = term.toLowerCase();
-    const results = [];
-
-    // Determine which companies to search based on practice group filter
-    let companiesToSearch = [];
-    
-    // If practice group filter is "All", fetch and search all companies
-    if (externalFilters?.practiceGroup === '' && allPracticeGroups) {
-      for (const group of allPracticeGroups) {
-        try {
-          const response = await fetch(`/api/companies?practiceGroupId=${group.id}&contactType=${contactType}`);
-          const data = await response.json();
-          const companiesWithGroup = (data.companies || []).map(c => ({
-            ...c,
-            practiceGroupName: group.displayName,
-            contactType
-          }));
-          companiesToSearch.push(...companiesWithGroup);
-        } catch (error) {
-          // Continue with other groups
-        }
+    try {
+      // Build query parameters
+      const params = new URLSearchParams({ q: term });
+      
+      // Add practice group filter
+      if (externalFilters?.practiceGroup) {
+        params.append('practiceGroupId', externalFilters.practiceGroup);
       }
-    } else if (externalFilters?.practiceGroup) {
-      // If specific practice group filter is set, fetch companies from that group
-      try {
-        const group = allPracticeGroups?.find(g => g.id === externalFilters.practiceGroup);
-        const response = await fetch(`/api/companies?practiceGroupId=${externalFilters.practiceGroup}&contactType=${contactType}`);
-        const data = await response.json();
-        companiesToSearch = (data.companies || []).map(c => ({
-          ...c,
-          practiceGroupName: group?.displayName || 'Unknown',
-          contactType
-        }));
-      } catch (error) {
-        companiesToSearch = [];
+      
+      // Add contact type
+      if (contactType) {
+        params.append('contactType', contactType);
       }
-    } else {
-      // Use current displayed companies
-      const group = allPracticeGroups?.find(g => g.id === practiceGroupId);
-      companiesToSearch = companies.map(c => ({
-        ...c,
-        practiceGroupName: group?.displayName || 'Unknown',
-        contactType
-      }));
-    }
-
-    // Search companies
-    companiesToSearch.forEach(company => {
-      if (Object.values(company).some(value => 
-        value.toString().toLowerCase().includes(searchLower)
-      )) {
-        results.push({
-          ...company,
-          type: 'company',
-          matchText: company.name
-        });
+      
+      // Add other filters
+      if (activeFilters.tier) {
+        params.append('tier', activeFilters.tier);
       }
-    });
-
-    // Search contacts from the companies being searched
-    for (const company of companiesToSearch) {
-      try {
-        const response = await fetch(`/api/contacts?companyId=${company.id}`);
-        const data = await response.json();
-        const companyContacts = (data.contacts || []).map(contact => ({
-          ...contact,
-          companyName: company.name,
-          practiceGroupName: company.practiceGroupName,
-          contactType: company.contactType,
-          type: 'contact'
-        }));
-        
-        companyContacts.forEach(contact => {
-          if (Object.values(contact).some(value => 
-            value && value.toString().toLowerCase().includes(searchLower)
-          )) {
-            results.push({
-              ...contact,
-              matchText: `${contact.name} (${contact.companyName})`
-            });
-          }
-        });
-      } catch (error) {
-        // Continue with other companies
+      if (activeFilters.technology) {
+        params.append('technology', activeFilters.technology);
       }
-    }
+      if (activeFilters.solutionType) {
+        params.append('solutionType', activeFilters.solutionType);
+      }
 
-    const limitedResults = results.slice(0, 10);
-    setSearchResults(limitedResults);
-    
-    if (externalSearchTerm !== undefined && onSearchResults) {
-      // Pass results to parent when using external search
-      onSearchResults(limitedResults);
-    } else {
-      setShowSearchResults(true);
+      const response = await fetch(`/api/search/contacts?${params.toString()}`);
+      const data = await response.json();
+      const results = data.results || [];
+
+      setSearchResults(results);
+      
+      if (externalSearchTerm !== undefined && onSearchResults) {
+        onSearchResults(results);
+      } else {
+        setShowSearchResults(true);
+      }
+    } catch (error) {
+      setSearchResults([]);
     }
   };
 

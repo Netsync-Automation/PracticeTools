@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../lib/dynamodb.js';
 import { validateUserSession } from '../../../lib/auth-check.js';
+import { indexCompany, deleteCompanyFromIndex } from '../../../lib/opensearch-contacts.js';
 
 
 export const dynamic = 'force-dynamic';
@@ -74,6 +75,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Failed to save company' }, { status: 500 });
     }
 
+    // Index in OpenSearch
+    const practiceGroups = await db.getPracticeGroups();
+    const practiceGroup = practiceGroups.find(g => g.id === company.practiceGroupId);
+    await indexCompany(savedCompany, practiceGroup?.displayName || 'Unknown');
+
     return NextResponse.json({ company: savedCompany });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to save company' }, { status: 500 });
@@ -118,6 +124,14 @@ export async function PUT(request) {
 
     if (!success) {
       return NextResponse.json({ error: 'Failed to update company' }, { status: 500 });
+    }
+
+    // Re-index in OpenSearch
+    const updatedCompany = await db.getCompanyById(id);
+    if (updatedCompany) {
+      const practiceGroups = await db.getPracticeGroups();
+      const practiceGroup = practiceGroups.find(g => g.id === practiceGroupId);
+      await indexCompany(updatedCompany, practiceGroup?.displayName || 'Unknown');
     }
 
     return NextResponse.json({ success: true });
@@ -167,6 +181,9 @@ export async function DELETE(request) {
     if (!success) {
       return NextResponse.json({ error: 'Failed to delete company' }, { status: 500 });
     }
+
+    // Mark as deleted in OpenSearch
+    await deleteCompanyFromIndex(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
