@@ -329,6 +329,82 @@ export default function GeneralSettingsPage() {
               </div>
             </div>
 
+            {/* OpenSearch Indexing */}
+            <div className="bg-white rounded-xl shadow-sm border border-orange-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">OpenSearch Contact Indexing</h3>
+                  <p className="text-sm text-gray-600">Index all companies and contacts for fast search</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-sm text-gray-700 mb-4">
+                    This will create OpenSearch indices and index all companies and contacts from all practice groups. 
+                    Run this after deployment or if search results are missing.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={async () => {
+                        if (!confirm('This will re-index all companies and contacts in OpenSearch. This may take a few minutes. Continue?')) return;
+                        const btn = event.target;
+                        btn.disabled = true;
+                        btn.textContent = 'Indexing...';
+                        try {
+                          const response = await fetch('/api/admin/index-contacts-opensearch', { method: 'POST' });
+                          const data = await response.json();
+                          if (data.success) {
+                            alert(`✓ Success!\n\nIndexed:\n• ${data.totalCompanies} companies\n• ${data.totalContacts} contacts`);
+                          } else {
+                            alert(`✗ Error: ${data.error}`);
+                          }
+                        } catch (error) {
+                          alert(`✗ Error: ${error.message}`);
+                        } finally {
+                          btn.disabled = false;
+                          btn.textContent = '🔍 Index Contacts Now';
+                        }
+                      }}
+                      className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium text-sm flex items-center gap-2"
+                    >
+                      🔍 Index Contacts Now
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!confirm('This will DELETE all OpenSearch contact indices. You will need to re-index afterwards. Continue?')) return;
+                        const btn = event.target;
+                        btn.disabled = true;
+                        btn.textContent = 'Deleting...';
+                        try {
+                          const response = await fetch('/api/admin/delete-contacts-opensearch', { method: 'DELETE' });
+                          const data = await response.json();
+                          if (data.success) {
+                            alert('✓ Indices deleted successfully');
+                          } else {
+                            alert(`✗ Error: ${data.error}`);
+                          }
+                        } catch (error) {
+                          alert(`✗ Error: ${error.message}`);
+                        } finally {
+                          btn.disabled = false;
+                          btn.textContent = '🗑️ Delete Indices';
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm flex items-center gap-2"
+                    >
+                      🗑️ Delete Indices
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Save Button Footer */}
             <div className="mt-8 pt-6 border-t border-gray-200 flex justify-start">
               <button

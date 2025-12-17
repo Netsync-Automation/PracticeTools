@@ -9,6 +9,7 @@ build:
       - echo "Installing dependencies..."
       - npm install
       - echo "Building application..."
+      - export NODE_OPTIONS="--max-old-space-size=3072"
       - npm run build
       - echo "=== BUILD COMPLETED ==="
       - echo "Auto-versioning handled by local commit script"
@@ -27,10 +28,6 @@ run:
       value: dev
     - name: NEXT_TELEMETRY_DISABLED
       value: 1
-    - name: DEBUG
-      value: "*"
-    - name: NODE_OPTIONS
-      value: "--trace-warnings --trace-uncaught"
     - name: OPENSEARCH_ENDPOINT
       value: "https://8st52hujhn4om815yz4l.us-east-1.aoss.amazonaws.com"
   secrets:

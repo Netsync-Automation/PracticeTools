@@ -207,13 +207,53 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
 
     updateDropdownPosition();
 
+    try {
+      const params = new URLSearchParams({ q: term });
+      
+      if (externalFilters?.practiceGroup) {
+        params.append('practiceGroupId', externalFilters.practiceGroup);
+      }
+      if (contactType) {
+        params.append('contactType', contactType);
+      }
+      if (activeFilters.tier) {
+        params.append('tier', activeFilters.tier);
+      }
+      if (activeFilters.technology) {
+        params.append('technology', activeFilters.technology);
+      }
+      if (activeFilters.solutionType) {
+        params.append('solutionType', activeFilters.solutionType);
+      }
+
+      const response = await fetch(`/api/search/contacts?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('OpenSearch failed');
+      }
+      
+      const data = await response.json();
+      const results = data.results || [];
+
+      setSearchResults(results);
+      
+      if (externalSearchTerm !== undefined && onSearchResults) {
+        onSearchResults(results);
+      } else {
+        setShowSearchResults(true);
+      }
+    } catch (error) {
+      console.warn('OpenSearch unavailable, using fallback search');
+      await performFallbackSearch(term);
+    }
+  };
+
+  const performFallbackSearch = async (term) => {
     const searchLower = term.toLowerCase();
     const results = [];
 
-    // Determine which companies to search based on practice group filter
     let companiesToSearch = [];
     
-    // If practice group filter is "All", fetch and search all companies
     if (externalFilters?.practiceGroup === '' && allPracticeGroups) {
       for (const group of allPracticeGroups) {
         try {
@@ -226,11 +266,10 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
           }));
           companiesToSearch.push(...companiesWithGroup);
         } catch (error) {
-          // Continue with other groups
+          // Continue
         }
       }
     } else if (externalFilters?.practiceGroup) {
-      // If specific practice group filter is set, fetch companies from that group
       try {
         const group = allPracticeGroups?.find(g => g.id === externalFilters.practiceGroup);
         const response = await fetch(`/api/companies?practiceGroupId=${externalFilters.practiceGroup}&contactType=${contactType}`);
@@ -244,7 +283,6 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
         companiesToSearch = [];
       }
     } else {
-      // Use current displayed companies
       const group = allPracticeGroups?.find(g => g.id === practiceGroupId);
       companiesToSearch = companies.map(c => ({
         ...c,
@@ -253,10 +291,9 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       }));
     }
 
-    // Search companies
     companiesToSearch.forEach(company => {
       if (Object.values(company).some(value => 
-        value.toString().toLowerCase().includes(searchLower)
+        value && value.toString().toLowerCase().includes(searchLower)
       )) {
         results.push({
           ...company,
@@ -266,7 +303,6 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       }
     });
 
-    // Search contacts from the companies being searched
     for (const company of companiesToSearch) {
       try {
         const response = await fetch(`/api/contacts?companyId=${company.id}`);
@@ -290,7 +326,7 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
           }
         });
       } catch (error) {
-        // Continue with other companies
+        // Continue
       }
     }
 
@@ -298,7 +334,6 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
     setSearchResults(limitedResults);
     
     if (externalSearchTerm !== undefined && onSearchResults) {
-      // Pass results to parent when using external search
       onSearchResults(limitedResults);
     } else {
       setShowSearchResults(true);

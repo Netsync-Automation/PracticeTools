@@ -17,8 +17,10 @@ export async function GET(request) {
     const resourceRules = JSON.parse(await db.getSetting('resourceRules') || '[]');
 
     return NextResponse.json({
-      resourceEmailEnabled,
-      resourceRules
+      settings: {
+        resourceEmailEnabled,
+        resourceRules
+      }
     });
 
   } catch (error) {
