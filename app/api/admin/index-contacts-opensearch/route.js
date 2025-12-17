@@ -18,38 +18,34 @@ export async function POST(request) {
     console.log('Creating OpenSearch indices...');
     await createContactIndices();
     
-    console.log('Fetching practice groups...');
-    const practiceGroups = await db.getPracticeGroups();
+    console.log('Fetching all companies...');
+    const { DynamoDBClient } = await import('@aws-sdk/client-dynamodb');
+    const { DynamoDBDocumentClient, ScanCommand } = await import('@aws-sdk/lib-dynamodb');
+    const { getTableName } = await import('../../../../lib/dynamodb.js');
     
-    console.log(`Found ${practiceGroups.length} practice groups`);
+    const dynamoClient = DynamoDBDocumentClient.from(new DynamoDBClient({ region: 'us-east-1' }));
     
     let totalCompanies = 0;
     let totalContacts = 0;
     
-    for (const group of practiceGroups) {
-      console.log(`Processing practice group: ${group.displayName}`);
-      
-      const contactTypes = await db.getContactTypes(group.id);
-      const types = ['Main Contact List', ...(contactTypes || [])];
-      
-      for (const contactType of types) {
-        console.log(`  Processing contact type: ${contactType}`);
-        
-        const companies = await db.getCompanies(group.id, contactType);
-        console.log(`    Found ${companies.length} companies`);
-        
-        for (const company of companies) {
-          await indexCompany(company, group.displayName);
-          totalCompanies++;
-          
-          const contacts = await db.getContacts(company.id);
-          
-          for (const contact of contacts) {
-            await indexContact(contact, company.name, group.id, group.displayName, contactType);
-            totalContacts++;
-          }
-        }
-      }
+    const compResult = await dynamoClient.send(new ScanCommand({ TableName: getTableName('Companies') }));
+    const companies = compResult.Items || [];
+    console.log(`Found ${companies.length} companies`);
+    
+    for (const company of companies) {
+      await indexCompany(company, '');
+      totalCompanies++;
+    }
+    
+    console.log('Fetching all contacts...');
+    const contResult = await dynamoClient.send(new ScanCommand({ TableName: getTableName('Contacts') }));
+    const contacts = contResult.Items || [];
+    console.log(`Found ${contacts.length} contacts`);
+    
+    for (const contact of contacts) {
+      const company = companies.find(c => c.id === contact.company_id);
+      await indexContact(contact, company?.name || '', company?.practice_group_id || '', '', company?.contact_type || '');
+      totalContacts++;
     }
     
     return NextResponse.json({

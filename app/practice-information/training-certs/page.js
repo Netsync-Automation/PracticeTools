@@ -468,6 +468,7 @@ export default function TrainingCertsPage() {
               }}
               user={user}
               settings={settings}
+              practiceOptions={practiceOptions}
             />
 
             <SettingsModal
@@ -952,7 +953,7 @@ function TrainingCertsTable({ entries, filters, currentPage, entriesPerPage, onP
     </div>
   );
 }
-function AddTrainingModal({ isOpen, onClose, user, settings }) {
+function AddTrainingModal({ isOpen, onClose, user, settings, practiceOptions: allPracticeOptions }) {
   const [formData, setFormData] = useState({
     practice: user?.practices?.[0] || '',
     type: '',
@@ -969,28 +970,28 @@ function AddTrainingModal({ isOpen, onClose, user, settings }) {
     notes: ''
   });
   const [saving, setSaving] = useState(false);
-  const [practiceOptions, setPracticeOptions] = useState({ vendors: [], levels: [], types: [] });
+  const [practiceSettings, setPracticeSettings] = useState({ vendors: [], levels: [], types: [] });
 
   useEffect(() => {
-    const loadPracticeOptions = async () => {
+    const loadPracticeSettings = async () => {
       if (formData.practice) {
         try {
           const response = await fetch(`/api/training-certs/settings?practice=${encodeURIComponent(formData.practice)}`);
           if (response.ok) {
             const data = await response.json();
-            setPracticeOptions(data.settings || { vendors: [], levels: [], types: [] });
+            setPracticeSettings(data.settings || { vendors: [], levels: [], types: [] });
           }
         } catch (error) {
-          console.error('Error loading practice options:', error);
-          setPracticeOptions({ vendors: [], levels: [], types: [] });
+          console.error('Error loading practice settings:', error);
+          setPracticeSettings({ vendors: [], levels: [], types: [] });
         }
       } else {
-        setPracticeOptions({ vendors: [], levels: [], types: [] });
+        setPracticeSettings({ vendors: [], levels: [], types: [] });
       }
     };
     
     if (isOpen) {
-      loadPracticeOptions();
+      loadPracticeSettings();
     }
   }, [formData.practice, isOpen]);
 
@@ -1054,7 +1055,7 @@ function AddTrainingModal({ isOpen, onClose, user, settings }) {
                   required
                 >
                   <option value="">Select Practice</option>
-                  {(practiceOptions || []).filter(practice => 
+                  {(allPracticeOptions || []).filter(practice => 
                     user?.isAdmin || (user?.practices || []).includes(practice)
                   ).map(practice => (
                     <option key={practice} value={practice}>{practice}</option>
@@ -1086,7 +1087,7 @@ function AddTrainingModal({ isOpen, onClose, user, settings }) {
                   required
                 >
                   <option value="">Select Vendor</option>
-                  {practiceOptions.vendors.map(vendor => (
+                  {practiceSettings.vendors.map(vendor => (
                     <option key={vendor} value={vendor}>{vendor}</option>
                   ))}
                 </select>
@@ -1099,7 +1100,7 @@ function AddTrainingModal({ isOpen, onClose, user, settings }) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select Level</option>
-                  {practiceOptions.levels.map(level => (
+                  {practiceSettings.levels.map(level => (
                     <option key={level} value={level}>{level}</option>
                   ))}
                 </select>
@@ -1137,7 +1138,7 @@ function AddTrainingModal({ isOpen, onClose, user, settings }) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select Type/Path</option>
-                  {practiceOptions.types.map(type => (
+                  {practiceSettings.types.map(type => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
