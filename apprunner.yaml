@@ -6,6 +6,7 @@ build:
       - echo "Installing dependencies..."
       - npm install
       - echo "Building application..."
+      - export NODE_OPTIONS="--max-old-space-size=3072"
       - npm run build
       - echo "=== BUILD COMPLETED ==="
       - echo "Auto-versioning handled by local commit script"
