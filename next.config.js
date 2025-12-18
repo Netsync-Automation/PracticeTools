@@ -9,7 +9,9 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['netsync.login.duosecurity.com', 'sso-79bfacfb.sso.duosecurity.com']
     },
-    optimizeCss: true
+    optimizeCss: true,
+    workerThreads: false,
+    cpus: 1
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
