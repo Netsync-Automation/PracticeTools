@@ -1,0 +1,105 @@
+{
+    "events": [
+        {
+            "timestamp": 1765993905026,
+            "message": "> issues-tracker@3.0.1 prestart",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905026,
+            "message": "> node startup-env-sync.js",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905083,
+            "message": "Running in AWS environment, skipping git branch detection",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905084,
+            "message": "Environment variables managed by AWS App Runner",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905090,
+            "message": "> issues-tracker@3.0.1 start",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905090,
+            "message": "> node server.js",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905273,
+            "message": "[STARTUP] Server initialization starting...",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905273,
+            "message": "[STARTUP] Environment variables:",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905273,
+            "message": "  - NODE_ENV: production",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905273,
+            "message": "  - ENVIRONMENT: prod",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905273,
+            "message": "  - PORT: 3000",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905274,
+            "message": "  - AWS_REGION: us-east-1",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905274,
+            "message": "  - AWS_EXECUTION_ENV: AWS_ECS_FARGATE",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905274,
+            "message": "  - NEXTAUTH_URL: SET",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905274,
+            "message": "  - ADMIN_API_KEY: SET",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905274,
+            "message": "[STARTUP] Next.js dev mode: false",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905274,
+            "message": "[STARTUP] Server will listen on: 0.0.0.0:3000",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905274,
+            "message": "[STARTUP] Next.js app created, preparing...",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993905581,
+            "message": "[STARTUP] Next.js app prepared successfully",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993906664,
+            "message": "[DYNAMODB] Environment detected: prod (from ENVIRONMENT=prod)",
+            "ingestionTime": 1765993909156
+        },
+        {
+            "timestamp": 1765993906664,
+            "message": 
