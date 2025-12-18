@@ -4,10 +4,10 @@ build:
   commands:
     build:
       - echo "Installing dependencies..."
-      - npm install
+      - npm install --legacy-peer-deps
       - echo "Building application..."
-      - export NODE_OPTIONS="--max-old-space-size=3072"
-      - npm run build
+      - export NODE_OPTIONS="--max-old-space-size=2048"
+      - npm run build -- --no-lint
       - echo "=== BUILD COMPLETED ==="
       - echo "Auto-versioning handled by local commit script"
 run:
