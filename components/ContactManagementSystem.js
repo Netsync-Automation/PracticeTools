@@ -213,7 +213,8 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
       if (externalFilters?.practiceGroup) {
         params.append('practiceGroupId', externalFilters.practiceGroup);
       }
-      if (contactType) {
+      // Only filter by contactType when NOT doing a global search
+      if (contactType && externalSearchTerm === undefined) {
         params.append('contactType', contactType);
       }
       if (activeFilters.tier) {
@@ -257,14 +258,20 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
     if (externalFilters?.practiceGroup === '' && allPracticeGroups) {
       for (const group of allPracticeGroups) {
         try {
-          const response = await fetch(`/api/companies?practiceGroupId=${group.id}&contactType=${contactType}`);
-          const data = await response.json();
-          const companiesWithGroup = (data.companies || []).map(c => ({
-            ...c,
-            practiceGroupName: group.displayName,
-            contactType
-          }));
-          companiesToSearch.push(...companiesWithGroup);
+          const typesResponse = await fetch(`/api/contact-types?practiceGroupId=${group.id}`);
+          const typesData = await typesResponse.json();
+          const types = ['Main Contact List', ...(typesData.contactTypes || [])];
+          
+          for (const type of types) {
+            const response = await fetch(`/api/companies?practiceGroupId=${group.id}&contactType=${type}`);
+            const data = await response.json();
+            const companiesWithGroup = (data.companies || []).map(c => ({
+              ...c,
+              practiceGroupName: group.displayName,
+              contactType: type
+            }));
+            companiesToSearch.push(...companiesWithGroup);
+          }
         } catch (error) {
           // Continue
         }
@@ -272,13 +279,20 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
     } else if (externalFilters?.practiceGroup) {
       try {
         const group = allPracticeGroups?.find(g => g.id === externalFilters.practiceGroup);
-        const response = await fetch(`/api/companies?practiceGroupId=${externalFilters.practiceGroup}&contactType=${contactType}`);
-        const data = await response.json();
-        companiesToSearch = (data.companies || []).map(c => ({
-          ...c,
-          practiceGroupName: group?.displayName || 'Unknown',
-          contactType
-        }));
+        const typesResponse = await fetch(`/api/contact-types?practiceGroupId=${externalFilters.practiceGroup}`);
+        const typesData = await typesResponse.json();
+        const types = ['Main Contact List', ...(typesData.contactTypes || [])];
+        
+        for (const type of types) {
+          const response = await fetch(`/api/companies?practiceGroupId=${externalFilters.practiceGroup}&contactType=${type}`);
+          const data = await response.json();
+          const companiesWithGroup = (data.companies || []).map(c => ({
+            ...c,
+            practiceGroupName: group?.displayName || 'Unknown',
+            contactType: type
+          }));
+          companiesToSearch.push(...companiesWithGroup);
+        }
       } catch (error) {
         companiesToSearch = [];
       }
@@ -2001,6 +2015,11 @@ export default function ContactManagementSystem({ practiceGroupId, contactType, 
                         : `${result.role} • ${result.email}`
                       }
                     </div>
+                    {(result.practiceGroupName || result.contactType) && (
+                      <div className="text-xs text-gray-400 mt-1">
+                        {result.practiceGroupName} • {result.contactType}
+                      </div>
+                    )}
                   </div>
                   <div className={`px-2 py-1 text-xs rounded-full ${
                     result.type === 'company' 

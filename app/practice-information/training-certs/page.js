@@ -431,6 +431,7 @@ export default function TrainingCertsPage() {
               user={user}
               settings={settings}
               canEdit={canEdit}
+              practiceOptions={practiceOptions}
               onSave={() => {
                 const fetchEntries = async () => {
                   try {
@@ -1362,7 +1363,7 @@ function SettingsModal({ isOpen, onClose, settings, onSettingsUpdate, user }) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
             >
               <option value="">Choose a practice...</option>
-              {(practiceOptions || []).map(practice => (
+              {(allPracticeOptions || []).map(practice => (
                 <option key={practice} value={practice}>{practice}</option>
               ))}
             </select>
@@ -1483,7 +1484,7 @@ function SettingsModal({ isOpen, onClose, settings, onSettingsUpdate, user }) {
     </div>
   );
 }
-function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, onSave }) {
+function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, onSave, practiceOptions: allPracticeOptions }) {
   const [formData, setFormData] = useState({
     practice: '',
     type: '',
@@ -1501,7 +1502,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [practiceOptions, setPracticeOptions] = useState({ vendors: [], levels: [], types: [] });
+  const [practiceSettings, setPracticeSettings] = useState({ vendors: [], levels: [], types: [] });
   const [activeTab, setActiveTab] = useState('details');
   const [userSignedUp, setUserSignedUp] = useState(false);
   const [userCompleted, setUserCompleted] = useState(false);
@@ -1551,11 +1552,11 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
           const response = await fetch(`/api/training-certs/settings?practice=${encodeURIComponent(formData.practice)}`);
           if (response.ok) {
             const data = await response.json();
-            setPracticeOptions(data.settings || { vendors: [], levels: [], types: [] });
+            setPracticeSettings(data.settings || { vendors: [], levels: [], types: [] });
           }
         } catch (error) {
           console.error('Error loading practice options:', error);
-          setPracticeOptions({ vendors: [], levels: [], types: [] });
+          setPracticeSettings({ vendors: [], levels: [], types: [] });
         }
       } else {
         setPracticeOptions({ vendors: [], levels: [], types: [] });
@@ -1837,7 +1838,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                       required
                     >
                       <option value="">Select Practice</option>
-                      {(practiceOptions || []).filter(practice => 
+                      {(allPracticeOptions || []).filter(practice => 
                         user?.isAdmin || (user?.practices || []).includes(practice)
                       ).map(practice => (
                         <option key={practice} value={practice}>{practice}</option>
@@ -1887,7 +1888,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                       required
                     >
                       <option value="">Select Vendor</option>
-                      {practiceOptions.vendors.map(vendor => (
+                      {practiceSettings.vendors.map(vendor => (
                         <option key={vendor} value={vendor}>{vendor}</option>
                       ))}
                     </select>
@@ -1909,7 +1910,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">Select Level</option>
-                      {practiceOptions.levels.map(level => (
+                      {practiceSettings.levels.map(level => (
                         <option key={level} value={level}>{level}</option>
                       ))}
                     </select>
@@ -1958,7 +1959,7 @@ function EditTrainingModal({ isOpen, onClose, entry, user, settings, canEdit, on
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">Select Type/Path</option>
-                      {practiceOptions.types.map(type => (
+                      {practiceSettings.types.map(type => (
                         <option key={type} value={type}>{type}</option>
                       ))}
                     </select>

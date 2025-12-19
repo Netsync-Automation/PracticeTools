@@ -79,8 +79,10 @@ export async function POST(request) {
     const company = await db.getCompanyById(contact.companyId);
     if (company) {
       const practiceGroups = await db.getPracticeGroups();
-      const practiceGroup = practiceGroups.find(g => g.id === company.practiceGroupId);
-      await indexContact(savedContact, company.name, company.practiceGroupId, practiceGroup?.displayName || 'Unknown', company.contactType);
+      const practiceGroupId = company.practice_group_id || company.practiceGroupId;
+      const contactType = company.contact_type || company.contactType;
+      const practiceGroup = practiceGroups.find(g => g.id === practiceGroupId);
+      await indexContact(savedContact, company.name, practiceGroupId, practiceGroup?.displayName || 'Unknown', contactType);
     }
 
     return NextResponse.json({ contact: savedContact });
@@ -132,11 +134,14 @@ export async function PUT(request) {
     // Re-index in OpenSearch
     const updatedContact = await db.getContactById(id);
     if (updatedContact) {
-      const company = await db.getCompanyById(updatedContact.companyId);
+      const companyId = updatedContact.companyId || updatedContact.company_id;
+      const company = await db.getCompanyById(companyId);
       if (company) {
         const practiceGroups = await db.getPracticeGroups();
-        const practiceGroup = practiceGroups.find(g => g.id === company.practiceGroupId);
-        await indexContact(updatedContact, company.name, company.practiceGroupId, practiceGroup?.displayName || 'Unknown', company.contactType);
+        const practiceGroupId = company.practice_group_id || company.practiceGroupId;
+        const contactType = company.contact_type || company.contactType;
+        const practiceGroup = practiceGroups.find(g => g.id === practiceGroupId);
+        await indexContact(updatedContact, company.name, practiceGroupId, practiceGroup?.displayName || 'Unknown', contactType);
       }
     }
 
