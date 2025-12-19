@@ -18,6 +18,9 @@ export async function POST(request) {
     console.log('Creating OpenSearch indices...');
     await createContactIndices();
     
+    console.log('Fetching practice groups...');
+    const practiceGroups = await db.getPracticeGroups();
+    
     console.log('Fetching all companies...');
     const { DynamoDBClient } = await import('@aws-sdk/client-dynamodb');
     const { DynamoDBDocumentClient, ScanCommand } = await import('@aws-sdk/lib-dynamodb');
@@ -29,23 +32,34 @@ export async function POST(request) {
     let totalContacts = 0;
     
     const compResult = await dynamoClient.send(new ScanCommand({ TableName: getTableName('Companies') }));
-    const companies = compResult.Items || [];
+    const companies = (compResult.Items || []).filter(c => !c.is_deleted);
     console.log(`Found ${companies.length} companies`);
     
     for (const company of companies) {
-      await indexCompany(company, '');
+      const practiceGroup = practiceGroups.find(g => g.id === company.practice_group_id);
+      await indexCompany(company, practiceGroup?.displayName || '');
       totalCompanies++;
     }
     
     console.log('Fetching all contacts...');
     const contResult = await dynamoClient.send(new ScanCommand({ TableName: getTableName('Contacts') }));
-    const contacts = contResult.Items || [];
+    const contacts = (contResult.Items || []).filter(c => !c.is_deleted);
     console.log(`Found ${contacts.length} contacts`);
     
     for (const contact of contacts) {
       const company = companies.find(c => c.id === contact.company_id);
-      await indexContact(contact, company?.name || '', company?.practice_group_id || '', '', company?.contact_type || '');
+      const practiceGroup = practiceGroups.find(g => g.id === company?.practice_group_id);
+      await indexContact(contact, company?.name || '', company?.practice_group_id || '', practiceGroup?.displayName || '', company?.contact_type || '');
       totalContacts++;
+    }
+    
+    console.log('Refreshing indices...');
+    const { createOpenSearchClient } = await import('../../../../lib/opensearch-setup.js');
+    const client = createOpenSearchClient();
+    try {
+      await client.indices.refresh({ index: '_all' });
+    } catch (error) {
+      console.log('Refresh skipped (indices may not exist yet)');
     }
     
     return NextResponse.json({
