@@ -478,6 +478,7 @@ export default function TrainingCertsPage() {
               settings={settings}
               onSettingsUpdate={setSettings}
               user={user}
+              practiceOptions={practiceOptions}
             />
 
             <CompletionModal
@@ -1243,7 +1244,7 @@ function AddTrainingModal({ isOpen, onClose, user, settings, practiceOptions: al
     </div>
   );
 }
-function SettingsModal({ isOpen, onClose, settings, onSettingsUpdate, user }) {
+function SettingsModal({ isOpen, onClose, settings, onSettingsUpdate, user, practiceOptions: allPracticeOptions }) {
   const [selectedPractice, setSelectedPractice] = useState('');
   const [localSettings, setLocalSettings] = useState({ vendors: [], levels: [], types: [] });
   const [activeCategory, setActiveCategory] = useState('vendors');
